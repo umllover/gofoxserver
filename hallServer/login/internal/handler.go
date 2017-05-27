@@ -10,6 +10,7 @@ import (
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/chanrpc"
 	"mj/hallServer/gameList"
 )
 
@@ -28,19 +29,36 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
+	//rpc
+	handleRpc("NewAgent", NewAgent, chanrpc.FuncCommon)
+	handleRpc("CloseAgent", CloseAgent, chanrpc.FuncCommon)
 
+	//c2s
 	handlerC2S(&msg.C2L_Login{}, handleMBLogin)
 	handlerC2S(&msg.C2L_Regist{}, handleMBRegist)
 }
 
+//连接进来的通知
+func NewAgent(args []interface{}) error{
+	log.Debug("at hall NewAgent")
+	return nil
+}
+
+//连接关闭的同喜
+func CloseAgent (args []interface{}) error {
+	log.Debug("at hall CloseAgent")
+	return nil
+}
+
+
 func handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_Login)
-	retMsg := &msg.CMD_MB_LogonSuccess{}
+	retMsg := &msg.L2C_LogonSuccess{}
 	agent := args[1].(gate.Agent)
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			agent.WriteMsg(&msg.CMD_GP_LogonFailure{ResultCode: retcode, DescribeString: "登录失败"})
+			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: "登录失败"})
 		} else {
 			agent.WriteMsg(retMsg)
 		}
@@ -85,10 +103,10 @@ func handleMBRegist(args []interface{}) {
 	retcode := 0
 	recvMsg := args[0].(*msg.C2L_Regist)
 	agent := args[1].(gate.Agent)
-	retMsg := &msg.CMD_MB_LogonSuccess{}
+	retMsg := &msg.L2C_LogonSuccess{}
 	defer func() {
 		if retcode != 0 {
-			agent.WriteMsg(&msg.CMD_GP_LogonFailure{ResultCode: retcode, DescribeString: "登录失败"})
+			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: "登录失败"})
 		} else {
 			agent.WriteMsg(retMsg)
 		}
@@ -230,7 +248,7 @@ func createUser(UserID int)  (*user.User, bool) {
 	return U, true
 }
 
-func BuildClientMsg(retMsg *msg.CMD_MB_LogonSuccess, user *user.User){
+func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User){
 	retMsg.FaceID = user.FaceID	//头像标识
 	retMsg.Gender  = user.Gender
 	retMsg.UserID  = user.Id

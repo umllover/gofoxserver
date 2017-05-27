@@ -1,25 +1,24 @@
 package user
 
 import (
-	"sync"
-	"net"
+	"mj/gameServer/db/model"
 	"github.com/lovelly/leaf/gate"
+	"sync"
 )
 
-type WAgent interface {
-	WriteMsg(msg interface{})
-	LocalAddr() net.Addr
-	RemoteAddr() net.Addr
-	UserData() interface{}
-}
-
 type User struct {
-	WAgent
+	gate.Agent
+	*model.Accountsinfo
+	*model.Accountsmember
+	*model.Gamescorelocker
+	*model.Gamescoreinfo
+	*model.Userroomcard
+	*model.Userextrainfo
 	Id int
-	RoomId int  //当前在哪个房间
+	RoomId int
 	sync.RWMutex
 }
 
-func NewUser(UserId int,a gate.Agent ) *User {
-	return &User{Id : UserId, WAgent:a}
+func NewUser(UserId int) *User {
+	return &User{Id : UserId}
 }

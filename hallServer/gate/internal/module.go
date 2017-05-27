@@ -4,6 +4,7 @@ import (
 	"github.com/lovelly/leaf/gate"
 	"mj/hallServer/conf"
 	"mj/common/msg"
+	"mj/hallServer/login"
 )
 
 type Module struct {
@@ -29,6 +30,7 @@ func (m *Module) OnInit() {
 		ChanRPCLen:         conf.AgentChanRPCLen,
 		OnAgentInit:        onAgentInit,
 		OnAgentDestroy:     onAgentDestroy,
+		AgentChanRPC: login.ChanRPC,
 	}
 
 }

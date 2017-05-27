@@ -13,7 +13,7 @@
     "BaseDbPassword":"root",
     "UserDbHost":"localhost",
     "UserDbPort":3306,
-    "UserDbName":"mqjx_game",
+    "UserDbName":"mqjx_user",
     "UserDbUsername":"root",
     "UserDbPassword":"root",
     "StatsDbHost":"localhost",

@@ -9,6 +9,7 @@ import (
 	"mj/gameServer/center"
 	"mj/gameServer/kindList"
 	"mj/gameServer/gate"
+	"mj/gameServer/login"
 	"github.com/lovelly/leaf/module"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/db"
@@ -38,6 +39,7 @@ func main() {
 	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
 	modules = append(modules, consul.Module)
+	modules = append(modules, login.Module)
 	modules = append(modules, kindList.GetModules()...)
 
 	leaf.Run(modules...)
