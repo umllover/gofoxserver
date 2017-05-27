@@ -3,7 +3,7 @@ package internal
 import (
 	"mj/common/msg"
 	"mj/hallServer/user"
-	. "mj/common/cost"
+	//. "mj/common/cost"
 	"reflect"
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
@@ -42,7 +42,8 @@ func delUser(args []interface{}) {
 	user, ok := userMap[userId]
 	if ok {
 		delete(userMap, userId)
-		cluster.Go(GetGameSvrName(user.ServerID), "UserOffline", user)
+		_ = user
+		//cluster.Go(GetGameSvrName(user.ServerID), "UserOffline", user)
 	}
 }
 

@@ -197,11 +197,11 @@ func (a *agent) OnClose() {
 func (a *agent) WriteMsg(msg interface{}) {
 	if a.gate.Processor != nil {
 		data, err := a.gate.Processor.Marshal(msg)
-		log.Debug("OUT msg : %s, userId:%v", string(data[0]), a.UserData())
 		if err != nil {
 			log.Error("marshal message %v error: %v", reflect.TypeOf(msg), err)
 			return
 		}
+		log.Debug("OUT msg : %s, userId:%v", string(data[0]), a.UserData())
 		err = a.conn.WriteMsg(data...)
 		if err != nil {
 			log.Error("write message %v error: %v", reflect.TypeOf(msg), err)

@@ -68,19 +68,19 @@ type DBConfig struct {}
 
 func (c *DBConfig) GetBaseDSN()string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&charset=utf8mb4")
+		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&interpolateParams=true")
 	return s
 }
 
 func (c *DBConfig) GetUserDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.UserDbUsername, Server.UserDbPassword, Server.UserDbHost, Server.UserDbPort, Server.UserDbName, "parseTime=true&charset=utf8mb4")
+		Server.UserDbUsername, Server.UserDbPassword, Server.UserDbHost, Server.UserDbPort, Server.UserDbName, "parseTime=true&charset=utf8mb4&interpolateParams=true")
 	return s
 }
 
 func (c *DBConfig) GetStatsDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName, "parseTime=true&charset=utf8mb4")
+		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName,"parseTime=true&interpolateParams=true")
 	return s
 }
 

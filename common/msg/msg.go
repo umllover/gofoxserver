@@ -18,6 +18,7 @@ func init() {
 	Processor.Register(&C2G_CreateRoom{})
 	Processor.Register(&C2G_HZOutCard{})
 	Processor.Register(&L2C_ServerList{})
+	Processor.Register(&L2C_ServerListFinish{})
 
 }
 
@@ -99,6 +100,10 @@ type CMD_MB_LogonSuccess struct {
 };
 
 type L2C_ServerList []*TagGameServer
+
+type L2C_ServerListFinish struct {
+
+}
 
 ////////////// game sverver proto
 //创建房间

@@ -65,13 +65,16 @@ func handleMBLogin(args []interface{}) {
 	//	return
 	//}
 
-	user, lok := loadUser(accountData.UserID)
+	user := user.NewUser(accountData.UserID)
+	user.Accountsinfo = accountData
+	user.Id = accountData.UserID
+	lok := loadUser(user)
 	if !lok {
 		retcode = LoadUserInfoError
 		return
 	}
 
-	user.Accountsinfo = accountData
+
 	agent.SetUserData(accountData.UserID)
 	BuildClientMsg(retMsg, user)
 	userDatach.Go("addUser", user)
@@ -104,16 +107,17 @@ func handleMBRegist(args []interface{}) {
 		FaceID:   recvMsg.FaceID,   //头像标识
 		Gender:   recvMsg.Gender,   //用户性别
 		Accounts: recvMsg.Accounts, //登录帐号
+		RegAccounts: recvMsg.Accounts,
+		LogonPass: recvMsg.LogonPass,
+		InsurePass: recvMsg.InsurePass,
 		NickName: recvMsg.NickName, //用户昵称
-
-		//密码变量
-		LogonPass:  recvMsg.LogonPass,  //登录密码
-		InsurePass: recvMsg.InsurePass, //银行密码
-
-		//附加信息
+		GameLogonTimes:1,
+		LastLogonIP:agent.RemoteAddr().String(),
+		LastLogonMobile:recvMsg.MobilePhone,
+		LastLogonMachine:recvMsg.MachineID,
+		RegisterMobile:recvMsg.MobilePhone,
+		RegisterMachine: recvMsg.MachineID,
 		RegisterIP:      agent.RemoteAddr().String(), //连接地址
-		RegisterMachine: recvMsg.MachineID,           //机器序列
-		RegisterMobile:  recvMsg.MobilePhone,         //电话号码
 	}
 
 	lastid, err := model.AccountsinfoOp.Insert(accInfo)
@@ -136,39 +140,44 @@ func handleMBRegist(args []interface{}) {
 
 
 ///////
-func loadUser(UserID int) (*user.User, bool){
-	U := user.NewUser(UserID)
-
-	ainfo, aok := model.AccountsmemberOp.Get(UserID, 1) // todo ...
+func loadUser(u *user.User) ( bool){
+	ainfo, aok := model.AccountsmemberOp.Get(u.Id, u.Accountsinfo.MemberOrder)
 	if !aok {
-		return nil, false
+		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
+		return false
 	}
-	U.Accountsmember = ainfo
 
-	glInfo, glok := model.GamescorelockerOp.Get(UserID)
+	log.Debug("load user : == %v", ainfo)
+	u.Accountsmember = ainfo
+
+	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
-		return nil, false
+		log.Error("at loadUser not foud GamescorelockerOp by user %d", u.Id)
+		return  false
 	}
-	U.Gamescorelocker = glInfo
+	u.Gamescorelocker = glInfo
 
-	giInfom, giok := model.GamescoreinfoOp.Get(UserID)
+	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
 	if !giok {
-		return nil, false
+		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
+		return  false
 	}
-	U.Gamescoreinfo = giInfom
+	u.Gamescoreinfo = giInfom
 
-	ucInfo, uok := model.UserroomcardOp.Get(UserID)
+	ucInfo, uok := model.UserroomcardOp.Get(u.Id)
 	if !uok {
-		return nil, false
+		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
+		return  false
 	}
-	U.Userroomcard = ucInfo
+	u.Userroomcard = ucInfo
 
-	uextInfo, ueok := model.UserextrainfoOp.Get(UserID)
+	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
 	if !ueok {
-		return nil, false
+		log.Error("at loadUser not foud UserextrainfoOp by user  %d", u.Id)
+		return  false
 	}
-	U.Userextrainfo = uextInfo
-	return U, true
+	u.Userextrainfo = uextInfo
+	return  true
 }
 
 func createUser(UserID int)  (*user.User, bool) {

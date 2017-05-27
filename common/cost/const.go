@@ -32,9 +32,9 @@ func RenderErrorMessage(code int) *msg.ShowErrCode {
 }
 
 func GetGameSvrName(sververId int) string{
-	return fmt.Sprint(GamePrefix +"_%d", sververId)
+	return fmt.Sprintf(GamePrefix +"_%d", sververId)
 }
 func GetHallSvrName(sververId int) string{
-	return fmt.Sprint(HallPrefix +"_%d", sververId)
+	return fmt.Sprintf(HallPrefix +"_%d", sververId)
 }
 

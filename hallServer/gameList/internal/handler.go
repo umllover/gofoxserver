@@ -44,7 +44,9 @@ func sendGameList(args []interface{}){
 			list = append(list, v1)
 		}
 	}
-	agent.WriteMsg(list)
+	agent.WriteMsg(&list)
+	finish := &msg.L2C_ServerListFinish{}
+	agent.WriteMsg(finish)
 }
 
 func updateGameInfo(args []interface{}){

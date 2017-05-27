@@ -67,7 +67,7 @@ type Accountsinfo struct {
 	WXID             string     `db:"WXID" json:"WXID"`                         // 微信对应ID
 	AgentID          int        `db:"AgentID" json:"AgentID"`                   //
 	AgentNumber      string     `db:"AgentNumber" json:"AgentNumber"`           //
-	Describe         string     `db:"Describe" json:"Describe"`                 //
+	Describes        string     `db:"Describes" json:"Describes"`               //
 	Address          string     `db:"Address" json:"Address"`                   //
 	HeadImgUrl       string     `db:"HeadImgUrl" json:"HeadImgUrl"`             //
 	UnionID          string     `db:"UnionID" json:"UnionID"`                   //
@@ -166,7 +166,7 @@ func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
-	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describe,Address,HeadImgUrl,UnionID,FieldLevel) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describes,Address,HeadImgUrl,UnionID,FieldLevel) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.GameID,
 		m.ProtectID,
@@ -218,7 +218,7 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.WXID,
 		m.AgentID,
 		m.AgentNumber,
-		m.Describe,
+		m.Describes,
 		m.Address,
 		m.HeadImgUrl,
 		m.UnionID,
@@ -249,7 +249,7 @@ func (op *accountsinfoOp) Update(m *Accountsinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
-	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describe=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=? where UserID=?`
+	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describes=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.GameID,
 		m.ProtectID,
@@ -301,7 +301,7 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 		m.WXID,
 		m.AgentID,
 		m.AgentNumber,
-		m.Describe,
+		m.Describes,
 		m.Address,
 		m.HeadImgUrl,
 		m.UnionID,
