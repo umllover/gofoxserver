@@ -1,0 +1,29 @@
+{
+	"LogLevel": "debug",
+	"LogPath": "",
+
+	"WSAddr": "192.168.1.141:20001",
+	"MaxConnNum": 20000,
+
+	"BaseDbHost":"localhost",
+    "BaseDbPort":3306,
+    "BaseDbName":"mqjx_base",
+    "BaseDbUsername":"root",
+    "BaseDbPassword":"root",
+    "UserDbHost":"localhost",
+    "UserDbPort":3306,
+    "UserDbName":"mqjx_user",
+    "UserDbUsername":"root",
+    "UserDbPassword":"root",
+    "StatsDbHost":"localhost",
+    "StatsDbPort":3306,
+    "StatsDbName":"mqjx_stats",
+    "StatsDbUsername":"root",
+    "StatsDbPassword":"root",
+
+    "ConsulAddr":"127.0.0.1:8500",
+	"ListenAddr": "localhost:30001",
+	"ConnAddrs": {"world": "localhost:31001"},
+	"PendingWriteNum": 100,
+    "ServerId": 1
+}

@@ -1,0 +1,156 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "lBHs7cGd/WB6Ng0pBT+9DXFunR4=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "336127359b09c9c8164e39c4c44f4d36ef081dc8",
+			"revisionTime": "2017-05-10T12:46:09Z"
+		},
+		{
+			"checksumSHA1": "hEnH6sgR83Qfx7UNnphNNlelmj0=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "a91eba7f97777409bc2c443f5534d41dd20c5720",
+			"revisionTime": "2017-03-19T17:27:27Z"
+		},
+		{
+			"checksumSHA1": "iGAHizBUN43QlmYmn1bPLlNN9pw=",
+			"path": "github.com/hashicorp/consul/api",
+			"revision": "fa6bd6dab9264a686cbf32d74f1782971dd4111b",
+			"revisionTime": "2017-05-23T23:54:49Z"
+		},
+		{
+			"checksumSHA1": "b8F628srIitj5p7Y130xc9k0QWs=",
+			"origin": "github.com/hashicorp/consul/vendor/github.com/hashicorp/go-cleanhttp",
+			"path": "github.com/hashicorp/go-cleanhttp",
+			"revision": "fa6bd6dab9264a686cbf32d74f1782971dd4111b",
+			"revisionTime": "2017-05-23T23:54:49Z"
+		},
+		{
+			"checksumSHA1": "A1PcINvF3UiwHRKn8UcgARgvGRs=",
+			"origin": "github.com/hashicorp/consul/vendor/github.com/hashicorp/go-rootcerts",
+			"path": "github.com/hashicorp/go-rootcerts",
+			"revision": "fa6bd6dab9264a686cbf32d74f1782971dd4111b",
+			"revisionTime": "2017-05-23T23:54:49Z"
+		},
+		{
+			"checksumSHA1": "E3Xcanc9ouQwL+CZGOUyA/+giLg=",
+			"origin": "github.com/hashicorp/consul/vendor/github.com/hashicorp/serf/coordinate",
+			"path": "github.com/hashicorp/serf/coordinate",
+			"revision": "fa6bd6dab9264a686cbf32d74f1782971dd4111b",
+			"revisionTime": "2017-05-23T23:54:49Z"
+		},
+		{
+			"checksumSHA1": "SEZulQ/Gm4f6P6/c3waZjXxvl0g=",
+			"path": "github.com/jmoiron/sqlx",
+			"revision": "d9bd385d68c068f1fabb5057e3dedcbcbb039d0f",
+			"revisionTime": "2017-04-30T19:46:03Z"
+		},
+		{
+			"checksumSHA1": "xXjxKqs3ECyWO5zjIVb2qgj9rcU=",
+			"path": "github.com/jmoiron/sqlx/reflectx",
+			"revision": "d9bd385d68c068f1fabb5057e3dedcbcbb039d0f",
+			"revisionTime": "2017-04-30T19:46:03Z"
+		},
+		{
+			"checksumSHA1": "caZHOTPpNm2PsEChimdzxLwFcaY=",
+			"path": "github.com/lovelly/leaf",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "JShw4WzdfPyLsAnoVOchtXtI928=",
+			"path": "github.com/lovelly/leaf/chanrpc",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "Mb+QPAn1jrOPMOur7LJ05yAjIDE=",
+			"path": "github.com/lovelly/leaf/cluster",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "Jjnikr/2VSZWJtywXUIBqcCZUNg=",
+			"path": "github.com/lovelly/leaf/conf",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "ZfWpWMAxNgPvZeRH5EN7qhsW5w4=",
+			"path": "github.com/lovelly/leaf/console",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "3zCUWYd+rcCR++Xc2RAN++cQCPk=",
+			"path": "github.com/lovelly/leaf/gate",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "j+XE5utn+k18FeH6IciBdHMNiXA=",
+			"path": "github.com/lovelly/leaf/go",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "tnP1pScXlgy8yCc/cSloP/3NnCY=",
+			"path": "github.com/lovelly/leaf/log",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "r4XZOZsPTIjcfvC0KpDaNhpGrQM=",
+			"path": "github.com/lovelly/leaf/module",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "A90S3KgbK5+s8Z4ISVT4C+arKrs=",
+			"path": "github.com/lovelly/leaf/network",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "hHg4//sqgCnpa0Qz3mk0dvPJTmU=",
+			"path": "github.com/lovelly/leaf/network/gob",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "kmErzvsh9hzxhvMGIzbaOUAyKko=",
+			"path": "github.com/lovelly/leaf/network/json",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "c2zj2GCUVTz95adpQmMHbPhDkMI=",
+			"path": "github.com/lovelly/leaf/timer",
+			"revision": "97e87609ad01ba68b6017b89d73eb4fe24e5fecb",
+			"revisionTime": "2017-05-25T10:56:12Z"
+		},
+		{
+			"checksumSHA1": "V/quM7+em2ByJbWBLOsEwnY3j/Q=",
+			"origin": "github.com/hashicorp/consul/vendor/github.com/mitchellh/go-homedir",
+			"path": "github.com/mitchellh/go-homedir",
+			"revision": "fa6bd6dab9264a686cbf32d74f1782971dd4111b",
+			"revisionTime": "2017-05-23T23:54:49Z"
+		},
+
+		{
+			"checksumSHA1": "YsB2DChSV9HxdzHaKATllAUKWSI=",
+			"path": "gopkg.in/mgo.v2/bson",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+		{
+			"checksumSHA1": "XQsrqoNT1U0KzLxOFcAZVvqhLfk=",
+			"path": "gopkg.in/mgo.v2/internal/json",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+	],
+	"rootPath": "mj"
+}

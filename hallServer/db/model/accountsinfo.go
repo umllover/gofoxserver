@@ -1,0 +1,397 @@
+package model
+
+import (
+	"fmt"
+	"gate/game_error"
+	"mj/hallServer/db"
+	"time"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/lovelly/leaf/log"
+)
+
+//This file is generate by scripts,don't edit it
+
+//accountsinfo
+//
+
+// +gen *
+type Accountsinfo struct {
+	UserID           int        `db:"UserID" json:"UserID"`                     // 用户标识
+	GameID           int        `db:"GameID" json:"GameID"`                     // 游戏标识
+	ProtectID        int        `db:"ProtectID" json:"ProtectID"`               // 密保标识
+	PasswordID       int        `db:"PasswordID" json:"PasswordID"`             // 口令索引
+	SpreaderID       int        `db:"SpreaderID" json:"SpreaderID"`             // 推广员标识
+	Accounts         string     `db:"Accounts" json:"Accounts"`                 // 用户帐号
+	NickName         string     `db:"NickName" json:"NickName"`                 // 用户昵称
+	RegAccounts      string     `db:"RegAccounts" json:"RegAccounts"`           // 注册帐号
+	UnderWrite       string     `db:"UnderWrite" json:"UnderWrite"`             // 个性签名
+	PassPortID       string     `db:"PassPortID" json:"PassPortID"`             // 身份证号
+	Compellation     string     `db:"Compellation" json:"Compellation"`         // 真实名字
+	LogonPass        string     `db:"LogonPass" json:"LogonPass"`               // 登录密码
+	InsurePass       string     `db:"InsurePass" json:"InsurePass"`             // 安全密码
+	FaceID           int8       `db:"FaceID" json:"FaceID"`                     // 头像标识
+	CustomID         int        `db:"CustomID" json:"CustomID"`                 // 自定标识
+	Present          int        `db:"Present" json:"Present"`                   // 赠送礼物
+	UserMedal        int        `db:"UserMedal" json:"UserMedal"`               // 用户奖牌
+	GrowLevelID      int        `db:"GrowLevelID" json:"GrowLevelID"`           //
+	Experience       int        `db:"Experience" json:"Experience"`             // 经验数值
+	LoveLiness       int        `db:"LoveLiness" json:"LoveLiness"`             // 用户魅力
+	UserRight        int        `db:"UserRight" json:"UserRight"`               // 用户权限
+	MasterRight      int        `db:"MasterRight" json:"MasterRight"`           // 管理权限
+	ServiceRight     int        `db:"ServiceRight" json:"ServiceRight"`         // 服务权限
+	MasterOrder      int8       `db:"MasterOrder" json:"MasterOrder"`           // 管理等级
+	MemberOrder      int8       `db:"MemberOrder" json:"MemberOrder"`           // 会员等级
+	MemberOverDate   *time.Time `db:"MemberOverDate" json:"MemberOverDate"`     // 过期日期
+	MemberSwitchDate *time.Time `db:"MemberSwitchDate" json:"MemberSwitchDate"` // 切换时间
+	CustomFaceVer    int8       `db:"CustomFaceVer" json:"CustomFaceVer"`       // 头像版本
+	Gender           int8       `db:"Gender" json:"Gender"`                     // 用户性别
+	Nullity          int8       `db:"Nullity" json:"Nullity"`                   // 禁止服务
+	NullityOverDate  *time.Time `db:"NullityOverDate" json:"NullityOverDate"`   // 禁止时间
+	StunDown         int8       `db:"StunDown" json:"StunDown"`                 // 关闭标志
+	MoorMachine      int8       `db:"MoorMachine" json:"MoorMachine"`           // 固定机器
+	IsAndroid        int8       `db:"IsAndroid" json:"IsAndroid"`               // 是否机器人
+	WebLogonTimes    int        `db:"WebLogonTimes" json:"WebLogonTimes"`       // 登录次数
+	GameLogonTimes   int        `db:"GameLogonTimes" json:"GameLogonTimes"`     // 登录次数
+	PlayTimeCount    int        `db:"PlayTimeCount" json:"PlayTimeCount"`       // 游戏时间
+	OnLineTimeCount  int        `db:"OnLineTimeCount" json:"OnLineTimeCount"`   // 在线时间
+	LastLogonIP      string     `db:"LastLogonIP" json:"LastLogonIP"`           // 登录地址
+	LastLogonDate    *time.Time `db:"LastLogonDate" json:"LastLogonDate"`       // 登录时间
+	LastLogonMobile  string     `db:"LastLogonMobile" json:"LastLogonMobile"`   // 登录手机
+	LastLogonMachine string     `db:"LastLogonMachine" json:"LastLogonMachine"` // 登录机器
+	RegisterIP       string     `db:"RegisterIP" json:"RegisterIP"`             // 注册地址
+	RegisterDate     *time.Time `db:"RegisterDate" json:"RegisterDate"`         // 注册时间
+	RegisterMobile   string     `db:"RegisterMobile" json:"RegisterMobile"`     // 注册手机
+	RegisterMachine  string     `db:"RegisterMachine" json:"RegisterMachine"`   // 注册机器
+	ClientID         int        `db:"ClientID" json:"ClientID"`                 //
+	QQID             string     `db:"QQID" json:"QQID"`                         // QQ对应ID
+	WXID             string     `db:"WXID" json:"WXID"`                         // 微信对应ID
+	AgentID          int        `db:"AgentID" json:"AgentID"`                   //
+	AgentNumber      string     `db:"AgentNumber" json:"AgentNumber"`           //
+	Describe         string     `db:"Describe" json:"Describe"`                 //
+	Address          string     `db:"Address" json:"Address"`                   //
+	HeadImgUrl       string     `db:"HeadImgUrl" json:"HeadImgUrl"`             //
+	UnionID          string     `db:"UnionID" json:"UnionID"`                   //
+	FieldLevel       int8       `db:"FieldLevel" json:"FieldLevel"`             //
+}
+
+type accountsinfoOp struct{}
+
+var AccountsinfoOp = &accountsinfoOp{}
+var DefaultAccountsinfo = &Accountsinfo{}
+
+// 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
+func (op *accountsinfoOp) Get(UserID int) (*Accountsinfo, bool) {
+	obj := &Accountsinfo{}
+	sql := "select * from accountsinfo where UserID=? "
+	err := db.DB.Get(obj, sql,
+		UserID,
+	)
+
+	if err != nil {
+		log.Error(err.Error())
+		return nil, false
+	}
+	return obj, true
+}
+func (op *accountsinfoOp) SelectAll() ([]*Accountsinfo, error) {
+	objList := []*Accountsinfo{}
+	sql := "select * from accountsinfo "
+	err := db.DB.Select(&objList, sql)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	return objList, nil
+}
+
+func (op *accountsinfoOp) QueryByMap(m map[string]interface{}) ([]*Accountsinfo, error) {
+	result := []*Accountsinfo{}
+	var params []interface{}
+
+	sql := "select * from accountsinfo where 1=1 "
+	for k, v := range m {
+		sql += fmt.Sprintf(" and %s=? ", k)
+		params = append(params, v)
+	}
+	err := db.DB.Select(&result, sql, params...)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	return result, nil
+}
+
+func (op *accountsinfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Accountsinfo, error) {
+	result := []*Accountsinfo{}
+	var params []interface{}
+
+	sql := "select * from accountsinfo where 1=1 "
+	for k, v := range m {
+		sql += fmt.Sprintf(" and %s? ", k)
+		params = append(params, v)
+	}
+	err := db.DB.Select(&result, sql, params...)
+	if err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	return result, nil
+}
+
+func (op *accountsinfoOp) GetByMap(m map[string]interface{}) (*Accountsinfo, error) {
+	lst, err := op.QueryByMap(m)
+	if err != nil {
+		return nil, err
+	}
+	if len(lst) > 0 {
+		return lst[0], nil
+	}
+	return nil, nil
+}
+
+/*
+func (i *Accountsinfo) Insert() {
+    err := db.DBMap.Insert(i)
+    if err != nil{
+        game_error.RaiseError(err)
+    }
+}
+*/
+
+// 插入数据，自增长字段将被忽略
+func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
+	return op.InsertTx(db.DB, m)
+}
+
+// 插入数据，自增长字段将被忽略
+func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
+	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describe,Address,HeadImgUrl,UnionID,FieldLevel) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	result, err := ext.Exec(sql,
+		m.GameID,
+		m.ProtectID,
+		m.PasswordID,
+		m.SpreaderID,
+		m.Accounts,
+		m.NickName,
+		m.RegAccounts,
+		m.UnderWrite,
+		m.PassPortID,
+		m.Compellation,
+		m.LogonPass,
+		m.InsurePass,
+		m.FaceID,
+		m.CustomID,
+		m.Present,
+		m.UserMedal,
+		m.GrowLevelID,
+		m.Experience,
+		m.LoveLiness,
+		m.UserRight,
+		m.MasterRight,
+		m.ServiceRight,
+		m.MasterOrder,
+		m.MemberOrder,
+		m.MemberOverDate,
+		m.MemberSwitchDate,
+		m.CustomFaceVer,
+		m.Gender,
+		m.Nullity,
+		m.NullityOverDate,
+		m.StunDown,
+		m.MoorMachine,
+		m.IsAndroid,
+		m.WebLogonTimes,
+		m.GameLogonTimes,
+		m.PlayTimeCount,
+		m.OnLineTimeCount,
+		m.LastLogonIP,
+		m.LastLogonDate,
+		m.LastLogonMobile,
+		m.LastLogonMachine,
+		m.RegisterIP,
+		m.RegisterDate,
+		m.RegisterMobile,
+		m.RegisterMachine,
+		m.ClientID,
+		m.QQID,
+		m.WXID,
+		m.AgentID,
+		m.AgentNumber,
+		m.Describe,
+		m.Address,
+		m.HeadImgUrl,
+		m.UnionID,
+		m.FieldLevel,
+	)
+	if err != nil {
+		game_error.RaiseError(err)
+		return -1, err
+	}
+	affected, _ := result.LastInsertId()
+	return affected, nil
+}
+
+/*
+func (i *Accountsinfo) Update() {
+    _,err := db.DBMap.Update(i)
+    if err != nil{
+        game_error.RaiseError(err)
+    }
+}
+*/
+
+// 用主键(属性)做条件，更新除主键外的所有字段
+func (op *accountsinfoOp) Update(m *Accountsinfo) error {
+	return op.UpdateTx(db.DB, m)
+}
+
+// 用主键(属性)做条件，更新除主键外的所有字段
+func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
+	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describe=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=? where UserID=?`
+	_, err := ext.Exec(sql,
+		m.GameID,
+		m.ProtectID,
+		m.PasswordID,
+		m.SpreaderID,
+		m.Accounts,
+		m.NickName,
+		m.RegAccounts,
+		m.UnderWrite,
+		m.PassPortID,
+		m.Compellation,
+		m.LogonPass,
+		m.InsurePass,
+		m.FaceID,
+		m.CustomID,
+		m.Present,
+		m.UserMedal,
+		m.GrowLevelID,
+		m.Experience,
+		m.LoveLiness,
+		m.UserRight,
+		m.MasterRight,
+		m.ServiceRight,
+		m.MasterOrder,
+		m.MemberOrder,
+		m.MemberOverDate,
+		m.MemberSwitchDate,
+		m.CustomFaceVer,
+		m.Gender,
+		m.Nullity,
+		m.NullityOverDate,
+		m.StunDown,
+		m.MoorMachine,
+		m.IsAndroid,
+		m.WebLogonTimes,
+		m.GameLogonTimes,
+		m.PlayTimeCount,
+		m.OnLineTimeCount,
+		m.LastLogonIP,
+		m.LastLogonDate,
+		m.LastLogonMobile,
+		m.LastLogonMachine,
+		m.RegisterIP,
+		m.RegisterDate,
+		m.RegisterMobile,
+		m.RegisterMachine,
+		m.ClientID,
+		m.QQID,
+		m.WXID,
+		m.AgentID,
+		m.AgentNumber,
+		m.Describe,
+		m.Address,
+		m.HeadImgUrl,
+		m.UnionID,
+		m.FieldLevel,
+		m.UserID,
+	)
+
+	if err != nil {
+		game_error.RaiseError(err)
+		return err
+	}
+
+	return nil
+}
+
+// 用主键做条件，更新map里包含的字段名
+func (op *accountsinfoOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, UserID, m)
+}
+
+// 用主键做条件，更新map里包含的字段名
+func (op *accountsinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+
+	sql := `update accountsinfo set %s where 1=1 and UserID=? ;`
+
+	var params []interface{}
+	var set_sql string
+	for k, v := range m {
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+	params = append(params, UserID)
+	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
+	return err
+}
+
+/*
+func (i *Accountsinfo) Delete(){
+    _,err := db.DBMap.Delete(i)
+    if err != nil{
+        game_error.RaiseError(err)
+    }
+}
+*/
+// 根据主键删除相关记录
+func (op *accountsinfoOp) Delete(UserID int) error {
+	return op.DeleteTx(db.DB, UserID)
+}
+
+// 根据主键删除相关记录,Tx
+func (op *accountsinfoOp) DeleteTx(ext sqlx.Ext, UserID int) error {
+	sql := `delete from accountsinfo where 1=1
+        and UserID=?
+        `
+	_, err := ext.Exec(sql,
+		UserID,
+	)
+	return err
+}
+
+// 返回符合查询条件的记录数
+func (op *accountsinfoOp) CountByMap(m map[string]interface{}) int64 {
+
+	var params []interface{}
+	sql := `select count(*) from accountsinfo where 1=1 `
+	for k, v := range m {
+		sql += fmt.Sprintf(" and  %s=? ", k)
+		params = append(params, v)
+	}
+	count := int64(-1)
+	err := db.DB.Get(&count, sql, params...)
+	if err != nil {
+		game_error.RaiseError(err)
+	}
+	return count
+}
+
+func (op *accountsinfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+	return op.DeleteByMapTx(db.DB, m)
+}
+
+func (op *accountsinfoOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+	var params []interface{}
+	sql := "delete from accountsinfo where 1=1 "
+	for k, v := range m {
+		sql += fmt.Sprintf(" and %s=? ", k)
+		params = append(params, v)
+	}
+	result, err := ext.Exec(sql, params...)
+	if err != nil {
+		return -1, err
+	}
+	return result.RowsAffected()
+}

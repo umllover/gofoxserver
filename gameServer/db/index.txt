@@ -1,0 +1,3 @@
+
+###########auth 
+CREATE INDEX name ON player_name(name); 
