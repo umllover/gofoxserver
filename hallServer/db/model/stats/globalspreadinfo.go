@@ -2,7 +2,6 @@ package stats
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/hallServer/db"
 
 	"github.com/jmoiron/sqlx"
@@ -39,7 +38,7 @@ func (op *globalspreadinfoOp) Get(ID int) (*Globalspreadinfo, bool) {
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -101,10 +100,11 @@ func (op *globalspreadinfoOp) GetByMap(m map[string]interface{}) (*Globalspreadi
 }
 
 /*
-func (i *Globalspreadinfo) Insert() {
+func (i *Globalspreadinfo) Insert() error {
     err := db.StatsDBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -127,7 +127,7 @@ func (op *globalspreadinfoOp) InsertTx(ext sqlx.Ext, m *Globalspreadinfo) (int64
 		m.MinBalanceScore,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -135,10 +135,11 @@ func (op *globalspreadinfoOp) InsertTx(ext sqlx.Ext, m *Globalspreadinfo) (int64
 }
 
 /*
-func (i *Globalspreadinfo) Update() {
+func (i *Globalspreadinfo) Update()  error {
     _,err := db.StatsDBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -162,7 +163,7 @@ func (op *globalspreadinfoOp) UpdateTx(ext sqlx.Ext, m *Globalspreadinfo) error 
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -191,11 +192,10 @@ func (op *globalspreadinfoOp) UpdateWithMapTx(ext sqlx.Ext, ID int, m map[string
 }
 
 /*
-func (i *Globalspreadinfo) Delete(){
+func (i *Globalspreadinfo) Delete() error{
     _,err := db.StatsDBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -215,7 +215,7 @@ func (op *globalspreadinfoOp) DeleteTx(ext sqlx.Ext, ID int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *globalspreadinfoOp) CountByMap(m map[string]interface{}) int64 {
+func (op *globalspreadinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from globalspreadinfo where 1=1 `
@@ -226,9 +226,10 @@ func (op *globalspreadinfoOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.StatsDB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *globalspreadinfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {

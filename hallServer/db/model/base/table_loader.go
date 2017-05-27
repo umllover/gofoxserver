@@ -16,5 +16,5 @@ func LoadBaseData() {
 	GameServiceSttribCache.LoadAll()
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
 	db.BaseDataCaches["GameServiceSttrib"] = GameServiceSttribCache
-	log.Debug("loadBaseData %v  %v", 2, time.Now().UnixNano()-start, "ns")
+	log.Debug("loadBaseData %v  %v %v", 2, time.Now().UnixNano()-start, "ns")
 }

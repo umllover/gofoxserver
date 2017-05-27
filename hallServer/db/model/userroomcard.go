@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/hallServer/db"
 
 	"github.com/jmoiron/sqlx"
@@ -34,7 +33,7 @@ func (op *userroomcardOp) Get(UserID int) (*Userroomcard, bool) {
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -96,10 +95,11 @@ func (op *userroomcardOp) GetByMap(m map[string]interface{}) (*Userroomcard, err
 }
 
 /*
-func (i *Userroomcard) Insert() {
+func (i *Userroomcard) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -117,7 +117,7 @@ func (op *userroomcardOp) InsertTx(ext sqlx.Ext, m *Userroomcard) (int64, error)
 		m.RoomCard,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -125,10 +125,11 @@ func (op *userroomcardOp) InsertTx(ext sqlx.Ext, m *Userroomcard) (int64, error)
 }
 
 /*
-func (i *Userroomcard) Update() {
+func (i *Userroomcard) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -147,7 +148,7 @@ func (op *userroomcardOp) UpdateTx(ext sqlx.Ext, m *Userroomcard) error {
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -176,11 +177,10 @@ func (op *userroomcardOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string
 }
 
 /*
-func (i *Userroomcard) Delete(){
+func (i *Userroomcard) Delete() error{
     _,err := db.DBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -200,7 +200,7 @@ func (op *userroomcardOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *userroomcardOp) CountByMap(m map[string]interface{}) int64 {
+func (op *userroomcardOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from userroomcard where 1=1 `
@@ -211,9 +211,10 @@ func (op *userroomcardOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.DB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *userroomcardOp) DeleteByMap(m map[string]interface{}) (int64, error) {

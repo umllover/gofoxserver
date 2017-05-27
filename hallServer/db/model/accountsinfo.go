@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/hallServer/db"
 	"time"
 
@@ -89,7 +88,7 @@ func (op *accountsinfoOp) Get(UserID int) (*Accountsinfo, bool) {
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -151,10 +150,11 @@ func (op *accountsinfoOp) GetByMap(m map[string]interface{}) (*Accountsinfo, err
 }
 
 /*
-func (i *Accountsinfo) Insert() {
+func (i *Accountsinfo) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -225,7 +225,7 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.FieldLevel,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -233,10 +233,11 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 }
 
 /*
-func (i *Accountsinfo) Update() {
+func (i *Accountsinfo) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -309,7 +310,7 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -338,11 +339,10 @@ func (op *accountsinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string
 }
 
 /*
-func (i *Accountsinfo) Delete(){
+func (i *Accountsinfo) Delete() error{
     _,err := db.DBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -362,7 +362,7 @@ func (op *accountsinfoOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *accountsinfoOp) CountByMap(m map[string]interface{}) int64 {
+func (op *accountsinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from accountsinfo where 1=1 `
@@ -373,9 +373,10 @@ func (op *accountsinfoOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.DB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *accountsinfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {

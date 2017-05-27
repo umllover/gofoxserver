@@ -30,6 +30,7 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 
 	handlerC2S(&msg.C2L_Login{}, handleMBLogin)
+	handlerC2S(&msg.C2L_Regist{}, handleMBRegist)
 }
 
 func handleMBLogin(args []interface{}) {

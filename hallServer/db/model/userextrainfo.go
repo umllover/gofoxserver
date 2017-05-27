@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/hallServer/db"
 
 	"github.com/jmoiron/sqlx"
@@ -37,7 +36,7 @@ func (op *userextrainfoOp) Get(UserId int) (*Userextrainfo, bool) {
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -99,10 +98,11 @@ func (op *userextrainfoOp) GetByMap(m map[string]interface{}) (*Userextrainfo, e
 }
 
 /*
-func (i *Userextrainfo) Insert() {
+func (i *Userextrainfo) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -123,7 +123,7 @@ func (op *userextrainfoOp) InsertTx(ext sqlx.Ext, m *Userextrainfo) (int64, erro
 		m.MbTicket,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -131,10 +131,11 @@ func (op *userextrainfoOp) InsertTx(ext sqlx.Ext, m *Userextrainfo) (int64, erro
 }
 
 /*
-func (i *Userextrainfo) Update() {
+func (i *Userextrainfo) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -156,7 +157,7 @@ func (op *userextrainfoOp) UpdateTx(ext sqlx.Ext, m *Userextrainfo) error {
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -185,11 +186,10 @@ func (op *userextrainfoOp) UpdateWithMapTx(ext sqlx.Ext, UserId int, m map[strin
 }
 
 /*
-func (i *Userextrainfo) Delete(){
+func (i *Userextrainfo) Delete() error{
     _,err := db.DBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -209,7 +209,7 @@ func (op *userextrainfoOp) DeleteTx(ext sqlx.Ext, UserId int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *userextrainfoOp) CountByMap(m map[string]interface{}) int64 {
+func (op *userextrainfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from userextrainfo where 1=1 `
@@ -220,9 +220,10 @@ func (op *userextrainfoOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.DB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *userextrainfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {

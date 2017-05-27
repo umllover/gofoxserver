@@ -63,7 +63,7 @@ func (c *gameServiceOptionCache) LoadAll() {
 		log.Fatal(err.Error())
 	}
 	c.objMap = make(map[int]*GameServiceOption)
-	log.Debug("Load all game_service_option success: %d", len(c.objList))
+	log.Debug("Load all game_service_option success %v", len(c.objList))
 	for _, v := range c.objList {
 		c.objMap[v.KindID] = v
 	}

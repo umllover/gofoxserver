@@ -42,7 +42,7 @@ func (c *gameServiceSttribCache) LoadAll() {
 		log.Fatal(err.Error())
 	}
 	c.objMap = make(map[int]*GameServiceSttrib)
-	log.Debug("Load all game_service_sttrib success: %d", len(c.objList))
+	log.Debug("Load all game_service_sttrib success %v", len(c.objList))
 	for _, v := range c.objList {
 		c.objMap[v.KindID] = v
 	}

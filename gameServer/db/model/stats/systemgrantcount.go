@@ -2,7 +2,6 @@ package stats
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/gameServer/db"
 	"time"
 
@@ -40,7 +39,7 @@ func (op *systemgrantcountOp) Get(DateID int, RegisterIP string) (*Systemgrantco
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -102,10 +101,11 @@ func (op *systemgrantcountOp) GetByMap(m map[string]interface{}) (*Systemgrantco
 }
 
 /*
-func (i *Systemgrantcount) Insert() {
+func (i *Systemgrantcount) Insert() error {
     err := db.StatsDBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -127,7 +127,7 @@ func (op *systemgrantcountOp) InsertTx(ext sqlx.Ext, m *Systemgrantcount) (int64
 		m.CollectDate,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -135,10 +135,11 @@ func (op *systemgrantcountOp) InsertTx(ext sqlx.Ext, m *Systemgrantcount) (int64
 }
 
 /*
-func (i *Systemgrantcount) Update() {
+func (i *Systemgrantcount) Update()  error {
     _,err := db.StatsDBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -161,7 +162,7 @@ func (op *systemgrantcountOp) UpdateTx(ext sqlx.Ext, m *Systemgrantcount) error 
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -190,11 +191,10 @@ func (op *systemgrantcountOp) UpdateWithMapTx(ext sqlx.Ext, DateID int, Register
 }
 
 /*
-func (i *Systemgrantcount) Delete(){
+func (i *Systemgrantcount) Delete() error{
     _,err := db.StatsDBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -216,7 +216,7 @@ func (op *systemgrantcountOp) DeleteTx(ext sqlx.Ext, DateID int, RegisterIP stri
 }
 
 // 返回符合查询条件的记录数
-func (op *systemgrantcountOp) CountByMap(m map[string]interface{}) int64 {
+func (op *systemgrantcountOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from systemgrantcount where 1=1 `
@@ -227,9 +227,10 @@ func (op *systemgrantcountOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.StatsDB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *systemgrantcountOp) DeleteByMap(m map[string]interface{}) (int64, error) {

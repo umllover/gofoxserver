@@ -41,7 +41,7 @@ type C2L_Login struct {
 type C2L_Regist struct {
 	ModuleID int//模块标识
 	PlazaVersion int//广场版本
-	DeviceType string //设备类型
+	DeviceType int //设备类型
 	//密码变量
 	LogonPass string //登录密码
 	InsurePass string //银行密码

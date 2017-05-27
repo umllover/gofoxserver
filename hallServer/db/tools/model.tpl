@@ -51,7 +51,7 @@ func (op *{{op_struct_name}}) Get({{primary_key_params}}) (*{{struct_name}}, boo
         )
     
     if err != nil{
-        log.Error(err.Error())
+        log.Error("Get data error:%v", err.Error())
         return nil,false
     }
     return obj, true
@@ -116,10 +116,11 @@ func(op *{{op_struct_name}}) GetByMap(m map[string]interface{}) (*{{struct_name}
 
 {% if not is_view -%}
 /*
-func (i *{{struct_name}}) Insert() {
+func (i *{{struct_name}}) Insert() error {
     err := db.{{db_map}}.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -140,7 +141,7 @@ func (op *{{op_struct_name}}) InsertTx(ext sqlx.Ext, m *{{struct_name}}) (int64,
     {% endfor -%}
     )
     if err != nil{
-        game_error.RaiseError(err)
+        log.Error("InsertTx sql error:%v, data:%v", err.Error(),m)
         return -1, err
     }
     {%if is_auto_incr -%}
@@ -153,10 +154,11 @@ func (op *{{op_struct_name}}) InsertTx(ext sqlx.Ext, m *{{struct_name}}) (int64,
 }
 
 /*
-func (i *{{struct_name}}) Update() {
+func (i *{{struct_name}}) Update()  error {
     _,err := db.{{db_map}}.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -182,7 +184,7 @@ func (op *{{op_struct_name}}) UpdateTx(ext sqlx.Ext, m *{{struct_name}}) (error)
     )
 
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),m)
         return err
     }
 
@@ -211,11 +213,10 @@ func (op *{{op_struct_name}}) UpdateWithMapTx(ext sqlx.Ext, {{primary_key_params
 }
 
 /*
-func (i *{{struct_name}}) Delete(){
+func (i *{{struct_name}}) Delete() error{
     _,err := db.{{db_map}}.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -258,7 +259,7 @@ func (op *{{op_struct_name}}) DeleteByPlayerIdTx(ext sqlx.Ext, player_id int) (i
 {% endif -%}
 
 // 返回符合查询条件的记录数
-func (op *{{op_struct_name}}) CountByMap(m map[string]interface{}) int64 {
+func (op *{{op_struct_name}}) CountByMap(m map[string]interface{}) (int64, error) {
 
     var params []interface{}
     sql := `select count(*) from {{table_name}} where 1=1 `
@@ -269,9 +270,10 @@ func (op *{{op_struct_name}}) CountByMap(m map[string]interface{}) int64 {
     count := int64(-1)
     err := db.{{db_sel}}.Get(&count, sql, params...)
     if err != nil {
-        game_error.RaiseError(err)
+        log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0,err
     }
-    return count
+    return count, nil
 }
 
 func (op *{{op_struct_name}}) DeleteByMap(m map[string]interface{})(int64, error){
@@ -300,14 +302,15 @@ func (op *{{op_struct_name}}) CountByPlayerId(player_id int) (int64){
     })
 }
 
-func (op *{{op_struct_name}}) QueryByPlayerId(player_id int) ([]*{{struct_name}}){
+func (op *{{op_struct_name}}) QueryByPlayerId(player_id int) ([]*{{struct_name}}, error){
     sql := "select * from {{table_name}} where player_id=?"
     result := []*{{struct_name}}{}
     err := db.{{db_sel}}.Select(&result, sql, player_id) 
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v player_id :%v", err.Error(), player_id)
+        return result, err
     }
-    return result
+    return result, nil
 }
 
 {% endif -%} 

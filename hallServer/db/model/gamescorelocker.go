@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gate/game_error"
 	"mj/hallServer/db"
 	"time"
 
@@ -40,7 +39,7 @@ func (op *gamescorelockerOp) Get(UserID int) (*Gamescorelocker, bool) {
 	)
 
 	if err != nil {
-		log.Error(err.Error())
+		log.Error("Get data error:%v", err.Error())
 		return nil, false
 	}
 	return obj, true
@@ -102,10 +101,11 @@ func (op *gamescorelockerOp) GetByMap(m map[string]interface{}) (*Gamescorelocke
 }
 
 /*
-func (i *Gamescorelocker) Insert() {
+func (i *Gamescorelocker) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -128,7 +128,7 @@ func (op *gamescorelockerOp) InsertTx(ext sqlx.Ext, m *Gamescorelocker) (int64, 
 		m.CollectDate,
 	)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
 		return -1, err
 	}
 	affected, _ := result.LastInsertId()
@@ -136,10 +136,11 @@ func (op *gamescorelockerOp) InsertTx(ext sqlx.Ext, m *Gamescorelocker) (int64, 
 }
 
 /*
-func (i *Gamescorelocker) Update() {
+func (i *Gamescorelocker) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
-        game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(),i)
+        return err
     }
 }
 */
@@ -163,7 +164,7 @@ func (op *gamescorelockerOp) UpdateTx(ext sqlx.Ext, m *Gamescorelocker) error {
 	)
 
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("update sql error:%v, data:%v", err.Error(), m)
 		return err
 	}
 
@@ -192,11 +193,10 @@ func (op *gamescorelockerOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[str
 }
 
 /*
-func (i *Gamescorelocker) Delete(){
+func (i *Gamescorelocker) Delete() error{
     _,err := db.DBMap.Delete(i)
-    if err != nil{
-        game_error.RaiseError(err)
-    }
+	log.Error("Delete sql error:%v", err.Error())
+    return err
 }
 */
 // 根据主键删除相关记录
@@ -216,7 +216,7 @@ func (op *gamescorelockerOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *gamescorelockerOp) CountByMap(m map[string]interface{}) int64 {
+func (op *gamescorelockerOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
 	sql := `select count(*) from gamescorelocker where 1=1 `
@@ -227,9 +227,10 @@ func (op *gamescorelockerOp) CountByMap(m map[string]interface{}) int64 {
 	count := int64(-1)
 	err := db.DB.Get(&count, sql, params...)
 	if err != nil {
-		game_error.RaiseError(err)
+		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0, err
 	}
-	return count
+	return count, nil
 }
 
 func (op *gamescorelockerOp) DeleteByMap(m map[string]interface{}) (int64, error) {
