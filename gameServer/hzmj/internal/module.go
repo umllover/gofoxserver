@@ -6,6 +6,10 @@ import (
 	"mj/gameServer/hzmj/room"
 	"time"
 	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/cluster"
+	. "mj/common/cost"
+	"mj/common/msg"
+	"mj/gameServer/conf"
 )
 
 var (
@@ -60,10 +64,17 @@ func AddTableCount() {
 func addRoom(r *room.Room) {
 	rooms[r.GetRoomId()] = r
 	AddTableCount()
+	msg := &msg.RoomInfo{}
+	msg.ServerID = r.ServerId
+	msg.KindID = r.Kind
+	msg.NodeId = conf.Server.NodeId
+	msg.TableId = r.GetRoomId()
+	cluster.Broadcast(HallPrefix,"notifyNewRoom", msg)
 }
 
 func delRoom(id int) {
 	delete(rooms, id)
+	cluster.Broadcast(HallPrefix, "notifyDelRoom", id)
 }
 
 func getRoom(id int) *room.Room{

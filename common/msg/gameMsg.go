@@ -70,11 +70,11 @@ type G2C_CreateTableFailure struct {
 
 //创建房间成功的消息
 type G2C_CreateTableSucess struct {
-	ServerID int					//房间编号
+	TableID int					//房间编号
 	DrawCountLimit int				//局数限制
 	DrawTimeLimit int				//时间限制
 	Beans int						//游戏豆
-	lRoomCard int					//房卡数量
+	RoomCard int					//房卡数量
 }
 
 //查询房间的结果

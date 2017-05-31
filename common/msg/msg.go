@@ -3,6 +3,7 @@ package msg
 import (
 	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
+	//"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -29,6 +30,8 @@ func init() {
 	Processor.Register(&G2C_CreateTableSucess{})
 	Processor.Register(&C2G_SearchServerTable{})
 	Processor.Register(&G2C_SearchResult{})
+
+
 }
 
 type ShowErrCode struct {

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"mj/common/msg"
 	tbase "mj/gameServer/db/model/base"
+	"mj/gameServer/idGenerate"
 )
 
 var (
@@ -20,25 +21,23 @@ var (
 	IncId = 0
 )
 
-func getId()int {
-	idLock.Lock()
-	defer  idLock.Unlock()
-	IncId ++
-	return IncId
-}
-
-func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameServiceOption) *Room {
+func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameServiceOption, rid int) *Room {
 	skeleton := base.NewSkeleton()
 	Room := new(Room)
 	Room.Skeleton = skeleton
 	Room.ChanRPC= skeleton.ChanRPCServer
 	Room.mgrCh =mgrCh
 	Room.RoomInfo = common.NewRoomInfo()
-	Room.id = getId()
+	Room.id = rid
 	Room.Kind = t.KindID
 	Room.ServerId = t.ServerID
 	Room.name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", Room.id)
 	Room.CloseSig = make(chan bool, 1)
+	Room.TimeLimit = param.DrawTimeLimit
+	Room.CountLimit = param.DrawCountLimit
+	Room.Source = param.CellScore
+	Room.Password = param.Password
+	Room.JoinGamePeopleCount = param.JoinGamePeopleCount
 	RegisterHandler(Room)
 	Room.OnInit()
 	go Room.run()
@@ -58,6 +57,11 @@ type Room struct {
 	id 			int
 	Kind 		int
 	ServerId    int
+	Source int //底分
+	TimeLimit int //时间显示
+	CountLimit int //局数限制
+	Password string
+	JoinGamePeopleCount int	 //参与游戏的人数
 }
 
 func (r *Room)run(){
@@ -82,7 +86,7 @@ func (r *Room) OnInit() {
 }
 
 func (r *Room) OnDestroy() {
-
+	idGenerate.DelRoomId(r.id)
 }
 
 func (r *Room) GetRoomId() int{

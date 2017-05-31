@@ -12,6 +12,7 @@ import (
 var (
 	gameLists = make(map[int]map[int]*msg.TagGameServer) //k1 is kind k2 is server Id
 	SvrvetType = make(map[int]map[int]struct{}) //key sverId v KingId
+	roomList = make(map[int]*msg.RoomInfo)
 )
 
 ////注册rpc 消息
@@ -27,15 +28,42 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
+	handlerC2S(&msg.C2G_SearchServerTable{}, SrarchTable)
+
 
 	handleRpc("sendGameList", sendGameList, chanrpc.FuncCommon)
 	handleRpc("updateGameInfo", updateGameInfo, chanrpc.FuncCommon)
 	handleRpc("delGameList", delGameList, chanrpc.FuncCommon)
-
 	handleRpc("NewServerAgent", NewServerAgent, chanrpc.FuncCommon)
 	handleRpc("CloseServerAgent", CloseServerAgent, chanrpc.FuncCommon)
+	handleRpc("notifyNewRoom", AddRoom, chanrpc.FuncCommon)
+	handleRpc("notifyDelRoom", DelRoom, chanrpc.FuncCommon)
 }
 
+////// c2s
+func SrarchTable(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_SearchServerTable)
+	retMsg := &msg.G2C_SearchResult{}
+	agent := args[1].(gate.Agent)
+	defer func(){
+		agent.WriteMsg(retMsg)
+	}()
+
+	roomInfo := getRoomInfo(recvMsg.ServerID)
+	if roomInfo == nil {
+		log.Error("at SrarchTable not foud room, %v", recvMsg)
+		return
+	}
+	retMsg.TableID = roomInfo.TableId
+	retMsg.ServerID = roomInfo.ServerID
+	return
+}
+
+
+
+
+
+//////////////////// rpc
 func sendGameList(args []interface{}){
 	agent := args[0].(gate.Agent)
 	list := make(msg.L2C_ServerList, 0)
@@ -51,6 +79,22 @@ func sendGameList(args []interface{}){
 
 func updateGameInfo(args []interface{}){
 
+}
+
+func AddRoom(args []interface{}){
+	log.Debug("at AddRoom === %v", args)
+	recvMsg := args[0].(*msg.RoomInfo)
+	roomList[recvMsg.TableId] = recvMsg
+}
+
+func DelRoom(args []interface{}){
+	log.Debug("at DelRoom === %v", args)
+	id := args[0].(int)
+	delete(roomList, id)
+}
+
+func getRoomInfo(tableId int)*msg.RoomInfo{
+	return roomList[tableId]
 }
 
 func NewServerAgent(args []interface{}){
@@ -104,4 +148,5 @@ func addGameList(v *msg.TagGameServer){
 	}
 	typeInfo[v.KindID] = struct {}{}
 }
+
 

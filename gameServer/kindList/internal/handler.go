@@ -31,7 +31,7 @@ func init(){
 	//c2s
 	handlerC2S(&msg.C2G_GR_UserChairReq{}, UserChairReq)
 	handlerC2S(&msg.C2G_CreateTable{}, CreateTable)
-	handlerC2S(&msg.C2G_SearchServerTable{}, SrarchTable)
+
 }
 
 //客户端请求更换椅子
@@ -62,16 +62,6 @@ func CreateTable(args []interface{}) {
 	mod.GetChanRPC().Go("CreateRoom", recvMsg, agent)
 }
 
-func SrarchTable(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_SearchServerTable)
-	agent := args[1].(gate.Agent)
-	mod, ok := GetModByKind(recvMsg.KindID)
-	if !ok {
-		return
-	}
-
-	mod.GetChanRPC().Go("SrarchTableInfo", recvMsg, agent)
-}
 
 
 ///// rpc

@@ -11,4 +11,5 @@ func Init() {
 	gob.Register([]bson.ObjectId{})
 	gob.Register(map[string]string{})
 	gob.Register([]*msg.TagGameServer{})
+	gob.Register(&msg.RoomInfo{})
 }

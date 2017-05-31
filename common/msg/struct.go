@@ -38,5 +38,10 @@ type TagGameServer struct {
 	TableCount int				`json:"wTableCount"` 		//桌子数目
 };
 
-
-
+//房间简要信息
+type RoomInfo struct {
+	ServerID int
+	KindID int
+	TableId int
+	NodeId int //在哪个节点上
+}

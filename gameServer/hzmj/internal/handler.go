@@ -13,6 +13,8 @@ import (
 	. "mj/common/cost"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model/base"
+	"mj/gameServer/idGenerate"
+	"github.com/name5566/leaf/log"
 )
 
 
@@ -36,7 +38,6 @@ func init() {
 	// rpc
 	handleRpc("DelRoom", DelRoom, chanrpc.FuncCommon)
 	handleRpc("CreateRoom", CreaterRoom, chanrpc.FuncCommon)
-	handleRpc("SrarchTableInfo", SrarchTableInfo, chanrpc.FuncCommon)
 }
 
 
@@ -72,7 +73,6 @@ func CreaterRoom(args []interface{}) {
 	}()
 
 	user := agent.UserData().(*user.User)
-	_ = user
 	if wTableCount > 10000 {
 		retCode = RoomFull
 		return
@@ -89,36 +89,48 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
+	feeTemp, ok1 := base.PersonalTableFeeCache.Get(recvMsg.ServerId, recvMsg.Kind, recvMsg.DrawCountLimit, recvMsg.DrawTimeLimit)
+	if !ok1 {
+		log.Error("not foud PersonalTableFeeCache")
+		retCode = NoFoudTemplate
+		return
+	}
+
 	if template.CardOrBean == 0 { //消耗游戏豆
-
+		if user.RoomCard < feeTemp.TableFee {
+			retCode = NotEnoughFee
+			return
+		}
 	}else if  template.CardOrBean == 1 { //消耗房卡
-
+		if user.RoomCard < template.FeeBeanOrRoomCard {
+			retCode = NotEnoughFee
+			return
+		}
 	}else{
 		retCode = ConfigError
 		return
 	}
 
-
-	r  := room.NewRoom(ChanRPC, recvMsg, template)
-	addRoom(r)
-}
-
-func SrarchTableInfo(args []interface{}) {
-	retMsg := &msg.G2C_SearchResult{}
-	agent := args[1].(gate.Agent)
-	defer func(){
-		agent.WriteMsg(retMsg)
-	}()
-
-	user := agent.UserData().(*user.User)
-	r := getRoom(user.RoomId)
-	if r == nil {
+	rid, iok := idGenerate.GetRoomId(user.Id)
+	if !iok {
+		retCode = RandRoomIdError
 		return
 	}
 
+	if recvMsg.CellScore > template.CellScore {
+		retCode = MaxSoucrce
+		return
+	}
+
+	r  := room.NewRoom(ChanRPC, recvMsg, template, rid)
 	retMsg.TableID = r.GetRoomId()
-	retMsg.ServerID = r.ServerId
-	return
+	retMsg.DrawCountLimit = r.CountLimit
+	retMsg.DrawTimeLimit = r.TimeLimit
+	retMsg.Beans = feeTemp.TableFee
+	retMsg.RoomCard = user.RoomCard
+	addRoom(r)
 }
+
+
 
 

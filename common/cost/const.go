@@ -23,6 +23,9 @@ const (
 	CreateParamError = 103  //参数错误
 	NoFoudTemplate = 104 //配置没找到
 	ConfigError = 105 //配置错误
+	NotEnoughFee = 106 //代币不足
+	RandRoomIdError = 107 //生成房间id失败
+	MaxSoucrce = 108 // 低分太高
 )
 
 
