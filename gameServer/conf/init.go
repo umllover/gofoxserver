@@ -49,16 +49,16 @@ var Server struct {
 	ConnAddrs       map[string]string
 	PendingWriteNum int
 	ValidKind string
-	ServerId int
+	NodeId int
 }
 
 var ValidKind = map[int]bool{}
 
 func ServerName()string{
-	return fmt.Sprintf(GamePrefix + "_%d", Server.ServerId)
+	return fmt.Sprintf(GamePrefix + "_%d", Server.NodeId)
 }
 
-func Init() {
+func init() {
 	data, err := ioutil.ReadFile("./gameServer.json")
 	if err != nil {
 		log.Fatal("%v", err)
@@ -145,8 +145,8 @@ func (c *ConsulConfig)GetConsulDc() string{
 func (c *ConsulConfig)GetAddress() string{
 	return Server.ListenAddr
 }
-func (c *ConsulConfig)GetServerID() int{
-	return Server.ServerId
+func (c *ConsulConfig)GetNodeID() int{
+	return Server.NodeId
 }
 
 func (c *ConsulConfig)GetSvrName() string{

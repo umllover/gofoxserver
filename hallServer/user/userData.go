@@ -10,7 +10,7 @@ type User struct {
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo
-	*model.Userroomcard
+	*model.Userattr
 	*model.Userextrainfo
 	Id int
 	sync.RWMutex

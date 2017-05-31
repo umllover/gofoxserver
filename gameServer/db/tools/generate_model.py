@@ -139,6 +139,7 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
         primary_field_type = []
         column_list = []
         primary_key_param_list = []
+        primary_keys = []
         for c in columns:
             column_name = c['COLUMN_NAME']
             field_name = to_camel_case(column_name)
@@ -154,7 +155,7 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
                 primary_field.append(field_name)
                 primary_field_type.append(go_type)
                 primary_key_param_list.append((column_name, go_type))
-
+                primary_keys.append(column_name +' ' + go_type)		
             column_list.append({
                 'field_name': field_name,
                 'type': go_type,
@@ -212,6 +213,7 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
             'primary_key_params': primary_key_params,
             'primary_key_param_names': primary_key_param_names,
             'primary_key_param_list': primary_key_param_list,
+			'primary_keys': primary_keys,
             'get_by_pk_sql': get_by_pk_sql,
             'get_by_pk_sql2': get_by_pk_sql2,
             'get_by_pk_result': get_by_pk_result,

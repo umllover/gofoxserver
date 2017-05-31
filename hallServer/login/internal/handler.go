@@ -182,12 +182,12 @@ func loadUser(u *user.User) ( bool){
 	}
 	u.Gamescoreinfo = giInfom
 
-	ucInfo, uok := model.UserroomcardOp.Get(u.Id)
+	ucInfo, uok := model.UserattrOp.Get(u.Id)
 	if !uok {
 		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
 		return  false
 	}
-	u.Userroomcard = ucInfo
+	u.Userattr = ucInfo
 
 	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
 	if !ueok {
@@ -227,10 +227,10 @@ func createUser(UserID int)  (*user.User, bool) {
 		return nil, false
 	}
 
-	U.Userroomcard = &model.Userroomcard{
+	U.Userattr = &model.Userattr{
 		UserID:UserID,
 	}
-	_, err = model.UserroomcardOp.Insert(U.Userroomcard)
+	_, err = model.UserattrOp.Insert(U.Userattr)
 	if err != nil {
 		log.Error("at createUser insert Userroomcard error")
 		return nil, false

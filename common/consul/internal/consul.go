@@ -15,7 +15,7 @@ type Rgconfig interface {
 	GetConsulToken() string
 	GetConsulDc() string
 	GetAddress() string
-	GetServerID() int
+	GetNodeID() int
 	GetSvrName() string
 	GetWatchSvrName() string
 	GetWatchFaildSvrName() string
@@ -63,7 +63,7 @@ func InitConsul(scheme string) {
 
 //注册服务
 func  Register() error {
-	service, err := buildRoomSvrConfig(Config.GetAddress(),Config.GetCheckAddress(), Config.GetSvrName(), Config.GetServerID())
+	service, err := buildRoomSvrConfig(Config.GetAddress(),Config.GetCheckAddress(), Config.GetSvrName(), Config.GetNodeID())
 	if err != nil {
 		return err
 	}

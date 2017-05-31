@@ -10,7 +10,6 @@ import (
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 	. "mj/common/cost"
-	"fmt"
 )
 
 var (
@@ -117,12 +116,12 @@ func loadUser(u *user.User) ( bool){
 	}
 	u.Gamescoreinfo = giInfom
 
-	ucInfo, uok := model.UserroomcardOp.Get(u.Id)
+	ucInfo, uok := model.UserattrOp.Get(u.Id)
 	if !uok {
 		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
 		return  false
 	}
-	u.Userroomcard = ucInfo
+	u.Userattr = ucInfo
 
 	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
 	if !ueok {

@@ -12,6 +12,10 @@ import (
 	"io"
 )
 
+type IdUser interface {
+	GetUid() int
+}
+
 type Gate struct {
 	MaxConnNum      int
 	PendingWriteNum int
@@ -171,8 +175,14 @@ func (a *agent) Run() {
 			}
 			break
 		}
+		userId := 0
+		var ok bool
+		if userId, ok = a.userData.(int); ok {
+		}else if user, ok1 := a.userData.(IdUser); ok1 {
+			userId = user.GetUid()
+		}
 
-		log.Debug("IN msg : %s, userId:%v", string(data), a.UserData())
+		log.Debug("IN msg =: %s, userId:%v", string(data), userId)
 		if a.chanRPC == nil {
 			err = handleMsgData([]interface{}{data})
 		} else {
@@ -201,7 +211,14 @@ func (a *agent) WriteMsg(msg interface{}) {
 			log.Error("marshal message %v error: %v", reflect.TypeOf(msg), err)
 			return
 		}
-		log.Debug("OUT msg : %s, userId:%v", string(data[0]), a.UserData())
+
+		userId := 0
+		var ok bool
+		if userId, ok = a.userData.(int); ok {
+		}else if user, ok1 := a.userData.(IdUser); ok1 {
+			userId = user.GetUid()
+		}
+		log.Debug("OUT msg =: %s, userId:%v", string(data[0]), userId)
 		err = a.conn.WriteMsg(data...)
 		if err != nil {
 			log.Error("write message %v error: %v", reflect.TypeOf(msg), err)

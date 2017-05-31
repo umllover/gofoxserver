@@ -27,5 +27,5 @@
 	"ConnAddrs": {"world": "localhost:31001"},
 	"PendingWriteNum": 100,
     "ValidKind":"389,28",
-    "ServerId": 1
+    "NodeId": 1
 }

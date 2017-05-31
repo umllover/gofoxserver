@@ -39,11 +39,11 @@ var Server struct {
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
-	ServerId 	int
+	NodeId 	int
 }
 
 func ServerName()string{
-	return fmt.Sprintf(HallPrefix + "_%d", Server.ServerId)
+	return fmt.Sprintf(HallPrefix + "_%d", Server.NodeId)
 }
 
 func init() {
@@ -128,8 +128,8 @@ func (c *ConsulConfig)GetConsulDc() string{
 func (c *ConsulConfig)GetAddress() string{
 	return Server.ListenAddr
 }
-func (c *ConsulConfig)GetServerID() int{
-	return Server.ServerId
+func (c *ConsulConfig)GetNodeID() int{
+	return Server.NodeId
 }
 
 func (c *ConsulConfig)GetSvrName() string{

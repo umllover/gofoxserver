@@ -322,6 +322,14 @@ type {{cache_struct_name}} struct{
     objMap map[{{primary_field_type[0]}}]*{{struct_name}}
     {% elif primary_key_length == 0 -%}
 	objMap map[string]*{{struct_name}}
+	{% elif primary_key_length == 2 -%}
+	objMap map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]*{{struct_name}}
+	{% elif primary_key_length == 3 -%}
+	objMap map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]*{{struct_name}}
+	{% elif primary_key_length == 4 -%}
+	objMap map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}}
+	{% elif primary_key_length == 5 -%}
+	objMap map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}}
     {% else-%}
     objMap map[string]*{{struct_name}}
     {% endif -%}
@@ -339,6 +347,14 @@ func (c *{{cache_struct_name}}) LoadAll() {
     }
     {% if primary_key_length == 1 -%}
         c.objMap = make(map[{{primary_field_type[0]}}]*{{struct_name}})
+	{% elif primary_key_length == 2 -%}
+		c.objMap = make(map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]*{{struct_name}})
+	{% elif primary_key_length == 3 -%}
+		c.objMap = make(map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]*{{struct_name}})
+	{% elif primary_key_length == 4 -%}
+		c.objMap = make(map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}})
+	{% elif primary_key_length == 5 -%}
+		c.objMap = make(map[{{primary_field_type[0]}}]map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}})
     {% else-%}
         c.objMap = make(map[string]*{{struct_name}})
     {% endif -%}
@@ -346,13 +362,81 @@ func (c *{{cache_struct_name}}) LoadAll() {
     log.Debug("Load all {{table_name}} success %v", len(c.objList))
     for _,v := range c.objList{
         {% if primary_key_length == 1 -%}
-        c.objMap[v.{{primary_field[0]}}] = v
+			c.objMap[v.{{primary_field[0]}}] = v
+		{% elif primary_key_length == 2 -%}
+			obj, ok := c.objMap[v.{{primary_field[0]}}]
+			if !ok {
+				obj = make(map[{{primary_field_type[1]}}]*{{struct_name}})
+				c.objMap[v.{{primary_field[0]}}] = obj
+			}
+			obj[v.{{primary_field[1]}}] = v
+			
+		{% elif primary_key_length == 3 -%}
+			obj, ok := c.objMap[v.{{primary_field[0]}}]
+			if !ok {
+				obj = make(map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]*{{struct_name}})
+				c.objMap[v.{{primary_field[0]}}] = obj
+			}
+			
+			obj2, ok2 := obj[v.{{primary_field[1]}}]
+			if !ok2 {
+				obj2 = make(map[{{primary_field_type[2]}}]*{{struct_name}})
+				obj[v.{{primary_field[1]}}] = obj2
+			}
+			obj2[v.{{primary_field[2]}}] = v
+		
+		{% elif primary_key_length == 4 -%}
+			obj, ok := c.objMap[v.{{primary_field[0]}}]
+			if !ok {
+				obj = make(map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}})
+				c.objMap[v.{{primary_field[0]}}] = obj
+			}
+			
+			obj2, ok2 := obj[v.{{primary_field[1]}}]
+			if !ok2 {
+				obj2 = make(map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}})
+				obj[v.{{primary_field[1]}}] = obj2
+			}
+			
+			
+			obj3, ok3 := obj2[v.{{primary_field[2]}}]
+			if !ok3 {
+				obj3 = make(map[{{primary_field_type[3]}}]*{{struct_name}})
+				obj2[v.{{primary_field[2]}}] = obj3
+			}
+			obj3[v.{{primary_field[3]}}] = v
+		{% elif primary_key_length == 5 -%}
+			obj, ok := c.objMap[v.{{primary_field[0]}}]
+			if !ok {
+				obj = make(map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}})
+				c.objMap[v.{{primary_field[0]}}] = obj
+			}
+			
+			obj2, ok2 := obj[v.{{primary_field[1]}}]
+			if !ok2 {
+				obj2 = make(map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}})
+				obj[v.{{primary_field[1]}}] = obj2
+			}
+			
+			
+			obj3, ok3 := obj2[v.{{primary_field[2]}}]
+			if !ok3 {
+				obj3 = make(map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}})
+				obj2[v.{{primary_field[2]}}] = obj3
+			}
+			
+			obj4, ok4 := obj3[v.{{primary_field[2]}}]
+			if !ok4 {
+				obj4 = make(map[{{primary_field_type[4]}}]*{{struct_name}})
+				obj3[v.{{primary_field[3]}}] = obj4
+			}
+			obj4[v.{{primary_field[4]}}] = v
         {% else -%}
-        var key string
-        {% for k in primary_field -%}
-        key += fmt.Sprintf("%v-",v.{{k}})
-        {% endfor -%}
-        c.objMap[key] = v
+			var key string
+			{% for k in primary_field -%}
+			key += fmt.Sprintf("%v-",v.{{k}})
+			{% endfor -%}
+			c.objMap[key] = v
         {% endif -%}
     }
 }
@@ -367,28 +451,202 @@ func (c *{{cache_struct_name}}) Count() int {
 
 func (c *{{cache_struct_name}}) Get({{primary_key_params}}) (*{{struct_name}}, bool){
     {% if primary_key_length == 1 -%}
-    key := {{primary_key[0]}}
+		return c.GetKey1({{primary_key_param_names}})
+	{% elif primary_key_length == 2 -%}
+		return c.GetKey2({{primary_key_param_names}})
+	{% elif primary_key_length == 3 -%}
+		return c.GetKey3({{primary_key_param_names}})
+	{% elif primary_key_length == 4 -%}
+		return c.GetKey4({{primary_key_param_names}})
+	{% elif primary_key_length == 5 -%}
+		return c.GetKey5({{primary_key_param_names}})
     {% else -%}
+		return c.GetKeyS({{primary_key_param_names}})
+    {% endif -%}
+}
+
+{% if primary_key_length == 1 -%}
+func (c *{{cache_struct_name}}) GetKey1({{primary_key_params}}) (*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+    return v,ok
+}
+
+{% elif primary_key_length == 2 -%}
+func (c *{{cache_struct_name}}) GetKey1({{primary_keys[0]}}) (map[{{primary_field_type[1]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+    return v,ok
+}
+
+func (c *{{cache_struct_name}}) GetKey2({{primary_key_params}}) (*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	return v1,ok1
+}
+
+{% elif primary_key_length == 3 -%}
+func (c *{{cache_struct_name}}) GetKey1({{primary_keys[0]}}) (map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+    return v,ok
+}
+
+func (c *{{cache_struct_name}}) GetKey2({{primary_keys[0]}},{{primary_keys[1]}}) (map[{{primary_field_type[2]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	return v1,ok1
+}
+func (c *{{cache_struct_name}}) GetKey3({{primary_key_params}}) (*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	return v2, ok2
+}
+
+{% elif primary_key_length == 4 -%}
+func (c *{{cache_struct_name}}) GetKey1({{primary_keys[0]}}) (map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+    return v,ok
+}
+
+func (c *{{cache_struct_name}}) GetKey2({{primary_keys[0]}},{{primary_keys[1]}}) (map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	return v1,ok1
+}
+func (c *{{cache_struct_name}}) GetKey3({{primary_keys[0]}},{{primary_keys[1]}}, {{primary_keys[2]}}) (map[{{primary_field_type[3]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	return v2, ok2
+}
+func (c *{{cache_struct_name}}) GetKey4({{primary_key_params}}) (*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	if !ok2 {
+		return nil, false
+	}
+
+	v3, ok3 :=  v2[{{primary_key[3]}}]
+	return v3, ok3
+}
+
+{% elif primary_key_length == 5 -%}
+func (c *{{cache_struct_name}}) GetKey1({{primary_keys[0]}}) (map[{{primary_field_type[1]}}]map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+    return v,ok
+}
+
+func (c *{{cache_struct_name}}) GetKey2({{primary_keys[0]}},{{primary_keys[1]}}) (map[{{primary_field_type[2]}}]map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	return v1,ok1
+}
+func (c *{{cache_struct_name}}) GetKey3({{primary_keys[0]}},{{primary_keys[1]}}, {{primary_keys[2]}}) (map[{{primary_field_type[3]}}]map[{{primary_field_type[4]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	return v2, ok2
+}
+func (c *{{cache_struct_name}}) GetKey4({{primary_keys[0]}},{{primary_keys[1]}}, {{primary_keys[2]}}, {{primary_keys[3]}}) (map[{{primary_field_type[4]}}]*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	if !ok2 {
+		return nil, false
+	}
+
+	v3, ok3 :=  v2[{{primary_key[3]}}]
+	return v3, ok3
+}
+func (c *{{cache_struct_name}}) GetKey5({{primary_key_params}}) (*{{struct_name}}, bool){
+    v,ok :=  c.objMap[{{primary_key[0]}}]
+	if !ok {
+		return nil, false
+	}
+
+	v1,ok1 :=  v[{{primary_key[1]}}]
+	if !ok1 {
+		return nil, false
+	}
+
+	v2, ok2 :=  v1[{{primary_key[2]}}]
+	if !ok2 {
+		return nil, false
+	}
+
+	v3, ok3 :=  v2[{{primary_key[3]}}]
+	if !ok3 {
+		return nil, false
+	}
+
+	v4, ok4 :=  v3[{{primary_key[4]}}]
+	return v4, ok4
+}
+
+{% else -%}
+func (c *{{cache_struct_name}}) GetKeyS({{primary_key_params}}) (*{{struct_name}}, bool){
+
     var key string
     {% for k in primary_key -%}
     key += fmt.Sprintf("%v-",{{k}})
     {% endfor -%}
-    {% endif -%}
     v,ok :=  c.objMap[key]
     return v,ok
 }
+       
+{% endif -%}
 
-// 仅限运营后台实时刷新服务器数据用
-func (c *{{cache_struct_name}}) Update(v *{{struct_name}}){
-    {% if primary_key_length == 1 -%}
-    key := v.{{primary_field[0]}}
-    {% else -%}
-    var key string
-    {% for k in primary_field -%}
-        key += fmt.Sprintf("%v-",v.{{k}})
-    {% endfor -%}
-    {% endif -%}
-    c.objMap[key] = v
-}
 
 {% endif -%}

@@ -8,6 +8,8 @@ import (
 	"github.com/lovelly/leaf/log"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/conf"
+	"github.com/lovelly/leaf/gate"
+	. "mj/common/cost"
 )
 
 ////注册rpc 消息
@@ -23,37 +25,86 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init(){
+	//rpc
 	handleRpc("GetKindList", GetKindList, chanrpc.FuncCommon)
+
+	//c2s
+	handlerC2S(&msg.C2G_GR_UserChairReq{}, UserChairReq)
+	handlerC2S(&msg.C2G_CreateTable{}, CreateTable)
+	handlerC2S(&msg.C2G_SearchServerTable{}, SrarchTable)
 }
 
+//客户端请求更换椅子
+func UserChairReq(args []interface{}) {
+
+
+}
+
+//创建桌子
+func CreateTable(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_CreateTable)
+	agent := args[1].(gate.Agent)
+	retCode := 0
+
+	defer func() {
+		if retCode != 0 {
+			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode:retCode, DescribeString:"创建房间失败"})
+		}
+	}()
+
+	mod, ok := GetModByKind(recvMsg.Kind)
+	if !ok {
+		retCode = NotFoudGameType
+		return
+	}
+
+	log.Debug("begin CreateRoom.....")
+	mod.GetChanRPC().Go("CreateRoom", recvMsg, agent)
+}
+
+func SrarchTable(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_SearchServerTable)
+	agent := args[1].(gate.Agent)
+	mod, ok := GetModByKind(recvMsg.KindID)
+	if !ok {
+		return
+	}
+
+	mod.GetChanRPC().Go("SrarchTableInfo", recvMsg, agent)
+}
+
+
+///// rpc
 func GetKindList(args []interface{})(interface{}, error){
 	log.Debug("at GetKindList ==== ")
 	ip, port := conf.GetServerAddrAndPort()
 
 	ret := make([]*msg.TagGameServer, 0)
 	for kind, v := range modules {
-		template, ok := base.GameServiceOptionCache.Get(kind)
+		templates, ok := base.GameServiceOptionCache.GetKey1(kind)
 		if !ok {
 			continue
 		}
-		svrInfo := &msg.TagGameServer{}
-		svrInfo.KindID = kind
-		svrInfo.NodeID = template.NodeID
-		svrInfo.SortID  = template.SortID
-		svrInfo.ServerID = conf.Server.ServerId
-		svrInfo.ServerPort =port
-		svrInfo.ServerType = int64(template.ServerType)
-		svrInfo.OnLineCount = int64(v.GetClientCount())
-		svrInfo.FullCount = template.MaxDistributeUser
-		svrInfo.RestrictScore = int64(template.RestrictScore)
-		svrInfo.MinTableScore =  int64(template.MinTableScore)
-		svrInfo.MinEnterScore =  int64(template.MinEnterScore)
-		svrInfo.MaxEnterScore =  int64(template.MaxEnterScore)
-		svrInfo.ServerAddr = ip
-		svrInfo.ServerName = template.ServerName
-		svrInfo.SurportType = 0
-		svrInfo.TableCount = v.GetTableCount()
-		ret = append(ret, svrInfo)
+		for _, template := range templates{
+			svrInfo := &msg.TagGameServer{}
+			svrInfo.KindID = kind
+			svrInfo.NodeID = template.NodeID
+			svrInfo.SortID  = template.SortID
+			svrInfo.ServerID = template.ServerID
+			svrInfo.ServerPort =port
+			svrInfo.ServerType = int64(template.ServerType)
+			svrInfo.OnLineCount = int64(v.GetClientCount())
+			svrInfo.FullCount = template.MaxDistributeUser
+			svrInfo.RestrictScore = int64(template.RestrictScore)
+			svrInfo.MinTableScore =  int64(template.MinTableScore)
+			svrInfo.MinEnterScore =  int64(template.MinEnterScore)
+			svrInfo.MaxEnterScore =  int64(template.MaxEnterScore)
+			svrInfo.ServerAddr = ip
+			svrInfo.ServerName = template.ServerName
+			svrInfo.SurportType = 0
+			svrInfo.TableCount = v.GetTableCount()
+			ret = append(ret, svrInfo)
+		}
 	}
 
 	log.Debug("at GetKindList ==== %v", ret)

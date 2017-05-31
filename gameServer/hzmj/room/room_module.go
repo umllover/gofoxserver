@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"mj/common/msg"
+	tbase "mj/gameServer/db/model/base"
 )
 
 var (
@@ -25,15 +27,22 @@ func getId()int {
 	return IncId
 }
 
-func NewRoom(mgrCh* chanrpc.Server) *Room {
+func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameServiceOption) *Room {
 	skeleton := base.NewSkeleton()
-	Room := &Room{Skeleton: skeleton, ChanRPC: skeleton.ChanRPCServer, mgrCh:mgrCh}
+	Room := new(Room)
+	Room.Skeleton = skeleton
+	Room.ChanRPC= skeleton.ChanRPCServer
+	Room.mgrCh =mgrCh
+	Room.RoomInfo = common.NewRoomInfo()
 	Room.id = getId()
+	Room.Kind = t.KindID
+	Room.ServerId = t.ServerID
 	Room.name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", Room.id)
 	Room.CloseSig = make(chan bool, 1)
 	RegisterHandler(Room)
 	Room.OnInit()
 	go Room.run()
+	log.Debug("new room ok .... ")
 	return Room
 }
 
@@ -42,11 +51,13 @@ type Room struct {
 	*common.RoomInfo
 	*module.Skeleton
 	ChanRPC *chanrpc.Server //接受客户端消息的chan
-	mgrCh* chanrpc.Server
+	mgrCh* chanrpc.Server  //管理类的chan 例如红中麻将 就是红中麻将module的 ChanRPC
 	name          string
 	CloseSig  chan bool
 	wg       sync.WaitGroup
 	id 			int
+	Kind 		int
+	ServerId    int
 }
 
 func (r *Room)run(){

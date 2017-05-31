@@ -1,0 +1,3 @@
+UserCurrencyInfo, UserRoomCard >>> userAttr
+
+personaloroominfo >>> gameserviceoption

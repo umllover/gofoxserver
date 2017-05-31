@@ -21,8 +21,8 @@ type Module struct {
 }
 
 func (m *Module) OnInit() {
-	m.Skeleton.AfterFunc(10 * time.Second, m.checkUpdate)
 	m.Skeleton = skeleton
+	m.Skeleton.AfterFunc(10 * time.Second, m.checkUpdate)
 }
 
 func (m *Module) OnDestroy() {
@@ -59,6 +59,7 @@ func AddTableCount() {
 
 func addRoom(r *room.Room) {
 	rooms[r.GetRoomId()] = r
+	AddTableCount()
 }
 
 func delRoom(id int) {

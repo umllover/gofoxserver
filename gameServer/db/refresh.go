@@ -37,7 +37,7 @@ func RefreshInTime() {
 func refreshBase() {
 	tableListStr := ""
 	cnt := 0
-	row := BaseDB.QueryRowx("select refresh_table_list, cnt from  refresh_in_time where id=?;",conf.Server.ServerId)
+	row := BaseDB.QueryRowx("select refresh_table_list, cnt from  refresh_in_time where id=?;",conf.Server.NodeId)
 	err := row.Scan(&tableListStr, &cnt)
 	if err != nil {
 		log.Error("Query refresh_table_list encounter a error.")
@@ -67,8 +67,8 @@ func refreshBase() {
 
 	cnt--
 	if cnt < 1 {
-		BaseDB.Exec("update refresh_in_time set refresh_table_list = '', cnt = 0 where id =?;", conf.Server.ServerId)
+		BaseDB.Exec("update refresh_in_time set refresh_table_list = '', cnt = 0 where id =?;", conf.Server.NodeId)
 	} else {
-		BaseDB.Exec("update refresh_in_time set cnt = ? where id =?;", cnt, conf.Server.ServerId)
+		BaseDB.Exec("update refresh_in_time set cnt = ? where id =?;", cnt, conf.Server.NodeId)
 	}
 }

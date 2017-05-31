@@ -25,5 +25,5 @@
 	"ListenAddr": "localhost:30001",
 	"ConnAddrs": {"world": "localhost:31001"},
 	"PendingWriteNum": 100,
-    "ServerId": 1
+    "NodeId": 1
 }

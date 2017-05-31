@@ -12,13 +12,17 @@ type User struct {
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo
-	*model.Userroomcard
 	*model.Userextrainfo
+	*model.Userattr
 	Id int
-	RoomId int
+	RoomId int // roomId 就是tableid
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
 	return &User{Id : UserId}
+}
+
+func (u User) GetUid() int{
+	return u.Id
 }

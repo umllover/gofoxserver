@@ -29,6 +29,11 @@ type RoomInfo struct {
 	Users []*user.User /// index is chairId
 }
 
+func NewRoomInfo()*RoomInfo{
+	r := new(RoomInfo)
+	return r
+}
+
 func (r *RoomInfo) CheckDestroy(curTime int64) bool {
 	if len(r.Users) < 1 {
 		return true //没人关闭房间 todo

@@ -6,6 +6,7 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/hzmj"
+	"github.com/name5566/leaf/log"
 )
 
 var (
@@ -21,7 +22,7 @@ type Module struct {
 
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
-	loadAllModule()
+
 }
 
 func (m *Module) OnDestroy() {
@@ -29,6 +30,7 @@ func (m *Module) OnDestroy() {
 }
 
 func loadAllModule(){
+	log.Debug("!!!!!!!!!!!!!!!!!!%v", HasKind(common.KIND_TYPE_HZMJ))
 	if HasKind(common.KIND_TYPE_HZMJ) {
 		modules[common.KIND_TYPE_HZMJ] = hzmj.Module
 	}
@@ -46,4 +48,13 @@ func GetModules()[]module.Module {
 func HasKind(kind int) bool{
 	_, ok := conf.ValidKind[kind]
 	return ok
+}
+
+func GetModByKind(kind int)(common.Module, bool) {
+	mod, ok := modules[kind]
+	return mod, ok
+}
+
+func init(){
+	loadAllModule()
 }

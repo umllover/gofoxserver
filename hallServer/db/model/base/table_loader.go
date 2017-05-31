@@ -13,8 +13,8 @@ import (
 func LoadBaseData() {
 	var start = time.Now().UnixNano()
 	GameServiceOptionCache.LoadAll()
-	GameServiceSttribCache.LoadAll()
+	PersonalTableFeeCache.LoadAll()
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
-	db.BaseDataCaches["GameServiceSttrib"] = GameServiceSttribCache
+	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	log.Debug("loadBaseData %v  %v %v", 2, time.Now().UnixNano()-start, "ns")
 }
