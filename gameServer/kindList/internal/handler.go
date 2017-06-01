@@ -10,6 +10,7 @@ import (
 	"mj/gameServer/conf"
 	"github.com/lovelly/leaf/gate"
 	. "mj/common/cost"
+	"mj/gameServer/user"
 )
 
 ////注册rpc 消息
@@ -31,7 +32,8 @@ func init(){
 	//c2s
 	handlerC2S(&msg.C2G_GR_UserChairReq{}, UserChairReq)
 	handlerC2S(&msg.C2G_CreateTable{}, CreateTable)
-
+	handlerC2S(&msg.C2G_UserSitdown{}, UserSitdown)
+	handlerC2S(&msg.C2G_GameOption{}, SetGameOption)
 }
 
 //客户端请求更换椅子
@@ -62,11 +64,35 @@ func CreateTable(args []interface{}) {
 	mod.GetChanRPC().Go("CreateRoom", recvMsg, agent)
 }
 
+func UserSitdown(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user  := agent.UserData().(*user.User)
+	mod, ok := GetModByKind(user.KindID)
+	if !ok {
+		log.Error("at UserSitdown not foud module")
+		return
+	}
+
+	mod.GetChanRPC().Go("Sitdown",  args[0], user)
+}
+
+
+func SetGameOption(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user  := agent.UserData().(user.User)
+	mod, ok := GetModByKind(user.KindID)
+	if !ok {
+		log.Error("at UserSitdown not foud module")
+		return
+	}
+
+	mod.GetChanRPC().Go("SetGameOption",  args[0], user)
+}
+
 
 
 ///// rpc
 func GetKindList(args []interface{})(interface{}, error){
-	log.Debug("at GetKindList ==== ")
 	ip, port := conf.GetServerAddrAndPort()
 
 	ret := make([]*msg.TagGameServer, 0)

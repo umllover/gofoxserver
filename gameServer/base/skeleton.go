@@ -13,6 +13,7 @@ func NewSkeleton() *module.Skeleton {
 		AsynCallLen:        conf.AsynCallLen,
 		ChanRPCServer:      chanrpc.NewServer(conf.ChanRPCLen),
 	}
+
 	skeleton.Init()
 	return skeleton
 }

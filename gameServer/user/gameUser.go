@@ -16,6 +16,9 @@ type User struct {
 	*model.Userattr
 	Id int
 	RoomId int // roomId 就是tableid
+	KindId int //当前游戏类型
+	Status int //当前游戏状态
+	ChairId int //当前椅子
 	sync.RWMutex
 }
 

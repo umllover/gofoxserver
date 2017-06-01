@@ -35,12 +35,24 @@ type C2G_CreateTable struct {
 	ServerId int 			//子类型
 }
 
-//查询房间信息
-type C2G_SearchServerTable struct {
-	ServerID int
-	KindID int
+//请求坐下
+type C2G_UserSitdown struct {
+	TableI int 	// 桌子号码
+	ChairID int // 椅子号码
+	Password string //房间密码
 }
 
+//请求玩家信息
+type C2G_REQUserInfo struct {
+
+}
+
+//配置信息
+type C2G_GameOption struct {
+	AllowLookon int						//旁观标志
+	FrameVersion int					//框架版本
+	ClientVersion int					//游戏版本
+}
 
 // 出牌
 type C2G_HZOutCard struct {
@@ -50,7 +62,7 @@ type C2G_HZOutCard struct {
 
 
 
-//// s 2 c
+//// s 2 c ////////////////////////////
 //登录成功
 type G2C_LogonSuccess struct {
 
@@ -81,6 +93,103 @@ type G2C_CreateTableSucess struct {
 type G2C_SearchResult struct {
 	ServerID int							//房间 I D
 	TableID int								//桌子 I D
+}
+
+//玩家状态
+type G2C_UserStatus struct {
+	UserID int
+	UserStatus	*UserStu
+}
+
+//发送提示信息
+type G2C_PersonalTableTip struct {
+	TableOwnerUserID int			//桌主 I D
+	DrawCountLimit int				//局数限制
+	DrawTimeLimit int				//时间限制
+	PlayCount int					//已玩局数
+	PlayTime int					//已玩时间
+	CellScore int					//游戏底分
+	IniScore int					//初始分数
+	ServerID string					//房间编号
+	IsJoinGame int					//是否参与游戏
+	IsGoldOrGameScore int			//金币场还是积分场 0 标识 金币场 1 标识 积分场
+}
+
+//游戏属性 ， 游戏未开始发送的结构
+type G2C_StatusFree struct {
+	CellScore int					//基础积分
+	TimeOutCard int8					//出牌时间
+	TimeOperateCard int8				//操作时间
+	TimeStartGame int8				//开始时间
+	TurnScore []int					//积分信息
+	CollectScore []int				//积分信息
+	PlayerCount int					//玩家人数
+	MaCount int8						//码数
+	CountLimit int               	//局数限制
+}
+
+//游戏状态 游戏已经开始了发送的结构
+type G2C_StatusPlay struct {
+	//时间信息
+	TimeOutCard int8							//出牌时间
+	TimeOperateCard int8						//叫分时间
+	TimeStartGame int8							//开始时间
+
+	//游戏变量
+	CellScore int								//单元积分
+	BankerUser int								//庄家用户
+	CurrentUser int								//当前用户
+	MagicIndex int8								//财神索引
+
+	//规则
+	PlayerCount int8				//玩家人数
+	MaCount int8					//码数
+
+	//状态变量
+	ActionCard int8								//动作扑克
+	ActionMask int8								//动作掩码
+	LeftCardCount int8							//剩余数目
+	Trustee []bool								//是否托管 index 就是椅子id
+	Ting []bool								//是否听牌  index chairId
+
+	//出牌信息
+	OutCardUser int									//出牌用户
+	OutCardData int8								//出牌扑克
+	DiscardCount[]int8								//丢弃数目
+	DiscardCard[][]int8				//丢弃记录
+
+	//扑克数据
+	CardCount []int8					//扑克数目
+	CardData []int8						//扑克列表 MAX_COUNT
+	SendCardData int8								//发送扑克
+
+	//组合扑克
+	WeaveItemCount	[]int8				//组合数目
+	WeaveItemArray	[][]*WeaveItem		//组合扑克 [GAME_PLAYER][MAX_WEAVE]
+
+	//堆立信息
+	HeapHead int									//堆立头部
+	HeapTail int									//堆立尾部
+	HeapCardInfo [][]int8;						//堆牌信息
+
+	HuCardCount	[]int8
+	HuCardData	[][]int8
+	OutCardCount int8
+	OutCardDataEx []int8
+	//历史积分
+	TurnScore []int						//积分信息
+	CollectScore []int					//积分信息
+};
+
+//约战类型特殊属性
+type G2C_Record struct {
+	Count int
+	HuCount []int8//胡牌次数
+	MaCount []int8 //中码个数
+	AnGang []int8 //暗杠次数
+	MingGang []int8 //明杠次数
+	AllScore []int8	//总结算分
+	DetailScore [][]int;	//单局结算分
 }
 
 

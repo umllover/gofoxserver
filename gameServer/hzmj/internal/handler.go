@@ -15,6 +15,11 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"github.com/name5566/leaf/log"
+	"fmt"
+)
+
+const(
+	UserCount = 4
 )
 
 
@@ -38,6 +43,8 @@ func init() {
 	// rpc
 	handleRpc("DelRoom", DelRoom, chanrpc.FuncCommon)
 	handleRpc("CreateRoom", CreaterRoom, chanrpc.FuncCommon)
+	handleRpc("Sitdown", Sitdown, chanrpc.FuncCommon)
+	handleRpc("SetGameOption", SetGameOption, chanrpc.FuncCommon)
 }
 
 
@@ -57,6 +64,28 @@ func HZOutCard (args []interface{}) {
 func DelRoom(args []interface{}){
 	id := args[0].(int)
 	delRoom(id)
+}
+
+func Sitdown(args []interface{}){
+	user := args[1].(*user.User)
+	r := getRoom(user.RoomId)
+	if r != nil {
+		fmt.Println("@@@@@@@@@@@@@@@@11", r.ChanRPC)
+		r.ChanRPC.Go("Sitdown", args...)
+	}else {
+		log.Error("at Sitdown no foud room %v", args[0])
+	}
+}
+
+func SetGameOption(args []interface{}){
+
+	user := args[1].(*user.User)
+	r := getRoom(user.RoomId)
+	if r != nil {
+		r.ChanRPC.Go("SetGameOption", args...)
+	}else {
+		log.Error("at SetGameOption no foud room %v", args[0])
+	}
 }
 
 func CreaterRoom(args []interface{}) {
@@ -122,12 +151,14 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
-	r  := room.NewRoom(ChanRPC, recvMsg, template, rid)
+	r  := room.NewRoom(ChanRPC, recvMsg, template, rid, UserCount, user.Id)
 	retMsg.TableID = r.GetRoomId()
 	retMsg.DrawCountLimit = r.CountLimit
 	retMsg.DrawTimeLimit = r.TimeLimit
 	retMsg.Beans = feeTemp.TableFee
 	retMsg.RoomCard = user.RoomCard
+	user.KindID =  recvMsg.Kind
+	user.RoomId = r.GetRoomId()
 	addRoom(r)
 }
 

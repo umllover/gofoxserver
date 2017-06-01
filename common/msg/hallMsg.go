@@ -1,7 +1,7 @@
 package msg
 /////////////////////// hall server msg ////////////////////////////
 
-//////// c 2 s
+////////////////////// c 2 l ////////////////////
 //登录消息
 type C2L_Login struct {
 	ModuleID  int
@@ -33,6 +33,15 @@ type C2L_Regist struct {
 	MobilePhone string //电话号码  //默认不获取本机号码
 }
 
+//查询房间信息
+type C2L_SearchServerTable struct {
+	ServerID int
+	KindID int
+}
+
+
+
+/////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct{
 	ResultCode int						//错误代码
@@ -74,9 +83,9 @@ type L2C_LogonSuccess struct {
 	KindID int					`json:"dwKindID"`		//游戏类型
 };
 
+//房间列表
 type L2C_ServerList []*TagGameServer
 
-type L2C_ServerListFinish struct {
-
-}
+//房间列表发送成功
+type L2C_ServerListFinish struct {}
 

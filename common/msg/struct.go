@@ -45,3 +45,31 @@ type RoomInfo struct {
 	TableId int
 	NodeId int //在哪个节点上
 }
+
+
+//用户状态信息
+type UserStu struct {
+	TableID int	// 桌子索引
+	ChairID int // 椅子位置
+	UserStatus   int// 用户状态
+}
+
+//自定义配置结构
+type CustomRule struct {
+	//其他定义
+	MaCount int8							//码数，1：一码全中，2-6：对应码数
+	PlayerCount int8						//人数 2-4
+	//时间定义
+	TimeOutCard int8						//出牌时间
+	TimeOperateCard int8					//操作时间
+	TimeStartGame int8					//开始时间
+};
+
+ //组合子项
+type WeaveItem struct {
+	WeaveKind int8								//组合类型
+	CenterCard int8								//中心扑克
+	Param int8									//类型标志
+	ProvideUser int								//供应用户
+	CardData []int8								//麻将数据
+};

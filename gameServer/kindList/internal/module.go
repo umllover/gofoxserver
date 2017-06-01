@@ -6,7 +6,6 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/hzmj"
-	"github.com/name5566/leaf/log"
 )
 
 var (
@@ -30,7 +29,6 @@ func (m *Module) OnDestroy() {
 }
 
 func loadAllModule(){
-	log.Debug("!!!!!!!!!!!!!!!!!!%v", HasKind(common.KIND_TYPE_HZMJ))
 	if HasKind(common.KIND_TYPE_HZMJ) {
 		modules[common.KIND_TYPE_HZMJ] = hzmj.Module
 	}

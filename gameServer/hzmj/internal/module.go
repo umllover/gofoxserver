@@ -57,6 +57,7 @@ func (m *Module) GetTableCount() int {
 	return wTableCount
 }
 
+
 func AddTableCount() {
 	wTableCount++
 }

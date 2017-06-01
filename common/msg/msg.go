@@ -28,14 +28,21 @@ func init() {
 	Processor.Register(&C2G_HZOutCard{})
 	Processor.Register(&G2C_CreateTableFailure{})
 	Processor.Register(&G2C_CreateTableSucess{})
-	Processor.Register(&C2G_SearchServerTable{})
+	Processor.Register(&C2L_SearchServerTable{})
 	Processor.Register(&G2C_SearchResult{})
-
+	Processor.Register(&C2G_UserSitdown{})
+	Processor.Register(&G2C_UserStatus{})
+	Processor.Register(&C2G_GameOption{})
+	Processor.Register(&G2C_PersonalTableTip{})
+	Processor.Register(&G2C_Record{})
+	Processor.Register(&G2C_StatusFree{})
+	Processor.Register(&G2C_StatusPlay{})
 
 }
 
 type ShowErrCode struct {
-	ErrCode int
+	ErrorCode int
+	DescribeString string
 }
 
 

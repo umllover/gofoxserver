@@ -181,6 +181,7 @@ func (s *Server) Go(id interface{}, args ...interface{}) {
 		}
 	}()
 
+
 	s.ChanCall <- &CallInfo{
 		fInfo: f,
 		args:  args,

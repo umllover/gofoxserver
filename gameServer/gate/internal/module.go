@@ -27,7 +27,7 @@ func (m *Module) OnInit() {
 		GoLen:              conf.AgentGoLen,
 		TimerDispatcherLen: conf.AgentTimerDispatcherLen,
 		AsynCallLen:        conf.AgentAsynCallLen,
-		ChanRPCLen:         conf.AgentChanRPCLen,
+		//ChanRPCLen:         conf.AgentChanRPCLen,
 		OnAgentInit:        onAgentInit,
 		OnAgentDestroy:     onAgentDestroy,
 		AgentChanRPC: 		login.ChanRPC,

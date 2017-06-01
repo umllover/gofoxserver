@@ -28,7 +28,7 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
-	handlerC2S(&msg.C2G_SearchServerTable{}, SrarchTable)
+	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 
 
 	handleRpc("sendGameList", sendGameList, chanrpc.FuncCommon)
@@ -42,7 +42,7 @@ func init() {
 
 ////// c2s
 func SrarchTable(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_SearchServerTable)
+	recvMsg := args[0].(*msg.C2L_SearchServerTable)
 	retMsg := &msg.G2C_SearchResult{}
 	agent := args[1].(gate.Agent)
 	defer func(){
