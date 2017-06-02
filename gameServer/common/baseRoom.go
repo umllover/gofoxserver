@@ -127,6 +127,7 @@ func (r *RoomInfo) EnterRoom(chairId int, u *user.User) bool {
 		return false
 	}
 	r.Users[chairId] = u
+	u.ChairId = chairId
 	return true
 }
 

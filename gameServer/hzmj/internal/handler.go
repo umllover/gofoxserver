@@ -15,7 +15,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"github.com/name5566/leaf/log"
-	"fmt"
 )
 
 const(
@@ -70,7 +69,6 @@ func Sitdown(args []interface{}){
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
 	if r != nil {
-		fmt.Println("@@@@@@@@@@@@@@@@11", r.ChanRPC)
 		r.ChanRPC.Go("Sitdown", args...)
 	}else {
 		log.Error("at Sitdown no foud room %v", args[0])
@@ -151,6 +149,15 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
+	agent.WriteMsg(&msg.G2C_ConfigServer{
+		TableCount: template.TableCount,
+		ChairCount: 4,
+		ServerType: template.ServerType,
+		ServerRule: template.ServerRule,
+	})
+
+	agent.WriteMsg(&msg.G2C_ConfigFinish{})
+
 	r  := room.NewRoom(ChanRPC, recvMsg, template, rid, UserCount, user.Id)
 	retMsg.TableID = r.GetRoomId()
 	retMsg.DrawCountLimit = r.CountLimit
@@ -160,6 +167,26 @@ func CreaterRoom(args []interface{}) {
 	user.KindID =  recvMsg.Kind
 	user.RoomId = r.GetRoomId()
 	addRoom(r)
+
+	agent.WriteMsg(&msg.G2C_UserEnter{
+		GameID : user.GameID,						//游戏 I D
+		UserID : user.Id,							//用户 I D
+		FaceID : user.FaceID,							//头像索引
+		CustomID :user.CustomID,						//自定标识
+		Gender :user.Gender,							//用户性别
+		MemberOrder :user.Accountsinfo.MemberOrder,					//会员等级
+		TableID : user.RoomId,							//桌子索引
+		ChairID : user.ChairId,							//椅子索引
+		UserStatus :user.Status,						//用户状态
+		Score :user.Score,								//用户分数
+		WinCount : user.WinCount,							//胜利盘数
+		LostCount : user.LostCount,						//失败盘数
+		DrawCount : user.DrawCount,						//和局盘数
+		FleeCount : user.FleeCount,						//逃跑盘数
+		Experience : user.Experience,						//用户经验
+		NickName: user.NickName,				//昵称
+		HeaderUrl :user.HeadImgUrl, 				//头像
+	})
 }
 
 

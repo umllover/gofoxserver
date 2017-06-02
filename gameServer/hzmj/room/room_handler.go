@@ -51,6 +51,11 @@ func SetGameOption(args []interface{}) {
 		return
 	}
 
+	user.WriteMsg(&msg.G2C_GameStatus{
+		GameStatus: room.Status,
+		AllowLookon:room.AllowLookon[user.ChairId],
+	})
+
 	room.AllowLookon[user.ChairId] = recvMsg.AllowLookon
 	user.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID: room.CreateUser,			//桌主 I D
@@ -189,7 +194,6 @@ func Sitdown(args []interface{}) {
 
 	room.EnterRoom(recvMsg.ChairID, user)
 	user.Status = US_SIT
-	user.ChairId = recvMsg.ChairID
 	room.SendMsgAll(&msg.G2C_UserStatus{
 		UserID:user.Id,
 		UserStatus:&msg.UserStu{

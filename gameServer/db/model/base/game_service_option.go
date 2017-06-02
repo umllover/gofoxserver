@@ -57,7 +57,7 @@ type GameServiceOption struct {
 	TimeOffLineCount            int    `db:"TimeOffLineCount" json:"TimeOffLineCount"`                       // 玩家掉线多长时间后解散桌子
 	TimeNotBeginGame            int    `db:"TimeNotBeginGame" json:"TimeNotBeginGame"`                       // 多长时间未开始游戏解散桌子	 单位秒
 	TimeNotBeginAfterCreateRoom int    `db:"TimeNotBeginAfterCreateRoom" json:"TimeNotBeginAfterCreateRoom"` // 私人房创建多长时间后无人坐桌解散桌子
-	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入
+	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入 1是允许
 }
 
 var DefaultGameServiceOption = GameServiceOption{}

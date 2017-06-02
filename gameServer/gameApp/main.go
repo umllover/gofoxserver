@@ -13,6 +13,7 @@ import (
 	"github.com/lovelly/leaf/module"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/db"
+	"mj/gameServer/userHandle"
 )
 
 func main() {
@@ -38,6 +39,7 @@ func main() {
 	modules = append(modules, center.Module)
 	modules = append(modules, consul.Module)
 	modules = append(modules, login.Module)
+	modules = append(modules, userHandle.Module)
 	modules = append(modules, kindList.GetModules()...)
 
 	leaf.Run(modules...)

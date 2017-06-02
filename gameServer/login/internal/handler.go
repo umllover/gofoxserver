@@ -39,14 +39,14 @@ func init() {
 
 func handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_GR_LogonMobile)
-	retMsg := &msg.G2C_LogonSuccess{}
+	retMsg := &msg.G2C_LogonFinish{}
 	agent := args[1].(gate.Agent)
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
 			agent.WriteMsg(&msg.G2C_LogonFailur{ResultCode: retcode, DescribeString: "登录失败"})
 		} else {
-			agent.WriteMsg(retMsg)
+
 		}
 	}()
 
@@ -69,12 +69,15 @@ func handleMBLogin(args []interface{}) {
 	user.Agent = agent
 	user.Accountsinfo = accountData
 	user.Id = accountData.UserID
+	user.ChairId = INVALID_CHAIR
+	user.RoomId = INVALID_CHAIR
 	lok := loadUser(user)
 	if !lok {
 		retcode = LoadUserInfoError
 		return
 	}
 
+	agent.WriteMsg(retMsg)
 	agent.SetUserData(user)
 }
 

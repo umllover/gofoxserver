@@ -79,7 +79,7 @@ func UserSitdown(args []interface{}) {
 
 func SetGameOption(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(user.User)
+	user  := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at UserSitdown not foud module")

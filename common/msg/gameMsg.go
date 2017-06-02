@@ -44,7 +44,8 @@ type C2G_UserSitdown struct {
 
 //请求玩家信息
 type C2G_REQUserInfo struct {
-
+	UserID int
+	TablePos int
 }
 
 //配置信息
@@ -54,6 +55,11 @@ type C2G_GameOption struct {
 	ClientVersion int					//游戏版本
 }
 
+
+type C2G_REQUserChairInfo struct {
+	TableID int
+	ChairID int
+}
 // 出牌
 type C2G_HZOutCard struct {
 
@@ -64,7 +70,7 @@ type C2G_HZOutCard struct {
 
 //// s 2 c ////////////////////////////
 //登录成功
-type G2C_LogonSuccess struct {
+type G2C_LogonFinish struct {
 
 }
 
@@ -191,5 +197,61 @@ type G2C_Record struct {
 	AllScore []int8	//总结算分
 	DetailScore [][]int;	//单局结算分
 }
+
+
+// 游戏状态
+type G2C_GameStatus struct {
+	GameStatus int						//游戏状态
+	AllowLookon int						//旁观标志
+}
+
+//房间配置
+type G2C_ConfigServer struct {
+	//房间属性
+	TableCount int						//桌子数目
+	ChairCount int						//椅子数目
+
+	//房间配置
+	ServerType int						//房间类型
+	ServerRule int						//房间规则
+};
+
+//发送配置完成
+type G2C_ConfigFinish struct {
+
+}
+
+
+//用户信息
+type G2C_UserEnter struct {
+	GameID int							//游戏 I D
+	UserID int							//用户 I D
+
+	//头像信息
+	FaceID int8							//头像索引
+	CustomID int						//自定标识
+
+	//用户属性
+	Gender int8							//用户性别
+	MemberOrder int8					//会员等级
+
+	//用户状态
+	TableID int							//桌子索引
+	ChairID int							//椅子索引
+	UserStatus int						//用户状态
+
+	//积分信息
+	Score int64								//用户分数
+
+	//游戏信息
+	WinCount int							//胜利盘数
+	LostCount int						//失败盘数
+	DrawCount int						//和局盘数
+	FleeCount int						//逃跑盘数
+	Experience int						//用户经验
+	NickName string					//昵称
+	HeaderUrl string 				//头像
+};
+
 
 

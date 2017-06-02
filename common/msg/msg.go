@@ -21,7 +21,10 @@ func init() {
 	Processor.Register(&L2C_ServerListFinish{})
 
 	//game
-	Processor.Register(&G2C_LogonSuccess{})
+	Processor.Register(&G2C_LogonFinish{})
+	Processor.Register(&G2C_ConfigServer{})
+	Processor.Register(&G2C_ConfigFinish{})
+	Processor.Register(&G2C_UserEnter{})
 	Processor.Register(&C2G_GR_LogonMobile{})
 	Processor.Register(&C2G_GR_UserChairReq{})
 	Processor.Register(&C2G_CreateTable{})
@@ -37,6 +40,9 @@ func init() {
 	Processor.Register(&G2C_Record{})
 	Processor.Register(&G2C_StatusFree{})
 	Processor.Register(&G2C_StatusPlay{})
+	Processor.Register(&C2G_REQUserInfo{})
+	Processor.Register(&G2C_GameStatus{})
+	Processor.Register(&C2G_REQUserChairInfo{})
 
 }
 

@@ -25,7 +25,6 @@ func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	Room := new(Room)
 	Room.Skeleton = skeleton
 	Room.ChanRPC= skeleton.ChanRPCServer
-	fmt.Println("@@@@@@@@@@@@@@@@ NewRoom", skeleton.ChanRPCServer)
 	Room.mgrCh =mgrCh
 
 
