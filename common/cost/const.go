@@ -14,6 +14,8 @@ const (
 	InsertAccountError = 4 //服务器内部错误
 	LoadUserInfoError = 5 //玩家数据加载失败
 	CreateUserError = 6 // 创建玩家失败
+	ErrUserReLogin = 7 //重复登录
+	ErrPasswd = 8 //密码错误
 )
 
 //房间错误码 100 ~ 200
@@ -30,6 +32,7 @@ const (
 	GameIsStart = 110 //游戏已经开始， 不能加入
 	ErrNotOwner = 111 // 不是房主 没权限操作
 	ErrNoSitdowm = 112 //请先坐下在操作
+	ErrGameIsStart = 113 //游戏已开始，不能离开房间
 )
 
 
@@ -65,7 +68,7 @@ const (
 func RenderErrorMessage(code int, Desc... string) *msg.ShowErrCode {
 	var des string
 	if len(Desc) < 1 {
-		des = fmt.Sprintf("请求错误, 错误码_%d", code)
+		des = fmt.Sprintf("请求错误, 错误码: %d", code)
 	}else{
 		des = Desc[0]
 	}

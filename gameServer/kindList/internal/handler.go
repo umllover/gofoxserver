@@ -34,11 +34,39 @@ func init(){
 	handlerC2S(&msg.C2G_CreateTable{}, CreateTable)
 	handlerC2S(&msg.C2G_UserSitdown{}, UserSitdown)
 	handlerC2S(&msg.C2G_GameOption{}, SetGameOption)
+	handlerC2S(&msg.C2G_UserStandup{}, UserStandup)
+	handlerC2S(&msg.C2G_REQUserChairInfo{}, GetUserChairInfo)
 }
 
 //客户端请求更换椅子
 func UserChairReq(args []interface{}) {
 
+
+}
+
+func GetUserChairInfo (args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user  := agent.UserData().(*user.User)
+	mod, ok := GetModByKind(user.KindID)
+	if !ok {
+		log.Error("at GetUserChairInfo not foud module")
+		return
+	}
+
+	mod.GetChanRPC().Go("GetUserChairInfo",  args[0], user)
+}
+
+//起立
+func UserStandup(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user  := agent.UserData().(*user.User)
+	mod, ok := GetModByKind(user.KindID)
+	if !ok {
+		log.Error("at UserStandup not foud module")
+		return
+	}
+
+	mod.GetChanRPC().Go("UserStandup",  args[0], user)
 
 }
 

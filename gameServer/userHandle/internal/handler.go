@@ -2,45 +2,131 @@ package internal
 
 import (
 	"mj/common/msg"
-	"github.com/lovelly/leaf/cluster"
 	"reflect"
-	"github.com/lovelly/leaf/gate"
 	"github.com/name5566/leaf/log"
+	"errors"
+	. "mj/common/cost"
+	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+	"fmt"
+	"mj/gameServer/center"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}, fType int) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.RegisterFromType(id, f, fType)
-}
 
 //注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
+func handlerC2S(m *Module, msg interface{}, h interface{}) {
+	m.ChanRPC.Register(reflect.TypeOf(msg), h)
 }
 
-func init(){
-	handlerC2S(&msg.C2G_REQUserInfo{}, GetUserInfo)
-	handlerC2S(&msg.C2G_REQUserChairInfo{}, GetUserChairInfo)
+func RegisterHandler(m *Module) {
+	//注册rpc 消息
+	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
+	m.ChanRPC.Register("NewAgent", m.NewAgent)
+	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
+
+	//c2s
+	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
+	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
 }
 
-
-func GetUserInfo(args []interface{}) {
-
-
+//连接进来的通知
+func  (m *Module)NewAgent(args []interface{}) error {
+	log.Debug("at game NewAgent")
+	return nil
 }
 
-func GetUserChairInfo(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
-	_ = recvMsg
-	agent := args[1].(gate.Agent)
+//连接关闭的同喜
+func  (m *Module)CloseAgent (args []interface{}) error {
+	log.Debug("at game CloseAgent")
+	agent :=  m.a
 	user, ok := agent.UserData().(*user.User)
 	if !ok {
-		log.Error("at GerUserInfo user not logon")
+		return nil
+	}
+
+	DelUser(user.Id)
+	center.ChanRPC.Go("SelfNodeDelPlayer", user.Id)
+	return nil
+}
+
+
+func (m *Module) GetUserInfo(args []interface{}) {
+	log.Debug("at GetUserInfo ................ ")
+}
+
+
+func(m *Module) handleMBLogin(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_GR_LogonMobile)
+	retMsg := &msg.G2C_LogonFinish{}
+	agent := m.a
+	retcode := 0
+	defer func() {
+		if retcode != 0 {
+			str := fmt.Sprintf("登录失败, 错误码: %d",retcode)
+			agent.WriteMsg(&msg.G2C_LogonFailur{ResultCode: retcode, DescribeString: str})
+		} else {
+
+		}
+	}()
+
+	if recvMsg.UserID == 0 {
+		retcode = ParamError
 		return
 	}
+
+	accountData, ok := model.AccountsinfoOp.Get(recvMsg.UserID)
+	if !ok || accountData == nil {
+		retcode = NotFoudAccout
+		return
+	}
+
+	if HasUser(accountData.UserID){
+		retcode = ErrUserReLogin
+		return
+	}
+
+	//if accountData.PasswordID != recvMsg.Password {
+	// retcode = ErrPasswd
+	//	return
+	//}
+
+	template, ok := base.GameServiceOptionCache.Get(recvMsg.KindID, recvMsg.ServerID)
+	if !ok {
+		retcode = NoFoudTemplate
+		return
+	}
+
+	user := user.NewUser(accountData.UserID)
+	user.Agent = agent
+	user.Accountsinfo = accountData
+	user.Id = accountData.UserID
+	user.ChairId = INVALID_CHAIR
+	user.RoomId = INVALID_CHAIR
+
+	lok := loadUser(user)
+	if !lok {
+		retcode = LoadUserInfoError
+		return
+	}
+
+	AddUser(user.Id)
+	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
+	user.KindID = recvMsg.KindID
+	user.ServerID = recvMsg.ServerID
+
+	agent.WriteMsg(retMsg)
+	agent.SetUserData(user)
+
+	agent.WriteMsg(&msg.G2C_ConfigServer{
+		TableCount: template.TableCount,
+		ChairCount: 4,
+		ServerType: template.ServerType,
+		ServerRule: template.ServerRule,
+	})
+
+	agent.WriteMsg(&msg.G2C_ConfigFinish{})
+
 	agent.WriteMsg(&msg.G2C_UserEnter{
 		GameID : user.GameID,						//游戏 I D
 		UserID : user.Id,							//用户 I D
@@ -60,7 +146,98 @@ func GetUserChairInfo(args []interface{}) {
 		NickName: user.NickName,				//昵称
 		HeaderUrl :user.HeadImgUrl, 				//头像
 	})
-
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////// help 函数
+///////
+func loadUser(u *user.User) ( bool){
+	ainfo, aok := model.AccountsmemberOp.Get(u.Id, u.Accountsinfo.MemberOrder)
+	if !aok {
+		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
+		return false
+	}
+
+	log.Debug("load user : == %v", ainfo)
+	u.Accountsmember = ainfo
+
+	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
+	if !glok {
+		log.Error("at loadUser not foud GamescorelockerOp by user %d", u.Id)
+		return  false
+	}
+	u.Gamescorelocker = glInfo
+
+	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
+	if !giok {
+		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
+		return  false
+	}
+	u.Gamescoreinfo = giInfom
+
+	ucInfo, uok := model.UserattrOp.Get(u.Id)
+	if !uok {
+		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
+		return  false
+	}
+	u.Userattr = ucInfo
+
+	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
+	if !ueok {
+		log.Error("at loadUser not foud UserextrainfoOp by user  %d", u.Id)
+		return  false
+	}
+	u.Userextrainfo = uextInfo
+	return  true
+}
+
+
+
+/////主消息函数
+func (m *Module) handleMsgData(args []interface{}) (error) {
+	if msg.Processor != nil {
+		str := args[0].([]byte)
+		data, err := msg.Processor.Unmarshal(str)
+		if err != nil {
+			return err
+		}
+
+		msgType := reflect.TypeOf(data)
+		if msgType == nil || msgType.Kind() != reflect.Ptr {
+			return errors.New("json message pointer required 11")
+		}
+
+		if m.ChanRPC.HasFunc(msgType) {
+			m.ChanRPC.Go(msgType, data, m.a)
+			return nil
+		}
+
+		err = msg.Processor.RouteByType(msgType, data, m.a)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 

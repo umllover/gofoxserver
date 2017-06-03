@@ -4,7 +4,7 @@ import (
 	"github.com/lovelly/leaf/gate"
 	"mj/gameServer/conf"
 	"mj/common/msg"
-	"mj/gameServer/login"
+	"mj/gameServer/userHandle"
 )
 
 type Module struct {
@@ -27,10 +27,9 @@ func (m *Module) OnInit() {
 		GoLen:              conf.AgentGoLen,
 		TimerDispatcherLen: conf.AgentTimerDispatcherLen,
 		AsynCallLen:        conf.AgentAsynCallLen,
-		//ChanRPCLen:         conf.AgentChanRPCLen,
+		NewChanRPCFunc:      userHandle.NewUserHandle,
 		OnAgentInit:        onAgentInit,
 		OnAgentDestroy:     onAgentDestroy,
-		AgentChanRPC: 		login.ChanRPC,
 	}
 
 }

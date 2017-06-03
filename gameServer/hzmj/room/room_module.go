@@ -28,11 +28,10 @@ func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	Room.mgrCh =mgrCh
 
 
-	Room.RoomInfo = common.NewRoomInfo(userCnt)
-	Room.id = rid
+	Room.RoomInfo = common.NewRoomInfo(userCnt, rid)
 	Room.Kind = t.KindID
 	Room.ServerId = t.ServerID
-	Room.Name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", Room.id)
+	Room.Name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", Room.GetRoomId())
 	Room.CloseSig = make(chan bool, 1)
 	Room.TimeLimit = param.DrawTimeLimit
 	Room.CountLimit = param.DrawCountLimit
@@ -62,7 +61,6 @@ type Room struct {
 
 	// 游戏字段
 	*common.RoomInfo
-	id 			int   //唯一id 房间id
 	Name          string  //房间名字
 	Kind 		int  //第一类型
 	ServerId    int  //第二类型 注意 非房间id
@@ -120,12 +118,9 @@ func (r *Room) OnInit() {
 }
 
 func (r *Room) OnDestroy() {
-	idGenerate.DelRoomId(r.id)
+	idGenerate.DelRoomId(r.GetRoomId())
 }
 
-func (r *Room) GetRoomId() int{
-	return r.id
-}
 
 //这里添加定时操作
 func (r *Room) checkDestroyRoom() {

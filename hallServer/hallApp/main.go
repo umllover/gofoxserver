@@ -8,12 +8,11 @@ import (
 	"mj/hallServer/conf"
 	"mj/hallServer/gate"
 	"mj/hallServer/center"
-	"mj/hallServer/login"
-	"mj/hallServer/UserData"
 	"mj/hallServer/gameList"
 	. "mj/common/cost"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/db"
+	"mj/common/utils"
 )
 
 func main() {
@@ -34,13 +33,11 @@ func main() {
 	consul.AddinitiativeSvr(GamePrefix)
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
-
+	utils.CreatePrivateServer(conf.Server.PrivatePort)
 	leaf.Run(
 		gate.Module,
 		center.Module,
-		login.Module,
 		consul.Module,
-		UserData.Module,
 		gameList.Module,
 	)
 }

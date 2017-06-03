@@ -43,6 +43,8 @@ func init() {
 	Processor.Register(&C2G_REQUserInfo{})
 	Processor.Register(&G2C_GameStatus{})
 	Processor.Register(&C2G_REQUserChairInfo{})
+	Processor.Register(&G2C_LogonFailur{})
+	Processor.Register(&C2G_UserStandup{})
 
 }
 

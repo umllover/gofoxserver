@@ -2,12 +2,17 @@ package userHandle
 
 import (
 	"mj/gameServer/userHandle/internal"
+	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/module"
 )
 
 var (
-	Module  = new(internal.Module)
-	ChanRPC = internal.ChanRPC
+
 )
+
+func NewUserHandle(a gate.Agent) *module.Skeleton {
+	return internal.NewUserHandle(a)
+}
 
 
 

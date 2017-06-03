@@ -21,7 +21,6 @@ type Gate struct {
 	PendingWriteNum int
 	MaxMsgLen       uint32
 	Processor       network.Processor
-	AgentChanRPC    *chanrpc.Server
 
 	// websocket
 	WSAddr      string
@@ -38,7 +37,7 @@ type Gate struct {
 	GoLen              int
 	TimerDispatcherLen int
 	AsynCallLen        int
-	ChanRPCLen         int
+	NewChanRPCFunc         func(Agent) *module.Skeleton
 	OnAgentInit 	   func(Agent)
 	OnAgentDestroy 	   func(Agent)
 }
@@ -46,20 +45,12 @@ type Gate struct {
 func (gate *Gate) Run(closeSig chan bool) {
 	newAgent := func(conn network.Conn) network.Agent {
 		a := &agent{conn: conn, gate: gate}
-		if gate.ChanRPCLen > 0 {
-			skeleton := &module.Skeleton{
-				GoLen:              gate.GoLen,
-				TimerDispatcherLen: gate.TimerDispatcherLen,
-				AsynCallLen:        gate.AsynCallLen,
-				ChanRPCServer:      chanrpc.NewServer(gate.ChanRPCLen),
-			}
-			skeleton.Init()
-
-			a.skeleton = skeleton
-			a.chanRPC = skeleton.ChanRPCServer
+		if gate.NewChanRPCFunc != nil  {
+			a.skeleton = gate.NewChanRPCFunc(a)
+			a.chanRPC = a.skeleton.ChanRPCServer
 		}
-		if gate.AgentChanRPC != nil {
-			gate.AgentChanRPC.Go("NewAgent", a)
+		if a.chanRPC != nil {
+			a.chanRPC.Go("NewAgent", a)
 		}
 		return a
 	}
@@ -126,6 +117,13 @@ func (a *agent) Run() {
 			log.Recover(r)
 		}
 
+		if a.chanRPC != nil {
+			err := a.chanRPC.Call0("CloseAgent", a)
+			if err != nil {
+				log.Error("chanrpc error: %v", err)
+			}
+		}
+
 		closeSig <- true
 	}()
 
@@ -156,8 +154,6 @@ func (a *agent) Run() {
 					a.gate.OnAgentDestroy(a)
 				}
 			}()
-
-			a.chanRPC.Register("handleMsgData", handleMsgData)
 
 			if a.gate.OnAgentInit != nil {
 				a.gate.OnAgentInit(a)
@@ -196,12 +192,7 @@ func (a *agent) Run() {
 }
 
 func (a *agent) OnClose() {
-	if a.gate.AgentChanRPC != nil {
-		err := a.gate.AgentChanRPC.Call0("CloseAgent", a)
-		if err != nil {
-			log.Error("chanrpc error: %v", err)
-		}
-	}
+
 }
 
 func (a *agent) WriteMsg(msg interface{}) {

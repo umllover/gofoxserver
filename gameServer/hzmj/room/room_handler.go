@@ -1,9 +1,8 @@
 package room
 
 import (
-	"github.com/lovelly/leaf/chanrpc"
 	"mj/common/msg"
-	"mj/gameServer/user"
+	client "mj/gameServer/user"
 	. "mj/common/cost"
 	"mj/gameServer/db/model/base"
 	"time"
@@ -12,33 +11,27 @@ import (
 )
 
 func RegisterHandler(r *Room) {
-	r.ChanRPC.RegisterFromType("EnterRoom", OutCard, chanrpc.FuncThis, r)
-	r.ChanRPC.RegisterFromType("Sitdown", Sitdown, chanrpc.FuncThis, r)
-	r.ChanRPC.RegisterFromType("SetGameOption", SetGameOption, chanrpc.FuncThis, r)
+	r.ChanRPC.Register("EnterRoom", r.OutCard, )
+	r.ChanRPC.Register("Sitdown", r.Sitdown)
+	r.ChanRPC.Register("SetGameOption", r.SetGameOption, )
+	r.ChanRPC.Register("UserStandup", r.UserStandup)
 }
 
-func OutCard(args []interface{}) (error) {
+func (room *Room)OutCard(args []interface{}) (error) {
 	card := args[0].(int)
-	room := args[len(args) - 1].(*Room)
 	room.SendMsgAll(card )
 	return nil
 }
 
-func SetGameOption(args []interface{}) {
+func (room *Room)SetGameOption(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_GameOption)
-	user := args[1].(*user.User)
-	room := args[len(args) - 1].(*Room)
+	user := args[1].(*client.User)
 	retcode := 0
 	defer func(){
 		if retcode != 0 {
 			user.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
-
-	if room.CreateUser != user.Id {
-		retcode = ErrNotOwner
-		return
-	}
 
 	if user.ChairId == INVALID_CHAIR {
 		retcode = ErrNoSitdowm
@@ -56,7 +49,10 @@ func SetGameOption(args []interface{}) {
 		AllowLookon:room.AllowLookon[user.ChairId],
 	})
 
-	room.AllowLookon[user.ChairId] = recvMsg.AllowLookon
+	if room.CreateUser == user.Id { //房主设置
+		room.AllowLookon[user.ChairId] = recvMsg.AllowLookon
+	}
+
 	user.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID: room.CreateUser,			//桌主 I D
 		DrawCountLimit: room.CountLimit,				//局数限制
@@ -157,10 +153,39 @@ func SetGameOption(args []interface{}) {
 	}
 }
 
-func Sitdown(args []interface{}) {
+//起立
+func  (room *Room)UserStandup(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2G_UserStandup{})
+	user := args[1].(*client.User)
+	retcode := 0
+	defer func(){
+		if retcode != 0 {
+			user.WriteMsg(RenderErrorMessage(retcode))
+		}
+	}()
+
+	if room.Status == RoomStatusStarting {
+		retcode = ErrGameIsStart
+		return
+	}
+
+	user.Status = US_FREE
+	room.SendMsgAll(&msg.G2C_UserStatus{
+		UserID:user.Id,
+		UserStatus:&msg.UserStu{
+			TableID: room.GetRoomId(),
+			ChairID: user.ChairId,
+			UserStatus:user.Status,
+		},
+	})
+
+	room.LeaveRoom(user)
+}
+
+//坐下
+func  (room *Room)Sitdown(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
-	user := args[1].(*user.User)
-	room := args[len(args) - 1].(*Room)
+	user := args[1].(*client.User)
 	retcode := 0
 	defer func(){
 		if retcode != 0 {
@@ -189,21 +214,68 @@ func Sitdown(args []interface{}) {
 	fmt.Println(room.RoomInfo)
 	_, chairId := room.GetUserByUid(user.Id)
 	if chairId > 0 {
-		room.LeaveRoom(chairId)
+		room.LeaveRoom(user)
 	}
 
 	room.EnterRoom(recvMsg.ChairID, user)
 	user.Status = US_SIT
+
+	//把自己的信息推送给所有玩家
+	room.SendMsgAllNoSelf(user.Id, &msg.G2C_UserEnter{
+		GameID : user.GameID,						//游戏 I D
+		UserID : user.Id,							//用户 I D
+		FaceID : user.FaceID,							//头像索引
+		CustomID :user.CustomID,						//自定标识
+		Gender :user.Gender,							//用户性别
+		MemberOrder :user.Accountsinfo.MemberOrder,		//会员等级
+		TableID : user.RoomId,							//桌子索引
+		ChairID : user.ChairId,							//椅子索引
+		UserStatus :user.Status,						//用户状态
+		Score :user.Score,								//用户分数
+		WinCount : user.WinCount,						//胜利盘数
+		LostCount : user.LostCount,						//失败盘数
+		DrawCount : user.DrawCount,						//和局盘数
+		FleeCount : user.FleeCount,						//逃跑盘数
+		Experience : user.Experience,					//用户经验
+		NickName: user.NickName,						//昵称
+		HeaderUrl :user.HeadImgUrl, 					//头像
+	})
+
+	//把所有玩家信息推送给自己
+	room.ForEachUser(func(u *client.User){
+		if u.Id == user.Id {
+			return
+		}
+		user.WriteMsg(&msg.G2C_UserEnter{
+			GameID : u.GameID,						//游戏 I D
+			UserID : u.Id,							//用户 I D
+			FaceID : u.FaceID,							//头像索引
+			CustomID :u.CustomID,						//自定标识
+			Gender :u.Gender,							//用户性别
+			MemberOrder :u.Accountsinfo.MemberOrder,					//会员等级
+			TableID : u.RoomId,							//桌子索引
+			ChairID : u.ChairId,							//椅子索引
+			UserStatus :u.Status,						//用户状态
+			Score :u.Score,								//用户分数
+			WinCount : u.WinCount,							//胜利盘数
+			LostCount : u.LostCount,						//失败盘数
+			DrawCount : u.DrawCount,						//和局盘数
+			FleeCount : u.FleeCount,						//逃跑盘数
+			Experience : u.Experience,						//用户经验
+			NickName: u.NickName,						//昵称
+			HeaderUrl :u.HeadImgUrl, 					//头像
+		})
+	})
+
 	room.SendMsgAll(&msg.G2C_UserStatus{
 		UserID:user.Id,
 		UserStatus:&msg.UserStu{
-			TableID: room.id,
+			TableID: room.GetRoomId(),
 			ChairID: user.ChairId,
 			UserStatus:user.Status,
 		},
 	})
 }
-
 
 
 /////////////////// help

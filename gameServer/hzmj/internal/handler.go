@@ -44,6 +44,8 @@ func init() {
 	handleRpc("CreateRoom", CreaterRoom, chanrpc.FuncCommon)
 	handleRpc("Sitdown", Sitdown, chanrpc.FuncCommon)
 	handleRpc("SetGameOption", SetGameOption, chanrpc.FuncCommon)
+	handleRpc("UserStandup", UserStandup, chanrpc.FuncCommon)
+	handleRpc("GetUserChairInfo", GetUserChairInfo, chanrpc.FuncCommon)
 }
 
 
@@ -66,13 +68,60 @@ func DelRoom(args []interface{}){
 }
 
 func Sitdown(args []interface{}){
+	recvMsg := args[0].(*msg.C2G_UserSitdown)
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
+	if r == nil {
+		r = getRoom(recvMsg.TableID)
+	}
 	if r != nil {
 		r.ChanRPC.Go("Sitdown", args...)
 	}else {
 		log.Error("at Sitdown no foud room %v", args[0])
 	}
+}
+
+//只读信息 不涉及竞争， 在这里就处理了， 不投递进房间
+func GetUserChairInfo(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
+	agent := args[1].(gate.Agent)
+	user, ok := agent.UserData().(*user.User)
+	if !ok {
+		log.Error("at GerUserInfo user not logon")
+		return
+	}
+
+	r := getRoom(user.RoomId)
+	if r == nil {
+		log.Error("at GetUserChairInfo no foud room %v, userId:%d", args[0], user.Id)
+		return
+	}
+
+	tagUser := r.GetUserByChairId(recvMsg.ChairID)
+	if tagUser == nil {
+		log.Error("at GetUserChairInfo no foud tagUser %v, userId:%d", args[0], user.Id)
+		return
+	}
+
+	agent.WriteMsg(&msg.G2C_UserEnter{
+		GameID : tagUser.GameID,						//游戏 I D
+		UserID : tagUser.Id,							//用户 I D
+		FaceID : tagUser.FaceID,							//头像索引
+		CustomID :tagUser.CustomID,						//自定标识
+		Gender :tagUser.Gender,							//用户性别
+		MemberOrder :tagUser.Accountsinfo.MemberOrder,					//会员等级
+		TableID : tagUser.RoomId,							//桌子索引
+		ChairID : tagUser.ChairId,							//椅子索引
+		UserStatus :tagUser.Status,						//用户状态
+		Score :tagUser.Score,								//用户分数
+		WinCount : tagUser.WinCount,							//胜利盘数
+		LostCount : tagUser.LostCount,						//失败盘数
+		DrawCount : tagUser.DrawCount,						//和局盘数
+		FleeCount : tagUser.FleeCount,						//逃跑盘数
+		Experience : tagUser.Experience,						//用户经验
+		NickName: tagUser.NickName,				//昵称
+		HeaderUrl :tagUser.HeadImgUrl, 				//头像
+	})
 }
 
 func SetGameOption(args []interface{}){
@@ -83,6 +132,16 @@ func SetGameOption(args []interface{}){
 		r.ChanRPC.Go("SetGameOption", args...)
 	}else {
 		log.Error("at SetGameOption no foud room %v", args[0])
+	}
+}
+
+func UserStandup(args []interface{}){
+	user := args[1].(*user.User)
+	r := getRoom(user.RoomId)
+	if r != nil {
+		r.ChanRPC.Go("UserStandup", args...)
+	}else {
+		log.Error("at UserStandup no foud room %v", args[0])
 	}
 }
 
@@ -149,15 +208,6 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
-	agent.WriteMsg(&msg.G2C_ConfigServer{
-		TableCount: template.TableCount,
-		ChairCount: 4,
-		ServerType: template.ServerType,
-		ServerRule: template.ServerRule,
-	})
-
-	agent.WriteMsg(&msg.G2C_ConfigFinish{})
-
 	r  := room.NewRoom(ChanRPC, recvMsg, template, rid, UserCount, user.Id)
 	retMsg.TableID = r.GetRoomId()
 	retMsg.DrawCountLimit = r.CountLimit
@@ -168,25 +218,7 @@ func CreaterRoom(args []interface{}) {
 	user.RoomId = r.GetRoomId()
 	addRoom(r)
 
-	agent.WriteMsg(&msg.G2C_UserEnter{
-		GameID : user.GameID,						//游戏 I D
-		UserID : user.Id,							//用户 I D
-		FaceID : user.FaceID,							//头像索引
-		CustomID :user.CustomID,						//自定标识
-		Gender :user.Gender,							//用户性别
-		MemberOrder :user.Accountsinfo.MemberOrder,					//会员等级
-		TableID : user.RoomId,							//桌子索引
-		ChairID : user.ChairId,							//椅子索引
-		UserStatus :user.Status,						//用户状态
-		Score :user.Score,								//用户分数
-		WinCount : user.WinCount,							//胜利盘数
-		LostCount : user.LostCount,						//失败盘数
-		DrawCount : user.DrawCount,						//和局盘数
-		FleeCount : user.FleeCount,						//逃跑盘数
-		Experience : user.Experience,						//用户经验
-		NickName: user.NickName,				//昵称
-		HeaderUrl :user.HeadImgUrl, 				//头像
-	})
+
 }
 
 

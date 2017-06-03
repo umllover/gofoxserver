@@ -27,5 +27,6 @@
 	"ConnAddrs": {"world": "localhost:31001"},
 	"PendingWriteNum": 100,
     "ValidKind":"389,28",
+    "PrivatePort":7002,
     "NodeId": 1
 }

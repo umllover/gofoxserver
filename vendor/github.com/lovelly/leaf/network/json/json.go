@@ -134,6 +134,37 @@ func (p *Processor) Route(msg interface{}, userData interface{}) error {
 }
 
 // goroutine safe
+func (p *Processor) RouteByType(msgType reflect.Type, msg interface{}, userData interface{}) error {
+	// raw
+	if msgRaw, ok := msg.(MsgRaw); ok {
+		i, ok := p.msgInfo[msgRaw.msgID]
+		if !ok {
+			return fmt.Errorf("message %v not registered", msgRaw.msgID)
+		}
+		if i.msgRawHandler != nil {
+			i.msgRawHandler([]interface{}{msgRaw.msgID, msgRaw.msgRawData, userData})
+		}
+		return nil
+	}
+
+	msgID := msgType.Elem().Name()
+	i, ok := p.msgInfo[msgID]
+	if !ok {
+		return fmt.Errorf("message %v not registered", msgID)
+	}
+	if i.msgHandler != nil {
+		i.msgHandler([]interface{}{msg, userData})
+	}
+	if i.msgRouter != nil {
+		i.msgRouter.Go(msgType, msg, userData)
+	} else if i.msgHandler == nil {
+		log.Error("%v msg without any handler", msgID)
+	}
+	return nil
+}
+
+
+// goroutine safe
 func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 	var m map[string]json.RawMessage
 	err := json.Unmarshal(data, &m)

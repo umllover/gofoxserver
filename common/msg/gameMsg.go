@@ -4,6 +4,8 @@ package msg
 //手机登录
 type C2G_GR_LogonMobile struct {
 	GameID int							//游戏标识
+	KindID int
+	ServerID int
 	ProcessVersion int				//进程版本
 
 	//桌子区域
@@ -37,7 +39,7 @@ type C2G_CreateTable struct {
 
 //请求坐下
 type C2G_UserSitdown struct {
-	TableI int 	// 桌子号码
+	TableID int 	// 桌子号码
 	ChairID int // 椅子号码
 	Password string //房间密码
 }
@@ -55,11 +57,20 @@ type C2G_GameOption struct {
 	ClientVersion int					//游戏版本
 }
 
-
+//请求用户信息
 type C2G_REQUserChairInfo struct {
 	TableID int
 	ChairID int
 }
+
+//用户起立
+type C2G_UserStandup struct {
+	TableID int
+	ChairID int
+	ForceLeave int8
+}
+
+
 // 出牌
 type C2G_HZOutCard struct {
 

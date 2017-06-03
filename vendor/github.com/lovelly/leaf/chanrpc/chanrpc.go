@@ -76,6 +76,11 @@ func Assert(i interface{}) []interface{} {
 	}
 }
 
+func  (s *Server) HasFunc(id interface{}) bool {
+	_, ok := s.functions[id]
+	return ok
+}
+
 // you must call the function before calling Open and Go
 func (s *Server) RegisterFromType(id interface{}, f interface{}, fType int, this_param ...interface{}) {
 	switch f.(type) {

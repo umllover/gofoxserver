@@ -21,28 +21,30 @@ type Module interface {
 
 /// 房间里面的玩家管理
 type RoomInfo struct {
-	EendTime int64
+	id int											//唯一id 房间id
+	EendTime int64									//结束时间
 	SiceCount int									//骰子点数
 	BankerUser int									//庄家用户
 	CurrentUser int									//当前操作用户
 	Ting []bool;									//是否听牌
-	CreateUser  int										//创建房间的人
-	Status int								//当前状态
-	PlayCount int 					//已玩局数
-	CreateTime int64
-	UserCnt int8
-	/*
-		todo 桌子属性 基础牌操作
-	 */
-	Users []*user.User /// index is chairId
-	AllowLookon map[int]int //旁观玩家
-	TurnScore []int  //积分信息
-	CollectScore []int  //积分信息
-	Trustee []bool								//是否托管 index 就是椅子id
+	CreateUser  int									//创建房间的人
+	Status int										//当前状态
+	PlayCount int 									//已玩局数
+	CreateTime int64								//创建时间
+	UserCnt int8									//可以容纳的用户数量
+
+	Users []*user.User 								/// index is chairId
+	AllowLookon map[int]int							//旁观玩家
+	TurnScore []int  								//积分信息
+	CollectScore []int  							//积分信息
+	Trustee []bool									//是否托管 index 就是椅子id
 }
 
-func NewRoomInfo(userCnt int)*RoomInfo{
+
+
+func NewRoomInfo(userCnt, rid int)*RoomInfo{
 	r := new(RoomInfo)
+	r.id = rid
 	r.Users =make([]*user.User, userCnt)
 	r.AllowLookon = make(map[int]int)
 	r.CreateTime = time.Now().Unix()
@@ -51,6 +53,11 @@ func NewRoomInfo(userCnt int)*RoomInfo{
 	r.Trustee = make([]bool, userCnt)
 	r.UserCnt = int8(userCnt)
 	return r
+}
+
+
+func (r *RoomInfo) GetRoomId() int{
+	return r.id
 }
 
 func (r *RoomInfo)SetRoomStatus(su int){
@@ -128,6 +135,7 @@ func (r *RoomInfo) EnterRoom(chairId int, u *user.User) bool {
 	}
 	r.Users[chairId] = u
 	u.ChairId = chairId
+	u.RoomId = r.id
 	return true
 }
 
@@ -140,13 +148,15 @@ func  (r *RoomInfo) GetChairId() int {
 	return -1
 }
 
-func (r *RoomInfo) LeaveRoom(chairId int) bool {
-	if len(r.Users) <= chairId  {
+func (r *RoomInfo) LeaveRoom(u *user.User) bool {
+	if len(r.Users) <= u.ChairId  {
 		return false
 	}
 
-	r.Users[chairId] = nil
-	log.Debug("%v user leave room,  left %v count", chairId, r.GetUserCount())
+	r.Users[ u.ChairId] = nil
+	u.ChairId = cost.INVALID_CHAIR
+	u.RoomId = cost.INVALID_TABLE
+	log.Debug("%v user leave room,  left %v count",  u.ChairId, r.GetUserCount())
 	return true
 }
 
@@ -169,6 +179,23 @@ func (r *RoomInfo) SendMsgAll(data interface{})  {
 	for _, u := range r.Users {
 		if u != nil {
 			u.WriteMsg(data)
+		}
+	}
+}
+
+func (r *RoomInfo) SendMsgAllNoSelf(selfid int, data  interface{})  {
+	for _, u := range r.Users {
+		log.Debug("SendMsgAllNoSelf %v ", (u != nil  && u.Id != selfid) )
+		if u != nil  && u.Id != selfid{
+			u.WriteMsg(data)
+		}
+	}
+}
+
+func (r *RoomInfo) ForEachUser(fn func(u *user.User)){
+	for _, u := range r.Users {
+		if u != nil {
+			fn(u)
 		}
 	}
 }
