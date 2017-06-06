@@ -39,6 +39,11 @@ type C2L_SearchServerTable struct {
 	KindID int
 }
 
+//获取玩家显示信息
+type C2L_User_Individual struct {
+	UserId int
+}
+
 
 
 /////////// l 2 c /////////////////////////

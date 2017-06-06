@@ -57,8 +57,8 @@ type UserStu struct {
 //自定义配置结构
 type CustomRule struct {
 	//其他定义
-	MaCount int8							//码数，1：一码全中，2-6：对应码数
-	PlayerCount int8						//人数 2-4
+	MaCount uint8							//码数，1：一码全中，2-6：对应码数
+	PlayerCount int						//人数 2-4
 	//时间定义
 	TimeOutCard int8						//出牌时间
 	TimeOperateCard int8					//操作时间
@@ -67,9 +67,17 @@ type CustomRule struct {
 
  //组合子项
 type WeaveItem struct {
-	WeaveKind int8								//组合类型
-	CenterCard int8								//中心扑克
-	Param int8									//类型标志
+	WeaveKind uint8								//组合类型
+	CenterCard uint8								//中心扑克
+	Param uint8									//类型标志
 	ProvideUser int								//供应用户
-	CardData []int8								//麻将数据
+	CardData []uint8								//麻将数据
 };
+
+//积分信息
+type TagScoreInfo struct {
+	Type uint8								//积分类型
+	Score int								//用户分数
+	Grade int								//用户成绩
+	Revenue int							//游戏税收
+}

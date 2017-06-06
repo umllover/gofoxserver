@@ -6,7 +6,6 @@ import (
 	"mj/gameServer/hzmj/room"
 	"reflect"
 	"github.com/lovelly/leaf/cluster"
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	//"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -14,7 +13,7 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
-	"github.com/name5566/leaf/log"
+	"github.com/lovelly/leaf/log"
 )
 
 const(
@@ -23,9 +22,9 @@ const(
 
 
 ////注册rpc 消息
-func handleRpc(id interface{}, f interface{}, fType int) {
+func handleRpc(id interface{}, f interface{}){
 	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.RegisterFromType(id, f, fType)
+	ChanRPC.Register(id, f)
 }
 
 //注册 客户端消息调用
@@ -37,15 +36,16 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&msg.C2G_HZOutCard{}, HZOutCard)
-
+	handlerC2S(&msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+	handlerC2S(&msg.C2G_HZMJ_OperateCard{}, OperateCard)
 	// rpc
-	handleRpc("DelRoom", DelRoom, chanrpc.FuncCommon)
-	handleRpc("CreateRoom", CreaterRoom, chanrpc.FuncCommon)
-	handleRpc("Sitdown", Sitdown, chanrpc.FuncCommon)
-	handleRpc("SetGameOption", SetGameOption, chanrpc.FuncCommon)
-	handleRpc("UserStandup", UserStandup, chanrpc.FuncCommon)
-	handleRpc("GetUserChairInfo", GetUserChairInfo, chanrpc.FuncCommon)
+	handleRpc("DelRoom", DelRoom)
+	handleRpc("CreateRoom", CreaterRoom)
+	handleRpc("Sitdown", Sitdown)
+	handleRpc("SetGameOption", SetGameOption)
+	handleRpc("UserStandup", UserStandup)
+	handleRpc("GetUserChairInfo", GetUserChairInfo)
+	handleRpc("UserReady", UserReady)
 }
 
 
@@ -56,7 +56,17 @@ func HZOutCard (args []interface{}) {
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.ChanRPC.Go("OutCard", args[0])
+		r.ChanRPC.Go("OutCard", args[0], user)
+	}
+}
+
+func OperateCard(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user := agent.UserData().(user.User)
+
+	r := getRoom(user.RoomId)
+	if r != nil {
+		r.ChanRPC.Go("OperateCard", args[0], user)
 	}
 }
 
@@ -142,6 +152,16 @@ func UserStandup(args []interface{}){
 		r.ChanRPC.Go("UserStandup", args...)
 	}else {
 		log.Error("at UserStandup no foud room %v", args[0])
+	}
+}
+
+func UserReady (args []interface{}){
+	user := args[1].(*user.User)
+	r := getRoom(user.RoomId)
+	if r != nil {
+		r.ChanRPC.Go("UserReady", args...)
+	}else {
+		log.Error("at UserReady no foud room %v", args[0])
 	}
 }
 

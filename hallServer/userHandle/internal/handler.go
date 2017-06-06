@@ -3,7 +3,7 @@ package internal
 import (
 	"mj/common/msg"
 	"reflect"
-	"github.com/name5566/leaf/log"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/gate"
 	"mj/hallServer/center"
 	"errors"
@@ -30,7 +30,7 @@ func RegisterHandler(m *Module) {
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
-
+	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
 }
 
 //连接进来的通知
@@ -109,8 +109,6 @@ func  (m *Module)handleMBLogin(args []interface{}) {
 }
 
 
-
-
 func  (m *Module)handleMBRegist(args []interface{}) {
 	retcode := 0
 	recvMsg := args[0].(*msg.C2L_Regist)
@@ -169,6 +167,10 @@ func  (m *Module)handleMBRegist(args []interface{}) {
 	agent.SetUserData(accInfo.UserID)
 	BuildClientMsg(retMsg, user)
 	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
+}
+
+func (m *Module)GetUserIndividual(args []interface{}){
+
 }
 
 
@@ -305,6 +307,21 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User){
 	retMsg.LockServerID  = user.ServerID
 	retMsg.KindID  = user.KindID
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -36,6 +36,7 @@ func init(){
 	handlerC2S(&msg.C2G_GameOption{}, SetGameOption)
 	handlerC2S(&msg.C2G_UserStandup{}, UserStandup)
 	handlerC2S(&msg.C2G_REQUserChairInfo{}, GetUserChairInfo)
+	handlerC2S(&msg.C2G_UserReady{}, UserReady)
 }
 
 //客户端请求更换椅子
@@ -117,6 +118,18 @@ func SetGameOption(args []interface{}) {
 	mod.GetChanRPC().Go("SetGameOption",  args[0], user)
 }
 
+func UserReady(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user  := agent.UserData().(*user.User)
+	mod, ok := GetModByKind(user.KindID)
+	if !ok {
+		log.Error("at UserReady not foud module")
+		return
+	}
+
+	mod.GetChanRPC().Go("UserReady",  args[0], user)
+
+}
 
 
 ///// rpc

@@ -25,6 +25,7 @@ func init() {
 
 //玩家在本服节点登录
 func SelfNodeAddPlayer(args []interface{}) {
+	log.Debug("at SelfNodeAddPlayer %v", args)
 	uid := args[0].(int)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
@@ -33,6 +34,7 @@ func SelfNodeAddPlayer(args []interface{}) {
 
 //本服玩家登出
 func SelfNodeDelPlayer(args []interface{}) {
+	log.Debug("at SelfNodeDelPlayer %v", args)
 	uid := args[0].(int)
 	delete(Users, uid)
 	cluster.Broadcast(cost.GamePrefix,"NotifyOtherNodelogout", uid)
@@ -41,6 +43,7 @@ func SelfNodeDelPlayer(args []interface{}) {
 
 //玩家在别的节点登录了
 func NotifyOtherNodeLogin(args []interface{}){
+	log.Debug("at NotifyOtherNodeLogin %v", args)
 	uid := args[0].(int)
 	ServerName := args[1].(string)
 	OtherUsers[uid] = ServerName
@@ -48,6 +51,7 @@ func NotifyOtherNodeLogin(args []interface{}){
 
 //玩家在别的节点登出了
 func NotifyOtherNodelogout(args []interface{}){
+	log.Debug("at NotifyOtherNodelogout %v", args)
 	uid := args[0].(int)
 	delete(OtherUsers, uid)
 }

@@ -19,6 +19,8 @@ func init() {
 	Processor.Register(&L2C_LogonSuccess{})
 	Processor.Register(&L2C_ServerList{})
 	Processor.Register(&L2C_ServerListFinish{})
+	Processor.Register(&C2L_User_Individual{})
+
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -28,7 +30,6 @@ func init() {
 	Processor.Register(&C2G_GR_LogonMobile{})
 	Processor.Register(&C2G_GR_UserChairReq{})
 	Processor.Register(&C2G_CreateTable{})
-	Processor.Register(&C2G_HZOutCard{})
 	Processor.Register(&G2C_CreateTableFailure{})
 	Processor.Register(&G2C_CreateTableSucess{})
 	Processor.Register(&C2L_SearchServerTable{})
@@ -45,6 +46,20 @@ func init() {
 	Processor.Register(&C2G_REQUserChairInfo{})
 	Processor.Register(&G2C_LogonFailur{})
 	Processor.Register(&C2G_UserStandup{})
+	Processor.Register(&C2G_UserReady{})
+	Processor.Register(&G2C_Hu_Data{})
+	Processor.Register(&SysMsg{})
+
+	//HZMJ msg
+	Processor.Register(&G2C_HZMG_GameStart{})
+	Processor.Register(&G2C_HZMJ_GameConclude{})
+	Processor.Register(&C2G_HZMJ_HZOutCard{})
+	Processor.Register(&G2C_HZMJ_OutCard{})
+	Processor.Register(&G2C_HZMJ_OperateNotify{})
+	Processor.Register(&G2C_HZMJ_SendCard{})
+	Processor.Register(&C2G_HZMJ_OperateCard{})
+	Processor.Register(&G2C_HZMJ_OperateResult{})
+	Processor.Register(&G2C_HZMJ_Trustee{})
 
 }
 

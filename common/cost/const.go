@@ -35,9 +35,20 @@ const (
 	ErrGameIsStart = 113 //游戏已开始，不能离开房间
 )
 
+//红中麻将错误码
+const (
+	NotValidCard = 201  //无效的牌
+	ErrUserNotInRoom = 202 //玩家不在房间
+	ErrNotFoudCard = 203 //没找到牌
+)
+
 
 ///////// 无效的数字
 const (
+	//无效数值
+	INVALID_BYTE		=		((uint8)(0xFF))						//无效数值
+	INVALID_WORD		=		((uint16)(0xFFFF))					//无效数值
+	INVALID_DWORD		=		((uint)(0xFFFFFFFF))				//无效数值
 	//参数定义
 	INVALID_CHAIR		=		0xFFFF								//无效椅子
 	INVALID_TABLE		=		0xFFFF								//无效桌子
@@ -54,6 +65,11 @@ const (
 	GAME_GENRE_PERSONAL		=	0x0010								//约战类型
 )
 
+//积分修改类型
+///
+const (
+	HZMJ_CHANGE_SOURCE = 1
+)
 
 //////////////////////////////////////////////
 //标识前缀
@@ -61,6 +77,13 @@ const (
 	HallPrefix  = "HallSvr" //房间服
 	GamePrefix = "GameSvr"
 )
+
+func LOBYTE(w int)  int {
+	return w & 0xFF
+}
+func HIBYTE(w int) int   {
+	return  w & 0xFF00
+}
 
 
 

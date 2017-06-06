@@ -3,7 +3,7 @@ package internal
 import (
 	"mj/common/msg"
 	"reflect"
-	"github.com/name5566/leaf/log"
+	"github.com/lovelly/leaf/log"
 	"errors"
 	. "mj/common/cost"
 	"mj/gameServer/db/model"
@@ -24,6 +24,7 @@ func RegisterHandler(m *Module) {
 	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
 	m.ChanRPC.Register("NewAgent", m.NewAgent)
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
+	m.ChanRPC.Register("WriteUserScore", m.WriteUserScore)
 
 	//c2s
 	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
@@ -36,7 +37,7 @@ func  (m *Module)NewAgent(args []interface{}) error {
 	return nil
 }
 
-//连接关闭的同喜
+//连接关闭的通知
 func  (m *Module)CloseAgent (args []interface{}) error {
 	log.Debug("at game CloseAgent")
 	agent :=  m.a
@@ -148,8 +149,9 @@ func(m *Module) handleMBLogin(args []interface{}) {
 	})
 }
 
-
-
+func (m *Module)WriteUserScore(args []interface{}){
+	log.Debug("at WriteUserScore === %v", args)
+}
 
 
 
@@ -211,6 +213,13 @@ func loadUser(u *user.User) ( bool){
 	u.Userextrainfo = uextInfo
 	return  true
 }
+
+
+
+
+
+
+
 
 
 

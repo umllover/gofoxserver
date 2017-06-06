@@ -1,5 +1,6 @@
 package msg
 
+
 ////// c 2 s
 //手机登录
 type C2G_GR_LogonMobile struct {
@@ -70,10 +71,10 @@ type C2G_UserStandup struct {
 	ForceLeave int8
 }
 
-
-// 出牌
-type C2G_HZOutCard struct {
-
+//用户准备
+type C2G_UserReady struct {
+	TableID int
+	ChairID int
 }
 
 
@@ -141,7 +142,7 @@ type G2C_StatusFree struct {
 	TurnScore []int					//积分信息
 	CollectScore []int				//积分信息
 	PlayerCount int					//玩家人数
-	MaCount int8						//码数
+	MaCount uint8						//码数
 	CountLimit int               	//局数限制
 }
 
@@ -156,43 +157,43 @@ type G2C_StatusPlay struct {
 	CellScore int								//单元积分
 	BankerUser int								//庄家用户
 	CurrentUser int								//当前用户
-	MagicIndex int8								//财神索引
+	MagicIndex uint8								//财神索引
 
 	//规则
-	PlayerCount int8				//玩家人数
-	MaCount int8					//码数
+	PlayerCount uint8				//玩家人数
+	MaCount uint8					//码数
 
 	//状态变量
-	ActionCard int8								//动作扑克
-	ActionMask int8								//动作掩码
-	LeftCardCount int8							//剩余数目
+	ActionCard uint8								//动作扑克
+	ActionMask uint8								//动作掩码
+	LeftCardCount uint8							//剩余数目
 	Trustee []bool								//是否托管 index 就是椅子id
 	Ting []bool								//是否听牌  index chairId
 
 	//出牌信息
 	OutCardUser int									//出牌用户
-	OutCardData int8								//出牌扑克
-	DiscardCount[]int8								//丢弃数目
-	DiscardCard[][]int8				//丢弃记录
+	OutCardData uint8								//出牌扑克
+	DiscardCount[]uint8								//丢弃数目
+	DiscardCard[][]uint8				//丢弃记录
 
 	//扑克数据
-	CardCount []int8					//扑克数目
-	CardData []int8						//扑克列表 MAX_COUNT
-	SendCardData int8								//发送扑克
+	CardCount []uint8					//扑克数目
+	CardData []uint8						//扑克列表 MAX_COUNT
+	SendCardData uint8								//发送扑克
 
 	//组合扑克
-	WeaveItemCount	[]int8				//组合数目
+	WeaveItemCount	[]uint8				//组合数目
 	WeaveItemArray	[][]*WeaveItem		//组合扑克 [GAME_PLAYER][MAX_WEAVE]
 
 	//堆立信息
 	HeapHead int									//堆立头部
 	HeapTail int									//堆立尾部
-	HeapCardInfo [][]int8;						//堆牌信息
+	HeapCardInfo [][]uint8;						//堆牌信息
 
-	HuCardCount	[]int8
-	HuCardData	[][]int8
-	OutCardCount int8
-	OutCardDataEx []int8
+	HuCardCount	[]uint8
+	HuCardData	[][]uint8
+	OutCardCount uint8
+	OutCardDataEx []uint8
 	//历史积分
 	TurnScore []int						//积分信息
 	CollectScore []int					//积分信息
@@ -205,7 +206,7 @@ type G2C_Record struct {
 	MaCount []int8 //中码个数
 	AnGang []int8 //暗杠次数
 	MingGang []int8 //明杠次数
-	AllScore []int8	//总结算分
+	AllScore []int	//总结算分
 	DetailScore [][]int;	//单局结算分
 }
 
@@ -262,7 +263,116 @@ type G2C_UserEnter struct {
 	Experience int						//用户经验
 	NickName string					//昵称
 	HeaderUrl string 				//头像
+}
+
+
+type SysMsg struct {
+	ClientID int
+	Type int
+	Context string
+}
+
+
+
+//////////////////////// hzmj proto begin //////////////////////////////
+type  G2C_Hu_Data struct {
+	//出哪几张能听
+	OutCardCount uint8
+	OutCardData []uint8
+	//听后能胡哪几张牌
+	HuCardCount []uint8
+	HuCardData [][] uint8
+	//胡牌剩余数
+	HuCardRemainingCount [][]uint8
+}
+
+//发送扑克
+type G2C_HZMG_GameStart struct {
+	BankerUser int						//当前庄家
+	ReplaceUser int						//补花用户
+	SiceCount int							//骰子点数
+	HeapHead int							//牌堆头部
+	HeapTail int							//牌堆尾部
+	MagicIndex uint8                       //财神索引
+	HeapCardInfo [][]uint8					//堆立信息
+	UserAction uint8						//用户动作
+	CardData []uint8				//麻将列表
+	OutCardCount uint8
+	OutCardData [][]uint8
 };
 
+//游戏结束
+type G2C_HZMJ_GameConclude struct {
+	//积分变量
+	CellScore int										//单元积分
+	GameScore []int			//游戏积分
+	Revenue []int				//税收积分
+	GangScore[]int			//本局杠输赢分
+	//结束信息
+	ProvideUser int						//供应用户
+	ProvideCard uint8						//供应扑克
+	SendCardData uint8						//最后发牌
+	ChiHuKind []int			//胡牌类型
+	ChiHuRight []int		//胡牌类型
+	LeftUser int//玩家逃跑
+	LianZhuang int					//连庄
+
+	//游戏信息
+	CardCount []uint8			//扑克数目
+	HandCardData [][]uint8		//扑克列表
+
+	MaCount []uint8							//码数
+	MaData []uint8							//码数据
+}
+
+// 出牌
+type C2G_HZMJ_HZOutCard struct {
+	CardData uint8
+}
+
+//出操作
+type C2G_HZMJ_OperateCard struct {
+	OperateCode uint8
+	OperateCard []uint8
+}
 
 
+//// s to c
+//用户出牌
+type G2C_HZMJ_OutCard struct{
+	OutCardUser int						//出牌用户
+	OutCardData uint8						//出牌扑克
+	SysOut bool								//托管系统出牌
+}
+
+type G2C_HZMJ_OperateNotify struct {
+	ActionMask uint8						//动作掩码
+	ActionCard uint8						//动作扑克
+}
+
+//发送扑克
+type G2C_HZMJ_SendCard struct {
+	CardData uint8							//扑克数据
+	ActionMask uint8						//动作掩码
+	CurrentUser int							//当前用户
+	SendCardUser int						//发牌用户
+	ReplaceUser int							//补牌用户
+	Tail bool								//末尾发牌
+}
+
+
+//操作命令
+type G2C_HZMJ_OperateResult struct {
+	OperateUser int						//操作用户
+	ActionMask uint8					//动作掩码
+	ProvideUser int						//供应用户
+	OperateCode uint8						//操作代码
+	OperateCard[3] uint8					//操作扑克
+}
+
+type G2C_HZMJ_Trustee struct { //用户托管
+	Trustee bool							//是否托管
+	ChairID int								//托管用户
+}
+
+///////////////////////// hzmj proto end ///////////////////////////////

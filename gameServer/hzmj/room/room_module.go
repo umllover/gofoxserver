@@ -13,6 +13,7 @@ import (
 	"mj/common/msg"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
+	. "mj/common/cost"
 )
 
 var (
@@ -22,32 +23,37 @@ var (
 
 func NewRoom(mgrCh* chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameServiceOption, rid, userCnt, uid int) *Room {
 	skeleton := base.NewSkeleton()
-	Room := new(Room)
-	Room.Skeleton = skeleton
-	Room.ChanRPC= skeleton.ChanRPCServer
-	Room.mgrCh =mgrCh
+	room := new(Room)
+	room.Skeleton = skeleton
+	room.ChanRPC= skeleton.ChanRPCServer
+	room.mgrCh =mgrCh
+	room.RoomInfo = common.NewRoomInfo(userCnt, rid)
+	room.Kind = t.KindID
+	room.ServerId = t.ServerID
+	room.Name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", room.GetRoomId())
+	room.CloseSig = make(chan bool, 1)
+	room.TimeLimit = param.DrawTimeLimit
+	room.CountLimit = param.DrawCountLimit
+	room.Source = param.CellScore
+	room.Password = param.Password
+	room.JoinGamePeopleCount = param.JoinGamePeopleCount
+	room.CreateUser = uid
+	room.CustomRule = new(msg.CustomRule)
+	room.Response = make([]bool, userCnt)
+	room.gameLogic = DefaultGameLogic
+	room.EendTime = time.Now().Unix() + 900
+	room.Owner = uid
+	room.BankerUser = INVALID_CHAIR
+	room.Record = &msg.G2C_Record{}
 
-
-	Room.RoomInfo = common.NewRoomInfo(userCnt, rid)
-	Room.Kind = t.KindID
-	Room.ServerId = t.ServerID
-	Room.Name = fmt.Sprintf( strconv.Itoa(common.KIND_TYPE_HZMJ) +"_%v", Room.GetRoomId())
-	Room.CloseSig = make(chan bool, 1)
-	Room.TimeLimit = param.DrawTimeLimit
-	Room.CountLimit = param.DrawCountLimit
-	Room.Source = param.CellScore
-	Room.Password = param.Password
-	Room.JoinGamePeopleCount = param.JoinGamePeopleCount
-	Room.CreateUser = uid
-	Room.CustomRule = new(msg.CustomRule)
-	Room.Response = make([]bool, userCnt)
-	Room.gameLogic = DefaultGameLogic
-	Room.EendTime = time.Now().Unix() + 900
-	RegisterHandler(Room)
-	Room.OnInit()
-	go Room.run()
+	room.CardIndex = make([][]uint8, room.UserCnt)
+	room.HeapCardInfo  = make([][]uint8,room.UserCnt)			//堆牌信息
+	room.HistoryScores  = make([]*HistoryScore,room.UserCnt)
+	RegisterHandler(room)
+	room.OnInit()
+	go room.run()
 	log.Debug("new room ok .... ")
-	return Room
+	return room
 }
 
 //吧room 当一张桌子理解
@@ -73,22 +79,50 @@ type Room struct {
 	JoinGamePeopleCount int	 //参与游戏的人数
 	*msg.CustomRule  //自定义规则
 	Record *msg.G2C_Record //约战类型特殊记录
-	MagicIndex int8//财神索引
-	ProvideCard int8 	//供应扑克
-	LeftCardCount int8 //剩下拍的数量
-	Response []bool						//响应标志
-	UserAction []int8			//用户动作
-	CardIndex [][]int8		//用户扑克[GAME_PLAYER][MAX_INDEX]
-	WeaveItemCount []int8				//组合数目
-	WeaveItemArray [][]*msg.WeaveItem;		//组合扑克
-	DiscardCount[]int8								//丢弃数目
-	DiscardCard[][]int8				//丢弃记录
-	OutCardData int8  	//出牌扑克
+	IsDissumGame bool					//是否强制解散游戏
+	MagicIndex uint8//财神索引
+	ProvideCard uint8 	//供应扑克
+	ResumeUser int									//还原用户
+	ProvideUser int		//供应用户
+	LeftCardCount uint8 //剩下拍的数量
+	EndLeftCount uint8 								//荒庄牌数
+	LastCatchCardUser int						//最后一个摸牌的用户
+	Owner int 			//房主id
+	OutCardCount uint8								//出牌数目
+	ChiHuCard uint8									//吃胡扑克
+	MinusHeadCount uint8								//头部空缺
+	MinusLastCount uint8								//尾部空缺
+	SiceCount int 										//色子大小
+	SendCardCount uint8									//发牌数目
+	UserActionDone bool
+	SendStatus uint8									//发牌状态
+	GangStatus uint8									//杠牌状态
+	GangOutCard bool									//杠后出牌
+	ProvideGangUser int									//供杠用户
+	GangCard []bool						//杠牌状态
+	GangCount []uint8						//杠牌次数
+	RepertoryCard []uint8								//库存扑克
+	UserGangScore []int									//游戏中杠的输赢
+	Response []bool										//响应标志
+	ChiHuKind []int									//吃胡结果
+	ChiHuRight []int								//胡牌类型
+	UserMaCount []uint8
+	UserAction []uint8								//用户动作
+	OperateCard	[][]uint8				//操作扑克
+	ChiPengCount []uint8		//吃碰杠次数
+	PerformAction []uint8							//执行动作
+	HandCardCount []uint8							//扑克数目
+	CardIndex [][]uint8								//用户扑克[GAME_PLAYER][MAX_INDEX]
+	WeaveItemCount []uint8							//组合数目
+	WeaveItemArray [][]*msg.WeaveItem;				//组合扑克
+	DiscardCount[]uint8								//丢弃数目
+	DiscardCard[][]uint8							//丢弃记录
+	OutCardData uint8  								//出牌扑克
 	OutCardUser int									//当前出牌用户
 	HeapHead int									//堆立头部
 	HeapTail int									//堆立尾部
-	HeapCardInfo [][]int8;						//堆牌信息
-	SendCardData int8 					//发牌扑克
+	HeapCardInfo [][]uint8;							//堆牌信息
+	SendCardData uint8 								//发牌扑克
 	gameLogic *GameLogic
 	HistoryScores  []*HistoryScore
 }
@@ -109,6 +143,17 @@ func  (r *Room) Destroy(){
 	r.CloseSig <- true
 	r.OnDestroy()
 	log.Debug("room Room Destroy ok,  Name:%s", r.Name)
+}
+
+func (r *Room)  GetCurlPlayerCount() int {
+	cnt := 0
+	for _, u := range r.Users {
+		if u != nil {
+			cnt ++
+		}
+	}
+
+	return cnt
 }
 
 

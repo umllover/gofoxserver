@@ -6,6 +6,7 @@ import (
 	"github.com/lovelly/leaf/log"
 	"time"
 	"mj/common/cost"
+	"mj/common/msg"
 )
 
 
@@ -31,7 +32,7 @@ type RoomInfo struct {
 	Status int										//当前状态
 	PlayCount int 									//已玩局数
 	CreateTime int64								//创建时间
-	UserCnt int8									//可以容纳的用户数量
+	UserCnt int									//可以容纳的用户数量
 
 	Users []*user.User 								/// index is chairId
 	AllowLookon map[int]int							//旁观玩家
@@ -51,7 +52,7 @@ func NewRoomInfo(userCnt, rid int)*RoomInfo{
 	r.TurnScore = make([]int, userCnt)
 	r.CollectScore = make([]int, userCnt)
 	r.Trustee = make([]bool, userCnt)
-	r.UserCnt = int8(userCnt)
+	r.UserCnt = userCnt
 	return r
 }
 
@@ -201,3 +202,8 @@ func (r *RoomInfo) ForEachUser(fn func(u *user.User)){
 }
 
 
+func (r *RoomInfo) WriteTableScore (source []*msg.TagScoreInfo, usercnt, Type int,){
+	for _, u := range r.Users {
+		u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
+	}
+}
