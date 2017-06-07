@@ -2,12 +2,13 @@ package conf
 
 import (
 	"encoding/json"
-	"github.com/lovelly/leaf/log"
+	"fmt"
 	"io/ioutil"
 	. "mj/common/cost"
-	"fmt"
-	"strings"
 	"strconv"
+	"strings"
+
+	"github.com/lovelly/leaf/log"
 )
 
 const (
@@ -28,39 +29,43 @@ var Server struct {
 	ProfilePath     string
 	RoomModuleCount int
 
-	BaseDbHost string
-	BaseDbPort int
-	BaseDbName string
-	BaseDbUsername string
-	BaseDbPassword string
-	UserDbHost string
-	UserDbPort int
-	UserDbName string
-	UserDbUsername string
-	UserDbPassword string
-	StatsDbHost string
-	StatsDbPort int
-	StatsDbName string
+	BaseDbHost      string
+	BaseDbPort      int
+	BaseDbName      string
+	BaseDbUsername  string
+	BaseDbPassword  string
+	UserDbHost      string
+	UserDbPort      int
+	UserDbName      string
+	UserDbUsername  string
+	UserDbPassword  string
+	StatsDbHost     string
+	StatsDbPort     int
+	StatsDbName     string
 	StatsDbUsername string
 	StatsDbPassword string
 
-	ConsulAddr 		string
+	ConsulAddr      string
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
-	ValidKind string
-	PrivatePort int
-	NodeId int
+	ValidKind       string
+	PrivatePort     int
+	NodeId          int
 }
 
 var ValidKind = map[int]bool{}
 
-func ServerName()string{
-	return fmt.Sprintf(GamePrefix + "_%d", Server.NodeId)
+func ServerName() string {
+	return fmt.Sprintf(GamePrefix+"_%d", Server.NodeId)
 }
 
-func init() {
-	data, err := ioutil.ReadFile("./gameServer.json")
+func Init(filePaths ...string) {
+	var filePaht = "./gameServer.json"
+	if len(filePaths) > 0 {
+		filePaht = filePaths[0]
+	}
+	data, err := ioutil.ReadFile(filePaht)
 	if err != nil {
 		log.Fatal("%v", err)
 	}
@@ -80,10 +85,9 @@ func init() {
 
 }
 
+type DBConfig struct{}
 
-type DBConfig struct {}
-
-func (c *DBConfig) GetBaseDSN()string {
+func (c *DBConfig) GetBaseDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
 		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&charset=utf8mb4")
 	return s
@@ -129,50 +133,47 @@ func (c *DBConfig) GetStatsDBWorkers() int {
 	return default_stat_log_workers
 }
 
-
 //consul config
-type  ConsulConfig struct {}
+type ConsulConfig struct{}
 
-
-func (c *ConsulConfig)GetConsulAddr() string{
+func (c *ConsulConfig) GetConsulAddr() string {
 	return Server.ConsulAddr
 }
-func (c *ConsulConfig)GetConsulToken() string{
+func (c *ConsulConfig) GetConsulToken() string {
 	return ""
 }
-func (c *ConsulConfig)GetConsulDc() string{
+func (c *ConsulConfig) GetConsulDc() string {
 	return "dc1"
 }
-func (c *ConsulConfig)GetAddress() string{
+func (c *ConsulConfig) GetAddress() string {
 	return Server.ListenAddr
 }
-func (c *ConsulConfig)GetNodeID() int{
+func (c *ConsulConfig) GetNodeID() int {
 	return Server.NodeId
 }
 
-func (c *ConsulConfig)GetSvrName() string{
+func (c *ConsulConfig) GetSvrName() string {
 	return GamePrefix
 }
-func (c *ConsulConfig)GetWatchSvrName() string{
+func (c *ConsulConfig) GetWatchSvrName() string {
 	return HallPrefix
 }
-func (c *ConsulConfig)GetWatchFaildSvrName() string{
+func (c *ConsulConfig) GetWatchFaildSvrName() string {
 	return HallPrefix
 }
-func (c *ConsulConfig)GetRegistSelf()bool{
+func (c *ConsulConfig) GetRegistSelf() bool {
 	return true
 }
 
-func (c *ConsulConfig) GetCheckAddress() string{
+func (c *ConsulConfig) GetCheckAddress() string {
 	return Server.WSAddr
 }
 
-
 ///////////////////////
-func GetServerAddrAndPort()(string, int){
+func GetServerAddrAndPort() (string, int) {
 	l := strings.Split(Server.WSAddr, ":")
 	if len(l) < 1 {
-		l =  strings.Split(Server.TCPAddr, ":")
+		l = strings.Split(Server.TCPAddr, ":")
 	}
 
 	if len(l) < 2 {
@@ -185,5 +186,5 @@ func GetServerAddrAndPort()(string, int){
 		log.Debug("not foud sver port at GetServerAddrAndPort")
 		return "", 0
 	}
-	return l[0],port
+	return l[0], port
 }

@@ -1,14 +1,14 @@
 package common
 
 import (
-	"github.com/lovelly/leaf/chanrpc"
-	"mj/gameServer/user"
-	"github.com/lovelly/leaf/log"
-	"time"
 	"mj/common/cost"
 	"mj/common/msg"
-)
+	"mj/gameServer/user"
+	"time"
 
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/log"
+)
 
 type Module interface {
 	GetChanRPC() *chanrpc.Server
@@ -19,34 +19,31 @@ type Module interface {
 	GetTableCount() int
 }
 
-
 /// 房间里面的玩家管理
 type RoomInfo struct {
-	id int											//唯一id 房间id
-	EendTime int64									//结束时间
-	SiceCount int									//骰子点数
-	BankerUser int									//庄家用户
-	CurrentUser int									//当前操作用户
-	Ting []bool;									//是否听牌
-	CreateUser  int									//创建房间的人
-	Status int										//当前状态
-	PlayCount int 									//已玩局数
-	CreateTime int64								//创建时间
-	UserCnt int									//可以容纳的用户数量
+	id          int    //唯一id 房间id
+	EendTime    int64  //结束时间
+	SiceCount   int    //骰子点数
+	BankerUser  int    //庄家用户
+	CurrentUser int    //当前操作用户
+	Ting        []bool //是否听牌
+	CreateUser  int    //创建房间的人
+	Status      int    //当前状态
+	PlayCount   int    //已玩局数
+	CreateTime  int64  //创建时间
+	UserCnt     int    //可以容纳的用户数量
 
-	Users []*user.User 								/// index is chairId
-	AllowLookon map[int]int							//旁观玩家
-	TurnScore []int  								//积分信息
-	CollectScore []int  							//积分信息
-	Trustee []bool									//是否托管 index 就是椅子id
+	Users        []*user.User /// index is chairId
+	AllowLookon  map[int]int  //旁观玩家
+	TurnScore    []int        //积分信息
+	CollectScore []int        //积分信息
+	Trustee      []bool       //是否托管 index 就是椅子id
 }
 
-
-
-func NewRoomInfo(userCnt, rid int)*RoomInfo{
+func NewRoomInfo(userCnt, rid int) *RoomInfo {
 	r := new(RoomInfo)
 	r.id = rid
-	r.Users =make([]*user.User, userCnt)
+	r.Users = make([]*user.User, userCnt)
 	r.AllowLookon = make(map[int]int)
 	r.CreateTime = time.Now().Unix()
 	r.TurnScore = make([]int, userCnt)
@@ -56,16 +53,15 @@ func NewRoomInfo(userCnt, rid int)*RoomInfo{
 	return r
 }
 
-
-func (r *RoomInfo) GetRoomId() int{
+func (r *RoomInfo) GetRoomId() int {
 	return r.id
 }
 
-func (r *RoomInfo)SetRoomStatus(su int){
+func (r *RoomInfo) SetRoomStatus(su int) {
 	r.Status = su
 }
 
-func(r *RoomInfo) GetRoomStatus()int{
+func (r *RoomInfo) GetRoomStatus() int {
 	return r.Status
 }
 
@@ -74,7 +70,7 @@ func (r *RoomInfo) CheckDestroy(curTime int64) bool {
 		return true //没人关闭房间 todo
 	}
 
-	if r.EendTime <  curTime {
+	if r.EendTime < curTime {
 		return true //时间到了关闭房间 todo
 	}
 	return false
@@ -96,14 +92,14 @@ func (r *RoomInfo) IsInRoom(userId int) bool {
 	return false
 }
 
-func (r *RoomInfo) GetUserByChairId(chairId int)*user.User {
-	if len(r.Users) <= chairId  {
+func (r *RoomInfo) GetUserByChairId(chairId int) *user.User {
+	if len(r.Users) <= chairId {
 		return nil
 	}
 	return r.Users[chairId]
 }
 
-func (r *RoomInfo) GetUserByUid(userId int)(*user.User, int) {
+func (r *RoomInfo) GetUserByUid(userId int) (*user.User, int) {
 	for i, u := range r.Users {
 		if u == nil {
 			continue
@@ -131,7 +127,7 @@ func (r *RoomInfo) EnterRoom(chairId int, u *user.User) bool {
 
 	old := r.Users[chairId]
 	if old != nil {
-		log.Error("at chair %d have user",chairId)
+		log.Error("at chair %d have user", chairId)
 		return false
 	}
 	r.Users[chairId] = u
@@ -140,7 +136,7 @@ func (r *RoomInfo) EnterRoom(chairId int, u *user.User) bool {
 	return true
 }
 
-func  (r *RoomInfo) GetChairId() int {
+func (r *RoomInfo) GetChairId() int {
 	for i, u := range r.Users {
 		if u == nil {
 			return i
@@ -150,20 +146,19 @@ func  (r *RoomInfo) GetChairId() int {
 }
 
 func (r *RoomInfo) LeaveRoom(u *user.User) bool {
-	if len(r.Users) <= u.ChairId  {
+	if len(r.Users) <= u.ChairId {
 		return false
 	}
 
-	r.Users[ u.ChairId] = nil
+	r.Users[u.ChairId] = nil
 	u.ChairId = cost.INVALID_CHAIR
 	u.RoomId = cost.INVALID_TABLE
-	log.Debug("%v user leave room,  left %v count",  u.ChairId, r.GetUserCount())
+	log.Debug("%v user leave room,  left %v count", u.ChairId, r.GetUserCount())
 	return true
 }
 
-
-func (r *RoomInfo) SendMsg(chairId int,data interface{}) bool {
-	if len(r.Users) <= chairId  {
+func (r *RoomInfo) SendMsg(chairId int, data interface{}) bool {
+	if len(r.Users) <= chairId {
 		return false
 	}
 
@@ -176,7 +171,7 @@ func (r *RoomInfo) SendMsg(chairId int,data interface{}) bool {
 	return true
 }
 
-func (r *RoomInfo) SendMsgAll(data interface{})  {
+func (r *RoomInfo) SendMsgAll(data interface{}) {
 	for _, u := range r.Users {
 		if u != nil {
 			u.WriteMsg(data)
@@ -184,16 +179,16 @@ func (r *RoomInfo) SendMsgAll(data interface{})  {
 	}
 }
 
-func (r *RoomInfo) SendMsgAllNoSelf(selfid int, data  interface{})  {
+func (r *RoomInfo) SendMsgAllNoSelf(selfid int, data interface{}) {
 	for _, u := range r.Users {
-		log.Debug("SendMsgAllNoSelf %v ", (u != nil  && u.Id != selfid) )
-		if u != nil  && u.Id != selfid{
+		log.Debug("SendMsgAllNoSelf %v ", (u != nil && u.Id != selfid))
+		if u != nil && u.Id != selfid {
 			u.WriteMsg(data)
 		}
 	}
 }
 
-func (r *RoomInfo) ForEachUser(fn func(u *user.User)){
+func (r *RoomInfo) ForEachUser(fn func(u *user.User)) {
 	for _, u := range r.Users {
 		if u != nil {
 			fn(u)
@@ -201,8 +196,7 @@ func (r *RoomInfo) ForEachUser(fn func(u *user.User)){
 	}
 }
 
-
-func (r *RoomInfo) WriteTableScore (source []*msg.TagScoreInfo, usercnt, Type int,){
+func (r *RoomInfo) WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int) {
 	for _, u := range r.Users {
 		u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
 	}

@@ -1,28 +1,28 @@
 package internal
 
 import (
-
 	"mj/common/msg"
 	"mj/gameServer/hzmj/room"
 	"reflect"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	//"mj/gameServer/db/model/base"
-	"mj/gameServer/user"
 	. "mj/common/cost"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
+	"mj/gameServer/user"
+
 	"github.com/lovelly/leaf/log"
 )
 
-const(
+const (
 	UserCount = 4
 )
 
-
 ////注册rpc 消息
-func handleRpc(id interface{}, f interface{}){
+func handleRpc(id interface{}, f interface{}) {
 	cluster.SetRoute(id, ChanRPC)
 	ChanRPC.Register(id, f)
 }
@@ -32,7 +32,6 @@ func handlerC2S(m interface{}, h interface{}) {
 	msg.Processor.SetRouter(m, ChanRPC)
 	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
 }
-
 
 func init() {
 	// c 2 s
@@ -48,11 +47,9 @@ func init() {
 	handleRpc("UserReady", UserReady)
 }
 
-
-
-func HZOutCard (args []interface{}) {
+func HZOutCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(user.User)
+	user := agent.UserData().(*user.User)
 
 	r := getRoom(user.RoomId)
 	if r != nil {
@@ -62,7 +59,7 @@ func HZOutCard (args []interface{}) {
 
 func OperateCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(user.User)
+	user := agent.UserData().(*user.User)
 
 	r := getRoom(user.RoomId)
 	if r != nil {
@@ -70,14 +67,13 @@ func OperateCard(args []interface{}) {
 	}
 }
 
-
 //////////////// rcp ///////////////////
-func DelRoom(args []interface{}){
+func DelRoom(args []interface{}) {
 	id := args[0].(int)
 	delRoom(id)
 }
 
-func Sitdown(args []interface{}){
+func Sitdown(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
@@ -86,7 +82,7 @@ func Sitdown(args []interface{}){
 	}
 	if r != nil {
 		r.ChanRPC.Go("Sitdown", args...)
-	}else {
+	} else {
 		log.Error("at Sitdown no foud room %v", args[0])
 	}
 }
@@ -114,53 +110,53 @@ func GetUserChairInfo(args []interface{}) {
 	}
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
-		GameID : tagUser.GameID,						//游戏 I D
-		UserID : tagUser.Id,							//用户 I D
-		FaceID : tagUser.FaceID,							//头像索引
-		CustomID :tagUser.CustomID,						//自定标识
-		Gender :tagUser.Gender,							//用户性别
-		MemberOrder :tagUser.Accountsinfo.MemberOrder,					//会员等级
-		TableID : tagUser.RoomId,							//桌子索引
-		ChairID : tagUser.ChairId,							//椅子索引
-		UserStatus :tagUser.Status,						//用户状态
-		Score :tagUser.Score,								//用户分数
-		WinCount : tagUser.WinCount,							//胜利盘数
-		LostCount : tagUser.LostCount,						//失败盘数
-		DrawCount : tagUser.DrawCount,						//和局盘数
-		FleeCount : tagUser.FleeCount,						//逃跑盘数
-		Experience : tagUser.Experience,						//用户经验
-		NickName: tagUser.NickName,				//昵称
-		HeaderUrl :tagUser.HeadImgUrl, 				//头像
+		GameID:      tagUser.GameID,                   //游戏 I D
+		UserID:      tagUser.Id,                       //用户 I D
+		FaceID:      tagUser.FaceID,                   //头像索引
+		CustomID:    tagUser.CustomID,                 //自定标识
+		Gender:      tagUser.Gender,                   //用户性别
+		MemberOrder: tagUser.Accountsinfo.MemberOrder, //会员等级
+		TableID:     tagUser.RoomId,                   //桌子索引
+		ChairID:     tagUser.ChairId,                  //椅子索引
+		UserStatus:  tagUser.Status,                   //用户状态
+		Score:       tagUser.Score,                    //用户分数
+		WinCount:    tagUser.WinCount,                 //胜利盘数
+		LostCount:   tagUser.LostCount,                //失败盘数
+		DrawCount:   tagUser.DrawCount,                //和局盘数
+		FleeCount:   tagUser.FleeCount,                //逃跑盘数
+		Experience:  tagUser.Experience,               //用户经验
+		NickName:    tagUser.NickName,                 //昵称
+		HeaderUrl:   tagUser.HeadImgUrl,               //头像
 	})
 }
 
-func SetGameOption(args []interface{}){
+func SetGameOption(args []interface{}) {
 
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
 	if r != nil {
 		r.ChanRPC.Go("SetGameOption", args...)
-	}else {
+	} else {
 		log.Error("at SetGameOption no foud room %v", args[0])
 	}
 }
 
-func UserStandup(args []interface{}){
+func UserStandup(args []interface{}) {
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
 	if r != nil {
 		r.ChanRPC.Go("UserStandup", args...)
-	}else {
+	} else {
 		log.Error("at UserStandup no foud room %v", args[0])
 	}
 }
 
-func UserReady (args []interface{}){
+func UserReady(args []interface{}) {
 	user := args[1].(*user.User)
 	r := getRoom(user.RoomId)
 	if r != nil {
 		r.ChanRPC.Go("UserReady", args...)
-	}else {
+	} else {
 		log.Error("at UserReady no foud room %v", args[0])
 	}
 }
@@ -173,8 +169,8 @@ func CreaterRoom(args []interface{}) {
 	defer func() {
 		if retCode == 0 {
 			agent.WriteMsg(retMsg)
-		}else {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode:retCode, DescribeString:"创建房间失败"})
+		} else {
+			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 
@@ -184,7 +180,7 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
-	if recvMsg.Kind !=  common.KIND_TYPE_HZMJ {
+	if recvMsg.Kind != common.KIND_TYPE_HZMJ {
 		retCode = CreateParamError
 		return
 	}
@@ -207,12 +203,12 @@ func CreaterRoom(args []interface{}) {
 			retCode = NotEnoughFee
 			return
 		}
-	}else if  template.CardOrBean == 1 { //消耗房卡
+	} else if template.CardOrBean == 1 { //消耗房卡
 		if user.RoomCard < template.FeeBeanOrRoomCard {
 			retCode = NotEnoughFee
 			return
 		}
-	}else{
+	} else {
 		retCode = ConfigError
 		return
 	}
@@ -228,19 +224,20 @@ func CreaterRoom(args []interface{}) {
 		return
 	}
 
-	r  := room.NewRoom(ChanRPC, recvMsg, template, rid, UserCount, user.Id)
+	r := room.NewRoom(ChanRPC, recvMsg, template, rid, UserCount, user.Id)
+	if recvMsg.DrawTimeLimit == 0 {
+		r.TimeLimit = feeTemp.DrawTimeLimit
+		r.CountLimit = feeTemp.DrawCountLimit
+		r.Source = feeTemp.IniScore
+	}
+	r.TimeOutCard = template.OutCardTime
+	r.TimeOperateCard = template.OperateCardTime
 	retMsg.TableID = r.GetRoomId()
 	retMsg.DrawCountLimit = r.CountLimit
 	retMsg.DrawTimeLimit = r.TimeLimit
 	retMsg.Beans = feeTemp.TableFee
 	retMsg.RoomCard = user.RoomCard
-	user.KindID =  recvMsg.Kind
+	user.KindID = recvMsg.Kind
 	user.RoomId = r.GetRoomId()
 	addRoom(r)
-
-
 }
-
-
-
-

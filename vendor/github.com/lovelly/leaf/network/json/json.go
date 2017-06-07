@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
-	"reflect"
 )
 
 type Processor struct {
@@ -162,7 +163,6 @@ func (p *Processor) RouteByType(msgType reflect.Type, msg interface{}, userData 
 	}
 	return nil
 }
-
 
 // goroutine safe
 func (p *Processor) Unmarshal(data []byte) (interface{}, error) {

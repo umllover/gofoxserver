@@ -21,7 +21,6 @@ func init() {
 	Processor.Register(&L2C_ServerListFinish{})
 	Processor.Register(&C2L_User_Individual{})
 
-
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
@@ -64,9 +63,6 @@ func init() {
 }
 
 type ShowErrCode struct {
-	ErrorCode int
+	ErrorCode      int
 	DescribeString string
 }
-
-
-

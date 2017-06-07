@@ -1,10 +1,11 @@
 package user
 
 import (
-	"mj/gameServer/db/model"
-	"github.com/lovelly/leaf/gate"
-	"sync"
 	"mj/common/msg"
+	"mj/gameServer/db/model"
+	"sync"
+
+	"github.com/lovelly/leaf/gate"
 )
 
 type User struct {
@@ -15,30 +16,29 @@ type User struct {
 	*model.Gamescoreinfo
 	*model.Userextrainfo
 	*model.Userattr
-	Id int
-	RoomId int // roomId 就是tableid
-	Status int //当前游戏状态
-	ChairId int //当前椅子
-	UserLimit int64  //限制行为
+	Id        int
+	RoomId    int   // roomId 就是tableid
+	Status    int   //当前游戏状态
+	ChairId   int   //当前椅子
+	UserLimit int64 //限制行为
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
-	return &User{Id : UserId}
+	return &User{Id: UserId}
 }
 
-func (u *User) GetUid() int{
+func (u *User) GetUid() int {
 	return u.Id
 }
 
 func (u *User) SendSysMsg(ty int, context string) {
 	u.WriteMsg(&msg.SysMsg{
-		ClientID:u.Id,
-		Type:ty,
-		Context:context,
+		ClientID: u.Id,
+		Type:     ty,
+		Context:  context,
 	})
 }
-
 
 /////////////////////////
 //关键函数加锁

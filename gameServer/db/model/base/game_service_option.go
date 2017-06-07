@@ -58,6 +58,8 @@ type GameServiceOption struct {
 	TimeNotBeginGame            int    `db:"TimeNotBeginGame" json:"TimeNotBeginGame"`                       // 多长时间未开始游戏解散桌子	 单位秒
 	TimeNotBeginAfterCreateRoom int    `db:"TimeNotBeginAfterCreateRoom" json:"TimeNotBeginAfterCreateRoom"` // 私人房创建多长时间后无人坐桌解散桌子
 	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入 1是允许
+	OutCardTime                 int    `db:"OutCardTime" json:"OutCardTime"`                                 // 都久没出牌自动出牌
+	OperateCardTime             int    `db:"OperateCardTime" json:"OperateCardTime"`                         // 操作最大时间
 }
 
 var DefaultGameServiceOption = GameServiceOption{}

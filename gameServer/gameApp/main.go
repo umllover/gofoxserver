@@ -3,19 +3,21 @@ package main
 import (
 	"mj/common"
 	"mj/common/consul"
+	"mj/common/utils"
+	"mj/gameServer/center"
+	"mj/gameServer/conf"
+	"mj/gameServer/db"
+	"mj/gameServer/db/model/base"
+	"mj/gameServer/gate"
+	"mj/gameServer/kindList"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
-	"mj/gameServer/conf"
-	"mj/gameServer/center"
-	"mj/gameServer/kindList"
-	"mj/gameServer/gate"
 	"github.com/lovelly/leaf/module"
-	"mj/gameServer/db/model/base"
-	"mj/gameServer/db"
-	"mj/common/utils"
 )
 
 func main() {
+	conf.Init()
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
@@ -32,6 +34,7 @@ func main() {
 	consul.SetSelfId(conf.ServerName())
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
+	kindList.Init()
 
 	modules := []module.Module{center.Module}
 	modules = append(modules, gate.Module)

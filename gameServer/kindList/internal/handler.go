@@ -1,16 +1,17 @@
 package internal
 
 import (
-	"mj/common/msg"
-	"github.com/lovelly/leaf/cluster"
-	"reflect"
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/log"
-	"mj/gameServer/db/model/base"
-	"mj/gameServer/conf"
-	"github.com/lovelly/leaf/gate"
 	. "mj/common/cost"
+	"mj/common/msg"
+	"mj/gameServer/conf"
+	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+	"reflect"
+
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/log"
 )
 
 ////注册rpc 消息
@@ -25,7 +26,7 @@ func handlerC2S(m interface{}, h interface{}) {
 	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
 }
 
-func init(){
+func init() {
 	//rpc
 	handleRpc("GetKindList", GetKindList, chanrpc.FuncCommon)
 
@@ -42,32 +43,31 @@ func init(){
 //客户端请求更换椅子
 func UserChairReq(args []interface{}) {
 
-
 }
 
-func GetUserChairInfo (args []interface{}) {
+func GetUserChairInfo(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at GetUserChairInfo not foud module")
 		return
 	}
 
-	mod.GetChanRPC().Go("GetUserChairInfo",  args[0], user)
+	mod.GetChanRPC().Go("GetUserChairInfo", args[0], user)
 }
 
 //起立
 func UserStandup(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at UserStandup not foud module")
 		return
 	}
 
-	mod.GetChanRPC().Go("UserStandup",  args[0], user)
+	mod.GetChanRPC().Go("UserStandup", args[0], user)
 
 }
 
@@ -79,7 +79,7 @@ func CreateTable(args []interface{}) {
 
 	defer func() {
 		if retCode != 0 {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode:retCode, DescribeString:"创建房间失败"})
+			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 
@@ -95,45 +95,43 @@ func CreateTable(args []interface{}) {
 
 func UserSitdown(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at UserSitdown not foud module")
 		return
 	}
 
-	mod.GetChanRPC().Go("Sitdown",  args[0], user)
+	mod.GetChanRPC().Go("Sitdown", args[0], user)
 }
-
 
 func SetGameOption(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at UserSitdown not foud module")
 		return
 	}
 
-	mod.GetChanRPC().Go("SetGameOption",  args[0], user)
+	mod.GetChanRPC().Go("SetGameOption", args[0], user)
 }
 
 func UserReady(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user  := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 	mod, ok := GetModByKind(user.KindID)
 	if !ok {
 		log.Error("at UserReady not foud module")
 		return
 	}
 
-	mod.GetChanRPC().Go("UserReady",  args[0], user)
+	mod.GetChanRPC().Go("UserReady", args[0], user)
 
 }
 
-
 ///// rpc
-func GetKindList(args []interface{})(interface{}, error){
+func GetKindList(args []interface{}) (interface{}, error) {
 	ip, port := conf.GetServerAddrAndPort()
 
 	ret := make([]*msg.TagGameServer, 0)
@@ -142,20 +140,20 @@ func GetKindList(args []interface{})(interface{}, error){
 		if !ok {
 			continue
 		}
-		for _, template := range templates{
+		for _, template := range templates {
 			svrInfo := &msg.TagGameServer{}
 			svrInfo.KindID = kind
 			svrInfo.NodeID = template.NodeID
-			svrInfo.SortID  = template.SortID
+			svrInfo.SortID = template.SortID
 			svrInfo.ServerID = template.ServerID
-			svrInfo.ServerPort =port
+			svrInfo.ServerPort = port
 			svrInfo.ServerType = int64(template.ServerType)
 			svrInfo.OnLineCount = int64(v.GetClientCount())
 			svrInfo.FullCount = template.MaxDistributeUser
 			svrInfo.RestrictScore = int64(template.RestrictScore)
-			svrInfo.MinTableScore =  int64(template.MinTableScore)
-			svrInfo.MinEnterScore =  int64(template.MinEnterScore)
-			svrInfo.MaxEnterScore =  int64(template.MaxEnterScore)
+			svrInfo.MinTableScore = int64(template.MinTableScore)
+			svrInfo.MinEnterScore = int64(template.MinEnterScore)
+			svrInfo.MaxEnterScore = int64(template.MaxEnterScore)
 			svrInfo.ServerAddr = ip
 			svrInfo.ServerName = template.ServerName
 			svrInfo.SurportType = 0
@@ -165,5 +163,5 @@ func GetKindList(args []interface{})(interface{}, error){
 	}
 
 	log.Debug("at GetKindList ==== %v", ret)
-	return  ret, nil
+	return ret, nil
 }

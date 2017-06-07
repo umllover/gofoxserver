@@ -1,15 +1,16 @@
 package gate
 
 import (
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/network"
+	"fmt"
+	"io"
 	"net"
 	"reflect"
 	"time"
+
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"fmt"
-	"io"
+	"github.com/lovelly/leaf/network"
 )
 
 type IdUser interface {
@@ -37,15 +38,15 @@ type Gate struct {
 	GoLen              int
 	TimerDispatcherLen int
 	AsynCallLen        int
-	NewChanRPCFunc         func(Agent) *module.Skeleton
-	OnAgentInit 	   func(Agent)
-	OnAgentDestroy 	   func(Agent)
+	NewChanRPCFunc     func(Agent) *module.Skeleton
+	OnAgentInit        func(Agent)
+	OnAgentDestroy     func(Agent)
 }
 
 func (gate *Gate) Run(closeSig chan bool) {
 	newAgent := func(conn network.Conn) network.Agent {
 		a := &agent{conn: conn, gate: gate}
-		if gate.NewChanRPCFunc != nil  {
+		if gate.NewChanRPCFunc != nil {
 			a.skeleton = gate.NewChanRPCFunc(a)
 			a.chanRPC = a.skeleton.ChanRPCServer
 		}
@@ -127,7 +128,7 @@ func (a *agent) Run() {
 		closeSig <- true
 	}()
 
-	handleMsgData := func(args []interface{}) (error) {
+	handleMsgData := func(args []interface{}) error {
 		if a.gate.Processor != nil {
 			data := args[0].([]byte)
 			msg, err := a.gate.Processor.Unmarshal(data)
@@ -174,7 +175,7 @@ func (a *agent) Run() {
 		userId := 0
 		var ok bool
 		if userId, ok = a.userData.(int); ok {
-		}else if user, ok1 := a.userData.(IdUser); ok1 {
+		} else if user, ok1 := a.userData.(IdUser); ok1 {
 			userId = user.GetUid()
 		}
 
@@ -206,7 +207,7 @@ func (a *agent) WriteMsg(msg interface{}) {
 		userId := 0
 		var ok bool
 		if userId, ok = a.userData.(int); ok {
-		}else if user, ok1 := a.userData.(IdUser); ok1 {
+		} else if user, ok1 := a.userData.(IdUser); ok1 {
 			userId = user.GetUid()
 		}
 		log.Debug("OUT msg =: %s, userId:%v", string(data[0]), userId)
