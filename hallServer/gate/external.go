@@ -7,4 +7,3 @@ import (
 var (
 	Module = new(internal.Module)
 )
-

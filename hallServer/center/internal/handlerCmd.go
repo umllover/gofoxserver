@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"gopkg.in/mgo.v2/bson"
 	"errors"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func init() {

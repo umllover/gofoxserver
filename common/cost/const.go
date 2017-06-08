@@ -39,18 +39,20 @@ const (
 	NotValidCard     = 201 //无效的牌
 	ErrUserNotInRoom = 202 //玩家不在房间
 	ErrNotFoudCard   = 203 //没找到牌
+	ErrGameNotStart  = 204 //游戏没开始
+	ErrNotSelfOut    = 205 //不是自己出牌
 )
 
 ///////// 无效的数字
 const (
 	//无效数值
-	INVALID_BYTE   = (0xFF)       //无效数值
-	INVALID_WORD   = (0xFFFF)     //无效数值
-	INVALID_DWORD  = (0xFFFFFFFF) //无效数值
-	INVALID_CHAIR  = 0xFFFF       //无效椅子
-	INVALID_TABLE  = 0xFFFF       //无效桌子
-	INVALID_SERVER = 0xFFFF       //无效房间
-	INVALID_KIND   = 0xFFFF       //无效游戏
+	INVALID_BYTE   = 0xFF       //无效数值
+	INVALID_WORD   = 0xFFFF     //无效数值
+	INVALID_DWORD  = 0xFFFFFFFF //无效数值
+	INVALID_CHAIR  = 0xFFFF     //无效椅子
+	INVALID_TABLE  = 0xFFFF     //无效桌子
+	INVALID_SERVER = 0xFFFF     //无效房间
+	INVALID_KIND   = 0xFFFF     //无效游戏
 )
 
 ///////////////游戏模式.

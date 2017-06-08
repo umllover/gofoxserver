@@ -34,11 +34,7 @@ func (room *Room) OutCard(args []interface{}) {
 		}
 	}()
 
-	if room.OnUserOutCard(user.ChairId, recvMsg.CardData, false) {
-		retcode = NotValidCard
-		return
-	}
-
+	retcode = room.OnUserOutCard(user.ChairId, recvMsg.CardData, false)
 	return
 }
 
@@ -364,6 +360,7 @@ func (room *Room) StartGame() {
 	room.DiscardCount = make([]int, room.UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, room.UserCnt)
 	room.WeaveItemCount = make([]int, room.UserCnt)
+	room.ChiHuRight = make([]int, room.UserCnt)
 
 	for i := 0; i < room.UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
@@ -931,6 +928,10 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 	//丢弃扑克
 	if (room.OutCardUser != INVALID_CHAIR) && (room.OutCardData != 0) {
 		room.OutCardCount++
+		if len(room.DiscardCard[room.OutCardUser]) < 1 {
+			room.DiscardCard[room.OutCardUser] = make([]int, 60)
+		}
+
 		room.DiscardCard[room.OutCardUser][room.DiscardCount[room.OutCardUser]] = room.OutCardData
 		room.DiscardCount[room.OutCardUser]++
 	}
@@ -1539,30 +1540,35 @@ func (room *Room) OnUserTrustee(wChairID int, bTrustee bool) bool {
 }
 
 //用户出牌
-func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) bool {
+func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) int {
 	//效验状态
 	if room.Status != RoomStatusStarting {
-		return true
+		log.Error("at OnUserOutCard game status != RoomStatusStarting ")
+		return ErrGameNotStart
 	}
 
 	//效验参数
 	if wChairID != room.CurrentUser {
-		return false
+		log.Error("at OnUserOutCard not self out ")
+		return ErrNotSelfOut
 	}
 
 	if !room.gameLogic.IsValidCard(cbCardData) {
-		return false
+		log.Error("at OnUserOutCard IsValidCard card ")
+		return NotValidCard
 	}
 
 	//删除扑克
 	if !room.gameLogic.RemoveCard(room.CardIndex[wChairID], cbCardData) {
-		return false
+		log.Error("at OnUserOutCard not have card ")
+		return ErrNotFoudCard
 	}
 
 	//清除禁止
 	user := room.GetUserByChairId(wChairID)
 	if user == nil {
-		return false
+		log.Error("at OnUserOutCard not foud user ")
+		return ErrUserNotInRoom
 	}
 
 	user.UserLimit |= ^LimitChiHu
@@ -1610,5 +1616,5 @@ func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) bool
 		room.DispatchCardData(room.CurrentUser, false)
 	}
 
-	return true
+	return 0
 }

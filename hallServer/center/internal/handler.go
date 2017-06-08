@@ -5,6 +5,7 @@ import (
 	"github.com/lovelly/leaf/cluster"
 	//"mj/common/cost"
 	"mj/hallServer/conf"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -38,24 +39,23 @@ func SelfNodeDelPlayer(args []interface{}) {
 	//cluster.Broadcast(cost.HallPrefix,"NotifyOtherNodelogout", uid)
 }
 
-
 //玩家在别的节点登录了
-func NotifyOtherNodeLogin(args []interface{}){
+func NotifyOtherNodeLogin(args []interface{}) {
 	uid := args[0].(int)
 	ServerName := args[1].(string)
 	OtherUsers[uid] = ServerName
 }
 
 //玩家在别的节点登出了
-func NotifyOtherNodelogout(args []interface{}){
+func NotifyOtherNodelogout(args []interface{}) {
 	uid := args[0].(int)
 	delete(OtherUsers, uid)
 }
 
 //发消息给别的玩家
-func GoMsgToUser(args []interface{})  {
+func GoMsgToUser(args []interface{}) {
 	uid := args[0].(int)
-	FuncName :=  args[1].(string)
+	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
 		ch.Go(FuncName, args[2:]...)
@@ -74,6 +74,6 @@ func GoMsgToUser(args []interface{})  {
 }
 
 //异步回调消息给别的玩家
-func AsyncCallUser (args []interface{})  {
+func AsyncCallUser(args []interface{}) {
 
 }

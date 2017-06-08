@@ -1,20 +1,20 @@
 package internal
 
 import (
-	"mj/common/msg"
-	"reflect"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/gate"
-	"mj/hallServer/center"
 	"errors"
-	. "mj/common/cost"
 	"fmt"
-	"time"
-	"mj/hallServer/gameList"
+	. "mj/common/cost"
+	"mj/common/msg"
+	"mj/hallServer/center"
 	"mj/hallServer/db/model"
+	"mj/hallServer/gameList"
 	"mj/hallServer/user"
-)
+	"reflect"
+	"time"
 
+	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/log"
+)
 
 //注册 客户端消息调用
 func handlerC2S(m *Module, msg interface{}, h interface{}) {
@@ -34,15 +34,15 @@ func RegisterHandler(m *Module) {
 }
 
 //连接进来的通知
-func (m *Module)NewAgent(args []interface{}) error{
+func (m *Module) NewAgent(args []interface{}) error {
 	log.Debug("at hall NewAgent")
 	return nil
 }
 
 //连接关闭的同喜
-func (m *Module)CloseAgent (args []interface{}) error {
+func (m *Module) CloseAgent(args []interface{}) error {
 	log.Debug("at hall CloseAgent")
-	agent:= args[0].(gate.Agent)
+	agent := args[0].(gate.Agent)
 	id, ok := agent.UserData().(int)
 	if !ok {
 		return nil
@@ -53,15 +53,14 @@ func (m *Module)CloseAgent (args []interface{}) error {
 	return nil
 }
 
-
-func  (m *Module)handleMBLogin(args []interface{}) {
+func (m *Module) handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_Login)
 	retMsg := &msg.L2C_LogonSuccess{}
 	agent := m.a
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			str := fmt.Sprintf("登录失败, 错误码: %d",retcode)
+			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
 			agent.WriteMsg(retMsg)
@@ -101,15 +100,14 @@ func  (m *Module)handleMBLogin(args []interface{}) {
 		return
 	}
 
-	Users[user.Id] = struct {}{}
+	Users[user.Id] = struct{}{}
 	agent.SetUserData(accountData.UserID)
 	BuildClientMsg(retMsg, user)
 	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
 	gameList.ChanRPC.Go("sendGameList", agent)
 }
 
-
-func  (m *Module)handleMBRegist(args []interface{}) {
+func (m *Module) handleMBRegist(args []interface{}) {
 	retcode := 0
 	recvMsg := args[0].(*msg.C2L_Regist)
 	agent := args[1].(gate.Agent)
@@ -133,21 +131,21 @@ func  (m *Module)handleMBRegist(args []interface{}) {
 	//todo 名字排重等等等 验证
 	now := time.Now()
 	accInfo := &model.Accountsinfo{
-		FaceID:   recvMsg.FaceID,   //头像标识
-		Gender:   recvMsg.Gender,   //用户性别
-		Accounts: recvMsg.Accounts, //登录帐号
-		RegAccounts: recvMsg.Accounts,
-		LogonPass: recvMsg.LogonPass,
-		InsurePass: recvMsg.InsurePass,
-		NickName: recvMsg.NickName, //用户昵称
-		GameLogonTimes:1,
-		LastLogonIP:agent.RemoteAddr().String(),
-		LastLogonMobile:recvMsg.MobilePhone,
-		LastLogonMachine:recvMsg.MachineID,
-		RegisterMobile:recvMsg.MobilePhone,
-		RegisterMachine: recvMsg.MachineID,
-		RegisterDate : &now,
-		RegisterIP:      agent.RemoteAddr().String(), //连接地址
+		FaceID:           recvMsg.FaceID,   //头像标识
+		Gender:           recvMsg.Gender,   //用户性别
+		Accounts:         recvMsg.Accounts, //登录帐号
+		RegAccounts:      recvMsg.Accounts,
+		LogonPass:        recvMsg.LogonPass,
+		InsurePass:       recvMsg.InsurePass,
+		NickName:         recvMsg.NickName, //用户昵称
+		GameLogonTimes:   1,
+		LastLogonIP:      agent.RemoteAddr().String(),
+		LastLogonMobile:  recvMsg.MobilePhone,
+		LastLogonMachine: recvMsg.MachineID,
+		RegisterMobile:   recvMsg.MobilePhone,
+		RegisterMachine:  recvMsg.MachineID,
+		RegisterDate:     &now,
+		RegisterIP:       agent.RemoteAddr().String(), //连接地址
 	}
 
 	lastid, err := model.AccountsinfoOp.Insert(accInfo)
@@ -162,20 +160,19 @@ func  (m *Module)handleMBRegist(args []interface{}) {
 		retcode = CreateUserError
 		return
 	}
-	Users[user.Id] = struct {}{}
+	Users[user.Id] = struct{}{}
 	user.Accountsinfo = accInfo
 	agent.SetUserData(accInfo.UserID)
 	BuildClientMsg(retMsg, user)
 	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
 }
 
-func (m *Module)GetUserIndividual(args []interface{}){
+func (m *Module) GetUserIndividual(args []interface{}) {
 
 }
 
-
 ///////
-func loadUser(u *user.User) ( bool){
+func loadUser(u *user.User) bool {
 	ainfo, aok := model.AccountsmemberOp.Get(u.Id, u.Accountsinfo.MemberOrder)
 	if !aok {
 		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
@@ -188,37 +185,37 @@ func loadUser(u *user.User) ( bool){
 	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
 		log.Error("at loadUser not foud GamescorelockerOp by user %d", u.Id)
-		return  false
+		return false
 	}
 	u.Gamescorelocker = glInfo
 
 	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
 	if !giok {
 		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Gamescoreinfo = giInfom
 
 	ucInfo, uok := model.UserattrOp.Get(u.Id)
 	if !uok {
 		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Userattr = ucInfo
 
 	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
 	if !ueok {
 		log.Error("at loadUser not foud UserextrainfoOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Userextrainfo = uextInfo
-	return  true
+	return true
 }
 
-func createUser(UserID int)  (*user.User, bool) {
+func createUser(UserID int) (*user.User, bool) {
 	U := user.NewUser(UserID)
 	U.Accountsmember = &model.Accountsmember{
-		UserID:UserID,
+		UserID: UserID,
 	}
 	_, err := model.AccountsmemberOp.Insert(U.Accountsmember)
 	if err != nil {
@@ -228,8 +225,8 @@ func createUser(UserID int)  (*user.User, bool) {
 
 	now := time.Now()
 	U.Gamescorelocker = &model.Gamescorelocker{
-		UserID:UserID,
-		CollectDate : &now,
+		UserID:      UserID,
+		CollectDate: &now,
 	}
 	_, err = model.GamescorelockerOp.Insert(U.Gamescorelocker)
 	if err != nil {
@@ -238,7 +235,7 @@ func createUser(UserID int)  (*user.User, bool) {
 	}
 
 	U.Gamescoreinfo = &model.Gamescoreinfo{
-		UserID:UserID,
+		UserID:        UserID,
 		LastLogonDate: &now,
 	}
 	_, err = model.GamescoreinfoOp.Insert(U.Gamescoreinfo)
@@ -248,7 +245,7 @@ func createUser(UserID int)  (*user.User, bool) {
 	}
 
 	U.Userattr = &model.Userattr{
-		UserID:UserID,
+		UserID: UserID,
 	}
 	_, err = model.UserattrOp.Insert(U.Userattr)
 	if err != nil {
@@ -257,7 +254,7 @@ func createUser(UserID int)  (*user.User, bool) {
 	}
 
 	U.Userextrainfo = &model.Userextrainfo{
-		UserId:UserID,
+		UserId: UserID,
 	}
 	_, err = model.UserextrainfoOp.Insert(U.Userextrainfo)
 	if err != nil {
@@ -268,24 +265,24 @@ func createUser(UserID int)  (*user.User, bool) {
 	return U, true
 }
 
-func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User){
-	retMsg.FaceID = user.FaceID	//头像标识
-	retMsg.Gender  = user.Gender
-	retMsg.UserID  = user.Id
+func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User) {
+	retMsg.FaceID = user.FaceID //头像标识
+	retMsg.Gender = user.Gender
+	retMsg.UserID = user.Id
 	retMsg.Spreader = user.SpreaderID
-	retMsg.GameID  = user.GameID
-	retMsg.Experience  = user.Experience
-	retMsg.LoveLiness  = user.LoveLiness
-	retMsg.NickName  = user.NickName
+	retMsg.GameID = user.GameID
+	retMsg.Experience = user.Experience
+	retMsg.LoveLiness = user.LoveLiness
+	retMsg.NickName = user.NickName
 
 	//用户成绩
-	retMsg.UserScore  = user.Score
-	retMsg.UserInsure  = user.InsureScore
-	retMsg.Medal  = user.UserMedal
+	retMsg.UserScore = user.Score
+	retMsg.UserInsure = user.InsureScore
+	retMsg.Medal = user.UserMedal
 	retMsg.UnderWrite = user.UnderWrite
-	retMsg.WinCount   = user.WinCount
-	retMsg.LostCount  = user.LostCount
-	retMsg.DrawCount  = user.DrawCount
+	retMsg.WinCount = user.WinCount
+	retMsg.LostCount = user.LostCount
+	retMsg.DrawCount = user.DrawCount
 	retMsg.FleeCount = user.FleeCount
 	tm := &msg.DateTime{}
 	tm.Year = user.RegisterDate.Year()
@@ -294,62 +291,24 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User){
 	tm.Hour = user.RegisterDate.Hour()
 	tm.Second = user.RegisterDate.Second()
 	tm.Minute = user.RegisterDate.Minute()
-	retMsg.RegisterDate =tm
+	retMsg.RegisterDate = tm
 
 	//额外信息
-	retMsg.MbTicket  = user.MbTicket
+	retMsg.MbTicket = user.MbTicket
 	retMsg.MbPayTotal = user.MbPayTotal
-	retMsg.MbVipLevel  = user.MbVipLevel
+	retMsg.MbVipLevel = user.MbVipLevel
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard  = user.RoomCard
-	retMsg.LockServerID  = user.ServerID
-	retMsg.KindID  = user.KindID
+	retMsg.RoomCard = user.RoomCard
+	retMsg.LockServerID = user.ServerID
+	retMsg.KindID = user.KindID
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /////////////////////////////// help 函数
 
 /////主消息函数
-func (m *Module) handleMsgData(args []interface{}) (error) {
+func (m *Module) handleMsgData(args []interface{}) error {
 	if msg.Processor != nil {
 		str := args[0].([]byte)
 		data, err := msg.Processor.Unmarshal(str)
@@ -374,4 +333,3 @@ func (m *Module) handleMsgData(args []interface{}) (error) {
 	}
 	return nil
 }
-

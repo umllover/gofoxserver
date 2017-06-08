@@ -1,16 +1,17 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/module"
 	"mj/hallServer/base"
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/gate"
 	"sync"
+
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/module"
 )
 
 var (
-	Users = make(map[int]struct{}) //key is userId
+	Users     = make(map[int]struct{}) //key is userId
 	UsersLock sync.RWMutex
 )
 
@@ -26,15 +27,13 @@ func NewUserHandle(a gate.Agent) *module.Skeleton {
 	return m.Skeleton
 }
 
-
 type Module struct {
 	*module.Skeleton
 	ChanRPC *chanrpc.Server
-	a gate.Agent
+	a       gate.Agent
 }
 
 func (m *Module) OnInit() {
-
 
 }
 
@@ -42,30 +41,25 @@ func (m *Module) OnDestroy() {
 
 }
 
-func (m *Module)Close(){
+func (m *Module) Close() {
 	m.a.Close()
 }
 
-
-
-func HasUser(uid int) bool{
+func HasUser(uid int) bool {
 	UsersLock.RLock()
-	defer  UsersLock.RUnlock()
+	defer UsersLock.RUnlock()
 	_, ok := Users[uid]
 	return ok
 }
 
 func AddUser(uid int) {
 	UsersLock.Lock()
-	defer  UsersLock.Unlock()
-	Users[uid]= struct {}{}
+	defer UsersLock.Unlock()
+	Users[uid] = struct{}{}
 }
 
 func DelUser(uid int) {
 	UsersLock.Lock()
-	defer  UsersLock.Unlock()
+	defer UsersLock.Unlock()
 	delete(Users, uid)
 }
-
-
-
