@@ -143,7 +143,7 @@ func GetKindList(args []interface{}) (interface{}, error) {
 		for _, template := range templates {
 			svrInfo := &msg.TagGameServer{}
 			svrInfo.KindID = kind
-			svrInfo.NodeID = template.NodeID
+			svrInfo.NodeID = conf.Server.NodeId
 			svrInfo.SortID = template.SortID
 			svrInfo.ServerID = template.ServerID
 			svrInfo.ServerPort = port

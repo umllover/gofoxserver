@@ -25,5 +25,6 @@
 	"ListenAddr": "localhost:30001",
 	"PendingWriteNum": 100,
     "PrivatePort":7001,
+    "TestNode": true,
     "NodeId": 1
 }

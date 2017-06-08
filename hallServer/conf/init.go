@@ -2,10 +2,11 @@ package conf
 
 import (
 	"encoding/json"
-	"github.com/lovelly/leaf/log"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	. "mj/common/cost"
+
+	"github.com/lovelly/leaf/log"
 )
 
 var Server struct {
@@ -19,32 +20,33 @@ var Server struct {
 	ConsolePort int
 	ProfilePath string
 
-	BaseDbHost string
-	BaseDbPort int
-	BaseDbName string
-	BaseDbUsername string
-	BaseDbPassword string
-	UserDbHost string
-	UserDbPort int
-	UserDbName string
-	UserDbUsername string
-	UserDbPassword string
-	StatsDbHost string
-	StatsDbPort int
-	StatsDbName string
+	BaseDbHost      string
+	BaseDbPort      int
+	BaseDbName      string
+	BaseDbUsername  string
+	BaseDbPassword  string
+	UserDbHost      string
+	UserDbPort      int
+	UserDbName      string
+	UserDbUsername  string
+	UserDbPassword  string
+	StatsDbHost     string
+	StatsDbPort     int
+	StatsDbName     string
 	StatsDbUsername string
 	StatsDbPassword string
-	ConsulAddr string
+	ConsulAddr      string
 
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
-	PrivatePort int
-	NodeId 	int
+	PrivatePort     int
+	TestNode        bool
+	NodeId          int
 }
 
-func ServerName()string{
-	return fmt.Sprintf(HallPrefix + "_%d", Server.NodeId)
+func ServerName() string {
+	return fmt.Sprintf(HallPrefix+"_%d", Server.NodeId)
 }
 
 func init() {
@@ -64,10 +66,9 @@ const (
 	default_stat_log_workers = 64
 )
 
+type DBConfig struct{}
 
-type DBConfig struct {}
-
-func (c *DBConfig) GetBaseDSN()string {
+func (c *DBConfig) GetBaseDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
 		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&interpolateParams=true")
 	return s
@@ -81,7 +82,7 @@ func (c *DBConfig) GetUserDSN() string {
 
 func (c *DBConfig) GetStatsDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName,"parseTime=true&interpolateParams=true")
+		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName, "parseTime=true&interpolateParams=true")
 	return s
 }
 
@@ -114,38 +115,37 @@ func (c *DBConfig) GetStatsDBWorkers() int {
 }
 
 //consul config
-type  ConsulConfig struct {}
+type ConsulConfig struct{}
 
-
-func (c *ConsulConfig)GetConsulAddr() string{
+func (c *ConsulConfig) GetConsulAddr() string {
 	return Server.ConsulAddr
 }
-func (c *ConsulConfig)GetConsulToken() string{
+func (c *ConsulConfig) GetConsulToken() string {
 	return ""
 }
-func (c *ConsulConfig)GetConsulDc() string{
+func (c *ConsulConfig) GetConsulDc() string {
 	return "dc1"
 }
-func (c *ConsulConfig)GetAddress() string{
+func (c *ConsulConfig) GetAddress() string {
 	return Server.ListenAddr
 }
-func (c *ConsulConfig)GetNodeID() int{
+func (c *ConsulConfig) GetNodeID() int {
 	return Server.NodeId
 }
 
-func (c *ConsulConfig)GetSvrName() string{
+func (c *ConsulConfig) GetSvrName() string {
 	return HallPrefix
 }
-func (c *ConsulConfig)GetWatchSvrName() string{
+func (c *ConsulConfig) GetWatchSvrName() string {
 	return GamePrefix
 }
-func (c *ConsulConfig)GetWatchFaildSvrName() string{
+func (c *ConsulConfig) GetWatchFaildSvrName() string {
 	return GamePrefix
 }
-func (c *ConsulConfig)GetRegistSelf()bool{
+func (c *ConsulConfig) GetRegistSelf() bool {
 	return true
 }
 
-func (c *ConsulConfig) GetCheckAddress() string{
+func (c *ConsulConfig) GetCheckAddress() string {
 	return Server.WSAddr
 }

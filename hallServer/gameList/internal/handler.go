@@ -4,6 +4,8 @@ import (
 	"mj/common/msg"
 	"reflect"
 
+	"mj/hallServer/conf"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
@@ -105,6 +107,11 @@ func NewServerAgent(args []interface{}) {
 		ret := data.([]*msg.TagGameServer)
 
 		for _, v := range ret {
+			if conf.Server.TestNode {
+				if v.NodeID != conf.Server.NodeId {
+					continue
+				}
+			}
 			addGameList(v)
 			log.Debug("data %v", v)
 		}
