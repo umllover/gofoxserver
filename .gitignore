@@ -1,2 +1,6 @@
 /.idea
 /.svn
+/gameServer/gameApp/gameApp.exe
+/gameServer/gameApp/gameServer.json
+/hallServer/hallApp/hallApp.exe
+/hallServer/hallApp/hallServer.json
