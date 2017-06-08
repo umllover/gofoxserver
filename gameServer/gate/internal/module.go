@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/gate"
-	"mj/gameServer/conf"
 	"mj/common/msg"
+	"mj/gameServer/conf"
 	"mj/gameServer/userHandle"
+
+	"github.com/lovelly/leaf/gate"
 )
 
 type Module struct {
@@ -27,7 +28,7 @@ func (m *Module) OnInit() {
 		GoLen:              conf.AgentGoLen,
 		TimerDispatcherLen: conf.AgentTimerDispatcherLen,
 		AsynCallLen:        conf.AgentAsynCallLen,
-		NewChanRPCFunc:      userHandle.NewUserHandle,
+		NewChanRPCFunc:     userHandle.NewUserHandle,
 		OnAgentInit:        onAgentInit,
 		OnAgentDestroy:     onAgentDestroy,
 	}

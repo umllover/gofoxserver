@@ -3,16 +3,17 @@ package main
 import (
 	"mj/common"
 	"mj/common/consul"
+	. "mj/common/cost"
+	"mj/common/utils"
+	"mj/hallServer/center"
+	"mj/hallServer/conf"
+	"mj/hallServer/db"
+	"mj/hallServer/db/model/base"
+	"mj/hallServer/gameList"
+	"mj/hallServer/gate"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
-	"mj/hallServer/conf"
-	"mj/hallServer/gate"
-	"mj/hallServer/center"
-	"mj/hallServer/gameList"
-	. "mj/common/cost"
-	"mj/hallServer/db/model/base"
-	"mj/hallServer/db"
-	"mj/common/utils"
 )
 
 func main() {

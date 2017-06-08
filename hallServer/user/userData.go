@@ -17,5 +17,5 @@ type User struct {
 }
 
 func NewUser(UserId int) *User {
-	return &User{Id : UserId}
+	return &User{Id: UserId}
 }

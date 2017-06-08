@@ -3,16 +3,17 @@ package internal
 import (
 	"mj/common/msg"
 	"reflect"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
-	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/log"
 )
 
 var (
-	gameLists = make(map[int]map[int]*msg.TagGameServer) //k1 is kind k2 is server Id
-	SvrvetType = make(map[int]map[int]struct{}) //key sverId v KingId
-	roomList = make(map[int]*msg.RoomInfo)
+	gameLists  = make(map[int]map[int]*msg.TagGameServer) //k1 is kind k2 is server Id
+	SvrvetType = make(map[int]map[int]struct{})           //key sverId v KingId
+	roomList   = make(map[int]*msg.RoomInfo)
 )
 
 ////注册rpc 消息
@@ -30,7 +31,6 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 
-
 	handleRpc("sendGameList", sendGameList, chanrpc.FuncCommon)
 	handleRpc("updateGameInfo", updateGameInfo, chanrpc.FuncCommon)
 	handleRpc("delGameList", delGameList, chanrpc.FuncCommon)
@@ -45,7 +45,7 @@ func SrarchTable(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SearchServerTable)
 	retMsg := &msg.G2C_SearchResult{}
 	agent := args[1].(gate.Agent)
-	defer func(){
+	defer func() {
 		agent.WriteMsg(retMsg)
 	}()
 
@@ -59,16 +59,12 @@ func SrarchTable(args []interface{}) {
 	return
 }
 
-
-
-
-
 //////////////////// rpc
-func sendGameList(args []interface{}){
+func sendGameList(args []interface{}) {
 	agent := args[0].(gate.Agent)
 	list := make(msg.L2C_ServerList, 0)
-	for _, v := range  gameLists {
-		for _, v1 := range  v {
+	for _, v := range gameLists {
+		for _, v1 := range v {
 			list = append(list, v1)
 		}
 	}
@@ -77,32 +73,32 @@ func sendGameList(args []interface{}){
 	agent.WriteMsg(finish)
 }
 
-func updateGameInfo(args []interface{}){
+func updateGameInfo(args []interface{}) {
 
 }
 
-func AddRoom(args []interface{}){
+func AddRoom(args []interface{}) {
 	log.Debug("at AddRoom === %v", args)
 	recvMsg := args[0].(*msg.RoomInfo)
 	roomList[recvMsg.TableId] = recvMsg
 }
 
-func DelRoom(args []interface{}){
+func DelRoom(args []interface{}) {
 	log.Debug("at DelRoom === %v", args)
 	id := args[0].(int)
 	delete(roomList, id)
 }
 
-func getRoomInfo(tableId int)*msg.RoomInfo{
+func getRoomInfo(tableId int) *msg.RoomInfo {
 	return roomList[tableId]
 }
 
-func NewServerAgent(args []interface{}){
+func NewServerAgent(args []interface{}) {
 	serverName := args[0].(string)
- 	log.Debug("at NewServerAgent :%s", serverName)
-	cluster.AsynCall(serverName,skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
+	log.Debug("at NewServerAgent :%s", serverName)
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
 		if err != nil {
-			log.Debug("GetKindList error:%s",err.Error() )
+			log.Debug("GetKindList error:%s", err.Error())
 			return
 		}
 
@@ -112,16 +108,15 @@ func NewServerAgent(args []interface{}){
 			addGameList(v)
 			log.Debug("data %v", v)
 		}
-	} )
+	})
 }
 
 func CloseServerAgent(args []interface{}) {
 	log.Debug("at CloseServerAgent")
 }
 
-
 ///////////////// help
-func delGameList(args []interface{}){
+func delGameList(args []interface{}) {
 	svrId := args[0].(int)
 	typeInfo := SvrvetType[svrId]
 	for kind, _ := range typeInfo {
@@ -132,7 +127,7 @@ func delGameList(args []interface{}){
 	}
 }
 
-func addGameList(v *msg.TagGameServer){
+func addGameList(v *msg.TagGameServer) {
 	gminfo, ok := gameLists[v.KindID]
 	if !ok {
 		gminfo = make(map[int]*msg.TagGameServer)
@@ -146,7 +141,5 @@ func addGameList(v *msg.TagGameServer){
 		typeInfo = make(map[int]struct{})
 		SvrvetType[v.ServerID] = typeInfo
 	}
-	typeInfo[v.KindID] = struct {}{}
+	typeInfo[v.KindID] = struct{}{}
 }
-
-

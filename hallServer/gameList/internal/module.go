@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/module"
 	"mj/hallServer/base"
+
+	"github.com/lovelly/leaf/module"
 )
 
 var (
