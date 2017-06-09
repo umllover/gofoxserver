@@ -1,2 +1,6 @@
 /.idea
 /.svn
+/gameServer/mj_xs
+/webapp
+/gameServer/gameApp/gameApp.exe
+/hallServer/hallApp/hallApp.exe

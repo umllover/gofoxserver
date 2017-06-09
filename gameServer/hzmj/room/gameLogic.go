@@ -530,16 +530,16 @@ func (lg *GameLogic) GetCardValue(cbCardData int) int { return cbCardData & MASK
 
 //吃胡分析
 func (lg *GameLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int {
+
 	//变量定义
 	cbChiHuKind := int(WIK_NULL)
-	TagAnalyseItemArray := make([]*TagAnalyseItem, MAX_INDEX) //todo MAX_INDEX CTagAnalyseItemArray
+	TagAnalyseItemArray := make([]*TagAnalyseItem, 0) //
 
 	//构造扑克
 	cbCardIndexTemp := make([]int, MAX_INDEX)
 	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
 
 	//cbCurrentCard一定不为0			!!!!!!!!!
-	//ASSERT(cbCurrentCard != 0);
 	if cbCurrentCard == 0 {
 		return WIK_NULL
 	}
@@ -553,10 +553,11 @@ func (lg *GameLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 		return WIK_CHI_HU
 	}
 	//分析扑克
-	lg.AnalyseCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
+	_, TagAnalyseItemArray = lg.AnalyseCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
+		log.Debug("len(TagAnalyseItemArray) > 0 ")
 		//牌型分析
 		// 		for  i := 0; i< len(TagAnalyseItemArray); i++ {
 		// 			//变量定义
@@ -572,6 +573,7 @@ func (lg *GameLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	}
 
 	if ChiHuRight != 0 {
+		log.Debug("ChiHuRight != 0 ")
 		cbChiHuKind = WIK_CHI_HU
 	}
 
@@ -599,7 +601,6 @@ func (lg *GameLogic) AnalyseTingCard2(cbCardIndex []int, WeaveItem []*msg.WeaveI
 				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, cbCurrentCard, chr, false) {
 					return WIK_LISTEN
 				}
-
 			}
 
 			cbCardIndexTemp[i]++
@@ -868,7 +869,7 @@ func (lg *GameLogic) GetWeaveCard(cbWeaveKind, cbCenterCard int, cbCardBuffer []
 	return 0
 }
 
-func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindItem, cbKindItemCount int, bMagicThree bool) bool { // todo BYTE &cbKindItemCount, bool &bMagicThree
+func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindItem, cbKindItemCount *int, bMagicThree *bool) bool { // todo BYTE &cbKindItemCount, bool &bMagicThree
 	TempKindItem.MagicCount = 0
 	if lg.MagicIndex == TempKindItem.ValidIndex[0] {
 		TempKindItem.MagicCount++
@@ -881,8 +882,8 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 	}
 
 	if TempKindItem.MagicCount >= 3 {
-		if !bMagicThree {
-			bMagicThree = true
+		if !*bMagicThree {
+			*bMagicThree = true
 			//CopyMemory(&KindItem[cbKindItemCount++],&TempKindItem,sizeof(TempKindItem));
 			return true
 		}
@@ -897,7 +898,7 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 			}
 		}
 		bFind := false
-		for j := 0; j < cbKindItemCount; j++ {
+		for j := 0; j < *cbKindItemCount; j++ {
 			for i := 0; i < 3; i++ {
 				if KindItem[j].ValidIndex[i] != lg.MagicIndex {
 					cbNoMagicIndex = KindItem[j].ValidIndex[i]
@@ -910,8 +911,8 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 		}
 
 		if !bFind {
-			util.DeepCopy(&KindItem[cbKindItemCount], &TempKindItem)
-			cbKindItemCount++
+			util.DeepCopy(&KindItem[*cbKindItemCount], &TempKindItem)
+			*cbKindItemCount++
 			return true
 		}
 		return false
@@ -927,7 +928,7 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 		}
 		//ASSERT(cbCardCount == 2);
 
-		for j := 0; j < cbKindItemCount; j++ {
+		for j := 0; j < *cbKindItemCount; j++ {
 			if 1 == KindItem[j].MagicCount {
 				cbCardCount = 0
 				for i := 0; i < 3; i++ {
@@ -944,25 +945,26 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 			}
 		}
 
-		util.DeepCopy(&KindItem[cbKindItemCount], &TempKindItem)
-		cbKindItemCount++
+		util.DeepCopy(&KindItem[*cbKindItemCount], &TempKindItem)
+		*cbKindItemCount++
 		return true
 	} else {
-		util.DeepCopy(&KindItem[cbKindItemCount], &TempKindItem)
-		cbKindItemCount++
+		util.DeepCopy(&KindItem[*cbKindItemCount], &TempKindItem)
+		*cbKindItemCount++
 		return true
 	}
 }
 
 //分析扑克
-func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, TagAnalyseItemArray []*TagAnalyseItem) bool { //todo , CTagAnalyseItemArray & TagAnalyseItemArray
+func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) { //todo , CTagAnalyseItemArray & TagAnalyseItemArray
+	log.Debug("at AnalyseChiHuCard %v, %v , %v ,%v ", cbCardIndex, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
 	//效验数目
-	//ASSERT((cbCardCount>=2)&&(cbCardCount<=MAX_COUNT)&&((cbCardCount-2)%3==0));
 	if (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)%3 != 0) {
-		return false
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		return false, nil
 	}
 
 	//变量定义
@@ -974,25 +976,22 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 	//需求判断
 	cbLessKindItem := int((cbCardCount - 2) / 3)
-	//ASSERT((cbLessKindItem+cbWeaveCount)==MAX_WEAVE);
-
+	log.Debug("cbLessKindItem ======= %v, %v ", cbCardCount, cbLessKindItem)
 	//单吊判断
 	if cbLessKindItem == 0 {
 		//效验参数
-		//ASSERT((cbCardCount==2)&&(cbWeaveCount==MAX_WEAVE));
 
 		//牌眼判断
 		for i := 0; i < MAX_INDEX; i++ {
 			if cbCardIndex[i] == 2 || (lg.MagicIndex != MAX_INDEX && i != lg.MagicIndex && cbCardIndex[lg.MagicIndex]+cbCardIndex[i] == 2) {
 				//变量定义
 				analyseItem := &TagAnalyseItem{}
-				//ZeroMemory(&TagAnalyseItem,sizeof(TagAnalyseItem));
 
 				//设置结果
 				for j := 0; j < cbWeaveCount; j++ {
 					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
 					analyseItem.CenterCard[j] = WeaveItem[j].CenterCard
-					util.DeepCopy(analyseItem.CardData[j], WeaveItem[j].CardData)
+					util.DeepCopy(&(analyseItem.CardData[j]), &(WeaveItem[j].CardData))
 				}
 				if cbCardIndex[i] < 2 || i == lg.MagicIndex {
 					analyseItem.bMagicEye = true
@@ -1007,10 +1006,10 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 				//插入结果
 				TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
-				return true
+				return true, TagAnalyseItemArray
 			}
 		}
-		return false
+		return false, nil
 	}
 
 	//拆分分析
@@ -1031,15 +1030,15 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 	}
 
 	if cbCardCount >= 3 {
-		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ {
+		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ { //不计算花牌
 			//同牌判断
 			//如果是财神,并且财神数小于3,则不进行组合
 			if cbMagicCardIndex[i] >= 3 || (cbMagicCardIndex[i]+cbMagicCardCount >= 3 &&
 				((INDEX_REPLACE_CARD != MAX_INDEX && i != INDEX_REPLACE_CARD) || (INDEX_REPLACE_CARD == MAX_INDEX && i != lg.MagicIndex))) {
+				log.Debug("cbMagicCardIndex[i] >= 3 ")
 				nTempIndex := cbMagicCardIndex[i]
 				for {
-					//ASSERT(cbKindItemCount < len(KindItem));
-					cbIndex := int(i)
+					cbIndex := i
 					cbCenterCard := lg.SwitchToCardData(i)
 					//如果是财神且财神有代替牌,则换成代替牌
 					if i == lg.MagicIndex && INDEX_REPLACE_CARD != MAX_INDEX {
@@ -1064,7 +1063,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 						TempKindItem.ValidIndex[2] = lg.MagicIndex
 					}
 
-					lg.AddKindItem(TempKindItem, KindItem, cbKindItemCount, bMagicThree)
+					lg.AddKindItem(TempKindItem, KindItem, &cbKindItemCount, &bMagicThree)
 
 					//当前索引牌未与财神组合 且财神个数不为0
 					if nTempIndex >= 3 && cbMagicCardCount > 0 {
@@ -1087,7 +1086,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 						} else {
 							TempKindItem.ValidIndex[2] = lg.MagicIndex
 						}
-						lg.AddKindItem(TempKindItem, KindItem, cbKindItemCount, bMagicThree)
+						lg.AddKindItem(TempKindItem, KindItem, &cbKindItemCount, &bMagicThree)
 
 						//两个财神与之组合
 						if cbMagicCardCount > 1 {
@@ -1108,7 +1107,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 							} else {
 								TempKindItem.ValidIndex[2] = lg.MagicIndex
 							}
-							lg.AddKindItem(TempKindItem, KindItem, cbKindItemCount, bMagicThree)
+							lg.AddKindItem(TempKindItem, KindItem, &cbKindItemCount, &bMagicThree)
 						}
 
 						nTempIndex++
@@ -1167,7 +1166,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 							TempKindItem.WeaveKind = WIK_LEFT
 							TempKindItem.CenterCard = lg.SwitchToCardData(i)
 							util.DeepCopy(&TempKindItem.ValidIndex, &cbValidIndex)
-							lg.AddKindItem(TempKindItem, KindItem, cbKindItemCount, bMagicThree)
+							lg.AddKindItem(TempKindItem, KindItem, &cbKindItemCount, &bMagicThree)
 						} else {
 							break
 						}
@@ -1179,10 +1178,8 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 	//组合分析
 	if cbKindItemCount >= cbLessKindItem {
-		//ASSERT(27*2+28+16 >= cbKindItemCount);
 		//变量定义
 		cbCardIndexTemp := make([]int, MAX_INDEX)
-		//ZeroMemory(cbCardIndexTemp,sizeof(cbCardIndexTemp));
 
 		//变量定义
 		cbIndex := make([]int, MAX_WEAVE)
@@ -1191,7 +1188,6 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 		}
 
 		pKindItem := make([]*TagKindItem, MAX_WEAVE)
-		//ZeroMemory(&pKindItem,sizeof(pKindItem));
 
 		KindItemTemp := make([]*TagKindItem, len(KindItem))
 
@@ -1260,9 +1256,10 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 					//组合类型
 					if cbCardEye != 0 {
 						//变量定义
-						analyseItem := &TagAnalyseItem{}
-						//ZeroMemory(&TagAnalyseItem,sizeof(TagAnalyseItem));
-
+						analyseItem := &TagAnalyseItem{WeaveKind: make([]int, MAX_WEAVE), CenterCard: make([]int, MAX_WEAVE), CardData: make([][]int, MAX_WEAVE)}
+						for i := 0; i < MAX_WEAVE; i++ {
+							analyseItem.CardData[i] = make([]int, MAX_WEAVE)
+						}
 						//设置组合
 						for i := 0; i < cbWeaveCount; i++ {
 							analyseItem.WeaveKind[i] = WeaveItem[i].WeaveKind
@@ -1311,7 +1308,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 		}
 	}
 
-	return (len(TagAnalyseItemArray) > 0)
+	return true, TagAnalyseItemArray
 }
 
 /*
@@ -1463,12 +1460,10 @@ func (lg *GameLogic) IsHunYiSe(pTagAnalyseItem *TagAnalyseItem) bool {
 
 	//变量定义
 	cbCardColor := (pTagAnalyseItem.CardEye & MASK_COLOR) >> 4
-	//ASSERT(cbCardColor >= 0 && cbCardColor <= 3);
 	cbColorCount := make([]int, 4)
 	cbColorCount[cbCardColor] = 1
 	for i := 0; i < MAX_WEAVE; i++ {
 		cbCardColor = ((pTagAnalyseItem.CenterCard[i]) & MASK_COLOR) >> 4
-		//ASSERT(cbCardColor >= 0 && cbCardColor <= 3);
 		if 0 == cbColorCount[cbCardColor] {
 			cbColorCount[cbCardColor] = 1
 		}

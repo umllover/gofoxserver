@@ -358,7 +358,11 @@ func (room *Room) StartGame() {
 	room.PerformAction = make([]int, room.UserCnt)
 	room.DiscardCard = make([][]int, room.UserCnt)
 	room.DiscardCount = make([]int, room.UserCnt)
+	room.UserGangScore = make([]int, room.UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, room.UserCnt)
+	for i, _ := range room.WeaveItemArray {
+		room.WeaveItemArray[i] = make([]*msg.WeaveItem, MAX_WEAVE)
+	}
 	room.WeaveItemCount = make([]int, room.UserCnt)
 	room.ChiHuRight = make([]int, room.UserCnt)
 
@@ -538,6 +542,14 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 	case GER_NORMAL: //常规结束
 		//变量定义
 		GameConclude := &msg.G2C_HZMJ_GameConclude{}
+		GameConclude.ChiHuKind = make([]int, room.UserCnt)
+		GameConclude.CardCount = make([]int, room.UserCnt)
+		GameConclude.HandCardData = make([][]int, room.UserCnt)
+		GameConclude.GameScore = make([]int, room.UserCnt)
+		for i, _ := range GameConclude.HandCardData {
+			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
+		}
+
 		GameConclude.SendCardData = room.SendCardData
 		GameConclude.LeftUser = INVALID_CHAIR
 		room.ChiHuKind = make([]int, room.UserCnt)
@@ -956,7 +968,6 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 
 	user := room.GetUserByChairId(wCurrentUser)
 	if user == nil {
-		panic("11111111111")
 		log.Error("at DispatchCardData not foud user ")
 	}
 
@@ -984,8 +995,10 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 		//胡牌判断
 		chr := 0
 		room.CardIndex[wCurrentUser][room.gameLogic.SwitchToCardIndex(room.SendCardData)]--
+		log.Debug("befer %v ", room.UserAction[wCurrentUser])
 		room.UserAction[wCurrentUser] |= room.gameLogic.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
 			room.WeaveItemCount[wCurrentUser], room.SendCardData, chr, false)
+		log.Debug("afert %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
@@ -996,6 +1009,7 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 		}
 	}
 
+	log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
 	//听牌判断
 	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, MAX_COUNT), HuCardCount: make([]int, MAX_COUNT), HuCardData: make([][]int, MAX_COUNT), HuCardRemainingCount: make([][]int, MAX_COUNT)}
 	if room.Ting[wCurrentUser] == false {
@@ -1018,6 +1032,7 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 		}
 	}
 
+	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 	//构造数据
 	SendCard := &msg.G2C_HZMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser

@@ -3,6 +3,7 @@ package chanrpc
 import (
 	"errors"
 	"fmt"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -29,7 +30,7 @@ type FuncInfo struct {
 	id    interface{}
 	f     interface{}
 	fType int
-	this interface{}
+	this  interface{}
 }
 
 type CallInfo struct {
@@ -76,7 +77,7 @@ func Assert(i interface{}) []interface{} {
 	}
 }
 
-func  (s *Server) HasFunc(id interface{}) bool {
+func (s *Server) HasFunc(id interface{}) bool {
 	_, ok := s.functions[id]
 	return ok
 }
@@ -97,15 +98,14 @@ func (s *Server) RegisterFromType(id interface{}, f interface{}, fType int, this
 	}
 
 	if len(this_param) > 0 {
-		if fType !=FuncThis {
+		if fType != FuncThis {
 			panic(fmt.Sprintf("function type not FuncThis, type:%v", fType))
 		}
-		s.functions[id] = &FuncInfo{id: id, f: f, fType: fType, this:this_param[0]}
-	}else {
+		s.functions[id] = &FuncInfo{id: id, f: f, fType: fType, this: this_param[0]}
+	} else {
 		s.functions[id] = &FuncInfo{id: id, f: f, fType: fType}
 	}
 }
-
 
 func (s *Server) Register(id interface{}, f interface{}) {
 	s.RegisterFromType(id, f, FuncCommon)
@@ -137,7 +137,6 @@ func (s *Server) exec(ci *CallInfo) (err error) {
 			s.ret(ci, &RetInfo{Err: fmt.Errorf("%v", r)})
 		}
 	}()
-
 
 	if ci.fInfo.fType == FuncRoute {
 		ci.args = append(ci.args, ci.fInfo.id)
@@ -185,7 +184,6 @@ func (s *Server) Go(id interface{}, args ...interface{}) {
 			log.Recover(r)
 		}
 	}()
-
 
 	s.ChanCall <- &CallInfo{
 		fInfo: f,

@@ -17,6 +17,7 @@ import (
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -26,47 +27,67 @@ func TestGameStart_1(t *testing.T) {
 	room.StartGame()
 }
 
-func TestGameLogic_OutCard(t *testing.T) {
-	user := room.GetUserByChairId(0)
-	if user == nil {
-		t.Error("not foud t")
-	}
+//func TestGameLogic_OutCard(t *testing.T) {
+//	user := room.GetUserByChairId(0)
+//	if user == nil {
+//		t.Error("not foud t")
+//	}
+//
+//	var cardidx int
+//	var cnt int
+//	for cardidx, cnt = range room.CardIndex[0] {
+//		if cnt > 0 {
+//			break
+//		}
+//	}
+//
+//	card := room.gameLogic.SwitchToCardData(int(cardidx))
+//	dt := &msg.C2G_HZMJ_HZOutCard{CardData: card}
+//	room.OutCard([]interface{}{dt, user})
+//}
+//
+//func TestRoomUserOperateCard(t *testing.T) {
+//	user := room.GetUserByChairId(0)
+//	if user == nil {
+//		t.Error("not foud t")
+//	}
+//
+//	var cardidx int
+//	var cnt int
+//	for cardidx, cnt = range room.CardIndex[0] {
+//		if cnt > 0 {
+//			break
+//		}
+//	}
+//
+//	card := room.gameLogic.SwitchToCardData(int(cardidx))
+//	dt := &msg.C2G_HZMJ_OperateCard{OperateCard: []int{card, card, card}, OperateCode: WIK_PENG}
+//	room.UserOperateCard([]interface{}{dt, user})
+//}
 
-	var cardidx int
-	var cnt int
-	for cardidx, cnt = range room.CardIndex[0] {
-		if cnt > 0 {
-			break
-		}
-	}
-
-	card := room.gameLogic.SwitchToCardData(int(cardidx))
-	dt := &msg.C2G_HZMJ_HZOutCard{CardData: card}
-	room.OutCard([]interface{}{dt, user})
-}
-
-func TestRoomUserOperateCard(t *testing.T) {
-	user := room.GetUserByChairId(0)
-	if user == nil {
-		t.Error("not foud t")
-	}
-
-	var cardidx int
-	var cnt int
-	for cardidx, cnt = range room.CardIndex[0] {
-		if cnt > 0 {
-			break
-		}
-	}
-
-	card := room.gameLogic.SwitchToCardData(int(cardidx))
-	dt := &msg.C2G_HZMJ_OperateCard{OperateCard: []int{card, card, card}, OperateCode: WIK_PENG}
-	room.UserOperateCard([]interface{}{dt, user})
+func TestGameConclude(t *testing.T) {
+	room.OnEventGameConclude(room.ProvideUser, nil, GER_NORMAL)
 }
 
 func TestDispatchCardData(t *testing.T) {
 	room.SendStatus = OutCard_Send
 	room.DispatchCardData(0, false)
+}
+
+func TestAnalyseCard(t *testing.T) {
+	CardInx := make([]int, MAX_INDEX)
+	CardInx[room.gameLogic.SwitchToCardData(0x01)] = 3
+	CardInx[room.gameLogic.SwitchToCardData(0x02)] = 3
+	CardInx[room.gameLogic.SwitchToCardData(0x03)] = 3
+	CardInx[room.gameLogic.SwitchToCardData(0x04)] = 3
+	CardInx[room.gameLogic.SwitchToCardData(0x05)] = 2
+	WeaveItem := make([]*msg.WeaveItem, 0)
+	tg := make([]*TagAnalyseItem, 0)
+	bret, arr := room.gameLogic.AnalyseCard(CardInx, WeaveItem, 0, tg)
+	log.Debug("TestAnalyseCard ret == %v ", bret)
+	for _, v := range arr {
+		log.Debug("aaa %v", v)
+	}
 }
 
 func init() {
