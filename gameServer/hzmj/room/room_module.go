@@ -45,7 +45,7 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 
 	room.Owner = uid
 	room.BankerUser = INVALID_CHAIR
-	room.Record = &msg.G2C_Record{}
+	room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}
 	now := time.Now().Unix()
 	room.TimeStartGame = now
 	room.EendTime = now + 900

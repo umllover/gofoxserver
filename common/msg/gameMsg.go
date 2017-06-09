@@ -196,10 +196,10 @@ type G2C_StatusPlay struct {
 //约战类型特殊属性
 type G2C_Record struct {
 	Count       int
-	HuCount     []int8  //胡牌次数
-	MaCount     []int8  //中码个数
-	AnGang      []int8  //暗杠次数
-	MingGang    []int8  //明杠次数
+	HuCount     []int   //胡牌次数
+	MaCount     []int   //中码个数
+	AnGang      []int   //暗杠次数
+	MingGang    []int   //明杠次数
 	AllScore    []int   //总结算分
 	DetailScore [][]int //单局结算分
 }
@@ -365,20 +365,19 @@ type G2C_HZMJ_Trustee struct { //用户托管
 
 ///////////////////////// game chart begin ///////////////////////////////
 type C2G_GameChart_ToAll struct {
-	ChatColor	int	//字体颜色
-	SendUserID	int	//发送者id
-	ChatString	string	//消息内容
-	ChatIndex	int	//第几条消息
+	ChatColor  int    //字体颜色
+	SendUserID int    //发送者id
+	ChatString string //消息内容
+	ChatIndex  int    //第几条消息
 }
 
 type G2C_GameChart_ToAll struct {
-	ChatColor	int
-	SendUserID	int
-	TargetUserID	int
-	ClientID	int
-	ChatIndex	int
-	ChatString	string
+	ChatColor    int
+	SendUserID   int
+	TargetUserID int
+	ClientID     int
+	ChatIndex    int
+	ChatString   string
 }
-
 
 ///////////////////////// game chart end ///////////////////////////////

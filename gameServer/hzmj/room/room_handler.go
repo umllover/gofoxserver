@@ -559,6 +559,12 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		GameConclude.CardCount = make([]int, room.UserCnt)
 		GameConclude.HandCardData = make([][]int, room.UserCnt)
 		GameConclude.GameScore = make([]int, room.UserCnt)
+		GameConclude.GangScore = make([]int, room.UserCnt)
+		GameConclude.Revenue = make([]int, room.UserCnt)
+		GameConclude.ChiHuRight = make([]int, room.UserCnt)
+		GameConclude.MaCount = make([]int, room.UserCnt)
+		GameConclude.MaData = make([]int, room.UserCnt)
+
 		for i, _ := range GameConclude.HandCardData {
 			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
 		}
@@ -614,6 +620,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 				GameConclude.GameScore[i] -= GameConclude.Revenue[i]
 			}
 
+			ScoreInfoArray[i] = &msg.TagScoreInfo{}
 			ScoreInfoArray[i].Revenue = GameConclude.Revenue[i]
 			ScoreInfoArray[i].Score = GameConclude.GameScore[i]
 			if ScoreInfoArray[i].Score > 0 {
@@ -623,10 +630,16 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 			}
 
 			//历史积分
+			if room.HistoryScores[i] == nil {
+				room.HistoryScores[i] = &HistoryScore{}
+			}
 			room.HistoryScores[i].TurnScore = GameConclude.GameScore[i]
 			room.HistoryScores[i].CollectScore += GameConclude.GameScore[i]
 
 			if room.Record.Count < 32 {
+				if len(room.Record.DetailScore[i]) < 1 {
+					room.Record.DetailScore[i] = make([]int, 32)
+				}
 				room.Record.DetailScore[i][room.Record.Count] = GameConclude.GameScore[i]
 				room.Record.AllScore[i] += GameConclude.GameScore[i]
 			}
@@ -649,8 +662,9 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 
 		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
 			if room.IsDissumGame { //当前朋友局解散清理记录
-				room.Record = &msg.G2C_Record{}
+				room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}
 			}
+
 		}
 		return true
 	case GER_NETWORK_ERROR: //网络中断
@@ -665,6 +679,18 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 	case GER_DISMISS: //游戏解散
 		//变量定义
 		GameConclude := &msg.G2C_HZMJ_GameConclude{}
+		GameConclude.ChiHuKind = make([]int, room.UserCnt)
+		GameConclude.CardCount = make([]int, room.UserCnt)
+		GameConclude.HandCardData = make([][]int, room.UserCnt)
+		GameConclude.GameScore = make([]int, room.UserCnt)
+		GameConclude.GangScore = make([]int, room.UserCnt)
+		GameConclude.Revenue = make([]int, room.UserCnt)
+		GameConclude.ChiHuRight = make([]int, room.UserCnt)
+		GameConclude.MaCount = make([]int, room.UserCnt)
+		GameConclude.MaData = make([]int, room.UserCnt)
+		for i, _ := range GameConclude.HandCardData {
+			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
+		}
 
 		room.BankerUser = INVALID_CHAIR
 
@@ -685,7 +711,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 
 		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
 			if room.IsDissumGame { //当前朋友局解散清理记录
-				room.Record = &msg.G2C_Record{}
+				room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}
 			}
 		}
 

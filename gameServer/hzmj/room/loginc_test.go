@@ -66,7 +66,8 @@ func TestGameStart_1(t *testing.T) {
 //}
 
 func TestGameConclude(t *testing.T) {
-	room.OnEventGameConclude(room.ProvideUser, nil, GER_NORMAL)
+	user := room.GetUserByChairId(0)
+	room.OnEventGameConclude(room.ProvideUser, user, GER_USER_LEAVE)
 }
 
 func TestDispatchCardData(t *testing.T) {
@@ -123,7 +124,7 @@ func init() {
 	room.EendTime = time.Now().Unix() + 900
 	room.Owner = 3
 	room.BankerUser = INVALID_CHAIR
-	room.Record = &msg.G2C_Record{}
+	room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}
 	room.CardIndex = make([][]int, room.UserCnt)
 	room.HeapCardInfo = make([][]int, room.UserCnt) //堆牌信息
 	room.HistoryScores = make([]*HistoryScore, room.UserCnt)
