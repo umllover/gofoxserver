@@ -362,3 +362,23 @@ type G2C_HZMJ_Trustee struct { //用户托管
 }
 
 ///////////////////////// hzmj proto end ///////////////////////////////
+
+///////////////////////// game chart begin ///////////////////////////////
+type C2G_GameChart_ToAll struct {
+	ChatColor	int	//字体颜色
+	SendUserID	int	//发送者id
+	ChatString	string	//消息内容
+	ChatIndex	int	//第几条消息
+}
+
+type G2C_GameChart_ToAll struct {
+	ChatColor	int
+	SendUserID	int
+	TargetUserID	int
+	ClientID	int
+	ChatIndex	int
+	ChatString	string
+}
+
+
+///////////////////////// game chart end ///////////////////////////////
