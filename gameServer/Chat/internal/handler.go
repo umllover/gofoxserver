@@ -35,7 +35,7 @@ func SendChatMsgToAll(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
-	var sendData msg.G2C_GameChart_ToAll
+	sendData := &msg.G2C_GameChart_ToAll{}
 	sendData.ChatColor = getData.ChatColor
 	sendData.SendUserID = user.Id
 	sendData.TargetUserID = getData.SendUserID

@@ -62,7 +62,7 @@ func init() {
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
-
+	Processor.Register(&G2C_GameChart_ToAll{})
 }
 
 type ShowErrCode struct {
