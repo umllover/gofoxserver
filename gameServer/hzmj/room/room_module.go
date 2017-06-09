@@ -70,6 +70,7 @@ type Room struct {
 
 	// 游戏字段
 	*common.RoomInfo
+	ChatRoomId          int                //聊天房间id
 	Name                string             //房间名字
 	Kind                int                //第一类型
 	ServerId            int                //第二类型 注意 非房间id

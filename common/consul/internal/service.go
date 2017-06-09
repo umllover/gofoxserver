@@ -1,11 +1,12 @@
 package internal
 
 import (
+	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/hashicorp/consul/api"
 	"github.com/lovelly/leaf/log"
-	"time"
-	"strconv"
-	"fmt"
 )
 
 //定时获取consul上所有检点的健康信息
@@ -20,12 +21,12 @@ func watchServices(client *api.Client, serverName string, status []string) {
 			continue
 		}
 
-		if meta.LastIndex != lastIndex && len(checks) > 0{
+		if meta.LastIndex != lastIndex && len(checks) > 0 {
 			//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v",lastIndex,  meta.LastIndex,  serverName, checks)
 
 			newSvrs := servicesConfig(client, passingServices(checks, status))
 			if len(newSvrs) > 0 {
-				ChanRPC.Go("AddServerInfo",  newSvrs)
+				ChanRPC.Go("AddServerInfo", newSvrs)
 			}
 			lastIndex = meta.LastIndex
 		}
@@ -54,7 +55,7 @@ func servicesConfig(client *api.Client, checks []*api.HealthCheck) map[string]*C
 		q := &api.QueryOptions{RequireConsistent: true}
 		svcs, _, err := client.Catalog().Service(name, "", q)
 		if err != nil {
-			log.Error("[WARN] consul: Error getting catalog service %s name = %s  error = %s", name,  err.Error())
+			log.Error("[WARN] consul: Error getting catalog service %s name = %s  error = %s", name, err.Error())
 			continue
 		}
 
@@ -99,17 +100,17 @@ func servicesConfig(client *api.Client, checks []*api.HealthCheck) map[string]*C
 }
 
 //监控不健康的服务
-func WatchAllFaildServices(client *api.Client,ServiceName string ) {
+func WatchAllFaildServices(client *api.Client, ServiceName string) {
 	var lastIndex uint64
 	for {
 		q := &api.QueryOptions{RequireConsistent: true, WaitIndex: lastIndex}
 		checks, meta, err := client.Health().State("critical", q)
 		if err != nil {
-			log.Error("[WARN] consul: Error WatchFaildSvices health state.  error =%s",  err.Error())
+			log.Error("[WARN] consul: Error WatchFaildSvices health state.  error =%s", err.Error())
 			time.Sleep(time.Second * UpdateConfigTicke)
 			continue
 		}
-		if lastIndex == meta.LastIndex ||  len(checks) < 1{
+		if lastIndex == meta.LastIndex || len(checks) < 1 {
 			continue
 		}
 		log.Debug(" at WatchAllFaildServices .... lastIndex :%d, new indx:%d, serverName:%s data:%v", lastIndex, meta.LastIndex, ServiceName, checks)
@@ -125,7 +126,7 @@ func WatchAllFaildServices(client *api.Client,ServiceName string ) {
 		}
 
 		if len(newFaildSvr) > 0 {
-			ChanRPC.Go("SvrFaild",  newFaildSvr)
+			ChanRPC.Go("SvrFaild", newFaildSvr)
 		}
 	}
 }

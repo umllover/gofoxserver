@@ -1,17 +1,12 @@
 package internal
 
 import (
-	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/conf"
-	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"reflect"
 
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
-	"github.com/lovelly/leaf/log"
 )
 
 ////注册rpc 消息
@@ -31,25 +26,25 @@ func init() {
 	handleRpc("addRoomMember", addRoomMember)
 	handleRpc("delRoomMember", delRoomMember)
 
-	handlerC2S(&msg.C2G_GameChart_ToAll{},SendChatMsgToAll)
+	handlerC2S(&msg.C2G_GameChart_ToAll{}, SendChatMsgToAll)
 }
 
 //发送给房间所有人
-func SendChatMsgToAll(args []interface{})  {
+func SendChatMsgToAll(args []interface{}) {
+	getData := args[0].(*msg.C2G_GameChart_ToAll)
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
-	getData:=args[0].(*msg.C2G_GameChart_ToAll)
 
 	var sendData msg.G2C_GameChart_ToAll
 	sendData.ChatColor = getData.ChatColor
-	sendData.SendUserID=user.Id
-	sendData.TargetUserID=getData.SendUserID
-	sendData.ChatString=getData.ChatString
+	sendData.SendUserID = user.Id
+	sendData.TargetUserID = getData.SendUserID
+	sendData.ChatString = getData.ChatString
 
 	SendMsgToAll(user.ChatRoomId, sendData)
 }
 
 //发送给房间某人
-func sendCharMsgToUser(args []interface{}){
+func sendCharMsgToUser(args []interface{}) {
 
 }

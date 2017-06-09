@@ -11,6 +11,8 @@ import (
 	"mj/gameServer/gate"
 	"mj/gameServer/kindList"
 
+	"mj/gameServer/Chat"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
@@ -40,6 +42,7 @@ func main() {
 	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
 	modules = append(modules, consul.Module)
+	modules = append(modules, Chat.Module)
 	modules = append(modules, kindList.GetModules()...)
 	utils.CreatePrivateServer(conf.Server.PrivatePort)
 	leaf.Run(modules...)

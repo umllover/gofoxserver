@@ -1,19 +1,10 @@
 package Chat
 
 import (
-	"mj/gameServer/kindList/internal"
-
-	"github.com/lovelly/leaf/module"
+	"mj/gameServer/Chat/internal"
 )
 
 var (
 	ChanRPC = internal.ChanRPC
+	Module  = new(internal.Module)
 )
-
-func GetModules() []module.Module {
-	return internal.GetModules()
-}
-
-func Init() {
-	internal.LoadAllModule()
-}

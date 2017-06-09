@@ -16,12 +16,12 @@ type User struct {
 	*model.Gamescoreinfo
 	*model.Userextrainfo
 	*model.Userattr
-	Id        int
-	RoomId    int   // roomId 就是tableid
-	Status    int   //当前游戏状态
-	ChairId   int   //当前椅子
-	UserLimit int64 //限制行为
-	ChatRoomId int	//聊天房间ID
+	Id         int
+	RoomId     int   // roomId 就是tableid
+	Status     int   //当前游戏状态
+	ChairId    int   //当前椅子
+	UserLimit  int64 //限制行为
+	ChatRoomId int   //聊天房间ID
 	sync.RWMutex
 }
 

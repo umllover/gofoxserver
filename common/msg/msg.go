@@ -60,6 +60,9 @@ func init() {
 	Processor.Register(&G2C_HZMJ_OperateResult{})
 	Processor.Register(&G2C_HZMJ_Trustee{})
 
+	//chat
+	Processor.Register(&C2G_GameChart_ToAll{})
+
 }
 
 type ShowErrCode struct {

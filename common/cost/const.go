@@ -19,19 +19,20 @@ const (
 
 //房间错误码 100 ~ 200
 const (
-	RoomFull         = 101 //房间满了，不能再创建
-	NotFoudGameType  = 102 //玩家不存在
-	CreateParamError = 103 //参数错误
-	NoFoudTemplate   = 104 //配置没找到
-	ConfigError      = 105 //配置错误
-	NotEnoughFee     = 106 //代币不足
-	RandRoomIdError  = 107 //生成房间id失败
-	MaxSoucrce       = 108 // 低分太高
-	ChairHasUser     = 109 //位置有玩家， 不能坐下
-	GameIsStart      = 110 //游戏已经开始， 不能加入
-	ErrNotOwner      = 111 // 不是房主 没权限操作
-	ErrNoSitdowm     = 112 //请先坐下在操作
-	ErrGameIsStart   = 113 //游戏已开始，不能离开房间
+	RoomFull           = 101 //房间满了，不能再创建
+	NotFoudGameType    = 102 //玩家不存在
+	CreateParamError   = 103 //参数错误
+	NoFoudTemplate     = 104 //配置没找到
+	ConfigError        = 105 //配置错误
+	NotEnoughFee       = 106 //代币不足
+	RandRoomIdError    = 107 //生成房间id失败
+	MaxSoucrce         = 108 // 低分太高
+	ChairHasUser       = 109 //位置有玩家， 不能坐下
+	GameIsStart        = 110 //游戏已经开始， 不能加入
+	ErrNotOwner        = 111 // 不是房主 没权限操作
+	ErrNoSitdowm       = 112 //请先坐下在操作
+	ErrGameIsStart     = 113 //游戏已开始，不能离开房间
+	ErrCreateRoomFaild = 114 //创建聊天室失败
 )
 
 //红中麻将错误码

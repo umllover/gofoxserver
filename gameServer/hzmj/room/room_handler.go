@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"time"
 
+	"mj/gameServer/Chat"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -243,6 +245,16 @@ func (room *Room) Sitdown(args []interface{}) {
 		return
 	}
 
+	if room.ChatRoomId == 0 {
+		id, err := Chat.ChanRPC.Call1("createRoom", user.Agent)
+		if err != nil {
+			log.Error("create Chat Room faild")
+			retcode = ErrCreateRoomFaild
+		}
+
+		room.ChatRoomId = id.(int)
+	}
+
 	fmt.Println(user.Id)
 	fmt.Println(room.RoomInfo)
 	_, chairId := room.GetUserByUid(user.Id)
@@ -298,6 +310,7 @@ func (room *Room) Sitdown(args []interface{}) {
 		})
 	})
 
+	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, user.Agent)
 	room.setUsetStatus(user, US_SIT)
 }
 
