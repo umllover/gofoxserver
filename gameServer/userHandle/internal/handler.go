@@ -1,18 +1,18 @@
 package internal
 
 import (
-	"mj/common/msg"
-	"reflect"
-	"github.com/lovelly/leaf/log"
 	"errors"
+	"fmt"
 	. "mj/common/cost"
+	"mj/common/msg"
+	"mj/gameServer/center"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"fmt"
-	"mj/gameServer/center"
-)
+	"reflect"
 
+	"github.com/lovelly/leaf/log"
+)
 
 //注册 客户端消息调用
 func handlerC2S(m *Module, msg interface{}, h interface{}) {
@@ -32,15 +32,15 @@ func RegisterHandler(m *Module) {
 }
 
 //连接进来的通知
-func  (m *Module)NewAgent(args []interface{}) error {
+func (m *Module) NewAgent(args []interface{}) error {
 	log.Debug("at game NewAgent")
 	return nil
 }
 
 //连接关闭的通知
-func  (m *Module)CloseAgent (args []interface{}) error {
+func (m *Module) CloseAgent(args []interface{}) error {
 	log.Debug("at game CloseAgent")
-	agent :=  m.a
+	agent := m.a
 	user, ok := agent.UserData().(*user.User)
 	if !ok {
 		return nil
@@ -51,20 +51,18 @@ func  (m *Module)CloseAgent (args []interface{}) error {
 	return nil
 }
 
-
 func (m *Module) GetUserInfo(args []interface{}) {
 	log.Debug("at GetUserInfo ................ ")
 }
 
-
-func(m *Module) handleMBLogin(args []interface{}) {
+func (m *Module) handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_GR_LogonMobile)
 	retMsg := &msg.G2C_LogonFinish{}
 	agent := m.a
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			str := fmt.Sprintf("登录失败, 错误码: %d",retcode)
+			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.G2C_LogonFailur{ResultCode: retcode, DescribeString: str})
 		} else {
 
@@ -82,7 +80,7 @@ func(m *Module) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	if HasUser(accountData.UserID){
+	if HasUser(accountData.UserID) {
 		retcode = ErrUserReLogin
 		return
 	}
@@ -129,52 +127,62 @@ func(m *Module) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
-		GameID : user.GameID,						//游戏 I D
-		UserID : user.Id,							//用户 I D
-		FaceID : user.FaceID,							//头像索引
-		CustomID :user.CustomID,						//自定标识
-		Gender :user.Gender,							//用户性别
-		MemberOrder :user.Accountsinfo.MemberOrder,					//会员等级
-		TableID : user.RoomId,							//桌子索引
-		ChairID : user.ChairId,							//椅子索引
-		UserStatus :user.Status,						//用户状态
-		Score :user.Score,								//用户分数
-		WinCount : user.WinCount,							//胜利盘数
-		LostCount : user.LostCount,						//失败盘数
-		DrawCount : user.DrawCount,						//和局盘数
-		FleeCount : user.FleeCount,						//逃跑盘数
-		Experience : user.Experience,						//用户经验
-		NickName: user.NickName,				//昵称
-		HeaderUrl :user.HeadImgUrl, 				//头像
+		GameID:      user.GameID,                   //游戏 I D
+		UserID:      user.Id,                       //用户 I D
+		FaceID:      user.FaceID,                   //头像索引
+		CustomID:    user.CustomID,                 //自定标识
+		Gender:      user.Gender,                   //用户性别
+		MemberOrder: user.Accountsinfo.MemberOrder, //会员等级
+		TableID:     user.RoomId,                   //桌子索引
+		ChairID:     user.ChairId,                  //椅子索引
+		UserStatus:  user.Status,                   //用户状态
+		Score:       user.Score,                    //用户分数
+		WinCount:    user.WinCount,                 //胜利盘数
+		LostCount:   user.LostCount,                //失败盘数
+		DrawCount:   user.DrawCount,                //和局盘数
+		FleeCount:   user.FleeCount,                //逃跑盘数
+		Experience:  user.Experience,               //用户经验
+		NickName:    user.NickName,                 //昵称
+		HeaderUrl:   user.HeadImgUrl,               //头像
 	})
 }
 
-func (m *Module)WriteUserScore(args []interface{}){
+func (m *Module) WriteUserScore(args []interface{}) {
 	log.Debug("at WriteUserScore === %v", args)
+	info := args[0].(*msg.TagScoreInfo)
+	Type := args[0].(int)
+	user := m.a.UserData().(*user.User)
+	user.Score += int64(info.Score)
+	user.Revenue += int64(info.Revenue)
+	user.InsureScore += 0 //todo
+	if info.IsWin == 1 {  //1 胜利 2失败 3逃跑
+		user.WinCount += 1
+	} else if info.IsWin == 2 {
+		user.LostCount += 1
+	} else if info.IsWin == 3 {
+		user.FleeCount += 1
+	} else {
+		user.DrawCount += 1
+	}
+
+	model.GamescoreinfoOp.UpdateWithMap(user.Id, map[string]interface{}{
+		"Score":       user.Score,
+		"Revenue":     user.Revenue,
+		"InsureScore": user.InsureScore,
+		"WinCount":    user.WinCount,
+		"LostCount":   user.LostCount,
+		"FleeCount":   user.FleeCount,
+		"DrawCount":   user.DrawCount,
+	})
+
+	//todo log
+	_ = Type
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /////////////////////////////// help 函数
 ///////
-func loadUser(u *user.User) ( bool){
+func loadUser(u *user.User) bool {
 	ainfo, aok := model.AccountsmemberOp.Get(u.Id, u.Accountsinfo.MemberOrder)
 	if !aok {
 		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
@@ -187,44 +195,35 @@ func loadUser(u *user.User) ( bool){
 	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
 		log.Error("at loadUser not foud GamescorelockerOp by user %d", u.Id)
-		return  false
+		return false
 	}
 	u.Gamescorelocker = glInfo
 
 	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
 	if !giok {
 		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Gamescoreinfo = giInfom
 
 	ucInfo, uok := model.UserattrOp.Get(u.Id)
 	if !uok {
 		log.Error("at loadUser not foud UserroomcardOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Userattr = ucInfo
 
 	uextInfo, ueok := model.UserextrainfoOp.Get(u.Id)
 	if !ueok {
 		log.Error("at loadUser not foud UserextrainfoOp by user  %d", u.Id)
-		return  false
+		return false
 	}
 	u.Userextrainfo = uextInfo
-	return  true
+	return true
 }
 
-
-
-
-
-
-
-
-
-
 /////主消息函数
-func (m *Module) handleMsgData(args []interface{}) (error) {
+func (m *Module) handleMsgData(args []interface{}) error {
 	if msg.Processor != nil {
 		str := args[0].([]byte)
 		data, err := msg.Processor.Unmarshal(str)
@@ -249,4 +248,3 @@ func (m *Module) handleMsgData(args []interface{}) (error) {
 	}
 	return nil
 }
-

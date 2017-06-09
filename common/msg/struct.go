@@ -74,8 +74,10 @@ type WeaveItem struct {
 
 //积分信息
 type TagScoreInfo struct {
-	Type    int //积分类型
-	Score   int //用户分数
-	Grade   int //用户成绩
-	Revenue int //游戏税收
+	Type     int //积分类型
+	Score    int //用户分数
+	Grade    int //用户成绩
+	Revenue  int //游戏税收
+	SubMonry int //扣除代币
+	IsWin    int
 }

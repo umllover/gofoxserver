@@ -72,7 +72,6 @@ type Accountsinfo struct {
 	HeadImgUrl       string     `db:"HeadImgUrl" json:"HeadImgUrl"`             //
 	UnionID          string     `db:"UnionID" json:"UnionID"`                   //
 	FieldLevel       int8       `db:"FieldLevel" json:"FieldLevel"`             //
-	FRRR             int        `db:"FRRR" json:"FRRR"`                         //
 }
 
 type accountsinfoOp struct{}
@@ -167,7 +166,7 @@ func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
-	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describes,Address,HeadImgUrl,UnionID,FieldLevel,FRRR) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describes,Address,HeadImgUrl,UnionID,FieldLevel) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.GameID,
 		m.ProtectID,
@@ -224,7 +223,6 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.HeadImgUrl,
 		m.UnionID,
 		m.FieldLevel,
-		m.FRRR,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -251,7 +249,7 @@ func (op *accountsinfoOp) Update(m *Accountsinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
-	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describes=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=?,FRRR=? where UserID=?`
+	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describes=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.GameID,
 		m.ProtectID,
@@ -308,7 +306,6 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 		m.HeadImgUrl,
 		m.UnionID,
 		m.FieldLevel,
-		m.FRRR,
 		m.UserID,
 	)
 

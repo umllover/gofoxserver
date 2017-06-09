@@ -1,16 +1,14 @@
 package room
 
 import (
-	"fmt"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/gameServer/Chat"
 	"mj/gameServer/db/model/base"
 	client "mj/gameServer/user"
 	"strconv"
 	"time"
-
-	"mj/gameServer/Chat"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -255,8 +253,6 @@ func (room *Room) Sitdown(args []interface{}) {
 		room.ChatRoomId = id.(int)
 	}
 
-	fmt.Println(user.Id)
-	fmt.Println(room.RoomInfo)
 	_, chairId := room.GetUserByUid(user.Id)
 	if chairId > 0 {
 		room.LeaveRoom(user)
@@ -432,6 +428,7 @@ func (room *Room) StartGame() {
 
 	room.MinusHeadCount++
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
+	room.LeftCardCount--
 	room.CardIndex[room.BankerUser][room.gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
@@ -678,6 +675,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		return true
 	case GER_DISMISS: //游戏解散
 		//变量定义
+
 		GameConclude := &msg.G2C_HZMJ_GameConclude{}
 		GameConclude.ChiHuKind = make([]int, room.UserCnt)
 		GameConclude.CardCount = make([]int, room.UserCnt)
@@ -966,7 +964,6 @@ func (room *Room) EstimateUserRespond(wCenterUser int, cbCenterCard int, Estimat
 //派发扑克
 func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 	//状态效验
-
 	if wCurrentUser == INVALID_CHAIR {
 		return false
 	}
@@ -1109,6 +1106,7 @@ func (room *Room) GetSendCard(bTail bool) int {
 		room.MinusLastCount++
 	} else {
 		room.MinusHeadCount++
+		log.Debug("aaaaaaaaaa ", MAX_REPERTORY-room.MinusHeadCount, room.LeftCardCount)
 		cbIndexCard = MAX_REPERTORY - room.MinusHeadCount
 		cbSendCardData = room.RepertoryCard[cbIndexCard]
 	}

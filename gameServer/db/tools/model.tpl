@@ -6,7 +6,6 @@ import(
     "github.com/jmoiron/sqlx"
     "fmt"
     "strings"
-    "ChessCard/server/utils"
 )
 
 //This file is generate by scripts,don't edit it

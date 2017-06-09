@@ -794,12 +794,8 @@ func (lg *GameLogic) SwitchToCardData2(cbCardIndex, cbCardData []int) int {
 
 //扑克转换
 func (lg *GameLogic) SwitchToCardIndex3(cbCardData []int, cbCardCount int, cbCardIndex []int) int {
-	//设置变量
-	//ZeroMemory(cbCardIndex,sizeof(BYTE)*MAX_INDEX);
-
 	//转换扑克
 	for i := 0; i < cbCardCount; i++ {
-		//ASSERT(lg.IsValidCard(cbCardData[i]));
 		cbCardIndex[lg.SwitchToCardIndex(cbCardData[i])]++
 	}
 

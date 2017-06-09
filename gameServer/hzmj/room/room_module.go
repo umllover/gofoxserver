@@ -171,11 +171,11 @@ func (r *Room) OnDestroy() {
 
 //这里添加定时操作
 func (r *Room) checkDestroyRoom() {
-	nowTime := time.Now().Unix()
-	if r.CheckDestroy(nowTime) {
-		r.Destroy()
-		return
-	}
+		nowTime := time.Now().Unix()
+		if r.CheckDestroy(nowTime) {
+			r.Destroy()
+			return
+		}
 
 	r.Skeleton.AfterFunc(10*time.Second, r.checkDestroyRoom)
 }
