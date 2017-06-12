@@ -1,8 +1,9 @@
 package module
 
 import (
-	"github.com/lovelly/leaf/log"
 	"sync"
+
+	"github.com/lovelly/leaf/log"
 )
 
 type Module interface {

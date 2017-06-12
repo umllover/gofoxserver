@@ -21,14 +21,18 @@ func watchServices(client *api.Client, serverName string, status []string) {
 			continue
 		}
 
-		if meta.LastIndex != lastIndex && len(checks) > 0 {
-			//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v",lastIndex,  meta.LastIndex,  serverName, checks)
+		if meta.LastIndex == lastIndex {
+			continue
+		}
 
-			newSvrs := servicesConfig(client, passingServices(checks, status))
-			if len(newSvrs) > 0 {
-				ChanRPC.Go("AddServerInfo", newSvrs)
-			}
-			lastIndex = meta.LastIndex
+		lastIndex = meta.LastIndex
+		if len(checks) < 1 {
+			continue
+		}
+		//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v",lastIndex,  meta.LastIndex,  serverName, checks)
+		newSvrs := servicesConfig(client, passingServices(checks, status))
+		if len(newSvrs) > 0 {
+			ChanRPC.Go("AddServerInfo", newSvrs)
 		}
 	}
 }
@@ -110,11 +114,15 @@ func WatchAllFaildServices(client *api.Client, ServiceName string) {
 			time.Sleep(time.Second * UpdateConfigTicke)
 			continue
 		}
-		if lastIndex == meta.LastIndex || len(checks) < 1 {
+		if lastIndex == meta.LastIndex {
 			continue
 		}
+
 		log.Debug(" at WatchAllFaildServices .... lastIndex :%d, new indx:%d, serverName:%s data:%v", lastIndex, meta.LastIndex, ServiceName, checks)
 		lastIndex = meta.LastIndex
+		if len(checks) < 1 {
+			continue
+		}
 		status := make([]string, 1)
 		status = append(status, "critical")
 		checkIds := passingServices(checks, status)

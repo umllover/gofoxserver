@@ -2,8 +2,9 @@ package internal
 
 import (
 	"errors"
-	"github.com/lovelly/leaf/log"
+
 	"github.com/hashicorp/consul/api"
+	"github.com/lovelly/leaf/log"
 )
 
 const (
@@ -19,7 +20,7 @@ type Rgconfig interface {
 	GetSvrName() string
 	GetWatchSvrName() string
 	GetWatchFaildSvrName() string
-	GetRegistSelf()bool
+	GetRegistSelf() bool
 	GetCheckAddress() string
 }
 
@@ -33,7 +34,7 @@ type CacheInfo struct {
 
 var (
 	Config Rgconfig
-	Cli *api.Client
+	Cli    *api.Client
 	Dc     string
 	dereg  chan bool
 )
@@ -47,14 +48,14 @@ func InitConsul(scheme string) {
 	var err error
 	Cli, err = api.NewClient(&api.Config{Address: Config.GetConsulAddr(), Scheme: scheme, Token: Config.GetConsulToken(), Datacenter: Config.GetConsulDc()})
 	if err != nil {
-		log.Error("at NewConsuled NewClient error :%s",  err.Error())
+		log.Error("at NewConsuled NewClient error :%v", err.Error())
 		return
 	}
 
 	//ping the agent
 	Dc, err = datacenter(Cli)
 	if err != nil {
-		log.Error("at NewConsuled datacenter error:$s",  err.Error())
+		log.Error("at NewConsuled datacenter error:%v", err.Error())
 		return
 	}
 
@@ -62,8 +63,8 @@ func InitConsul(scheme string) {
 }
 
 //注册服务
-func  Register() error {
-	service, err := buildRoomSvrConfig(Config.GetAddress(),Config.GetCheckAddress(), Config.GetSvrName(), Config.GetNodeID())
+func Register() error {
+	service, err := buildRoomSvrConfig(Config.GetAddress(), Config.GetCheckAddress(), Config.GetSvrName(), Config.GetNodeID())
 	if err != nil {
 		return err
 	}
@@ -81,34 +82,22 @@ func deregDeregister() error {
 	return nil
 }
 
-
 //开启一个获取房间健康配置信息的协程
-func WatchServices( serverName string) {
+func WatchServices(serverName string) {
 	status := make([]string, 0)
 	status = append(status, "passing")
 	go watchServices(Cli, serverName, status)
 }
 
 //关注失败的服务
-func WatchAllFaild(serverName string){
+func WatchAllFaild(serverName string) {
 	go WatchAllFaildServices(Cli, serverName)
 }
 
 //开启一个定时获取房间负载信息的协程
-func  WatchManual(kvpath string) {
-	log.Debug("[ consul: Watching KV path %s",  kvpath)
+func WatchManual(kvpath string) {
+	log.Debug("[ consul: Watching KV path %s", kvpath)
 	go watchKV(Cli, kvpath)
-}
-
-
-//报告一个检查通过
-func deregPassTTL(serverId string) {
-	submitCheck(Cli, serverId)
-}
-
-//删除kv
-func deregDelKv(kvPath string) {
-	DelKV(Cli, kvPath)
 }
 
 // datacenter returns the datacenter of the local agent

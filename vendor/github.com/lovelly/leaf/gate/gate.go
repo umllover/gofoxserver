@@ -17,6 +17,13 @@ type IdUser interface {
 	GetUid() int
 }
 
+type UserHandler interface {
+	OnInit()
+	OnDestroy()
+	Run()
+	GetChanRPC() *chanrpc.Server
+}
+
 type Gate struct {
 	MaxConnNum      int
 	PendingWriteNum int
@@ -38,7 +45,7 @@ type Gate struct {
 	GoLen              int
 	TimerDispatcherLen int
 	AsynCallLen        int
-	NewChanRPCFunc     func(Agent) *module.Skeleton
+	NewChanRPCFunc     func(Agent) UserHandler
 	OnAgentInit        func(Agent)
 	OnAgentDestroy     func(Agent)
 }
@@ -47,8 +54,8 @@ func (gate *Gate) Run(closeSig chan bool) {
 	newAgent := func(conn network.Conn) network.Agent {
 		a := &agent{conn: conn, gate: gate}
 		if gate.NewChanRPCFunc != nil {
-			a.skeleton = gate.NewChanRPCFunc(a)
-			a.chanRPC = a.skeleton.ChanRPCServer
+			a.userHandler = gate.NewChanRPCFunc(a)
+			a.chanRPC = a.userHandler.GetChanRPC()
 		}
 		if a.chanRPC != nil {
 			a.chanRPC.Go("NewAgent", a)
@@ -103,16 +110,15 @@ func (gate *Gate) Run(closeSig chan bool) {
 func (gate *Gate) OnDestroy() {}
 
 type agent struct {
-	conn     network.Conn
-	skeleton *module.Skeleton
-	chanRPC  *chanrpc.Server
-	gate     *Gate
-	userData interface{}
+	conn        network.Conn
+	userHandler UserHandler
+	chanRPC     *chanrpc.Server
+	gate        *Gate
+	userData    interface{}
 }
 
 func (a *agent) Run() {
 	fmt.Println("at aget run .... ")
-	closeSig := make(chan bool, 1)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Recover(r)
@@ -124,8 +130,6 @@ func (a *agent) Run() {
 				log.Error("chanrpc error: %v", err)
 			}
 		}
-
-		closeSig <- true
 	}()
 
 	handleMsgData := func(args []interface{}) error {
@@ -160,7 +164,7 @@ func (a *agent) Run() {
 				a.gate.OnAgentInit(a)
 			}
 
-			a.skeleton.Run(closeSig)
+			a.userHandler.Run()
 		}()
 	}
 
@@ -243,7 +247,7 @@ func (a *agent) SetUserData(data interface{}) {
 }
 
 func (a *agent) Skeleton() *module.Skeleton {
-	return a.skeleton
+	return nil
 }
 
 func (a *agent) ChanRPC() *chanrpc.Server {

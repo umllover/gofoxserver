@@ -5,13 +5,11 @@ import (
 	"mj/gameServer/user"
 	"reflect"
 
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 )
 
 ////注册rpc 消息
 func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
 	ChanRPC.Register(id, f)
 }
 

@@ -6,6 +6,7 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/base"
 	"mj/gameServer/common"
+	"mj/gameServer/common/room_base"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"strconv"
@@ -28,7 +29,7 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.Skeleton = skeleton
 	room.ChanRPC = skeleton.ChanRPCServer
 	room.mgrCh = mgrCh
-	room.RoomInfo = common.NewRoomInfo(userCnt, rid)
+	room.RoomInfo = room_base.NewRoomInfo(userCnt, rid)
 	room.Kind = t.KindID
 	room.ServerId = t.ServerID
 	room.Name = fmt.Sprintf(strconv.Itoa(common.KIND_TYPE_HZMJ)+"_%v", room.GetRoomId())
@@ -69,7 +70,7 @@ type Room struct {
 	wg       sync.WaitGroup //
 
 	// 游戏字段
-	*common.RoomInfo
+	*room_base.RoomInfo
 	ChatRoomId          int                //聊天房间id
 	Name                string             //房间名字
 	Kind                int                //第一类型
@@ -127,8 +128,9 @@ type Room struct {
 	HeapTail            int                //堆立尾部
 	HeapCardInfo        [][]int            //堆牌信息
 	SendCardData        int                //发牌扑克
-	gameLogic           *GameLogic
 	HistoryScores       []*HistoryScore
+
+	gameLogic *GameLogic
 }
 
 func (r *Room) run() {
@@ -160,6 +162,10 @@ func (r *Room) GetCurlPlayerCount() int {
 	return cnt
 }
 
+func (r *Room) GetChanRPC() *chanrpc.Server {
+	return r.ChanRPC
+}
+
 ////////////////// 上面run 和 Destroy 请勿随意修改 //////  下面函数自由操作
 func (r *Room) OnInit() {
 	r.Skeleton.AfterFunc(10*time.Second, r.checkDestroyRoom)
@@ -171,15 +177,11 @@ func (r *Room) OnDestroy() {
 
 //这里添加定时操作
 func (r *Room) checkDestroyRoom() {
-		nowTime := time.Now().Unix()
-		if r.CheckDestroy(nowTime) {
-			r.Destroy()
-			return
-		}
+	nowTime := time.Now().Unix()
+	if r.CheckDestroy(nowTime) {
+		r.Destroy()
+		return
+	}
 
 	r.Skeleton.AfterFunc(10*time.Second, r.checkDestroyRoom)
-}
-
-func (r *Room) GetChanRPC() *chanrpc.Server {
-	return r.ChanRPC
 }

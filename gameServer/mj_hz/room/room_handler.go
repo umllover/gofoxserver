@@ -4,11 +4,14 @@ import (
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/Chat"
 	"mj/gameServer/db/model/base"
 	client "mj/gameServer/user"
 	"strconv"
 	"time"
+
+	. "mj/gameServer/common/mj_logic_base"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -25,7 +28,7 @@ func RegisterHandler(r *Room) {
 }
 
 func (room *Room) OutCard(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_HZMJ_HZOutCard)
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_HZOutCard)
 	user := args[1].(*client.User)
 	retcode := 0
 	defer func() {
@@ -39,7 +42,7 @@ func (room *Room) OutCard(args []interface{}) {
 }
 
 func (room *Room) UserOperateCard(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_HZMJ_OperateCard)
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_OperateCard)
 	user := args[1].(*client.User)
 	retcode := 0
 	defer func() {
@@ -501,7 +504,7 @@ func (room *Room) StartGame() {
 	}
 
 	//构造变量
-	GameStart := &msg.G2C_HZMG_GameStart{}
+	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.HeapHead = room.HeapHead
@@ -551,7 +554,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		//变量定义
-		GameConclude := &msg.G2C_HZMJ_GameConclude{}
+		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
 		GameConclude.ChiHuKind = make([]int, room.UserCnt)
 		GameConclude.CardCount = make([]int, room.UserCnt)
 		GameConclude.HandCardData = make([][]int, room.UserCnt)
@@ -676,7 +679,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 	case GER_DISMISS: //游戏解散
 		//变量定义
 
-		GameConclude := &msg.G2C_HZMJ_GameConclude{}
+		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
 		GameConclude.ChiHuKind = make([]int, room.UserCnt)
 		GameConclude.CardCount = make([]int, room.UserCnt)
 		GameConclude.HandCardData = make([][]int, room.UserCnt)
@@ -949,7 +952,7 @@ func (room *Room) EstimateUserRespond(wCenterUser int, cbCenterCard int, Estimat
 		//发送提示
 		room.ForEachUser(func(u *client.User) {
 			if room.UserAction[u.ChairId] != WIK_NULL {
-				u.WriteMsg(&msg.G2C_HZMJ_OperateNotify{
+				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
 					ActionCard: room.ProvideCard,
 				})
@@ -1070,7 +1073,7 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 	//构造数据
-	SendCard := &msg.G2C_HZMJ_SendCard{}
+	SendCard := &mj_hz_msg.G2C_HZMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser
 	SendCard.CurrentUser = wCurrentUser
 	SendCard.Tail = bTail
@@ -1358,7 +1361,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 		}
 
 		//构造结果
-		OperateResult := &msg.G2C_HZMJ_OperateResult{}
+		OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
 		OperateResult.OperateUser = wTargetUser
 		OperateResult.OperateCode = cbTargetAction
 		if room.ProvideUser == INVALID_CHAIR {
@@ -1506,7 +1509,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 			room.GangCount[user.ChairId]++
 
 			//构造结果
-			OperateResult := &msg.G2C_HZMJ_OperateResult{}
+			OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
 			OperateResult.OperateUser = user.ChairId
 			OperateResult.ProvideUser = wProvideUser
 			OperateResult.OperateCode = cbOperateCode
@@ -1558,7 +1561,7 @@ func (room *Room) OnUserTrustee(wChairID int, bTrustee bool) bool {
 
 	room.Trustee[wChairID] = bTrustee
 
-	room.SendMsgAll(&msg.G2C_HZMJ_Trustee{
+	room.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
 		Trustee: bTrustee,
 		ChairID: wChairID,
 	})
@@ -1638,7 +1641,7 @@ func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) int 
 	room.OutCardData = cbCardData
 
 	//构造数据
-	OutCard := &msg.G2C_HZMJ_OutCard{}
+	OutCard := &mj_hz_msg.G2C_HZMJ_OutCard{}
 	OutCard.OutCardUser = wChairID
 	OutCard.OutCardData = cbCardData
 	OutCard.SysOut = bSysOut

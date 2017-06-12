@@ -5,57 +5,72 @@ import (
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/center"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"reflect"
 
+	"mj/gameServer/common"
+
 	"github.com/lovelly/leaf/log"
 )
 
 //注册 客户端消息调用
-func handlerC2S(m *Module, msg interface{}, h interface{}) {
+func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
 	m.ChanRPC.Register(reflect.TypeOf(msg), h)
 }
 
-func RegisterHandler(m *Module) {
+func RegisterHandler(m *UserModule) {
 	//注册rpc 消息
 	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
 	m.ChanRPC.Register("NewAgent", m.NewAgent)
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
 	m.ChanRPC.Register("WriteUserScore", m.WriteUserScore)
-
+	m.ChanRPC.Register("RoomCloseUserOffline", m.RoomClose)
 	//c2s
 	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
 }
 
 //连接进来的通知
-func (m *Module) NewAgent(args []interface{}) error {
+func (m *UserModule) NewAgent(args []interface{}) error {
 	log.Debug("at game NewAgent")
 	return nil
 }
 
+//房间关闭的时候通知
+func (m *UserModule) RoomClose(args []interface{}) error {
+	user := m.a.UserData().(*user.User)
+	if user.IsOffline() {
+		DelUser(user.Id)
+		m.Close(common.UserOffline)
+	}
+	return nil
+}
+
 //连接关闭的通知
-func (m *Module) CloseAgent(args []interface{}) error {
+func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at game CloseAgent")
 	agent := m.a
 	user, ok := agent.UserData().(*user.User)
 	if !ok {
 		return nil
 	}
+	if user.SetOffline(true) {
+		DelUser(user.Id)
+		m.Close(common.UserOffline)
+	} else {
+		//等待房间结束
+	}
 
-	DelUser(user.Id)
-	center.ChanRPC.Go("SelfNodeDelPlayer", user.Id)
 	return nil
 }
 
-func (m *Module) GetUserInfo(args []interface{}) {
+func (m *UserModule) GetUserInfo(args []interface{}) {
 	log.Debug("at GetUserInfo ................ ")
 }
 
-func (m *Module) handleMBLogin(args []interface{}) {
+func (m *UserModule) handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_GR_LogonMobile)
 	retMsg := &msg.G2C_LogonFinish{}
 	agent := m.a
@@ -109,8 +124,7 @@ func (m *Module) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	AddUser(user.Id)
-	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
+	AddUser(user.Id, user)
 	user.KindID = recvMsg.KindID
 	user.ServerID = recvMsg.ServerID
 
@@ -147,7 +161,12 @@ func (m *Module) handleMBLogin(args []interface{}) {
 	})
 }
 
-func (m *Module) WriteUserScore(args []interface{}) {
+////////////////////// help
+func (m *UserModule) UserOffline() {
+
+}
+
+func (m *UserModule) WriteUserScore(args []interface{}) {
 	log.Debug("at WriteUserScore === %v", args)
 	info := args[0].(*msg.TagScoreInfo)
 	Type := args[0].(int)
@@ -223,7 +242,7 @@ func loadUser(u *user.User) bool {
 }
 
 /////主消息函数
-func (m *Module) handleMsgData(args []interface{}) error {
+func (m *UserModule) handleMsgData(args []interface{}) error {
 	if msg.Processor != nil {
 		str := args[0].([]byte)
 		data, err := msg.Processor.Unmarshal(str)

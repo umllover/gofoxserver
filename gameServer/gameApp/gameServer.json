@@ -6,7 +6,7 @@
 	"WSAddr": "192.168.1.141:20002",
 	"MaxConnNum": 20000,
 	
-	"BaseDbHost":"192.168.1.33",
+    "BaseDbHost":"192.168.1.33",
     "BaseDbPort":3306,
     "BaseDbName":"mqjx_base",
     "BaseDbUsername":"root",

@@ -3,6 +3,7 @@ package room
 import (
 	"math"
 	"mj/common/msg"
+	. "mj/gameServer/common/mj_logic_base"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -27,6 +28,7 @@ func init() {
 
 //////////////////////////////////////////////////////////////////////////////////
 type GameLogic struct {
+	*BaseLogic
 	CardDataArray []int //扑克数据
 	MagicIndex    int   //钻牌索引
 }
@@ -41,119 +43,6 @@ func (lg *GameLogic) SetMagicIndex(cbMagicIndex int) {
 	lg.MagicIndex = cbMagicIndex
 }
 
-//混乱扑克
-func (lg *GameLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
-	//混乱准备
-	cbBufferCount := int(len(cbCardBuffer))
-	cbCardDataTemp := make([]int, cbBufferCount)
-	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
-
-	//混乱扑克
-	var cbRandCount int
-	var cbPosition int
-	for {
-		if cbRandCount >= cbBufferCount {
-			break
-		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
-		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
-		cbRandCount++
-		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
-	}
-
-	return
-}
-
-//删除扑克
-func (lg *GameLogic) RemoveCardByArray(cbCardData []int, cbCardCount int, cbRemoveCard []int, cbRemoveCount int) bool {
-	//效验扑克
-
-	//定义变量
-	var cbDeleteCount int
-	var cbTempCardData []int
-	if int(cbCardCount) > len(cbTempCardData) {
-		return false
-	}
-
-	util.DeepCopy(&cbTempCardData, &cbCardData)
-
-	//置零扑克
-	for i := 0; i < cbRemoveCount; i++ {
-		for j := 0; j < cbCardCount; j++ {
-			if cbRemoveCard[i] == cbTempCardData[j] {
-				cbDeleteCount++
-				cbTempCardData[j] = 0
-				break
-			}
-		}
-	}
-
-	//成功判断
-	if cbDeleteCount != cbRemoveCount {
-		return false
-	}
-
-	//清理扑克
-	cbCardPos := 0
-	for i := 0; i < cbCardCount; i++ {
-		if cbTempCardData[i] != 0 {
-			cbCardData[cbCardPos] = cbTempCardData[i]
-			cbCardPos++
-		}
-	}
-
-	return true
-}
-
-//删除扑克
-func (lg *GameLogic) RemoveCardByCnt(cbCardIndex, cbRemoveCard []int, cbRemoveCount int) bool {
-	//删除扑克
-	for i := 0; i < cbRemoveCount; i++ {
-		//效验扑克
-		if !lg.IsValidCard(cbRemoveCard[i]) {
-			log.Error("at RemoveCardByCnt card is Invalid %d", cbRemoveCard[i])
-		}
-		if cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard[i])] < 0 {
-			log.Error("at RemoveCardByCnt 11 card is Invalid %d", cbRemoveCard[i])
-		}
-
-		//删除扑克
-		cbRemoveIndex := lg.SwitchToCardIndex(cbRemoveCard[i])
-		if cbCardIndex[cbRemoveIndex] == 0 {
-
-			//还原删除
-			for j := 0; j < i; j++ {
-				cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard[j])]++
-			}
-			return false
-		} else {
-			//删除扑克
-			cbCardIndex[cbRemoveIndex]--
-		}
-	}
-
-	return true
-}
-
-//删除扑克
-func (lg *GameLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
-	//删除扑克
-	cbRemoveIndex := lg.SwitchToCardIndex(cbRemoveCard)
-	//效验扑克
-	if !lg.IsValidCard(cbRemoveCard) {
-		log.Error("at RemoveCard card is Invalid %d", cbRemoveCard)
-	}
-	if cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard)] < 0 {
-		log.Error("at RemoveCard 11 card is Invalid %d", cbRemoveCard)
-	}
-	if cbCardIndex[cbRemoveIndex] > 0 {
-		cbCardIndex[cbRemoveIndex]--
-		return true
-	}
-
-	return false
-}
-
 //财神判断
 func (lg *GameLogic) IsMagicCard(cbCardData int) bool {
 	if lg.MagicIndex != MAX_INDEX {
@@ -166,64 +55,6 @@ func (lg *GameLogic) IsMagicCard(cbCardData int) bool {
 //花牌判断
 func (lg *GameLogic) IsHuaCard(cbCardData int) bool {
 	return cbCardData >= 0x38
-}
-
-//花牌判断
-func (lg *GameLogic) HuaCardCnt(cbCardIndex []int) int {
-	cbHuaCardCount := 0
-	for i := MAX_INDEX - MAX_HUA_INDEX; i < MAX_INDEX; i++ {
-		if cbCardIndex[i] > 0 {
-			cbHuaCardCount += cbCardIndex[i]
-		}
-	}
-
-	return cbHuaCardCount
-}
-
-//排序,根据牌值排序
-func (lg *GameLogic) SortCardList(cbCardData []int, cbCardCount int) bool {
-	//数目过虑
-	if cbCardCount == 0 || cbCardCount > MAX_COUNT {
-		return false
-	}
-
-	//排序操作
-	bSorted := true
-	var cbSwitchData int
-	cbLast := cbCardCount - 1
-	var cbCard1 = 0
-	var cbCard2 = 0
-	for {
-		bSorted = true
-		for i := 0; i < cbLast; i++ {
-			cbCard1 = cbCardData[i]
-			cbCard2 = cbCardData[i+1]
-			//如果财神有代替牌，财神与代替牌转换
-			if INDEX_REPLACE_CARD != MAX_INDEX && lg.MagicIndex != INDEX_REPLACE_CARD {
-				if lg.SwitchToCardIndex(cbCard1) == INDEX_REPLACE_CARD {
-					cbCard1 = lg.SwitchToCardData(lg.MagicIndex)
-				}
-				if lg.SwitchToCardIndex(cbCard2) == INDEX_REPLACE_CARD {
-					cbCard2 = lg.SwitchToCardData(lg.MagicIndex)
-				}
-			}
-			if cbCard1 > cbCard2 {
-				//设置标志
-				bSorted = false
-
-				//扑克数据
-				cbSwitchData = cbCardData[i]
-				cbCardData[i] = cbCardData[i+1]
-				cbCardData[i+1] = cbSwitchData
-			}
-		}
-		cbLast--
-		if bSorted == false {
-			break
-		}
-	}
-
-	return true
 }
 
 //动作等级
@@ -254,179 +85,6 @@ func (lg *GameLogic) GetUserActionRank(cbUserAction int) int {
 //胡牌等级
 func (lg *GameLogic) GetChiHuActionRank(CChiHuRight int64) int {
 	return 1
-}
-
-//胡牌倍数
-func (lg *GameLogic) GetChiHuTime(ChiHuRight int64) int {
-	wFanShu := 1 //平胡一倍
-	if (ChiHuRight & CHR_TIAN_HU) != 0 {
-		wFanShu = 16
-	} else if (ChiHuRight & CHR_QI_SHOU_LISTEN) != 0 { //起首听
-		wFanShu = 8
-	} else if (ChiHuRight & CHR_PENG_PENG) != 0 { //碰碰胡
-		wFanShu = 3
-	} else if (ChiHuRight & CHR_DAN_DIAN_QI_DUI) != 0 { //单点大七对
-		wFanShu = 6
-	} else if (ChiHuRight & CHR_MA_QI_DUI) != 0 { //麻七对
-		wFanShu = 5
-	} else if (ChiHuRight & CHR_MA_QI_WANG) != 0 { //麻七王
-		wFanShu = 10
-	} else if (ChiHuRight & CHR_MA_QI_WZW) != 0 { //麻七王中王
-		wFanShu = 20
-	} else if (ChiHuRight & CHR_SHI_SAN_LAN) != 0 { //十三烂
-		wFanShu = 2
-	} else if (ChiHuRight & CHR_QX_SHI_SAN_LAN) != 0 { //七星十三烂
-		wFanShu = 4
-	}
-
-	if (ChiHuRight & CHR_GANG_SHANG_HUA) != 0 { //杠上开花
-		wFanShu *= 2
-	} else if (ChiHuRight & CHR_QIANG_GANG_HU) != 0 { //抢杠
-		wFanShu = 2*wFanShu + 1
-	}
-
-	if (ChiHuRight & CHR_ZI_MO) != 0 {
-		wFanShu *= 2
-	}
-
-	return wFanShu
-}
-
-//自动出牌
-func (lg *GameLogic) AutomatismOutCard(cbCardIndex, cbEnjoinOutCard []int, cbEnjoinOutCardCount int) int {
-	// 先打财神
-	if lg.MagicIndex != MAX_INDEX {
-		if cbCardIndex[lg.MagicIndex] > 0 {
-			return lg.SwitchToCardData(lg.MagicIndex)
-		}
-	}
-
-	//而后打字牌，字牌打自己多的，数目一样就按东南西北中发白的顺序
-	var cbCardData int
-	var cbOutCardIndex = int(MAX_INDEX)
-	var cbOutCardIndexCount int
-	for i := int(MAX_INDEX - 7); i < MAX_INDEX-1; i++ {
-		if cbCardIndex[i] > cbOutCardIndexCount {
-			cbOutCardIndexCount = cbCardIndex[i]
-			cbOutCardIndex = i
-		}
-	}
-
-	if cbOutCardIndex != MAX_INDEX {
-		cbCardData = lg.SwitchToCardData(cbOutCardIndex)
-		bEnjoinCard := false
-		for k := 0; k < cbEnjoinOutCardCount; k++ {
-			if cbCardData == cbEnjoinOutCard[k] {
-				bEnjoinCard = true
-			}
-		}
-		if !bEnjoinCard {
-			return cbCardData
-		}
-	}
-
-	//没有字牌就打边张，1或9，顺序为万筒索，2，8，而后3，7，而后4，6，而后5
-	for i := 0; i < 5; i++ {
-		for j := 0; j < 3; j++ {
-			cbOutCardIndex = MAX_INDEX
-			if cbCardIndex[j*9+i] > 0 {
-				cbOutCardIndex = int(j*9 + i)
-			} else if cbCardIndex[j*9+(9-i-1)] > 0 {
-				cbOutCardIndex = int(j*9 + (9 - i - 1))
-			}
-
-			if cbOutCardIndex != MAX_INDEX {
-				cbCardDataTemp := lg.SwitchToCardData(cbOutCardIndex)
-				bEnjoinCard := false
-				for k := 0; k < cbEnjoinOutCardCount; k++ {
-					if cbCardDataTemp == cbEnjoinOutCard[k] {
-						bEnjoinCard = true
-					}
-				}
-				if !bEnjoinCard {
-					return cbCardDataTemp
-				} else {
-					if cbCardData == 0 {
-						cbCardData = cbCardDataTemp
-					}
-				}
-			}
-		}
-	}
-	return cbCardData
-}
-
-//吃牌判断
-func (lg *GameLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
-	//参数效验
-	cbCurrentIndex := lg.SwitchToCardIndex(cbCurrentCard)
-
-	//过滤判断
-	if cbCurrentIndex == lg.MagicIndex {
-		return WIK_NULL
-	}
-	if cbCurrentIndex == INDEX_REPLACE_CARD && lg.MagicIndex >= 27 {
-		return WIK_NULL
-	}
-	if cbCurrentCard >= 0x31 && cbCurrentIndex != INDEX_REPLACE_CARD {
-		return WIK_NULL
-	}
-
-	//变量定义
-	var cbExcursion = []int{0, 1, 2}
-	var cbItemKind = []int{WIK_LEFT, WIK_CENTER, WIK_RIGHT}
-
-	//拆分分析
-	var cbMagicCardIndex []int
-	util.DeepCopy(&cbMagicCardIndex, &cbCardIndex)
-
-	//如果有财神
-	cbMagicCardCount := 0
-	if lg.MagicIndex != MAX_INDEX {
-		cbMagicCardCount = cbCardIndex[lg.MagicIndex]
-		//如果财神有代替牌，财神与代替牌转换
-		if INDEX_REPLACE_CARD != MAX_INDEX {
-			cbMagicCardIndex[lg.MagicIndex] = cbMagicCardIndex[INDEX_REPLACE_CARD]
-			cbMagicCardIndex[INDEX_REPLACE_CARD] = cbMagicCardCount
-		}
-	}
-
-	//吃牌判断
-	cbEatKind := 0
-	cbFirstIndex := 0
-	if cbCurrentIndex == INDEX_REPLACE_CARD {
-		cbCurrentIndex = lg.MagicIndex
-	}
-	for i := 0; i < len(cbItemKind); i++ {
-		cbValueIndex := cbCurrentIndex % 9
-		if (cbValueIndex >= cbExcursion[i]) && ((cbValueIndex - cbExcursion[i]) <= 6) {
-			//吃牌判断
-			cbFirstIndex = cbCurrentIndex - cbExcursion[i]
-
-			//吃牌不能包含有财神
-			if lg.MagicIndex != MAX_INDEX &&
-				lg.MagicIndex >= cbFirstIndex && lg.MagicIndex <= cbFirstIndex+2 {
-				continue
-			}
-
-			if (cbCurrentIndex != cbFirstIndex) && (cbMagicCardIndex[cbFirstIndex] == 0) {
-				continue
-			}
-
-			if (cbCurrentIndex != (cbFirstIndex + 1)) && (cbMagicCardIndex[cbFirstIndex+1] == 0) {
-				continue
-			}
-
-			if (cbCurrentIndex != (cbFirstIndex + 2)) && (cbMagicCardIndex[cbFirstIndex+2] == 0) {
-				continue
-			}
-
-			//设置类型
-			cbEatKind |= cbItemKind[i]
-		}
-	}
-
-	return cbEatKind
 }
 
 //碰牌判断
@@ -525,9 +183,6 @@ func (lg *GameLogic) AnalyseGangCardEx(cbCardIndex []int, WeaveItem []*msg.Weave
 	return cbActionMask
 }
 
-func (lg *GameLogic) GetCardColor(cbCardData int) int { return cbCardData & MASK_COLOR }
-func (lg *GameLogic) GetCardValue(cbCardData int) int { return cbCardData & MASK_VALUE }
-
 //吃胡分析
 func (lg *GameLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int {
 
@@ -580,84 +235,7 @@ func (lg *GameLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	return cbChiHuKind
 }
 
-//听牌分析
-func (lg *GameLogic) AnalyseTingCard2(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int) int {
-	//复制数据
-	cbCardIndexTemp := make([]int, MAX_INDEX)
-	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-
-	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
-	chr := 0
-
-	if (cbCardCount+1)%3 == 0 {
-		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ {
-			if cbCardIndexTemp[i] == 0 {
-				continue
-			}
-			cbCardIndexTemp[i]--
-
-			for j := 0; j < MAX_INDEX-MAX_HUA_INDEX; j++ {
-				cbCurrentCard := lg.SwitchToCardData(j)
-				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, cbCurrentCard, chr, false) {
-					return WIK_LISTEN
-				}
-			}
-
-			cbCardIndexTemp[i]++
-		}
-	} else {
-		for j := 0; j < MAX_INDEX-MAX_HUA_INDEX; j++ {
-			cbCurrentCard := lg.SwitchToCardData(j)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, cbCurrentCard, chr, false) {
-				return WIK_LISTEN
-			}
-		}
-	}
-
-	return WIK_NULL
-}
-
-//听牌分析
-func (lg *GameLogic) AnalyseTingCard1(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, cbOutCard [][]int) int {
-	//复制数据
-	cbOutCount := 0
-	cbCardIndexTemp := make([]int, MAX_INDEX)
-	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-
-	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
-	chr := 0
-
-	if (cbCardCount-2)%3 == 0 {
-		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ {
-			if cbCardIndexTemp[i] == 0 {
-				continue
-			}
-			cbCardIndexTemp[i]--
-
-			bAdd := false
-			nCount := 0
-			for j := 0; j < MAX_INDEX-MAX_HUA_INDEX; j++ {
-				cbCurrentCard := lg.SwitchToCardData(j)
-				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, cbCurrentCard, chr, false) {
-					if bAdd == false {
-						bAdd = true
-						cbOutCard[0][cbOutCount] = lg.SwitchToCardData(i)
-						cbOutCount++
-					}
-					cbOutCard[cbOutCount][nCount] = lg.SwitchToCardData(j)
-					nCount++
-				}
-			}
-
-			cbCardIndexTemp[i]++
-		}
-	}
-
-	return cbOutCount
-}
-
 func (lg *GameLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
-
 	//复制数据
 	cbOutCount := 0
 	cbCardIndexTemp := make([]int, MAX_INDEX)
@@ -712,32 +290,6 @@ func (lg *GameLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	}
 
 	return cbOutCount
-}
-
-func (lg *GameLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, cbHuCardData []int) int {
-	//复制数据
-	cbCardIndexTemp := make([]int, MAX_INDEX)
-	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-
-	cbCount := 0
-	//ZeroMemory(cbHuCardData,sizeof(cbHuCardData));
-
-	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
-	chr := 0
-
-	if (cbCardCount-2)%3 != 0 {
-		for j := 0; j < MAX_INDEX; j++ {
-			cbCurrentCard := lg.SwitchToCardData(j)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbWeaveCount, cbCurrentCard, chr, false) {
-				cbHuCardData[cbCount] = cbCurrentCard
-				cbCount++
-			}
-		}
-		if cbCount > 0 {
-			return cbCount
-		}
-	}
-	return 0
 }
 
 //扑克转换
@@ -817,52 +369,6 @@ func (lg *GameLogic) GetCardCount(cbCardIndex []int) int {
 		cbCardCount += cbCardIndex[i]
 	}
 	return cbCardCount
-}
-
-//获取组合
-func (lg *GameLogic) GetWeaveCard(cbWeaveKind, cbCenterCard int, cbCardBuffer []int) int {
-	//组合扑克
-	switch cbWeaveKind {
-	case WIK_LEFT: //上牌操作
-		//设置变量
-		cbCardBuffer[0] = cbCenterCard
-		cbCardBuffer[1] = cbCenterCard + 1
-		cbCardBuffer[2] = cbCenterCard + 2
-		return 3
-
-	case WIK_RIGHT: //上牌操作
-		//设置变量
-		cbCardBuffer[0] = cbCenterCard - 2
-		cbCardBuffer[1] = cbCenterCard - 1
-		cbCardBuffer[2] = cbCenterCard
-		return 3
-
-	case WIK_CENTER: //上牌操作
-		//设置变量
-		cbCardBuffer[0] = cbCenterCard - 1
-		cbCardBuffer[1] = cbCenterCard
-		cbCardBuffer[2] = cbCenterCard + 1
-		return 3
-
-	case WIK_PENG: //碰牌操作
-		//设置变量
-		cbCardBuffer[0] = cbCenterCard
-		cbCardBuffer[1] = cbCenterCard
-		cbCardBuffer[2] = cbCenterCard
-		return 3
-
-	case WIK_GANG: //杠牌操作
-		//设置变量
-		cbCardBuffer[0] = cbCenterCard
-		cbCardBuffer[1] = cbCenterCard
-		cbCardBuffer[2] = cbCenterCard
-		cbCardBuffer[3] = cbCenterCard
-		return 4
-
-	default:
-	}
-
-	return 0
 }
 
 func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindItem, cbKindItemCount *int, bMagicThree *bool) bool { // todo BYTE &cbKindItemCount, bool &bMagicThree
@@ -981,8 +487,10 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 		for i := 0; i < MAX_INDEX; i++ {
 			if cbCardIndex[i] == 2 || (lg.MagicIndex != MAX_INDEX && i != lg.MagicIndex && cbCardIndex[lg.MagicIndex]+cbCardIndex[i] == 2) {
 				//变量定义
-				analyseItem := &TagAnalyseItem{}
-
+				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
+				for i, _ := range analyseItem.CardData {
+					analyseItem.CardData[i] = make([]int, 4)
+				}
 				//设置结果
 				for j := 0; j < cbWeaveCount; j++ {
 					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
@@ -1176,12 +684,7 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
 		cbCardIndexTemp := make([]int, MAX_INDEX)
-
-		//变量定义
-		cbIndex := make([]int, MAX_WEAVE)
-		for i := 0; i < int(len(cbIndex)); i++ {
-			cbIndex[i] = i
-		}
+		cbIndex := []int{0, 1, 2, 3}
 
 		pKindItem := make([]*TagKindItem, MAX_WEAVE)
 

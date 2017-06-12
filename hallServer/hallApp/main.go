@@ -4,13 +4,13 @@ import (
 	"mj/common"
 	"mj/common/consul"
 	. "mj/common/cost"
-	"mj/common/utils"
 	"mj/hallServer/center"
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
 	"mj/hallServer/gate"
+	"mj/hallServer/userHandle"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -34,11 +34,11 @@ func main() {
 	consul.AddinitiativeSvr(GamePrefix)
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
-	utils.CreatePrivateServer(conf.Server.PrivatePort)
 	leaf.Run(
 		gate.Module,
 		center.Module,
 		consul.Module,
+		userHandle.UserMgr,
 		gameList.Module,
 	)
 }

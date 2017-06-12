@@ -3,9 +3,12 @@ package user
 import (
 	"mj/hallServer/db/model"
 	"sync"
+
+	"github.com/lovelly/leaf/gate"
 )
 
 type User struct {
+	gate.Agent
 	*model.Accountsinfo
 	*model.Accountsmember
 	*model.Gamescorelocker

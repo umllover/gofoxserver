@@ -3,15 +3,14 @@ package main
 import (
 	"mj/common"
 	"mj/common/consul"
-	"mj/common/utils"
+	"mj/gameServer/Chat"
 	"mj/gameServer/center"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/gate"
 	"mj/gameServer/kindList"
-
-	"mj/gameServer/Chat"
+	"mj/gameServer/userHandle"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -43,7 +42,7 @@ func main() {
 	modules = append(modules, center.Module)
 	modules = append(modules, consul.Module)
 	modules = append(modules, Chat.Module)
+	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, kindList.GetModules()...)
-	utils.CreatePrivateServer(conf.Server.PrivatePort)
 	leaf.Run(modules...)
 }

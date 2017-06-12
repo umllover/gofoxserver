@@ -24,6 +24,7 @@ type Server struct {
 	// func(args []interface{}) []interface{}
 	functions map[interface{}]*FuncInfo
 	ChanCall  chan *CallInfo
+	CloseFlg  bool
 }
 
 type FuncInfo struct {
@@ -165,6 +166,10 @@ func (s *Server) exec(ci *CallInfo) (err error) {
 }
 
 func (s *Server) Exec(ci *CallInfo) {
+	if s.CloseFlg {
+		log.Error("at call Exec chan is close %v", ci)
+		return
+	}
 	err := s.exec(ci)
 	if err != nil {
 		log.Error("%v", err)
@@ -207,8 +212,12 @@ func (s *Server) CallN(id interface{}, args ...interface{}) ([]interface{}, erro
 }
 
 func (s *Server) Close() {
+	if s.CloseFlg {
+		log.Error(" double close Server chanAll")
+		return
+	}
 	close(s.ChanCall)
-
+	s.CloseFlg = true
 	for ci := range s.ChanCall {
 		s.ret(ci, &RetInfo{
 			Err: errors.New("chanrpc server closed"),

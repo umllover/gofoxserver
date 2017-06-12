@@ -4,7 +4,10 @@ import (
 	"mj/gameServer/base"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
-	"mj/gameServer/hzmj"
+	"mj/gameServer/mj_hz"
+	"mj/gameServer/mj_xs"
+
+	"mj/gameServer/common/room_base"
 
 	"github.com/lovelly/leaf/module"
 )
@@ -12,7 +15,7 @@ import (
 var (
 	skeleton = base.NewSkeleton()
 	ChanRPC  = skeleton.ChanRPCServer
-	modules  = make(map[int]common.Module) //key kind
+	modules  = make(map[int]room_base.Module) //key kind
 	KModule  = new(Module)
 )
 
@@ -33,6 +36,10 @@ func LoadAllModule() {
 	if HasKind(common.KIND_TYPE_HZMJ) {
 		modules[common.KIND_TYPE_HZMJ] = hzmj.Module
 	}
+
+	if HasKind(common.KIND_TYPE_XSMJ) {
+		modules[common.KIND_TYPE_XSMJ] = mj_xs.Module
+	}
 }
 
 func GetModules() []module.Module {
@@ -49,7 +56,7 @@ func HasKind(kind int) bool {
 	return ok
 }
 
-func GetModByKind(kind int) (common.Module, bool) {
+func GetModByKind(kind int) (room_base.Module, bool) {
 	mod, ok := modules[kind]
 	return mod, ok
 }

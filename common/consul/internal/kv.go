@@ -6,8 +6,8 @@ import (
 
 	"strconv"
 
-	"github.com/lovelly/leaf/log"
 	"github.com/hashicorp/consul/api"
+	"github.com/lovelly/leaf/log"
 )
 
 type kvValue map[string]int
@@ -24,13 +24,17 @@ func watchKV(client *api.Client, path string) {
 			continue
 		}
 
-		if index != lastIndex && len(value) > 0{
-			log.Debug("consul: Manual kvpath changed to #%d", index)
-			ChanRPC.Go("KvUpdate",  value)
-			lastIndex = index
-		} else {
-			time.Sleep(time.Second * UpdateConfigTicke)
+		if index == lastIndex {
+			continue
 		}
+
+		lastIndex = index
+		if len(value) < 1 {
+			time.Sleep(time.Second * UpdateConfigTicke)
+			continue
+		}
+		log.Debug("consul: Manual kvpath changed to #%d", index)
+		ChanRPC.Go("KvUpdate", value)
 	}
 }
 
@@ -88,7 +92,7 @@ func getKV(client *api.Client, key string, waitIndex uint64) (kvValue, uint64, e
 	strvalue := strings.TrimSpace(string(kvpair.Value))
 	IntVal, err1 := strconv.Atoi(strvalue)
 	if err1 != nil {
-		log.Error("at getKVAll Split key error: v.Value.(int) faild, error:%s",  err1.Error())
+		log.Error("at getKVAll Split key error: v.Value.(int) faild, error:%s", err1.Error())
 		return nil, meta.LastIndex, nil
 	}
 	values[keys[klen-1]] = IntVal

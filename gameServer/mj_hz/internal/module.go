@@ -3,7 +3,7 @@ package internal
 import (
 	"github.com/lovelly/leaf/module"
 	"mj/gameServer/base"
-	"mj/gameServer/hzmj/room"
+	"mj/gameServer/mj_hz/room"
 	"time"
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"

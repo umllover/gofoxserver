@@ -31,7 +31,6 @@ const (
 //常量定义
 const (
 	MAX_WEAVE     = 4   //最大组合
-	MAX_INDEX     = 34  //最大索引
 	MAX_COUNT     = 14  //最大数目
 	MAX_REPERTORY = 112 //最大库存
 	MAX_HUA_INDEX = 0   //花牌索引
@@ -77,28 +76,15 @@ const (
 )
 
 const (
-	INDEX_REPLACE_CARD = MAX_INDEX
+	INDEX_REPLACE_CARD = 42
 
 	//逻辑掩码
-	MASK_COLOR = 0xF0 //花色掩码  // 高位花色
-	MASK_VALUE = 0x0F //数值掩码  //低位才是牌
 
 	//动作类型
 	WIK_GANERAL   = 0x00 //普通操作
 	WIK_MING_GANG = 0x01 //明杠（碰后再杠）
 	WIK_FANG_GANG = 0x02 //放杠
 	WIK_AN_GANG   = 0x03 //暗杠
-
-	//动作标志
-	WIK_NULL     = 0x00 //没有类型
-	WIK_LEFT     = 0x01 //左吃类型
-	WIK_CENTER   = 0x02 //中吃类型
-	WIK_RIGHT    = 0x04 //右吃类型
-	WIK_PENG     = 0x08 //碰牌类型
-	WIK_GANG     = 0x10 //杠牌类型
-	WIK_LISTEN   = 0x20 //听牌类型
-	WIK_CHI_HU   = 0x40 //吃胡类型
-	WIK_FANG_PAO = 0x80 //放炮
 
 	//胡牌定义
 	CHR_PING_HU         = 0x00000001 //平胡
@@ -164,7 +150,7 @@ type TagGangCardResult struct {
 //分析子项
 type TagAnalyseItem struct {
 	CardEye    int     //牌眼扑克
-	bMagicEye  bool      //牌眼是否是王霸
+	bMagicEye  bool    //牌眼是否是王霸
 	WeaveKind  []int   //组合类型
 	CenterCard []int   //中心扑克
 	CardData   [][]int //实际扑克

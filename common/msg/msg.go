@@ -49,20 +49,12 @@ func init() {
 	Processor.Register(&G2C_Hu_Data{})
 	Processor.Register(&SysMsg{})
 
-	//HZMJ msg
-	Processor.Register(&G2C_HZMG_GameStart{})
-	Processor.Register(&G2C_HZMJ_GameConclude{})
-	Processor.Register(&C2G_HZMJ_HZOutCard{})
-	Processor.Register(&G2C_HZMJ_OutCard{})
-	Processor.Register(&G2C_HZMJ_OperateNotify{})
-	Processor.Register(&G2C_HZMJ_SendCard{})
-	Processor.Register(&C2G_HZMJ_OperateCard{})
-	Processor.Register(&G2C_HZMJ_OperateResult{})
-	Processor.Register(&G2C_HZMJ_Trustee{})
+
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
 	Processor.Register(&G2C_GameChart_ToAll{})
+
 }
 
 type ShowErrCode struct {

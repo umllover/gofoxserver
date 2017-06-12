@@ -1,4 +1,4 @@
-package common
+package room_base
 
 import (
 	"mj/common/cost"

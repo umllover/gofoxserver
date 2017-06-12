@@ -2,10 +2,9 @@ package internal
 
 import (
 	"mj/common/msg"
-	"mj/gameServer/hzmj/room"
+	"mj/gameServer/mj_hz/room"
 	"reflect"
 
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	//"mj/gameServer/db/model/base"
 	. "mj/common/cost"
@@ -13,6 +12,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"mj/gameServer/user"
+
+	"mj/common/msg/mj_hz_msg"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -23,7 +24,6 @@ const (
 
 ////注册rpc 消息
 func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
 	ChanRPC.Register(id, f)
 }
 
@@ -35,8 +35,8 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
-	handlerC2S(&msg.C2G_HZMJ_OperateCard{}, OperateCard)
+	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+	handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
 	// rpc
 	handleRpc("DelRoom", DelRoom)
 	handleRpc("CreateRoom", CreaterRoom)

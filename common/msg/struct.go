@@ -70,6 +70,7 @@ type WeaveItem struct {
 	Param       int   //类型标志
 	ProvideUser int   //供应用户
 	CardData    []int //麻将数据
+	PublicCard  bool  //公开标志
 }
 
 //积分信息

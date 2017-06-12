@@ -5,23 +5,24 @@ import (
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/hallServer/center"
 	"mj/hallServer/db/model"
 	"mj/hallServer/gameList"
 	"mj/hallServer/user"
 	"reflect"
 	"time"
 
+	"mj/hallServer/common"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
 //注册 客户端消息调用
-func handlerC2S(m *Module, msg interface{}, h interface{}) {
+func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
 	m.ChanRPC.Register(reflect.TypeOf(msg), h)
 }
 
-func RegisterHandler(m *Module) {
+func RegisterHandler(m *UserModule) {
 	//注册rpc 消息
 	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
 	m.ChanRPC.Register("NewAgent", m.NewAgent)
@@ -34,26 +35,25 @@ func RegisterHandler(m *Module) {
 }
 
 //连接进来的通知
-func (m *Module) NewAgent(args []interface{}) error {
+func (m *UserModule) NewAgent(args []interface{}) error {
 	log.Debug("at hall NewAgent")
 	return nil
 }
 
 //连接关闭的同喜
-func (m *Module) CloseAgent(args []interface{}) error {
+func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
 	id, ok := agent.UserData().(int)
 	if !ok {
 		return nil
 	}
-	m.OnDestroy()
 	DelUser(id)
-	center.ChanRPC.Go("SelfNodeDelPlayer", id)
+	m.Close(common.UserOffline)
 	return nil
 }
 
-func (m *Module) handleMBLogin(args []interface{}) {
+func (m *UserModule) handleMBLogin(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_Login)
 	retMsg := &msg.L2C_LogonSuccess{}
 	agent := m.a
@@ -100,14 +100,14 @@ func (m *Module) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	Users[user.Id] = struct{}{}
+	user.Agent = agent
+	AddUser(user.Id, user)
 	agent.SetUserData(accountData.UserID)
 	BuildClientMsg(retMsg, user)
-	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
 	gameList.ChanRPC.Go("sendGameList", agent)
 }
 
-func (m *Module) handleMBRegist(args []interface{}) {
+func (m *UserModule) handleMBRegist(args []interface{}) {
 	retcode := 0
 	recvMsg := args[0].(*msg.C2L_Regist)
 	agent := args[1].(gate.Agent)
@@ -160,14 +160,18 @@ func (m *Module) handleMBRegist(args []interface{}) {
 		retcode = CreateUserError
 		return
 	}
-	Users[user.Id] = struct{}{}
+	user.Agent = agent
+	AddUser(user.Id, user)
 	user.Accountsinfo = accInfo
 	agent.SetUserData(accInfo.UserID)
 	BuildClientMsg(retMsg, user)
-	center.ChanRPC.Go("SelfNodeAddPlayer", user.Id, agent.ChanRPC())
 }
 
-func (m *Module) GetUserIndividual(args []interface{}) {
+func (m *UserModule) GetUserIndividual(args []interface{}) {
+
+}
+
+func (m *UserModule) UserOffline() {
 
 }
 
@@ -308,7 +312,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User) {
 /////////////////////////////// help 函数
 
 /////主消息函数
-func (m *Module) handleMsgData(args []interface{}) error {
+func (m *UserModule) handleMsgData(args []interface{}) error {
 	if msg.Processor != nil {
 		str := args[0].([]byte)
 		data, err := msg.Processor.Unmarshal(str)
