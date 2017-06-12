@@ -20,6 +20,7 @@ func init() {
 	Processor.Register(&L2C_ServerList{})
 	Processor.Register(&L2C_ServerListFinish{})
 	Processor.Register(&C2L_User_Individual{})
+	Processor.Register(&L2C_UserIndividual{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -48,8 +49,6 @@ func init() {
 	Processor.Register(&C2G_UserReady{})
 	Processor.Register(&G2C_Hu_Data{})
 	Processor.Register(&SysMsg{})
-
-
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

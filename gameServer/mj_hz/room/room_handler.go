@@ -264,23 +264,22 @@ func (room *Room) Sitdown(args []interface{}) {
 	room.EnterRoom(recvMsg.ChairID, user)
 	//把自己的信息推送给所有玩家
 	room.SendMsgAllNoSelf(user.Id, &msg.G2C_UserEnter{
-		GameID:      user.GameID,                   //游戏 I D
-		UserID:      user.Id,                       //用户 I D
-		FaceID:      user.FaceID,                   //头像索引
-		CustomID:    user.CustomID,                 //自定标识
-		Gender:      user.Gender,                   //用户性别
-		MemberOrder: user.Accountsinfo.MemberOrder, //会员等级
-		TableID:     user.RoomId,                   //桌子索引
-		ChairID:     user.ChairId,                  //椅子索引
-		UserStatus:  user.Status,                   //用户状态
-		Score:       user.Score,                    //用户分数
-		WinCount:    user.WinCount,                 //胜利盘数
-		LostCount:   user.LostCount,                //失败盘数
-		DrawCount:   user.DrawCount,                //和局盘数
-		FleeCount:   user.FleeCount,                //逃跑盘数
-		Experience:  user.Experience,               //用户经验
-		NickName:    user.NickName,                 //昵称
-		HeaderUrl:   user.HeadImgUrl,               //头像
+		UserID:      user.Id,          //用户 I D
+		FaceID:      user.FaceID,      //头像索引
+		CustomID:    user.CustomID,    //自定标识
+		Gender:      user.Gender,      //用户性别
+		MemberOrder: user.MemberOrder, //会员等级
+		TableID:     user.RoomId,      //桌子索引
+		ChairID:     user.ChairId,     //椅子索引
+		UserStatus:  user.Status,      //用户状态
+		Score:       user.Score,       //用户分数
+		WinCount:    user.WinCount,    //胜利盘数
+		LostCount:   user.LostCount,   //失败盘数
+		DrawCount:   user.DrawCount,   //和局盘数
+		FleeCount:   user.FleeCount,   //逃跑盘数
+		Experience:  user.Experience,  //用户经验
+		NickName:    user.NickName,    //昵称
+		HeaderUrl:   user.HeadImgUrl,  //头像
 	})
 
 	//把所有玩家信息推送给自己
@@ -289,23 +288,22 @@ func (room *Room) Sitdown(args []interface{}) {
 			return
 		}
 		user.WriteMsg(&msg.G2C_UserEnter{
-			GameID:      u.GameID,                   //游戏 I D
-			UserID:      u.Id,                       //用户 I D
-			FaceID:      u.FaceID,                   //头像索引
-			CustomID:    u.CustomID,                 //自定标识
-			Gender:      u.Gender,                   //用户性别
-			MemberOrder: u.Accountsinfo.MemberOrder, //会员等级
-			TableID:     u.RoomId,                   //桌子索引
-			ChairID:     u.ChairId,                  //椅子索引
-			UserStatus:  u.Status,                   //用户状态
-			Score:       u.Score,                    //用户分数
-			WinCount:    u.WinCount,                 //胜利盘数
-			LostCount:   u.LostCount,                //失败盘数
-			DrawCount:   u.DrawCount,                //和局盘数
-			FleeCount:   u.FleeCount,                //逃跑盘数
-			Experience:  u.Experience,               //用户经验
-			NickName:    u.NickName,                 //昵称
-			HeaderUrl:   u.HeadImgUrl,               //头像
+			UserID:      u.Id,          //用户 I D
+			FaceID:      u.FaceID,      //头像索引
+			CustomID:    u.CustomID,    //自定标识
+			Gender:      u.Gender,      //用户性别
+			MemberOrder: u.MemberOrder, //会员等级
+			TableID:     u.RoomId,      //桌子索引
+			ChairID:     u.ChairId,     //椅子索引
+			UserStatus:  u.Status,      //用户状态
+			Score:       u.Score,       //用户分数
+			WinCount:    u.WinCount,    //胜利盘数
+			LostCount:   u.LostCount,   //失败盘数
+			DrawCount:   u.DrawCount,   //和局盘数
+			FleeCount:   u.FleeCount,   //逃跑盘数
+			Experience:  u.Experience,  //用户经验
+			NickName:    u.NickName,    //昵称
+			HeaderUrl:   u.HeadImgUrl,  //头像
 		})
 	})
 

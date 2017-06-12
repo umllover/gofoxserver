@@ -17,43 +17,23 @@ import (
 // +gen *
 type Accountsinfo struct {
 	UserID           int        `db:"UserID" json:"UserID"`                     // 用户标识
-	GameID           int        `db:"GameID" json:"GameID"`                     // 游戏标识
 	ProtectID        int        `db:"ProtectID" json:"ProtectID"`               // 密保标识
-	PasswordID       int        `db:"PasswordID" json:"PasswordID"`             // 口令索引
 	SpreaderID       int        `db:"SpreaderID" json:"SpreaderID"`             // 推广员标识
 	Accounts         string     `db:"Accounts" json:"Accounts"`                 // 用户帐号
 	NickName         string     `db:"NickName" json:"NickName"`                 // 用户昵称
-	RegAccounts      string     `db:"RegAccounts" json:"RegAccounts"`           // 注册帐号
-	UnderWrite       string     `db:"UnderWrite" json:"UnderWrite"`             // 个性签名
 	PassPortID       string     `db:"PassPortID" json:"PassPortID"`             // 身份证号
 	Compellation     string     `db:"Compellation" json:"Compellation"`         // 真实名字
 	LogonPass        string     `db:"LogonPass" json:"LogonPass"`               // 登录密码
+	IsAndroid        int8       `db:"IsAndroid" json:"IsAndroid"`               //
 	InsurePass       string     `db:"InsurePass" json:"InsurePass"`             // 安全密码
-	FaceID           int8       `db:"FaceID" json:"FaceID"`                     // 头像标识
-	CustomID         int        `db:"CustomID" json:"CustomID"`                 // 自定标识
-	Present          int        `db:"Present" json:"Present"`                   // 赠送礼物
-	UserMedal        int        `db:"UserMedal" json:"UserMedal"`               // 用户奖牌
-	GrowLevelID      int        `db:"GrowLevelID" json:"GrowLevelID"`           //
-	Experience       int        `db:"Experience" json:"Experience"`             // 经验数值
-	LoveLiness       int        `db:"LoveLiness" json:"LoveLiness"`             // 用户魅力
-	UserRight        int        `db:"UserRight" json:"UserRight"`               // 用户权限
-	MasterRight      int        `db:"MasterRight" json:"MasterRight"`           // 管理权限
-	ServiceRight     int        `db:"ServiceRight" json:"ServiceRight"`         // 服务权限
 	MasterOrder      int8       `db:"MasterOrder" json:"MasterOrder"`           // 管理等级
-	MemberOrder      int8       `db:"MemberOrder" json:"MemberOrder"`           // 会员等级
-	MemberOverDate   *time.Time `db:"MemberOverDate" json:"MemberOverDate"`     // 过期日期
-	MemberSwitchDate *time.Time `db:"MemberSwitchDate" json:"MemberSwitchDate"` // 切换时间
-	CustomFaceVer    int8       `db:"CustomFaceVer" json:"CustomFaceVer"`       // 头像版本
 	Gender           int8       `db:"Gender" json:"Gender"`                     // 用户性别
 	Nullity          int8       `db:"Nullity" json:"Nullity"`                   // 禁止服务
 	NullityOverDate  *time.Time `db:"NullityOverDate" json:"NullityOverDate"`   // 禁止时间
 	StunDown         int8       `db:"StunDown" json:"StunDown"`                 // 关闭标志
 	MoorMachine      int8       `db:"MoorMachine" json:"MoorMachine"`           // 固定机器
-	IsAndroid        int8       `db:"IsAndroid" json:"IsAndroid"`               // 是否机器人
 	WebLogonTimes    int        `db:"WebLogonTimes" json:"WebLogonTimes"`       // 登录次数
 	GameLogonTimes   int        `db:"GameLogonTimes" json:"GameLogonTimes"`     // 登录次数
-	PlayTimeCount    int        `db:"PlayTimeCount" json:"PlayTimeCount"`       // 游戏时间
-	OnLineTimeCount  int        `db:"OnLineTimeCount" json:"OnLineTimeCount"`   // 在线时间
 	LastLogonIP      string     `db:"LastLogonIP" json:"LastLogonIP"`           // 登录地址
 	LastLogonDate    *time.Time `db:"LastLogonDate" json:"LastLogonDate"`       // 登录时间
 	LastLogonMobile  string     `db:"LastLogonMobile" json:"LastLogonMobile"`   // 登录手机
@@ -62,16 +42,17 @@ type Accountsinfo struct {
 	RegisterDate     *time.Time `db:"RegisterDate" json:"RegisterDate"`         // 注册时间
 	RegisterMobile   string     `db:"RegisterMobile" json:"RegisterMobile"`     // 注册手机
 	RegisterMachine  string     `db:"RegisterMachine" json:"RegisterMachine"`   // 注册机器
-	ClientID         int        `db:"ClientID" json:"ClientID"`                 //
 	QQID             string     `db:"QQID" json:"QQID"`                         // QQ对应ID
 	WXID             string     `db:"WXID" json:"WXID"`                         // 微信对应ID
 	AgentID          int        `db:"AgentID" json:"AgentID"`                   //
 	AgentNumber      string     `db:"AgentNumber" json:"AgentNumber"`           //
-	Describes        string     `db:"Describes" json:"Describes"`               //
-	Address          string     `db:"Address" json:"Address"`                   //
 	HeadImgUrl       string     `db:"HeadImgUrl" json:"HeadImgUrl"`             //
 	UnionID          string     `db:"UnionID" json:"UnionID"`                   //
-	FieldLevel       int8       `db:"FieldLevel" json:"FieldLevel"`             //
+	QQ               string     `db:"QQ" json:"QQ"`                             // QQ 号码
+	EMail            string     `db:"EMail" json:"EMail"`                       //
+	DwellingPlace    string     `db:"DwellingPlace" json:"DwellingPlace"`       // 详细住址
+	PostalCode       string     `db:"PostalCode" json:"PostalCode"`             // 邮政编码
+	Birthday         *time.Time `db:"Birthday" json:"Birthday"`                 // 生日
 }
 
 type accountsinfoOp struct{}
@@ -166,45 +147,25 @@ func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
-	sql := "insert into accountsinfo(GameID,ProtectID,PasswordID,SpreaderID,Accounts,NickName,RegAccounts,UnderWrite,PassPortID,Compellation,LogonPass,InsurePass,FaceID,CustomID,Present,UserMedal,GrowLevelID,Experience,LoveLiness,UserRight,MasterRight,ServiceRight,MasterOrder,MemberOrder,MemberOverDate,MemberSwitchDate,CustomFaceVer,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,IsAndroid,WebLogonTimes,GameLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,ClientID,QQID,WXID,AgentID,AgentNumber,Describes,Address,HeadImgUrl,UnionID,FieldLevel) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into accountsinfo(ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
-		m.GameID,
 		m.ProtectID,
-		m.PasswordID,
 		m.SpreaderID,
 		m.Accounts,
 		m.NickName,
-		m.RegAccounts,
-		m.UnderWrite,
 		m.PassPortID,
 		m.Compellation,
 		m.LogonPass,
+		m.IsAndroid,
 		m.InsurePass,
-		m.FaceID,
-		m.CustomID,
-		m.Present,
-		m.UserMedal,
-		m.GrowLevelID,
-		m.Experience,
-		m.LoveLiness,
-		m.UserRight,
-		m.MasterRight,
-		m.ServiceRight,
 		m.MasterOrder,
-		m.MemberOrder,
-		m.MemberOverDate,
-		m.MemberSwitchDate,
-		m.CustomFaceVer,
 		m.Gender,
 		m.Nullity,
 		m.NullityOverDate,
 		m.StunDown,
 		m.MoorMachine,
-		m.IsAndroid,
 		m.WebLogonTimes,
 		m.GameLogonTimes,
-		m.PlayTimeCount,
-		m.OnLineTimeCount,
 		m.LastLogonIP,
 		m.LastLogonDate,
 		m.LastLogonMobile,
@@ -213,16 +174,17 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.RegisterDate,
 		m.RegisterMobile,
 		m.RegisterMachine,
-		m.ClientID,
 		m.QQID,
 		m.WXID,
 		m.AgentID,
 		m.AgentNumber,
-		m.Describes,
-		m.Address,
 		m.HeadImgUrl,
 		m.UnionID,
-		m.FieldLevel,
+		m.QQ,
+		m.EMail,
+		m.DwellingPlace,
+		m.PostalCode,
+		m.Birthday,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -249,45 +211,25 @@ func (op *accountsinfoOp) Update(m *Accountsinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
-	sql := `update accountsinfo set GameID=?,ProtectID=?,PasswordID=?,SpreaderID=?,Accounts=?,NickName=?,RegAccounts=?,UnderWrite=?,PassPortID=?,Compellation=?,LogonPass=?,InsurePass=?,FaceID=?,CustomID=?,Present=?,UserMedal=?,GrowLevelID=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,ServiceRight=?,MasterOrder=?,MemberOrder=?,MemberOverDate=?,MemberSwitchDate=?,CustomFaceVer=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,IsAndroid=?,WebLogonTimes=?,GameLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,ClientID=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,Describes=?,Address=?,HeadImgUrl=?,UnionID=?,FieldLevel=? where UserID=?`
+	sql := `update accountsinfo set ProtectID=?,SpreaderID=?,Accounts=?,NickName=?,PassPortID=?,Compellation=?,LogonPass=?,IsAndroid=?,InsurePass=?,MasterOrder=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,WebLogonTimes=?,GameLogonTimes=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,HeadImgUrl=?,UnionID=?,QQ=?,EMail=?,DwellingPlace=?,PostalCode=?,Birthday=? where UserID=?`
 	_, err := ext.Exec(sql,
-		m.GameID,
 		m.ProtectID,
-		m.PasswordID,
 		m.SpreaderID,
 		m.Accounts,
 		m.NickName,
-		m.RegAccounts,
-		m.UnderWrite,
 		m.PassPortID,
 		m.Compellation,
 		m.LogonPass,
+		m.IsAndroid,
 		m.InsurePass,
-		m.FaceID,
-		m.CustomID,
-		m.Present,
-		m.UserMedal,
-		m.GrowLevelID,
-		m.Experience,
-		m.LoveLiness,
-		m.UserRight,
-		m.MasterRight,
-		m.ServiceRight,
 		m.MasterOrder,
-		m.MemberOrder,
-		m.MemberOverDate,
-		m.MemberSwitchDate,
-		m.CustomFaceVer,
 		m.Gender,
 		m.Nullity,
 		m.NullityOverDate,
 		m.StunDown,
 		m.MoorMachine,
-		m.IsAndroid,
 		m.WebLogonTimes,
 		m.GameLogonTimes,
-		m.PlayTimeCount,
-		m.OnLineTimeCount,
 		m.LastLogonIP,
 		m.LastLogonDate,
 		m.LastLogonMobile,
@@ -296,16 +238,17 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 		m.RegisterDate,
 		m.RegisterMobile,
 		m.RegisterMachine,
-		m.ClientID,
 		m.QQID,
 		m.WXID,
 		m.AgentID,
 		m.AgentNumber,
-		m.Describes,
-		m.Address,
 		m.HeadImgUrl,
 		m.UnionID,
-		m.FieldLevel,
+		m.QQ,
+		m.EMail,
+		m.DwellingPlace,
+		m.PostalCode,
+		m.Birthday,
 		m.UserID,
 	)
 

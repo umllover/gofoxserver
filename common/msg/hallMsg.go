@@ -91,3 +91,19 @@ type L2C_ServerList []*TagGameServer
 
 //房间列表发送成功
 type L2C_ServerListFinish struct{}
+
+//个人资料
+type L2C_UserIndividual struct {
+	//用户信息
+	UserID      int    //用户 I D
+	NickName    string //昵称
+	Accounts    string //账号
+	WinCount    int    //赢数
+	LostCount   int    //输数
+	DrawCount   int    //平数
+	Medal       int
+	RoomCard    int  //房卡
+	MemberOrder int8 //会员等级
+	Score       int64
+	HeadImgUrl  string
+}

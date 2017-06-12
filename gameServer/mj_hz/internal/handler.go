@@ -110,23 +110,22 @@ func GetUserChairInfo(args []interface{}) {
 	}
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
-		GameID:      tagUser.GameID,                   //游戏 I D
-		UserID:      tagUser.Id,                       //用户 I D
-		FaceID:      tagUser.FaceID,                   //头像索引
-		CustomID:    tagUser.CustomID,                 //自定标识
-		Gender:      tagUser.Gender,                   //用户性别
-		MemberOrder: tagUser.Accountsinfo.MemberOrder, //会员等级
-		TableID:     tagUser.RoomId,                   //桌子索引
-		ChairID:     tagUser.ChairId,                  //椅子索引
-		UserStatus:  tagUser.Status,                   //用户状态
-		Score:       tagUser.Score,                    //用户分数
-		WinCount:    tagUser.WinCount,                 //胜利盘数
-		LostCount:   tagUser.LostCount,                //失败盘数
-		DrawCount:   tagUser.DrawCount,                //和局盘数
-		FleeCount:   tagUser.FleeCount,                //逃跑盘数
-		Experience:  tagUser.Experience,               //用户经验
-		NickName:    tagUser.NickName,                 //昵称
-		HeaderUrl:   tagUser.HeadImgUrl,               //头像
+		UserID:      tagUser.Id,          //用户 I D
+		FaceID:      tagUser.FaceID,      //头像索引
+		CustomID:    tagUser.CustomID,    //自定标识
+		Gender:      tagUser.Gender,      //用户性别
+		MemberOrder: tagUser.MemberOrder, //会员等级
+		TableID:     tagUser.RoomId,      //桌子索引
+		ChairID:     tagUser.ChairId,     //椅子索引
+		UserStatus:  tagUser.Status,      //用户状态
+		Score:       tagUser.Score,       //用户分数
+		WinCount:    tagUser.WinCount,    //胜利盘数
+		LostCount:   tagUser.LostCount,   //失败盘数
+		DrawCount:   tagUser.DrawCount,   //和局盘数
+		FleeCount:   tagUser.FleeCount,   //逃跑盘数
+		Experience:  tagUser.Experience,  //用户经验
+		NickName:    tagUser.NickName,    //昵称
+		HeaderUrl:   tagUser.HeadImgUrl,  //头像
 	})
 }
 

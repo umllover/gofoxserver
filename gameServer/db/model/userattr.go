@@ -15,9 +15,21 @@ import (
 
 // +gen *
 type Userattr struct {
-	UserID   int `db:"UserID" json:"UserID"`     //
-	Currency int `db:"Currency" json:"Currency"` // 游戏豆
-	RoomCard int `db:"RoomCard" json:"RoomCard"` // 房卡数
+	UserID          int    `db:"UserID" json:"UserID"`                   //
+	UnderWrite      string `db:"UnderWrite" json:"UnderWrite"`           // 个性签名
+	FaceID          int8   `db:"FaceID" json:"FaceID"`                   // 头像标识
+	CustomID        int    `db:"CustomID" json:"CustomID"`               // 自定标识
+	UserMedal       int    `db:"UserMedal" json:"UserMedal"`             // 用户奖牌
+	Experience      int    `db:"Experience" json:"Experience"`           // 经验数值
+	LoveLiness      int    `db:"LoveLiness" json:"LoveLiness"`           // 用户魅力
+	UserRight       int    `db:"UserRight" json:"UserRight"`             // 用户权限
+	MasterRight     int    `db:"MasterRight" json:"MasterRight"`         // 管理权限
+	MasterOrder     int8   `db:"MasterOrder" json:"MasterOrder"`         // 管理等级
+	PlayTimeCount   int    `db:"PlayTimeCount" json:"PlayTimeCount"`     // 游戏时间
+	OnLineTimeCount int    `db:"OnLineTimeCount" json:"OnLineTimeCount"` // 在线时间
+	HeadImgUrl      string `db:"HeadImgUrl" json:"HeadImgUrl"`           // 头像
+	Gender          int8   `db:"Gender" json:"Gender"`                   // 性别
+	NickName        string `db:"NickName" json:"NickName"`               //
 }
 
 type userattrOp struct{}
@@ -112,11 +124,23 @@ func (op *userattrOp) Insert(m *Userattr) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
-	sql := "insert into userattr(UserID,Currency,RoomCard) values(?,?,?)"
+	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
-		m.Currency,
-		m.RoomCard,
+		m.UnderWrite,
+		m.FaceID,
+		m.CustomID,
+		m.UserMedal,
+		m.Experience,
+		m.LoveLiness,
+		m.UserRight,
+		m.MasterRight,
+		m.MasterOrder,
+		m.PlayTimeCount,
+		m.OnLineTimeCount,
+		m.HeadImgUrl,
+		m.Gender,
+		m.NickName,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -143,10 +167,22 @@ func (op *userattrOp) Update(m *Userattr) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
-	sql := `update userattr set Currency=?,RoomCard=? where UserID=?`
+	sql := `update userattr set UnderWrite=?,FaceID=?,CustomID=?,UserMedal=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,MasterOrder=?,PlayTimeCount=?,OnLineTimeCount=?,HeadImgUrl=?,Gender=?,NickName=? where UserID=?`
 	_, err := ext.Exec(sql,
-		m.Currency,
-		m.RoomCard,
+		m.UnderWrite,
+		m.FaceID,
+		m.CustomID,
+		m.UserMedal,
+		m.Experience,
+		m.LoveLiness,
+		m.UserRight,
+		m.MasterRight,
+		m.MasterOrder,
+		m.PlayTimeCount,
+		m.OnLineTimeCount,
+		m.HeadImgUrl,
+		m.Gender,
+		m.NickName,
 		m.UserID,
 	)
 

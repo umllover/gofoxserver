@@ -28,12 +28,11 @@ var AccountsmemberOp = &accountsmemberOp{}
 var DefaultAccountsmember = &Accountsmember{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *accountsmemberOp) Get(UserID int, MemberOrder int8) (*Accountsmember, bool) {
+func (op *accountsmemberOp) Get(UserID int) (*Accountsmember, bool) {
 	obj := &Accountsmember{}
-	sql := "select * from accountsmember where UserID=? and MemberOrder=? "
+	sql := "select * from accountsmember where UserID=? "
 	err := db.DB.Get(obj, sql,
 		UserID,
-		MemberOrder,
 	)
 
 	if err != nil {
@@ -147,12 +146,12 @@ func (op *accountsmemberOp) Update(m *Accountsmember) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsmemberOp) UpdateTx(ext sqlx.Ext, m *Accountsmember) error {
-	sql := `update accountsmember set UserRight=?,MemberOverDate=? where UserID=? and MemberOrder=?`
+	sql := `update accountsmember set MemberOrder=?,UserRight=?,MemberOverDate=? where UserID=?`
 	_, err := ext.Exec(sql,
+		m.MemberOrder,
 		m.UserRight,
 		m.MemberOverDate,
 		m.UserID,
-		m.MemberOrder,
 	)
 
 	if err != nil {
@@ -164,14 +163,14 @@ func (op *accountsmemberOp) UpdateTx(ext sqlx.Ext, m *Accountsmember) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMap(UserID int, MemberOrder int8, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, UserID, MemberOrder, m)
+func (op *accountsmemberOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, MemberOrder int8, m map[string]interface{}) error {
+func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
 
-	sql := `update accountsmember set %s where 1=1 and UserID=? and MemberOrder=? ;`
+	sql := `update accountsmember set %s where 1=1 and UserID=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -179,7 +178,7 @@ func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, MemberOrde
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, UserID, MemberOrder)
+	params = append(params, UserID)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -192,19 +191,17 @@ func (i *Accountsmember) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *accountsmemberOp) Delete(UserID int, MemberOrder int8) error {
-	return op.DeleteTx(db.DB, UserID, MemberOrder)
+func (op *accountsmemberOp) Delete(UserID int) error {
+	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *accountsmemberOp) DeleteTx(ext sqlx.Ext, UserID int, MemberOrder int8) error {
+func (op *accountsmemberOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 	sql := `delete from accountsmember where 1=1
         and UserID=?
-        and MemberOrder=?
         `
 	_, err := ext.Exec(sql,
 		UserID,
-		MemberOrder,
 	)
 	return err
 }

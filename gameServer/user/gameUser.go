@@ -11,7 +11,7 @@ import (
 
 type User struct {
 	gate.Agent
-	*model.Accountsinfo
+	*model.Usertoken
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo

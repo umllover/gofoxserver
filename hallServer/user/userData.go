@@ -9,11 +9,11 @@ import (
 
 type User struct {
 	gate.Agent
-	*model.Accountsinfo
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo
 	*model.Userattr
+	*model.Usertoken
 	*model.Userextrainfo
 	Id int
 	sync.RWMutex

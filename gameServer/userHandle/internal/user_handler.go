@@ -113,7 +113,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	user := user.NewUser(accountData.UserID)
 	user.Agent = agent
-	user.Accountsinfo = accountData
 	user.Id = accountData.UserID
 	user.ChairId = INVALID_CHAIR
 	user.RoomId = INVALID_CHAIR
@@ -141,23 +140,22 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
-		GameID:      user.GameID,                   //游戏 I D
-		UserID:      user.Id,                       //用户 I D
-		FaceID:      user.FaceID,                   //头像索引
-		CustomID:    user.CustomID,                 //自定标识
-		Gender:      user.Gender,                   //用户性别
-		MemberOrder: user.Accountsinfo.MemberOrder, //会员等级
-		TableID:     user.RoomId,                   //桌子索引
-		ChairID:     user.ChairId,                  //椅子索引
-		UserStatus:  user.Status,                   //用户状态
-		Score:       user.Score,                    //用户分数
-		WinCount:    user.WinCount,                 //胜利盘数
-		LostCount:   user.LostCount,                //失败盘数
-		DrawCount:   user.DrawCount,                //和局盘数
-		FleeCount:   user.FleeCount,                //逃跑盘数
-		Experience:  user.Experience,               //用户经验
-		NickName:    user.NickName,                 //昵称
-		HeaderUrl:   user.HeadImgUrl,               //头像
+		UserID:      user.Id,          //用户 I D
+		FaceID:      user.FaceID,      //头像索引
+		CustomID:    user.CustomID,    //自定标识
+		Gender:      user.Gender,      //用户性别
+		MemberOrder: user.MemberOrder, //会员等级
+		TableID:     user.RoomId,      //桌子索引
+		ChairID:     user.ChairId,     //椅子索引
+		UserStatus:  user.Status,      //用户状态
+		Score:       user.Score,       //用户分数
+		WinCount:    user.WinCount,    //胜利盘数
+		LostCount:   user.LostCount,   //失败盘数
+		DrawCount:   user.DrawCount,   //和局盘数
+		FleeCount:   user.FleeCount,   //逃跑盘数
+		Experience:  user.Experience,  //用户经验
+		NickName:    user.NickName,    //昵称
+		HeaderUrl:   user.HeadImgUrl,  //头像
 	})
 }
 
@@ -202,7 +200,7 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 /////////////////////////////// help 函数
 ///////
 func loadUser(u *user.User) bool {
-	ainfo, aok := model.AccountsmemberOp.Get(u.Id, u.Accountsinfo.MemberOrder)
+	ainfo, aok := model.AccountsmemberOp.Get(u.Id)
 	if !aok {
 		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
 		return false
@@ -238,6 +236,13 @@ func loadUser(u *user.User) bool {
 		return false
 	}
 	u.Userextrainfo = uextInfo
+
+	userToken, tok := model.UsertokenOp.Get(u.Id)
+	if !tok {
+		log.Error("at loadUser not foud UsertokenOp by user  %d", u.Id)
+		return false
+	}
+	u.Usertoken = userToken
 	return true
 }
 
