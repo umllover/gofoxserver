@@ -19,7 +19,6 @@ func NewCtlBase() *Ctl_base {
 
 //多久没玩家加入超时
 func (c *Ctl_base) JoinTimeOut() bool {
-	if c.TimeStartGame
 	return false
 }
 
