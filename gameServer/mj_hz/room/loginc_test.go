@@ -13,7 +13,8 @@ import (
 	"net"
 	"strconv"
 	"testing"
-	"time"
+
+	"mj/gameServer/common/room_base"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -107,7 +108,7 @@ func init() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	var userCnt = 4
-	room.RoomInfo = common.NewRoomInfo(userCnt, 1)
+	room.RoomBase = room_base.NewRoomBase(userCnt, 1, nil, "aa")
 	room.Kind = 389
 	room.ServerId = 1
 	room.Name = fmt.Sprintf(strconv.Itoa(common.KIND_TYPE_HZMJ)+"_%v", room.GetRoomId())
@@ -118,10 +119,8 @@ func init() {
 	room.Password = ""
 	room.JoinGamePeopleCount = 2
 	room.CreateUser = 3
-	room.CustomRule = new(msg.CustomRule)
 	room.Response = make([]bool, userCnt)
 	room.gameLogic = NewGameLogic()
-	room.EendTime = time.Now().Unix() + 900
 	room.Owner = 3
 	room.BankerUser = INVALID_CHAIR
 	room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}

@@ -40,6 +40,7 @@ type RoomBase struct {
 	JoinGamePeopleCount int                //房主设置的游戏人数
 	Users               []*user.User       /// index is chairId
 	Onlookers           map[int]*user.User /// 旁观的玩家
+	CreateUser          int                //创建房间的人
 }
 
 func NewRoomBase(userCnt, rid int, mgrCh *chanrpc.Server, name string) *RoomBase {
@@ -54,14 +55,12 @@ func NewRoomBase(userCnt, rid int, mgrCh *chanrpc.Server, name string) *RoomBase
 	r.CreateTime = time.Now().Unix()
 	r.UserCnt = userCnt
 	r.Onlookers = make(map[int]*user.User)
-	r.RoomRun()
 	return r
 }
 
 func (r *RoomBase) RoomRun() {
 	go func() {
 		log.Debug("room Room start run Name:%s", r.id)
-		r.OnInit()
 		r.Run(r.CloseSig)
 		r.End()
 		log.Debug("room Room End run Name:%s", r.id)
@@ -84,10 +83,6 @@ func (r *RoomBase) Destroy() {
 	r.CloseSig <- true
 	r.OnDestroy()
 	log.Debug("room Room Destroy ok,  Name:%s", r.id)
-}
-
-func (r *RoomBase) OnInit() { // 基类实现
-
 }
 
 func (r *RoomBase) OnDestroy() { // 基类实现

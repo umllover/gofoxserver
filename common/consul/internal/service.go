@@ -118,11 +118,11 @@ func WatchAllFaildServices(client *api.Client, ServiceName string) {
 			continue
 		}
 
-		log.Debug(" at WatchAllFaildServices .... lastIndex :%d, new indx:%d, serverName:%s data:%v", lastIndex, meta.LastIndex, ServiceName, checks)
 		lastIndex = meta.LastIndex
 		if len(checks) < 1 {
 			continue
 		}
+		log.Debug(" at WatchAllFaildServices .... lastIndex :%d, new indx:%d, serverName:%s data:%v", lastIndex, meta.LastIndex, ServiceName, checks)
 		status := make([]string, 1)
 		status = append(status, "critical")
 		checkIds := passingServices(checks, status)

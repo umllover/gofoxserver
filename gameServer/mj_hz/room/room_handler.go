@@ -24,7 +24,9 @@ func RegisterHandler(r *Room) {
 	r.ChanRPC.Register("OutCard", r.OutCard)
 	r.ChanRPC.Register("OperateCard", r.UserOperateCard)
 	r.ChanRPC.Register("UserReady", r.UserReady)
-
+	r.ChanRPC.Register("UserOffline", r.UserOffline)
+	r.ChanRPC.Register("UserReLogin", r.UserReLogin)
+	r.ChanRPC.Register("GetUserChairInfo", r.GetUserChairInfo)
 }
 
 func (room *Room) OutCard(args []interface{}) {
@@ -325,6 +327,39 @@ func (room *Room) UserReady(args []interface{}) {
 	}
 }
 
+func (room *Room) UserOffline(args []interface{}) {
+	user := args[0].(*client.User)
+	if user.Status == US_READY {
+		log.Debug("user status is ready at UserReady")
+		return
+	}
+
+	room.setUsetStatus(user, US_OFFLINE)
+	if room.Temp.TimeOffLineCount != 0 {
+		room.KickOut[user.Id] = room.Skeleton.AfterFunc(time.Duration(room.Temp.TimeOffLineCount)*time.Second, func() {
+			room.OfflineKickOut(user)
+		})
+	} else {
+		room.OfflineKickOut(user)
+	}
+}
+
+func (room *Room) UserReLogin(args []interface{}) {
+	user := args[0].(*client.User)
+	if user.Status == US_READY {
+		log.Debug("user status is ready at UserReady")
+		return
+	}
+
+	tm, ok := room.KickOut[user.Id]
+	if ok {
+		tm.Stop()
+		delete(room.KickOut, user.Id)
+	}
+
+	room.setUsetStatus(user, US_PLAYING)
+}
+
 /////////////////// help
 func (room *Room) setUsetStatus(user *client.User, stu int) {
 	user.Status = stu
@@ -534,6 +569,8 @@ func (room *Room) StartGame() {
 		//room.WaitTime = 0;
 	}
 
+	room.EndTime.Stop()
+	room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, room.AfterGameTimeOut)
 	log.Debug("end startgame ... ")
 	return
 }
@@ -656,7 +693,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		room.WriteTableScore(ScoreInfoArray, room.PlayCount, HZMJ_CHANGE_SOURCE)
 
 		//结束游戏
-		room.GameEnd()
+		room.GameEnd(false)
 
 		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
 			if room.IsDissumGame { //当前朋友局解散清理记录
@@ -664,8 +701,6 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 			}
 
 		}
-		return true
-	case GER_NETWORK_ERROR: //网络中断
 		return true
 	case GER_USER_LEAVE: //用户强退
 		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
@@ -706,7 +741,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_GAME_CONCLUDE, &GameConclude, sizeof(GameConclude));
 
 		//结束游戏
-		room.GameEnd()
+		room.GameEnd(true)
 
 		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
 			if room.IsDissumGame { //当前朋友局解散清理记录
@@ -722,8 +757,19 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 }
 
 //todo
-func (room *Room) GameEnd() {
+func (room *Room) GameEnd(Forced bool) {
+	if Forced {
+		room.Destroy()
+		return
+	}
+	room.ForEachUser(func(u *client.User) {
+		room.setUsetStatus(u, US_FREE)
+	})
+
 	room.PlayCount++
+	if room.PlayCount >= room.Temp.PlayTurnCount {
+		room.Destroy()
+	}
 }
 
 func (room *Room) GetRemainingCount(ChairId int, cbCardData int) int {
@@ -1670,4 +1716,34 @@ func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) int 
 	}
 
 	return 0
+}
+
+//获取对方信息
+func (room *Room) GetUserChairInfo(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
+	user := args[1].(*client.User)
+	tagUser := room.GetUserByChairId(recvMsg.ChairID)
+	if tagUser == nil {
+		log.Error("at GetUserChairInfo no foud tagUser %v, userId:%d", args[0], user.Id)
+		return
+	}
+
+	user.WriteMsg(&msg.G2C_UserEnter{
+		UserID:      tagUser.Id,          //用户 I D
+		FaceID:      tagUser.FaceID,      //头像索引
+		CustomID:    tagUser.CustomID,    //自定标识
+		Gender:      tagUser.Gender,      //用户性别
+		MemberOrder: tagUser.MemberOrder, //会员等级
+		TableID:     tagUser.RoomId,      //桌子索引
+		ChairID:     tagUser.ChairId,     //椅子索引
+		UserStatus:  tagUser.Status,      //用户状态
+		Score:       tagUser.Score,       //用户分数
+		WinCount:    tagUser.WinCount,    //胜利盘数
+		LostCount:   tagUser.LostCount,   //失败盘数
+		DrawCount:   tagUser.DrawCount,   //和局盘数
+		FleeCount:   tagUser.FleeCount,   //逃跑盘数
+		Experience:  tagUser.Experience,  //用户经验
+		NickName:    tagUser.NickName,    //昵称
+		HeaderUrl:   tagUser.HeadImgUrl,  //头像
+	})
 }

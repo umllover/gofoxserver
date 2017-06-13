@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"mj/gameServer/common/mj_ctl_base"
-
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 )
@@ -34,7 +32,6 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.Owner = uid
 	room.BankerUser = INVALID_CHAIR
 	now := time.Now().Unix()
-	room.TimeStartGame = now
 	room.EendTime = now + 900
 	room.CardIndex = make([][]int, room.UserCnt)
 	room.HistoryScores = make([]*HistoryScore, room.UserCnt)
@@ -48,7 +45,6 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 type Room struct {
 	// 游戏字段
 	*room_base.RoomBase
-	*mj_ctl_base.Ctl_base
 	ChatRoomId        int                         //聊天房间id
 	Name              string                      //房间名字
 	Kind              int                         //第一类型

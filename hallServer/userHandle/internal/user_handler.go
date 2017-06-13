@@ -13,6 +13,7 @@ import (
 
 	"mj/hallServer/common"
 
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -372,8 +373,9 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 			return errors.New("json message pointer required 11")
 		}
 
-		if m.ChanRPC.HasFunc(msgType) {
-			m.ChanRPC.Go(msgType, data, m.a)
+		f, ok := m.ChanRPC.HasFunc(msgType)
+		if ok {
+			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
 			return nil
 		}
 

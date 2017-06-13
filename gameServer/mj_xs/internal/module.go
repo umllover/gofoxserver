@@ -8,6 +8,8 @@ import (
 	"mj/gameServer/mj_xs/room"
 	"time"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/module"
@@ -16,7 +18,6 @@ import (
 var (
 	skeleton        = base.NewSkeleton()
 	ChanRPC         = skeleton.ChanRPCServer
-	rooms           = make(map[int]*room.Room)
 	clientCount int = 0
 	wTableCount int = 0
 )
@@ -31,9 +32,6 @@ func (m *Module) OnInit() {
 }
 
 func (m *Module) OnDestroy() {
-	for _, r := range rooms {
-		r.Destroy()
-	}
 }
 
 func (m *Module) GetChanRPC() *chanrpc.Server {
@@ -62,7 +60,7 @@ func AddTableCount() {
 }
 
 func addRoom(r *room.Room) {
-	rooms[r.GetRoomId()] = r
+	RoomMgr.AddRoom(r)
 	AddTableCount()
 	msg := &msg.RoomInfo{}
 	msg.ServerID = r.ServerId
@@ -73,10 +71,11 @@ func addRoom(r *room.Room) {
 }
 
 func delRoom(id int) {
-	delete(rooms, id)
+	RoomMgr.DelRoom(id)
 	cluster.Broadcast(HallPrefix, "notifyDelRoom", id)
 }
 
 func getRoom(id int) *room.Room {
-	return rooms[id]
+	r, _ := RoomMgr.GetRoom(id).(*room.Room)
+	return r
 }

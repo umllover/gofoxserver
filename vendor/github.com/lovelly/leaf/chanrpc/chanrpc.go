@@ -41,6 +41,13 @@ type CallInfo struct {
 	cb      interface{}
 }
 
+func BuildGoCallInfo(f *FuncInfo, args ...interface{}) *CallInfo {
+	return &CallInfo{
+		fInfo: f,
+		args:  args,
+	}
+}
+
 type RetInfo struct {
 	// nil
 	// interface{}
@@ -78,9 +85,9 @@ func Assert(i interface{}) []interface{} {
 	}
 }
 
-func (s *Server) HasFunc(id interface{}) bool {
-	_, ok := s.functions[id]
-	return ok
+func (s *Server) HasFunc(id interface{}) (*FuncInfo, bool) {
+	f, ok := s.functions[id]
+	return f, ok
 }
 
 // you must call the function before calling Open and Go

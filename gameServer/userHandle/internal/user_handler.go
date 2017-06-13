@@ -7,11 +7,14 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/user"
+	client "mj/gameServer/user"
 	"reflect"
 
 	"mj/gameServer/common"
 
+	"mj/gameServer/RoomMgr"
+
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -30,6 +33,13 @@ func RegisterHandler(m *UserModule) {
 	//c2s
 	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
+	handlerC2S(m, &msg.C2G_UserSitdown{}, m.UserSitdown)
+	handlerC2S(m, &msg.C2G_GameOption{}, m.SetGameOption)
+	handlerC2S(m, &msg.C2G_UserStandup{}, m.UserStandup)
+	handlerC2S(m, &msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
+	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
+	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
+
 }
 
 //连接进来的通知
@@ -41,7 +51,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 //房间关闭的时候通知
 func (m *UserModule) RoomClose(args []interface{}) error {
 	log.Debug("at RoomClose ...........")
-	user := m.a.UserData().(*user.User)
+	user := m.a.UserData().(*client.User)
 	if user.IsOffline() {
 		DelUser(user.Id)
 		m.Close(common.UserOffline)
@@ -53,7 +63,7 @@ func (m *UserModule) RoomClose(args []interface{}) error {
 func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at game CloseAgent")
 	agent := m.a
-	user, ok := agent.UserData().(*user.User)
+	user, ok := agent.UserData().(*client.User)
 	if !ok {
 		return nil
 	}
@@ -61,7 +71,10 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 		DelUser(user.Id)
 		m.Close(common.UserOffline)
 	} else {
-		//等待房间结束
+		if user.RoomId != 0 {
+			r := RoomMgr.GetRoom(user.RoomId)
+			r.GetChanRPC().Go("userOffline", user)
+		}
 	}
 
 	return nil
@@ -96,7 +109,14 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	if HasUser(accountData.UserID) {
+	template, ok := base.GameServiceOptionCache.Get(recvMsg.KindID, recvMsg.ServerID)
+	if !ok {
+		retcode = NoFoudTemplate
+		return
+	}
+
+	user, ok := getUser(accountData.UserID)
+	if ok && !user.IsOffline() {
 		retcode = ErrUserReLogin
 		return
 	}
@@ -106,31 +126,34 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	//	return
 	//}
 
-	template, ok := base.GameServiceOptionCache.Get(recvMsg.KindID, recvMsg.ServerID)
-	if !ok {
-		retcode = NoFoudTemplate
-		return
+	if user == nil {
+		user = client.NewUser(accountData.UserID)
+		user.ChairId = INVALID_CHAIR
+		user.RoomId = INVALID_CHAIR
+	} else {
+		if user.KindID != 0 && user.RoomId != 0 {
+			r := RoomMgr.GetRoom(user.RoomId)
+			if r != nil {
+				r.GetChanRPC().Go("userRelogin", user)
+			}
+		}
 	}
 
-	user := user.NewUser(accountData.UserID)
 	user.Agent = agent
 	user.Id = accountData.UserID
-	user.ChairId = INVALID_CHAIR
-	user.RoomId = INVALID_CHAIR
 
 	lok := loadUser(user)
 	if !lok {
 		retcode = LoadUserInfoError
 		return
 	}
-
+	if user.KindID == 0 {
+		user.KindID = recvMsg.KindID
+		user.ServerID = recvMsg.ServerID
+	}
 	AddUser(user.Id, user)
-	user.KindID = recvMsg.KindID
-	user.ServerID = recvMsg.ServerID
-
 	agent.WriteMsg(retMsg)
 	agent.SetUserData(user)
-
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: template.TableCount,
 		ChairCount: 4,
@@ -169,7 +192,7 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 	log.Debug("at WriteUserScore === %v", args)
 	info := args[0].(*msg.TagScoreInfo)
 	Type := args[0].(int)
-	user := m.a.UserData().(*user.User)
+	user := m.a.UserData().(*client.User)
 	user.Score += int64(info.Score)
 	user.Revenue += int64(info.Revenue)
 	user.InsureScore += 0 //todo
@@ -198,9 +221,122 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 
 }
 
+func (m *UserModule) UserSitdown(args []interface{}) {
+	user := m.a.UserData().(*client.User)
+	recvMsg := args[0].(*msg.C2G_UserSitdown)
+	if user.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		return
+	}
+
+	if user.RoomId == 0 {
+		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		return
+	}
+
+	r := RoomMgr.GetRoom(recvMsg.TableID)
+	if r == nil {
+		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		return
+	}
+
+	r.GetChanRPC().Go("Sitdown", args[0], user)
+}
+
+func (m *UserModule) SetGameOption(args []interface{}) {
+	user := m.a.UserData().(*client.User)
+	if user.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		return
+	}
+
+	if user.RoomId == 0 {
+		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		return
+	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		return
+	}
+
+	r.GetChanRPC().Go("SetGameOption", args[0], user)
+}
+
+func (m *UserModule) UserReady(args []interface{}) {
+	user := m.a.UserData().(*client.User)
+	if user.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		return
+	}
+
+	if user.RoomId == 0 {
+		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		return
+	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		return
+	}
+
+	r.GetChanRPC().Go("UserReady", args[0], user)
+
+}
+func (m *UserModule) GetUserChairInfo(args []interface{}) {
+	user := m.a.UserData().(*client.User)
+	if user.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		return
+	}
+
+	if user.RoomId == 0 {
+		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		return
+	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		return
+	}
+
+	r.GetChanRPC().Go("GetUserChairInfo", args[0], user)
+}
+
+//起立
+func (m *UserModule) UserStandup(args []interface{}) {
+	user := m.a.UserData().(*client.User)
+	if user.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		return
+	}
+
+	if user.RoomId == 0 {
+		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		return
+	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		return
+	}
+
+	r.GetChanRPC().Go("UserStandup", args[0], user)
+
+}
+
+//客户端请求更换椅子
+func (m *UserModule) UserChairReq(args []interface{}) {
+
+}
+
 /////////////////////////////// help 函数
 ///////
-func loadUser(u *user.User) bool {
+func loadUser(u *client.User) bool {
 	ainfo, aok := model.AccountsmemberOp.Get(u.Id)
 	if !aok {
 		log.Error("at loadUser not foud AccountsmemberOp by user", u.Id)
@@ -261,8 +397,9 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 			return errors.New("json message pointer required 11")
 		}
 
-		if m.ChanRPC.HasFunc(msgType) {
-			m.ChanRPC.Go(msgType, data, m.a)
+		f, ok := m.ChanRPC.HasFunc(msgType)
+		if ok {
+			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
 			return nil
 		}
 

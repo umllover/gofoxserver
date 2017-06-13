@@ -29,11 +29,11 @@ func (m *MgrModule) OnDestroy() {
 	log.Debug("at server close offline user ")
 }
 
-func HasUser(uid int) bool {
+func getUser(uid int) (*user.User, bool) {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
-	_, ok := Users[uid]
-	return ok
+	u, ok := Users[uid]
+	return u, ok
 }
 
 func AddUser(uid int, u *user.User) {

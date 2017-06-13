@@ -8,21 +8,21 @@ import (
 	"mj/gameServer/common/room_base"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
+	"mj/gameServer/user"
 	"strconv"
 	"time"
 
-	"mj/gameServer/common/mj_ctl_base"
-
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/timer"
 )
 
 func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameServiceOption, rid, userCnt, uid int) *Room {
 	room := new(Room)
-	room.Ctl_base = mj_ctl_base.NewCtlBase()
 	room.RoomBase = room_base.NewRoomBase(userCnt, rid, mgrCh, fmt.Sprintf(strconv.Itoa(common.KIND_TYPE_HZMJ)+"_%v", rid))
 	room.Kind = t.KindID
 	room.ServerId = t.ServerID
+	room.Temp = t
 	room.CloseSig = make(chan bool, 1)
 	room.TimeLimit = param.DrawTimeLimit
 	room.CountLimit = param.DrawCountLimit
@@ -37,7 +37,6 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.Record = &msg.G2C_Record{HuCount: make([]int, room.UserCnt), MaCount: make([]int, room.UserCnt), AnGang: make([]int, room.UserCnt), MingGang: make([]int, room.UserCnt), AllScore: make([]int, room.UserCnt), DetailScore: make([][]int, room.UserCnt)}
 	now := time.Now().Unix()
 	room.TimeStartGame = now
-	room.EendTime = now + 900
 	room.CardIndex = make([][]int, room.UserCnt)
 	room.HeapCardInfo = make([][]int, room.UserCnt) //堆牌信息
 	room.HistoryScores = make([]*HistoryScore, room.UserCnt)
@@ -45,7 +44,14 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.TurnScore = make([]int, userCnt)
 	room.CollectScore = make([]int, userCnt)
 	room.Trustee = make([]bool, userCnt)
+	room.KickOut = make(map[int]*timer.Timer)
 	RegisterHandler(room)
+	room.OnInit()
+	room.RoomRun()
+	if room.Temp.TimeNotBeginGame != 0 {
+		room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.Temp.TimeNotBeginGame)*time.Second, room.AfterNotBegin)
+	}
+
 	log.Debug("new room ok .... ")
 	return room
 }
@@ -53,8 +59,18 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 //吧room 当一张桌子理解
 type Room struct {
 	*room_base.RoomBase
-	*mj_ctl_base.Ctl_base
-	// 游戏字段
+	Kind            int   //第一类型
+	ServerId        int   //第二类型 注意 非房间id
+	TimeLimit       int   //时间显示
+	CountLimit      int   //局数限制
+	TimeOutCard     int   //出牌时间
+	TimeOperateCard int   //操作时间
+	TimeStartGame   int64 //开始时间
+	Status          int   //当前状态
+	Temp            *tbase.GameServiceOption
+	EndTime         *timer.Timer
+	KickOut         map[int]*timer.Timer
+
 	ChatRoomId        int                //聊天房间id
 	Name              string             //房间名字
 	Source            int                //底分
@@ -111,8 +127,6 @@ type Room struct {
 	CurrentUser       int                //当前操作用户
 	Ting              []bool             //是否听牌
 	BankerUser        int                //庄家用户
-	CreateUser        int                //创建房间的人
-	Status            int                //当前状态
 	AllowLookon       map[int]int        //旁观标志
 	TurnScore         []int              //积分信息
 	CollectScore      []int              //积分信息
@@ -142,5 +156,26 @@ func (r *Room) OnDestroy() {
 }
 
 func (r *Room) Update() {
+	r.Skeleton.AfterFunc(10*time.Second, r.Update)
+}
 
+/////////////////// 超时处理函数
+//多久没开始解散房间
+func (room *Room) AfterNotBegin() {
+	if room.Status == RoomStatusReady {
+		room.OnEventGameConclude(0, nil, GER_DISMISS)
+	}
+}
+
+//开始多久没打完界山房间
+func (room *Room) AfterGameTimeOut() {
+	room.OnEventGameConclude(0, nil, GER_DISMISS)
+}
+
+//玩家离线超时踢出
+func (room *Room) OfflineKickOut(user *user.User) {
+	room.LeaveRoom(user)
+	if room.Status != RoomStatusReady {
+		room.OnEventGameConclude(0, nil, GER_DISMISS)
+	}
 }

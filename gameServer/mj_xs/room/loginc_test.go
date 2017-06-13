@@ -3,7 +3,6 @@ package room
 import (
 	"fmt"
 	. "mj/common/cost"
-	"mj/common/msg"
 	"mj/gameServer/common"
 	. "mj/gameServer/common/mj_logic_base"
 	"mj/gameServer/common/room_base"
@@ -111,7 +110,7 @@ func init() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	var userCnt = 4
-	room.RoomInfo = room_base.NewRoomInfo(userCnt, 1)
+	room.RoomBase = room_base.NewRoomBase(userCnt, 1, nil, "aa")
 	room.Kind = 389
 	room.ServerId = 1
 	room.Name = fmt.Sprintf(strconv.Itoa(common.KIND_TYPE_HZMJ)+"_%v", room.GetRoomId())
@@ -121,10 +120,8 @@ func init() {
 	room.Source = 1
 	room.Password = ""
 	room.CreateUser = 3
-	room.CustomRule = new(msg.CustomRule)
 	room.Response = make([]bool, userCnt)
 	room.gameLogic = NewGameLogic()
-	room.EendTime = time.Now().Unix() + 900
 	room.Owner = 3
 	room.BankerUser = INVALID_CHAIR
 	room.CardIndex = make([][]int, room.UserCnt)

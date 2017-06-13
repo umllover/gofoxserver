@@ -4,13 +4,17 @@ import (
 	"mj/common/utils"
 
 	"mj/gameServer/db/model"
+	"sync"
 )
 
 var (
-	ids = make(map[int]*model.RoomId)
+	ids    = make(map[int]*model.RoomId)
+	idLock sync.Mutex
 )
 
 func GetRoomId(uid int) (int, bool) {
+	idLock.Lock()
+	defer idLock.Unlock()
 	for i := 0; i < 100; i++ {
 		r, rerr := utils.RandInt(100000, 1000000)
 		if rerr != nil {
@@ -31,6 +35,8 @@ func GetRoomId(uid int) (int, bool) {
 }
 
 func DelRoomId(rid int) {
+	idLock.Lock()
 	delete(ids, rid)
+	idLock.Unlock()
 	model.RoomIdOp.Delete(rid)
 }

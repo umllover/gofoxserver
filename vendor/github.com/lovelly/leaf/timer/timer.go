@@ -1,8 +1,9 @@
 package timer
 
 import (
-	"github.com/lovelly/leaf/log"
 	"time"
+
+	"github.com/lovelly/leaf/log"
 )
 
 // one dispatcher per goroutine (goroutine not safe)
