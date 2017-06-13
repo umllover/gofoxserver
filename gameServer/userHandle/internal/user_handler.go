@@ -40,6 +40,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 
 //房间关闭的时候通知
 func (m *UserModule) RoomClose(args []interface{}) error {
+	log.Debug("at RoomClose ...........")
 	user := m.a.UserData().(*user.User)
 	if user.IsOffline() {
 		DelUser(user.Id)

@@ -241,7 +241,7 @@ func (room *Room) Sitdown(args []interface{}) {
 		return
 	}
 
-	if room.GetRoomStatus() == RoomStatusStarting && template.DynamicJoin == 1 {
+	if room.Status == RoomStatusStarting && template.DynamicJoin == 1 {
 		retcode = GameIsStart
 		return
 	}

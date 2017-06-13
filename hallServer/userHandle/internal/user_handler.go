@@ -179,7 +179,10 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 
 func (m *UserModule) GetUserIndividual(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	user, ok := agent.UserData().(*user.User)
+	if !ok {
+		return
+	}
 	retmsg := &msg.L2C_UserIndividual{
 		UserID:      user.Id,        //用户 I D
 		NickName:    user.NickName,  //昵称

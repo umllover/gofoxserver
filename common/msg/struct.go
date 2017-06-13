@@ -52,17 +52,6 @@ type UserStu struct {
 	UserStatus int // 用户状态
 }
 
-//自定义配置结构
-type CustomRule struct {
-	//其他定义
-	MaCount     int //码数，1：一码全中，2-6：对应码数
-	PlayerCount int //人数 2-4
-	//时间定义
-	TimeOutCard     int   //出牌时间
-	TimeOperateCard int   //操作时间
-	TimeStartGame   int64 //开始时间
-}
-
 //组合子项
 type WeaveItem struct {
 	WeaveKind   int   //组合类型
