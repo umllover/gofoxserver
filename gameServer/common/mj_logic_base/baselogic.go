@@ -6,16 +6,15 @@ import (
 )
 
 type BaseLogic struct {
+	SwitchInx  func(int) int
+	CheckValid func(int) bool
 }
 
-func (lg *BaseLogic) IsValidCard(int) bool {
-	log.Fatal(" this is base func ")
-	return false
-}
-
-func (lg *BaseLogic) SwitchToCardIndex(int) int {
-	log.Fatal(" this is base func ")
-	return 0
+func NewBaseLogic(cb1 func(int) int, cb2 func(int) bool) *BaseLogic {
+	bl := new(BaseLogic)
+	bl.SwitchInx = cb1
+	bl.CheckValid = cb2
+	return bl
 }
 
 //////////// 上面函数必须重写  下面通用函数
@@ -48,18 +47,18 @@ func (lg *BaseLogic) RemoveCardByArray(cbCardIndex []int, cbRemoveCard []int) bo
 	//参数校验
 	for i := 0; i < len(cbRemoveCard); i++ {
 		//效验扑克
-		if lg.IsValidCard(cbRemoveCard[i]) {
+		if lg.CheckValid(cbRemoveCard[i]) {
 			return false
 		}
 
-		if cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard[i])] <= 0 {
+		if cbCardIndex[lg.SwitchInx(cbRemoveCard[i])] <= 0 {
 			return false
 		}
 	}
 	//删除扑克
 	for i := 0; i < len(cbRemoveCard); i++ {
 		//删除扑克
-		cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard[i])]--
+		cbCardIndex[lg.SwitchInx(cbRemoveCard[i])]--
 	}
 	return true
 }
@@ -69,18 +68,18 @@ func (lg *BaseLogic) RemoveCardByCnt(cbCardIndex, cbRemoveCard []int, cbRemoveCo
 	//参数校验
 	for i := 0; i < len(cbRemoveCard); i++ {
 		//效验扑克
-		if lg.IsValidCard(cbRemoveCard[i]) {
+		if lg.CheckValid(cbRemoveCard[i]) {
 			return false
 		}
 
-		if cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard[i])] <= 0 {
+		if cbCardIndex[lg.SwitchInx(cbRemoveCard[i])] <= 0 {
 			return false
 		}
 	}
 	//删除扑克
 	for i := 0; i < cbRemoveCount; i++ {
 		//删除扑克
-		cbRemoveIndex := lg.SwitchToCardIndex(cbRemoveCard[i])
+		cbRemoveIndex := lg.SwitchInx(cbRemoveCard[i])
 		//删除扑克
 		cbCardIndex[cbRemoveIndex]--
 	}
@@ -91,12 +90,12 @@ func (lg *BaseLogic) RemoveCardByCnt(cbCardIndex, cbRemoveCard []int, cbRemoveCo
 //删除扑克
 func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
 	//删除扑克
-	cbRemoveIndex := lg.SwitchToCardIndex(cbRemoveCard)
+	cbRemoveIndex := lg.SwitchInx(cbRemoveCard)
 	//效验扑克
-	if !lg.IsValidCard(cbRemoveCard) {
+	if !lg.CheckValid(cbRemoveCard) {
 		log.Error("at RemoveCard card is Invalid %d", cbRemoveCard)
 	}
-	if cbCardIndex[lg.SwitchToCardIndex(cbRemoveCard)] < 0 {
+	if cbCardIndex[lg.SwitchInx(cbRemoveCard)] < 0 {
 		log.Error("at RemoveCard 11 card is Invalid %d", cbRemoveCard)
 	}
 	if cbCardIndex[cbRemoveIndex] > 0 {
@@ -190,7 +189,7 @@ func (lg *BaseLogic) GetUserActionRank(cbUserAction int) int {
 
 //碰牌判断
 func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int {
-	if cbCardIndex[lg.SwitchToCardIndex(cbCurrentCard)] >= 2 {
+	if cbCardIndex[lg.SwitchInx(cbCurrentCard)] >= 2 {
 		return WIK_PENG
 	}
 
@@ -199,7 +198,7 @@ func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int 
 
 //杠牌判断
 func (lg *BaseLogic) EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int {
-	if cbCardIndex[lg.SwitchToCardIndex(cbCurrentCard)] == 3 {
+	if cbCardIndex[lg.SwitchInx(cbCurrentCard)] == 3 {
 		return WIK_GANG
 	}
 

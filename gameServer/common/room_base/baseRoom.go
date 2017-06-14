@@ -404,27 +404,27 @@ func (room *RoomBase) Sitdown(args []interface{}) {
 	})
 
 	//把所有玩家信息推送给自己
-	room.ForEachUser(func(u *user.User) {
-		if u.Id == u.Id {
+	room.ForEachUser(func(eachuser *user.User) {
+		if eachuser.Id == u.Id {
 			return
 		}
 		u.WriteMsg(&msg.G2C_UserEnter{
-			UserID:      u.Id,          //用户 I D
-			FaceID:      u.FaceID,      //头像索引
-			CustomID:    u.CustomID,    //自定标识
-			Gender:      u.Gender,      //用户性别
-			MemberOrder: u.MemberOrder, //会员等级
-			TableID:     u.RoomId,      //桌子索引
-			ChairID:     u.ChairId,     //椅子索引
-			UserStatus:  u.Status,      //用户状态
-			Score:       u.Score,       //用户分数
-			WinCount:    u.WinCount,    //胜利盘数
-			LostCount:   u.LostCount,   //失败盘数
-			DrawCount:   u.DrawCount,   //和局盘数
-			FleeCount:   u.FleeCount,   //逃跑盘数
-			Experience:  u.Experience,  //用户经验
-			NickName:    u.NickName,    //昵称
-			HeaderUrl:   u.HeadImgUrl,  //头像
+			UserID:      eachuser.Id,          //用户 I D
+			FaceID:      eachuser.FaceID,      //头像索引
+			CustomID:    eachuser.CustomID,    //自定标识
+			Gender:      eachuser.Gender,      //用户性别
+			MemberOrder: eachuser.MemberOrder, //会员等级
+			TableID:     eachuser.RoomId,      //桌子索引
+			ChairID:     eachuser.ChairId,     //椅子索引
+			UserStatus:  eachuser.Status,      //用户状态
+			Score:       eachuser.Score,       //用户分数
+			WinCount:    eachuser.WinCount,    //胜利盘数
+			LostCount:   eachuser.LostCount,   //失败盘数
+			DrawCount:   eachuser.DrawCount,   //和局盘数
+			FleeCount:   eachuser.FleeCount,   //逃跑盘数
+			Experience:  eachuser.Experience,  //用户经验
+			NickName:    eachuser.NickName,    //昵称
+			HeaderUrl:   eachuser.HeadImgUrl,  //头像
 		})
 	})
 
@@ -479,7 +479,11 @@ func (room *RoomBase) UserReLogin(args []interface{}) {
 		delete(room.KickOut, u.Id)
 	}
 
-	room.SetUsetStatus(u, US_PLAYING)
+	if room.Status == RoomStatusStarting {
+		room.SetUsetStatus(u, US_PLAYING)
+	} else {
+		room.SetUsetStatus(u, US_SIT)
+	}
 }
 
 func (room *RoomBase) UserOffline(args []interface{}) {

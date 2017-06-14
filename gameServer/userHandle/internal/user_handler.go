@@ -74,7 +74,9 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	} else {
 		if user.RoomId != 0 {
 			r := RoomMgr.GetRoom(user.RoomId)
-			r.GetChanRPC().Go("userOffline", user)
+			if r != nil {
+				r.GetChanRPC().Go("userOffline", user)
+			}
 		}
 	}
 

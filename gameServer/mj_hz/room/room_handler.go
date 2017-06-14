@@ -12,6 +12,8 @@ import (
 
 	. "mj/gameServer/common/mj_logic_base"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -392,13 +394,17 @@ func (room *Room) StartGame() {
 	}
 
 	room.EndTime.Stop()
-	room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, room.AfterGameTimeOut)
+	if room.TimeLimit != 0 {
+		room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, room.AfterGameTimeOut)
+	}
+
 	log.Debug("end startgame ... ")
 	return
 }
 
 //游戏结束
 func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason int) bool {
+	debug.PrintStack()
 	template, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
 	if !ok {
 		log.Error("at OnEventGameConclude not foud tempplate")

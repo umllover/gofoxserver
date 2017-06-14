@@ -35,6 +35,7 @@ type GameLogic struct {
 
 func NewGameLogic() *GameLogic {
 	g := new(GameLogic)
+	g.BaseLogic = NewBaseLogic(g.SwitchToCardIndex, g.CheckValid)
 	g.MagicIndex = MAX_INDEX
 	return g
 }
@@ -459,7 +460,6 @@ func (lg *GameLogic) AddKindItem(TempKindItem *TagKindItem, KindItem []*TagKindI
 
 //分析扑克
 func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount int, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) { //todo , CTagAnalyseItemArray & TagAnalyseItemArray
-	log.Debug("at AnalyseChiHuCard %v, %v , %v ,%v ", cbCardIndex, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
@@ -478,7 +478,6 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 	//需求判断
 	cbLessKindItem := int((cbCardCount - 2) / 3)
-	log.Debug("cbLessKindItem ======= %v, %v ", cbCardCount, cbLessKindItem)
 	//单吊判断
 	if cbLessKindItem == 0 {
 		//效验参数
@@ -539,7 +538,6 @@ func (lg *GameLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 			//如果是财神,并且财神数小于3,则不进行组合
 			if cbMagicCardIndex[i] >= 3 || (cbMagicCardIndex[i]+cbMagicCardCount >= 3 &&
 				((INDEX_REPLACE_CARD != MAX_INDEX && i != INDEX_REPLACE_CARD) || (INDEX_REPLACE_CARD == MAX_INDEX && i != lg.MagicIndex))) {
-				log.Debug("cbMagicCardIndex[i] >= 3 ")
 				nTempIndex := cbMagicCardIndex[i]
 				for {
 					cbIndex := i
