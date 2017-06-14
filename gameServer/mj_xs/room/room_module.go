@@ -7,6 +7,7 @@ import (
 	"mj/common/msg/mj_xs_msg"
 	"mj/gameServer/common"
 	"mj/gameServer/common/room_base"
+	"mj/gameServer/conf"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"strconv"
@@ -32,6 +33,7 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.Owner = uid
 	room.BankerUser = INVALID_CHAIR
 	now := time.Now().Unix()
+	room.TimeStartGame = now
 	room.EendTime = now + 900
 	room.CardIndex = make([][]int, room.UserCnt)
 	room.HistoryScores = make([]*HistoryScore, room.UserCnt)
@@ -116,6 +118,8 @@ type Room struct {
 	CollectScore      []int             //积分信息
 	Trustee           []bool            //是否托管 index 就是椅子id
 	CurrentUser       int               //当前玩家
+	MaxPayCnt         int
+	TimeStartGame     int64
 }
 
 func (r *Room) GetCurlPlayerCount() int {
@@ -147,4 +151,18 @@ func (r *Room) checkDestroyRoom() {
 	}
 
 	r.Skeleton.AfterFunc(10*time.Second, r.checkDestroyRoom)
+}
+
+func (r *Room) GetBirefInfo() *msg.RoomInfo {
+	msg := &msg.RoomInfo{}
+	msg.ServerID = r.ServerId
+	msg.KindID = r.Kind
+	msg.NodeID = conf.Server.NodeId
+	msg.RoomID = r.GetRoomId()
+	msg.CurCnt = r.PlayerCount
+	msg.MaxCnt = r.UserCnt           //最多多人数
+	msg.PayCnt = r.MaxPayCnt         //可玩局数
+	msg.CurPayCnt = r.PlayCount      //已玩局数
+	msg.CreateTime = r.TimeStartGame //创建时间
+	return msg
 }

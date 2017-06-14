@@ -1,18 +1,19 @@
 package cluster
 
 import (
-	"math"
-	"time"
-	"reflect"
-	"net"
 	"fmt"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/conf"
-	"github.com/lovelly/leaf/network"
-	"github.com/lovelly/leaf/chanrpc"
-	lgob "github.com/lovelly/leaf/network/gob"
-	"sync"
 	"io"
+	"math"
+	"net"
+	"reflect"
+	"sync"
+	"time"
+
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/network"
+	lgob "github.com/lovelly/leaf/network/gob"
 )
 
 const (
@@ -51,7 +52,7 @@ func Init() {
 }
 
 func AddClient(serverName, addr string) {
-	log.Debug("at cluster AddClient %s, %s",serverName,  addr)
+	log.Debug("at cluster AddClient %s, %s", serverName, addr)
 	clientsMutex.Lock()
 	defer clientsMutex.Unlock()
 
@@ -74,7 +75,7 @@ func AddClient(serverName, addr string) {
 func _removeClient(serverName string) {
 	client, ok := clients[serverName]
 	if ok {
-		log.Debug("at cluster _removeClient %s",serverName)
+		log.Debug("at cluster _removeClient %s", serverName)
 		client.Close()
 		delete(clients, serverName)
 	}
@@ -239,7 +240,7 @@ func (a *Agent) Run() {
 			msg, err := Processor.Unmarshal(a.decoder, data)
 			if err != nil {
 				log.Error("unmarshal message error: %v", err)
-				break
+				continue
 			}
 			err = Processor.Route(msg, a)
 			if err != nil {

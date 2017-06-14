@@ -13,6 +13,8 @@ import (
 
 	"mj/hallServer/common"
 
+	"mj/hallServer/conf"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -28,11 +30,13 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
 	m.ChanRPC.Register("NewAgent", m.NewAgent)
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
+	m.ChanRPC.Register("GetUser", m.GetUser)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
 	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
+
 }
 
 //连接进来的通知
@@ -45,11 +49,11 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
-	id, ok := agent.UserData().(int)
+	u, ok := agent.UserData().(*user.User)
 	if !ok {
 		return nil
 	}
-	DelUser(id)
+	DelUser(u.Id)
 	m.Close(common.UserOffline)
 	return nil
 }
@@ -83,7 +87,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	}
 
 	if _, ok := Users[accountData.UserID]; ok {
-		retcode = ErrUserReLogin
+		retcode = ErrUserDoubleLogin
 		return
 	}
 
@@ -102,7 +106,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	user.Agent = agent
 	AddUser(user.Id, user)
-	agent.SetUserData(accountData.UserID)
+	agent.SetUserData(user)
 	BuildClientMsg(retMsg, user, accountData)
 	gameList.ChanRPC.Go("sendGameList", agent)
 }
@@ -136,9 +140,9 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	accountData, ok = model.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
-	if ok != nil || accountData == nil {
+	if ok != nil || accountData != nil {
 		log.Debug("errpr == %v", ok)
-		retcode = NotFoudAccout
+		retcode = AlreadyExistsAccount
 		return
 	}
 
@@ -174,14 +178,15 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	}
 	user.Agent = agent
 	AddUser(user.Id, user)
-	agent.SetUserData(accInfo.UserID)
-	BuildClientMsg(retMsg, user, accountData)
+	agent.SetUserData(user)
+	BuildClientMsg(retMsg, user, accInfo)
 }
 
 func (m *UserModule) GetUserIndividual(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user, ok := agent.UserData().(*user.User)
 	if !ok {
+		log.Debug("not foud user data")
 		return
 	}
 	retmsg := &msg.L2C_UserIndividual{
@@ -336,6 +341,8 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.LostCount = user.LostCount
 	retMsg.DrawCount = user.DrawCount
 	retMsg.FleeCount = user.FleeCount
+	log.Debug("node id === %v", conf.Server.NodeId)
+	retMsg.HallNodeID = conf.Server.NodeId
 	tm := &msg.DateTime{}
 	tm.Year = acinfo.RegisterDate.Year()
 	tm.DayOfWeek = int(acinfo.RegisterDate.Weekday())
@@ -385,4 +392,12 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
+	u, ok := m.a.UserData().(*user.User)
+	if !ok {
+		return nil, errors.New("not foud user Data at GetUser")
+	}
+	return u, nil
 }

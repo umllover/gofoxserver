@@ -13,7 +13,7 @@ const (
 	InsertAccountError   = 4 //服务器内部错误
 	LoadUserInfoError    = 5 //玩家数据加载失败
 	CreateUserError      = 6 // 创建玩家失败
-	ErrUserReLogin       = 7 //重复登录
+	ErrUserDoubleLogin   = 7 //重复登录
 	ErrPasswd            = 8 //密码错误
 )
 
@@ -33,6 +33,7 @@ const (
 	ErrNoSitdowm       = 112 //请先坐下在操作
 	ErrGameIsStart     = 113 //游戏已开始，不能离开房间
 	ErrCreateRoomFaild = 114 //创建聊天室失败
+	NotOwner           = 115 //不是房主
 )
 
 //红中麻将错误码
@@ -91,7 +92,7 @@ func RenderErrorMessage(code int, Desc ...string) *msg.ShowErrCode {
 	if len(Desc) < 1 {
 		des = fmt.Sprintf("请求错误, 错误码: %d", code)
 	} else {
-		des = Desc[0]
+		des = fmt.Sprintf(Desc[0]+"请求错误, 错误码: %d", code)
 	}
 	return &msg.ShowErrCode{
 		ErrorCode:      code,

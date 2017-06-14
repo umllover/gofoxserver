@@ -1,14 +1,15 @@
 package cluster
 
 import (
-	lgob "github.com/lovelly/leaf/network/gob"
+	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/log"
 	"sync/atomic"
-	"encoding/gob"
+
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
+	lgob "github.com/lovelly/leaf/network/gob"
 )
 
 var (
@@ -115,7 +116,13 @@ func handleResponseMsg(args []interface{}) {
 }
 
 func init() {
+	//Processor.Register(bson.NewObjectId())
+	//Processor.Register([]bson.ObjectId{})
+	gob.Register(map[string]string{})
+	gob.Register(map[string]interface{}{})
+
 	Processor.Register(&S2S_NotifyServerName{})
+	//Processor.Register(map[string]interface{}{})
 	Processor.Register(&S2S_HeartBeat{})
 	Processor.Register(&S2S_RequestMsg{})
 	Processor.Register(&S2S_ResponseMsg{})

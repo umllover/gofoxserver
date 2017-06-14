@@ -14,9 +14,10 @@ type C2G_GR_LogonMobile struct {
 	PageTableCount int //分页桌数
 
 	//登录信息
-	UserID    int    //用户 I D
-	Password  string //登录密码
-	MachineID string //机器标识
+	UserID     int    //用户 I D
+	Password   string //登录密码
+	MachineID  string //机器标识
+	HallNodeID int
 }
 
 // 请求更换椅子消息
@@ -35,6 +36,12 @@ type C2G_CreateTable struct {
 	Kind                int    //游戏类型
 	ServerId            int    //子类型
 }
+
+//解散房间
+type C2G_HostlDissumeRoom struct{}
+
+type G2C_CancelTable struct{}
+type G2C_PersonalTableEnd struct{}
 
 //请求坐下
 type C2G_UserSitdown struct {

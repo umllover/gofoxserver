@@ -6,6 +6,10 @@ import (
 	//"mj/common/cost"
 	"mj/hallServer/conf"
 
+	"errors"
+
+	"mj/hallServer/user"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -22,6 +26,7 @@ func init() {
 	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
 	handleRpc("SendMsgToUser", GoMsgToUser)
 	handleRpc("AsyncCallUser", AsyncCallUser)
+	handleRpc("GetPlayerInfo", GetPlayerInfo)
 }
 
 //玩家在本服节点登录
@@ -76,4 +81,44 @@ func GoMsgToUser(args []interface{}) {
 //异步回调消息给别的玩家
 func AsyncCallUser(args []interface{}) {
 
+}
+
+func GetPlayerInfo(args []interface{}) (interface{}, error) {
+	uid := args[0].(int)
+	log.Debug("at GetPlayerInfo uid:%d", uid)
+	ch, chok := Users[uid]
+	if !chok {
+		return nil, errors.New("not foud user ch")
+	}
+	us, err := ch.TimeOutCall1("GetUser", 5)
+	if err != nil {
+		return nil, err
+	}
+
+	u, ok := us.(*user.User)
+	if !ok {
+		return nil, errors.New("user data error")
+	}
+
+	gu := map[string]interface{}{
+		"Id":          u.Id,
+		"NickName":    u.NickName,
+		"Currency":    u.Currency,
+		"RoomCard":    u.RoomCard,
+		"FaceID":      u.FaceID,
+		"CustomID":    u.CustomID,
+		"HeadImgUrl":  u.HeadImgUrl,
+		"Experience":  u.Experience,
+		"Gender":      u.Gender,
+		"WinCount":    u.WinCount,
+		"LostCount":   u.LostCount,
+		"DrawCount":   u.DrawCount,
+		"FleeCount":   u.FleeCount,
+		"UserRight":   u.Accountsmember.UserRight,
+		"Score":       u.Score,
+		"Revenue":     u.Revenue,
+		"InsureScore": u.InsureScore,
+		"MemberOrder": u.MemberOrder,
+	}
+	return gu, nil
 }

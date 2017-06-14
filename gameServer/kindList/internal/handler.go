@@ -3,6 +3,7 @@ package internal
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"reflect"
@@ -72,7 +73,7 @@ func GetKindList(args []interface{}) (interface{}, error) {
 			svrInfo.ServerPort = port
 			svrInfo.ServerType = int64(template.ServerType)
 			svrInfo.OnLineCount = int64(v.GetClientCount())
-			svrInfo.FullCount = template.MaxDistributeUser
+			svrInfo.FullCount = common.TableFullCount
 			svrInfo.RestrictScore = int64(template.RestrictScore)
 			svrInfo.MinTableScore = int64(template.MinTableScore)
 			svrInfo.MinEnterScore = int64(template.MinEnterScore)

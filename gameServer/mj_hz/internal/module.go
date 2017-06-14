@@ -1,16 +1,12 @@
 package internal
 
 import (
-	. "mj/common/cost"
-	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/base"
-	"mj/gameServer/conf"
 	"mj/gameServer/mj_hz/room"
 	"time"
 
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -62,17 +58,10 @@ func AddTableCount() {
 func addRoom(r *room.Room) {
 	RoomMgr.AddRoom(r)
 	AddTableCount()
-	msg := &msg.RoomInfo{}
-	msg.ServerID = r.ServerId
-	msg.KindID = r.Kind
-	msg.NodeId = conf.Server.NodeId
-	msg.TableId = r.GetRoomId()
-	cluster.Broadcast(HallPrefix, "notifyNewRoom", msg)
 }
 
 func delRoom(id int) {
 	RoomMgr.DelRoom(id)
-	cluster.Broadcast(HallPrefix, "notifyDelRoom", id)
 }
 
 func getRoom(id int) *room.Room {

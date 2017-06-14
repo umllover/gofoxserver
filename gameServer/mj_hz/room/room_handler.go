@@ -24,9 +24,10 @@ func RegisterHandler(r *Room) {
 	r.ChanRPC.Register("OutCard", r.OutCard)
 	r.ChanRPC.Register("OperateCard", r.UserOperateCard)
 	r.ChanRPC.Register("UserReady", r.UserReady)
-	r.ChanRPC.Register("UserOffline", r.UserOffline)
-	r.ChanRPC.Register("UserReLogin", r.UserReLogin)
+	r.ChanRPC.Register("userOffline", r.UserOffline)
+	r.ChanRPC.Register("userRelogin", r.UserReLogin)
 	r.ChanRPC.Register("GetUserChairInfo", r.GetUserChairInfo)
+	r.ChanRPC.Register("DissumeRoom", r.DissumeRoom)
 }
 
 func (room *Room) OutCard(args []interface{}) {
@@ -1746,4 +1747,30 @@ func (room *Room) GetUserChairInfo(args []interface{}) {
 		NickName:    tagUser.NickName,    //昵称
 		HeaderUrl:   tagUser.HeadImgUrl,  //头像
 	})
+}
+
+func (room *Room) DissumeRoom(args []interface{}) {
+	user := args[0].(*client.User)
+	retcode := 0
+	defer func() {
+		if retcode != 0 {
+			user.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
+		}
+	}()
+	if user.Id != room.Owner {
+		retcode = NotOwner
+		return
+	}
+
+	Cance := &msg.G2C_CancelTable{}
+	room.ForEachUser(func(u *client.User) {
+		u.WriteMsg(Cance)
+	})
+
+	Diis := &msg.G2C_PersonalTableEnd{}
+	room.ForEachUser(func(u *client.User) {
+		u.WriteMsg(Diis)
+	})
+
+	room.Destroy()
 }

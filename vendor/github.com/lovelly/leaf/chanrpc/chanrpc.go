@@ -3,6 +3,7 @@ package chanrpc
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -185,6 +186,10 @@ func (s *Server) Exec(ci *CallInfo) {
 
 // goroutine safe
 func (s *Server) Go(id interface{}, args ...interface{}) {
+	if s.CloseFlg {
+		log.Error("at Go chan is close %v", id)
+		return
+	}
 	f := s.functions[id]
 	if f == nil {
 		log.Error("function id %v: function not registered", id)
@@ -205,16 +210,36 @@ func (s *Server) Go(id interface{}, args ...interface{}) {
 
 // goroutine safe
 func (s *Server) Call0(id interface{}, args ...interface{}) error {
+	if s.CloseFlg {
+		log.Error("at Call0 chan is close %v", id)
+		return errors.New("] send on closed channel")
+	}
 	return s.Open(0).Call0(id, args...)
 }
 
 // goroutine safe
 func (s *Server) Call1(id interface{}, args ...interface{}) (interface{}, error) {
+	if s.CloseFlg {
+		log.Error("at Call1 chan is close %v", id)
+		return nil, errors.New("] send on closed channel")
+	}
 	return s.Open(0).Call1(id, args...)
+}
+
+func (s *Server) TimeOutCall1(id interface{}, t time.Duration, args ...interface{}) (interface{}, error) {
+	if s.CloseFlg {
+		log.Error("at TimeOutCall1 chan is close %v", id)
+		return nil, errors.New("] send on closed channel")
+	}
+	return s.Open(0).TimeOutCall1(id, t, args...)
 }
 
 // goroutine safe
 func (s *Server) CallN(id interface{}, args ...interface{}) ([]interface{}, error) {
+	if s.CloseFlg {
+		log.Error("at CallN chan is close %v", id)
+		return nil, errors.New("] send on closed channel")
+	}
 	return s.Open(0).CallN(id, args...)
 }
 
@@ -342,6 +367,28 @@ func (c *Client) Call1(id interface{}, args ...interface{}) (interface{}, error)
 
 	ri := <-c.ChanSyncRet
 	return ri.Ret, ri.Err
+}
+
+func (c *Client) TimeOutCall1(id interface{}, t time.Duration, args ...interface{}) (interface{}, error) {
+	f, err := c.f(id, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.call(&CallInfo{
+		fInfo:   f,
+		args:    args,
+		chanRet: c.ChanSyncRet,
+	}, false)
+	if err != nil {
+		return nil, err
+	}
+	select {
+	case ri := <-c.ChanSyncRet:
+		return ri.Ret, ri.Err
+	case <-time.After(time.Second * t):
+		return nil, errors.New(fmt.Sprintf("time out at TimeOutCall1 function: %v", id))
+	}
 }
 
 func (c *Client) CallN(id interface{}, args ...interface{}) ([]interface{}, error) {

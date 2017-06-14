@@ -6,6 +6,7 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/common"
 	"mj/gameServer/common/room_base"
+	"mj/gameServer/conf"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"mj/gameServer/user"
@@ -67,6 +68,7 @@ type Room struct {
 	TimeOperateCard int   //操作时间
 	TimeStartGame   int64 //开始时间
 	Status          int   //当前状态
+	MaxPayCnt       int   //最大局数
 	Temp            *tbase.GameServiceOption
 	EndTime         *timer.Timer
 	KickOut         map[int]*timer.Timer
@@ -135,6 +137,17 @@ type Room struct {
 	gameLogic         *GameLogic
 }
 
+func (r *Room) Destroy() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Recover(r)
+		}
+	}()
+	r.OnDestroy()
+	r.CloseSig <- true
+	log.Debug("room Room Destroy ok,  Name:%s", r.Name)
+}
+
 func (r *Room) GetCurlPlayerCount() int {
 	cnt := 0
 	for _, u := range r.Users {
@@ -153,6 +166,20 @@ func (r *Room) OnInit() {
 func (r *Room) OnDestroy() {
 	idGenerate.DelRoomId(r.GetRoomId())
 	r.MgrCh.Go("DelRoom", r.GetRoomId())
+}
+
+func (r *Room) GetBirefInfo() *msg.RoomInfo {
+	msg := &msg.RoomInfo{}
+	msg.ServerID = r.ServerId
+	msg.KindID = r.Kind
+	msg.NodeID = conf.Server.NodeId
+	msg.RoomID = r.GetRoomId()
+	msg.CurCnt = r.PlayerCount
+	msg.MaxCnt = r.UserCnt           //最多多人数
+	msg.PayCnt = r.MaxPayCnt         //可玩局数
+	msg.CurPayCnt = r.PlayCount      //已玩局数
+	msg.CreateTime = r.TimeStartGame //创建时间
+	return msg
 }
 
 func (r *Room) Update() {
@@ -177,5 +204,9 @@ func (room *Room) OfflineKickOut(user *user.User) {
 	room.LeaveRoom(user)
 	if room.Status != RoomStatusReady {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
+	} else {
+		if room.CheckPlayerCnt() {
+			room.Destroy()
+		}
 	}
 }

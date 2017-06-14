@@ -6,7 +6,6 @@ import (
 
 	"mj/hallServer/conf"
 
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -15,13 +14,13 @@ import (
 var (
 	gameLists  = make(map[int]map[int]*msg.TagGameServer) //k1 is kind k2 is server Id
 	SvrvetType = make(map[int]map[int]struct{})           //key sverId v KingId
-	roomList   = make(map[int]*msg.RoomInfo)
+	roomList   = make(map[int]map[int]*msg.RoomInfo)      //key1 is kindid key2 is roomId
 )
 
 ////注册rpc 消息
-func handleRpc(id interface{}, f interface{}, fType int) {
+func handleRpc(id interface{}, f interface{}) {
 	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.RegisterFromType(id, f, fType)
+	ChanRPC.Register(id, f)
 }
 
 //注册 客户端消息调用
@@ -33,13 +32,15 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 
-	handleRpc("sendGameList", sendGameList, chanrpc.FuncCommon)
-	handleRpc("updateGameInfo", updateGameInfo, chanrpc.FuncCommon)
-	handleRpc("delGameList", delGameList, chanrpc.FuncCommon)
-	handleRpc("NewServerAgent", NewServerAgent, chanrpc.FuncCommon)
-	handleRpc("CloseServerAgent", CloseServerAgent, chanrpc.FuncCommon)
-	handleRpc("notifyNewRoom", AddRoom, chanrpc.FuncCommon)
-	handleRpc("notifyDelRoom", DelRoom, chanrpc.FuncCommon)
+	handleRpc("sendGameList", sendGameList)
+	handleRpc("updateGameInfo", updateGameInfo)
+	handleRpc("delGameList", delGameList)
+	handleRpc("NewServerAgent", NewServerAgent)
+	handleRpc("CloseServerAgent", CloseServerAgent)
+
+	handleRpc("notifyNewRoom", AddRoom)
+	handleRpc("notifyDelRoom", DelRoom)
+	handleRpc("updateRoomInfo", UpdateRoom)
 }
 
 ////// c2s
@@ -51,12 +52,12 @@ func SrarchTable(args []interface{}) {
 		agent.WriteMsg(retMsg)
 	}()
 
-	roomInfo := getRoomInfo(recvMsg.ServerID)
+	roomInfo := getRoomInfo(recvMsg.KindID, recvMsg.TableID)
 	if roomInfo == nil {
 		log.Error("at SrarchTable not foud room, %v", recvMsg)
 		return
 	}
-	retMsg.TableID = roomInfo.TableId
+	retMsg.TableID = roomInfo.RoomID
 	retMsg.ServerID = roomInfo.ServerID
 	return
 }
@@ -82,7 +83,13 @@ func updateGameInfo(args []interface{}) {
 func AddRoom(args []interface{}) {
 	log.Debug("at AddRoom === %v", args)
 	recvMsg := args[0].(*msg.RoomInfo)
-	roomList[recvMsg.TableId] = recvMsg
+
+	m, ok := roomList[recvMsg.KindID]
+	if !ok {
+		m = make(map[int]*msg.RoomInfo)
+		roomList[recvMsg.KindID] = m
+	}
+	m[recvMsg.RoomID] = recvMsg
 }
 
 func DelRoom(args []interface{}) {
@@ -91,8 +98,39 @@ func DelRoom(args []interface{}) {
 	delete(roomList, id)
 }
 
-func getRoomInfo(tableId int) *msg.RoomInfo {
-	return roomList[tableId]
+func UpdateRoom(args []interface{}) {
+	info := args[0].(map[string]interface{})
+	kindID := info["KindID"].(int)
+	roomID := info["RoomID"].(int)
+	m, ok := roomList[kindID]
+	if !ok {
+		log.Debug("at  UpdateRoom not foud kindid:%d", kindID)
+		return
+	}
+
+	room, ok2 := m[roomID]
+	if !ok2 {
+		log.Debug("at  UpdateRoom not foud roomID:%d", roomID)
+		return
+	}
+
+	for k, v := range info {
+		switch k {
+		case "CurCnt":
+			room.CurCnt = v.(int)
+		case "CurPayCnt":
+			room.CurPayCnt = v.(int)
+		}
+	}
+}
+
+func getRoomInfo(kindId, tableId int) *msg.RoomInfo {
+	m, ok := roomList[kindId]
+	if !ok {
+		log.Debug("at getRoomInfo not foud kindID:%v", kindId)
+		return nil
+	}
+	return m[tableId]
 }
 
 func NewServerAgent(args []interface{}) {

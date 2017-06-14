@@ -54,7 +54,7 @@ func addRoomMember(args []interface{}) {
 	ag := args[1].(gate.Agent)
 	room, ok := roomList[roomID]
 	if !ok {
-		log.Error("聊天房间：%s不存在", roomID)
+		log.Error("聊天房间：%d不存在", roomID)
 		return
 	}
 	user := ag.UserData().(*user.User)
@@ -68,7 +68,7 @@ func delRoomMember(args []interface{}) {
 	UserID := args[1].(int)
 	room, ok := roomList[GetRoomID]
 	if !ok {
-		log.Error("聊天房间：%s不存在", GetRoomID)
+		log.Error("聊天房间：%d不存在", GetRoomID)
 		return
 	}
 
@@ -86,7 +86,7 @@ func delRoomMember(args []interface{}) {
 func SendMsgToUser(getRoomID int, userID int, data interface{}) {
 	room, ok := roomList[getRoomID]
 	if !ok {
-		log.Error("聊天房间：%s不存在", getRoomID)
+		log.Error("聊天房间：%d不存在", getRoomID)
 		return
 	}
 	for id, ag := range room.members {
@@ -100,7 +100,7 @@ func SendMsgToUser(getRoomID int, userID int, data interface{}) {
 func SendMsgToAll(getRoomID int, data interface{}) {
 	room, ok := roomList[getRoomID]
 	if !ok {
-		log.Error("聊天房间：%s不存在", getRoomID)
+		log.Error("聊天房间：%d不存在", getRoomID)
 		return
 	}
 

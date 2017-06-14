@@ -28,6 +28,8 @@ const (
 
 )
 
+
+
 //常量定义
 const (
 	MAX_WEAVE     = 4   //最大组合

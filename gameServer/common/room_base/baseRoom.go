@@ -60,16 +60,24 @@ func NewRoomBase(userCnt, rid int, mgrCh *chanrpc.Server, name string) *RoomBase
 
 func (r *RoomBase) RoomRun() {
 	go func() {
-		log.Debug("room Room start run Name:%s", r.id)
+		defer func() {
+			if r := recover(); r != nil {
+				log.Recover(r)
+			}
+		}()
+
+		log.Debug("room Room start run Name:%s", r.Name)
 		r.Run(r.CloseSig)
 		r.End()
-		log.Debug("room Room End run Name:%s", r.id)
+		log.Debug("room Room End run Name:%s", r.Name)
 	}()
 }
 
 func (r *RoomBase) End() {
 	for _, u := range r.Users {
-		u.ChanRPC().Go("RoomClose")
+		if u != nil {
+			u.ChanRPC().Go("LeaveRoom")
+		}
 	}
 }
 
@@ -81,12 +89,7 @@ func (r *RoomBase) Destroy() {
 	}()
 
 	r.CloseSig <- true
-	r.OnDestroy()
 	log.Debug("room Room Destroy ok,  Name:%s", r.id)
-}
-
-func (r *RoomBase) OnDestroy() { // 基类实现
-
 }
 
 func (r *RoomBase) GetChanRPC() *chanrpc.Server {
@@ -106,10 +109,6 @@ func (r *RoomBase) CheckDestroy(curTime int64) bool {
 		return true //时间到了关闭房间 todo
 	}
 	return false
-}
-
-func (r *RoomBase) GetUserCount() int {
-	return len(r.Users)
 }
 
 func (r *RoomBase) IsInRoom(userId int) bool {
@@ -181,11 +180,11 @@ func (r *RoomBase) LeaveRoom(u *user.User) bool {
 	if len(r.Users) <= u.ChairId {
 		return false
 	}
-
+	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
 	u.ChairId = cost.INVALID_CHAIR
-	u.RoomId = cost.INVALID_TABLE
-	log.Debug("%v user leave room,  left %v count", u.ChairId, r.GetUserCount())
+	u.RoomId = 0
+	log.Debug("%v user leave room,  left %v count", u.ChairId, r.PlayerCount)
 	return true
 }
 
@@ -226,6 +225,16 @@ func (r *RoomBase) SendMsgAllNoSelf(selfid int, data interface{}) {
 			u.WriteMsg(data)
 		}
 	}
+}
+
+func (r *RoomBase) CheckPlayerCnt() bool {
+	r.PlayerCount = 0
+	for _, u := range r.Users {
+		if u != nil {
+			r.PlayerCount++
+		}
+	}
+	return r.PlayerCount == 0
 }
 
 func (r *RoomBase) ForEachUser(fn func(u *user.User)) {

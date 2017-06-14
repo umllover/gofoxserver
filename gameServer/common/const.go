@@ -13,3 +13,7 @@ const (
 	ReadErrorMsg   = 2 //读到非法消息
 	ServerShutdown = 3 //服务器关闭
 )
+
+const (
+	TableFullCount = 1
+)

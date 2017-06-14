@@ -30,6 +30,13 @@ func (m *MgrModule) OnDestroy() {
 	log.Debug("at server close offline user ")
 }
 
+func GetUser(uid int) *user.User {
+	UsersLock.RLock()
+	defer UsersLock.RUnlock()
+	u, _ := Users[uid]
+	return u
+}
+
 func HasUser(uid int) bool {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
@@ -38,6 +45,7 @@ func HasUser(uid int) bool {
 }
 
 func AddUser(uid int, u *user.User) {
+	log.Debug("AddUser: %d ===", uid)
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
@@ -45,6 +53,7 @@ func AddUser(uid int, u *user.User) {
 }
 
 func DelUser(uid int) {
+	log.Debug("deluser %d ===", uid)
 	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()

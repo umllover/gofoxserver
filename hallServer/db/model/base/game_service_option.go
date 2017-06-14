@@ -25,32 +25,15 @@ type GameServiceOption struct {
 	MinTableScore               int    `db:"MinTableScore" json:"MinTableScore"`                             // 最低积分
 	MinEnterScore               int    `db:"MinEnterScore" json:"MinEnterScore"`                             // 最低积分
 	MaxEnterScore               int    `db:"MaxEnterScore" json:"MaxEnterScore"`                             // 最高积分
-	MinEnterMember              int    `db:"MinEnterMember" json:"MinEnterMember"`                           // 最低会员
-	MaxEnterMember              int    `db:"MaxEnterMember" json:"MaxEnterMember"`                           // 最高会员
 	ServerRule                  int    `db:"ServerRule" json:"ServerRule"`                                   // 房间规则
-	AttachUserRight             int    `db:"AttachUserRight" json:"AttachUserRight"`                         // 附加权限
 	MaxPlayer                   int    `db:"MaxPlayer" json:"MaxPlayer"`                                     // 最大数目
-	TableCount                  int    `db:"TableCount" json:"TableCount"`                                   // 桌子数目
-	ServerPort                  int    `db:"ServerPort" json:"ServerPort"`                                   // 服务端口
-	ServerKind                  int    `db:"ServerKind" json:"ServerKind"`                                   // 房间类别
 	ServerType                  int    `db:"ServerType" json:"ServerType"`                                   // 房间类型
-	ServerLevel                 int    `db:"ServerLevel" json:"ServerLevel"`                                 // 房间等级
 	ServerName                  string `db:"ServerName" json:"ServerName"`                                   // 房间名称
-	ServerPasswd                string `db:"ServerPasswd" json:"ServerPasswd"`                               // 房间密码
-	DistributeRule              int    `db:"DistributeRule" json:"DistributeRule"`                           // 分组规则
-	MinDistributeUser           int    `db:"MinDistributeUser" json:"MinDistributeUser"`                     // 最少人数
-	MaxDistributeUser           int    `db:"MaxDistributeUser" json:"MaxDistributeUser"`                     // 最多人数
-	DistributeTimeSpace         int    `db:"DistributeTimeSpace" json:"DistributeTimeSpace"`                 // 分组间隔
-	DistributeDrawCount         int    `db:"DistributeDrawCount" json:"DistributeDrawCount"`                 // 分组局数
-	DistributeStartDelay        int    `db:"DistributeStartDelay" json:"DistributeStartDelay"`               // 开始延时
-	CustomRule                  string `db:"CustomRule" json:"CustomRule"`                                   // 自定规则
 	CbOffLineTrustee            int    `db:"cbOffLineTrustee" json:"cbOffLineTrustee"`                       // 是否短线代打
-	CbAndroidUser               int    `db:"cbAndroidUser" json:"cbAndroidUser"`                             // 机器标志
 	CardOrBean                  int8   `db:"CardOrBean" json:"CardOrBean"`                                   // 消耗房卡还是游戏豆
 	FeeBeanOrRoomCard           int    `db:"FeeBeanOrRoomCard" json:"FeeBeanOrRoomCard"`                     // 消耗房卡或游戏豆的数量
 	PersonalRoomTax             int    `db:"PersonalRoomTax" json:"PersonalRoomTax"`                         // 私人房税收
 	MaxCellScore                int    `db:"MaxCellScore" json:"MaxCellScore"`                               // 房间最大底分
-	CreateRight                 int    `db:"CreateRight" json:"CreateRight"`                                 // 创建房间的权限
 	PlayTurnCount               int    `db:"PlayTurnCount" json:"PlayTurnCount"`                             // 房间能够进行游戏的最大局数
 	PlayTimeLimit               int    `db:"PlayTimeLimit" json:"PlayTimeLimit"`                             // 房间能够进行游戏的最大时间
 	TimeAfterBeginCount         int    `db:"TimeAfterBeginCount" json:"TimeAfterBeginCount"`                 // 一局游戏开始后多长时间后解散桌子
@@ -58,7 +41,7 @@ type GameServiceOption struct {
 	TimeNotBeginGame            int    `db:"TimeNotBeginGame" json:"TimeNotBeginGame"`                       // 多长时间未开始游戏解散桌子	 单位秒
 	TimeNotBeginAfterCreateRoom int    `db:"TimeNotBeginAfterCreateRoom" json:"TimeNotBeginAfterCreateRoom"` // 私人房创建多长时间后无人坐桌解散桌子
 	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入 1是允许
-	OutCardTime                 int    `db:"OutCardTime" json:"OutCardTime"`                                 // 都久没出牌自动出牌
+	OutCardTime                 int    `db:"OutCardTime" json:"OutCardTime"`                                 // 多久没出牌自动出牌
 	OperateCardTime             int    `db:"OperateCardTime" json:"OperateCardTime"`                         // 操作最大时间
 }
 

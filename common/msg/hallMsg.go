@@ -36,8 +36,8 @@ type C2L_Regist struct {
 
 //查询房间信息
 type C2L_SearchServerTable struct {
-	ServerID int
-	KindID   int
+	TableID int
+	KindID  int
 }
 
 //获取玩家显示信息
@@ -84,6 +84,7 @@ type L2C_LogonSuccess struct {
 	RoomCard     int `json:"lRoomCard"`      //用户房卡
 	LockServerID int `json:"dwLockServerID"` //锁定房间
 	KindID       int `json:"dwKindID"`       //游戏类型
+	HallNodeID   int `json:"HallNodeID"`
 }
 
 //房间列表
