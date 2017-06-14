@@ -173,7 +173,7 @@ func (room *Room) UserStandup(args []interface{}) {
 		return
 	}
 
-	room.setUsetStatus(user, US_FREE)
+	room.SetUsetStatus(user, US_FREE)
 	room.LeaveRoom(user)
 }
 
@@ -267,7 +267,7 @@ func (room *Room) Sitdown(args []interface{}) {
 	})
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, user.Agent)
-	room.setUsetStatus(user, US_SIT)
+	room.SetUsetStatus(user, US_SIT)
 }
 
 func (room *Room) UserReady(args []interface{}) {
@@ -278,8 +278,8 @@ func (room *Room) UserReady(args []interface{}) {
 		return
 	}
 
-	room.setUsetStatus(user, US_READY)
-	if room.isAllReady() {
+	room.SetUsetStatus(user, US_READY)
+	if room.IsAllReady() {
 		room.StartGame()
 	}
 }
@@ -309,7 +309,7 @@ func (room *Room) isAllReady() bool {
 func (room *Room) StartGame() bool {
 	log.Debug("begin start game hzmj")
 	room.ForEachUser(func(u *client.User) {
-		room.setUsetStatus(u, US_PLAYING)
+		room.SetUsetStatus(u, US_PLAYING)
 	})
 
 	//初始化

@@ -5,7 +5,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
-	"mj/gameServer/Chat"
 	"mj/gameServer/db/model/base"
 	client "mj/gameServer/user"
 	"strconv"
@@ -19,15 +18,17 @@ import (
 
 func RegisterHandler(r *Room) {
 	r.ChanRPC.Register("Sitdown", r.Sitdown)
-	r.ChanRPC.Register("SetGameOption", r.SetGameOption)
 	r.ChanRPC.Register("UserStandup", r.UserStandup)
-	r.ChanRPC.Register("OutCard", r.OutCard)
-	r.ChanRPC.Register("OperateCard", r.UserOperateCard)
-	r.ChanRPC.Register("UserReady", r.UserReady)
-	r.ChanRPC.Register("userOffline", r.UserOffline)
-	r.ChanRPC.Register("userRelogin", r.UserReLogin)
 	r.ChanRPC.Register("GetUserChairInfo", r.GetUserChairInfo)
 	r.ChanRPC.Register("DissumeRoom", r.DissumeRoom)
+	r.ChanRPC.Register("UserReady", r.UserReady)
+	r.ChanRPC.Register("userRelogin", r.UserReLogin)
+	r.ChanRPC.Register("userOffline", r.UserOffline)
+	//以上函数继承base, 如无特殊需求， 无需实现
+
+	r.ChanRPC.Register("SetGameOption", r.SetGameOption)
+	r.ChanRPC.Register("OutCard", r.OutCard)
+	r.ChanRPC.Register("OperateCard", r.UserOperateCard)
 }
 
 func (room *Room) OutCard(args []interface{}) {
@@ -201,192 +202,12 @@ func (room *Room) SetGameOption(args []interface{}) {
 	}
 }
 
-//起立
-func (room *Room) UserStandup(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2G_UserStandup{})
-	user := args[1].(*client.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			user.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-
-	if room.Status == RoomStatusStarting {
-		retcode = ErrGameIsStart
-		return
-	}
-
-	room.setUsetStatus(user, US_FREE)
-	room.LeaveRoom(user)
-}
-
-//坐下
-func (room *Room) Sitdown(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_UserSitdown)
-	user := args[1].(*client.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			user.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-
-	oldUser := room.GetUserByChairId(recvMsg.ChairID)
-	if oldUser != nil {
-		retcode = ChairHasUser
-		return
-	}
-
-	template, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
-	if !ok {
-		retcode = ConfigError
-		return
-	}
-
-	if room.Status == RoomStatusStarting && template.DynamicJoin == 1 {
-		retcode = GameIsStart
-		return
-	}
-
-	if room.ChatRoomId == 0 {
-		id, err := Chat.ChanRPC.Call1("createRoom", user.Agent)
-		if err != nil {
-			log.Error("create Chat Room faild")
-			retcode = ErrCreateRoomFaild
-		}
-
-		room.ChatRoomId = id.(int)
-	}
-
-	_, chairId := room.GetUserByUid(user.Id)
-	if chairId > 0 {
-		room.LeaveRoom(user)
-	}
-
-	room.EnterRoom(recvMsg.ChairID, user)
-	//把自己的信息推送给所有玩家
-	room.SendMsgAllNoSelf(user.Id, &msg.G2C_UserEnter{
-		UserID:      user.Id,          //用户 I D
-		FaceID:      user.FaceID,      //头像索引
-		CustomID:    user.CustomID,    //自定标识
-		Gender:      user.Gender,      //用户性别
-		MemberOrder: user.MemberOrder, //会员等级
-		TableID:     user.RoomId,      //桌子索引
-		ChairID:     user.ChairId,     //椅子索引
-		UserStatus:  user.Status,      //用户状态
-		Score:       user.Score,       //用户分数
-		WinCount:    user.WinCount,    //胜利盘数
-		LostCount:   user.LostCount,   //失败盘数
-		DrawCount:   user.DrawCount,   //和局盘数
-		FleeCount:   user.FleeCount,   //逃跑盘数
-		Experience:  user.Experience,  //用户经验
-		NickName:    user.NickName,    //昵称
-		HeaderUrl:   user.HeadImgUrl,  //头像
-	})
-
-	//把所有玩家信息推送给自己
-	room.ForEachUser(func(u *client.User) {
-		if u.Id == user.Id {
-			return
-		}
-		user.WriteMsg(&msg.G2C_UserEnter{
-			UserID:      u.Id,          //用户 I D
-			FaceID:      u.FaceID,      //头像索引
-			CustomID:    u.CustomID,    //自定标识
-			Gender:      u.Gender,      //用户性别
-			MemberOrder: u.MemberOrder, //会员等级
-			TableID:     u.RoomId,      //桌子索引
-			ChairID:     u.ChairId,     //椅子索引
-			UserStatus:  u.Status,      //用户状态
-			Score:       u.Score,       //用户分数
-			WinCount:    u.WinCount,    //胜利盘数
-			LostCount:   u.LostCount,   //失败盘数
-			DrawCount:   u.DrawCount,   //和局盘数
-			FleeCount:   u.FleeCount,   //逃跑盘数
-			Experience:  u.Experience,  //用户经验
-			NickName:    u.NickName,    //昵称
-			HeaderUrl:   u.HeadImgUrl,  //头像
-		})
-	})
-
-	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, user.Agent)
-	room.setUsetStatus(user, US_SIT)
-}
-
-func (room *Room) UserReady(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2G_UserReady)
-	user := args[1].(*client.User)
-	if user.Status == US_READY {
-		log.Debug("user status is ready at UserReady")
-		return
-	}
-
-	room.setUsetStatus(user, US_READY)
-	if room.isAllReady() {
-		room.StartGame()
-	}
-}
-
-func (room *Room) UserOffline(args []interface{}) {
-	user := args[0].(*client.User)
-	if user.Status == US_READY {
-		log.Debug("user status is ready at UserReady")
-		return
-	}
-
-	room.setUsetStatus(user, US_OFFLINE)
-	if room.Temp.TimeOffLineCount != 0 {
-		room.KickOut[user.Id] = room.Skeleton.AfterFunc(time.Duration(room.Temp.TimeOffLineCount)*time.Second, func() {
-			room.OfflineKickOut(user)
-		})
-	} else {
-		room.OfflineKickOut(user)
-	}
-}
-
-func (room *Room) UserReLogin(args []interface{}) {
-	user := args[0].(*client.User)
-	if user.Status == US_READY {
-		log.Debug("user status is ready at UserReady")
-		return
-	}
-
-	tm, ok := room.KickOut[user.Id]
-	if ok {
-		tm.Stop()
-		delete(room.KickOut, user.Id)
-	}
-
-	room.setUsetStatus(user, US_PLAYING)
-}
-
 /////////////////// help
-func (room *Room) setUsetStatus(user *client.User, stu int) {
-	user.Status = stu
-	room.SendMsgAll(&msg.G2C_UserStatus{
-		UserID: user.Id,
-		UserStatus: &msg.UserStu{
-			TableID:    room.GetRoomId(),
-			ChairID:    user.ChairId,
-			UserStatus: user.Status,
-		},
-	})
-}
-
-func (room *Room) isAllReady() bool {
-	for _, u := range room.Users {
-		if u == nil || u.Status != US_READY {
-			return false
-		}
-	}
-	return true
-}
 
 func (room *Room) StartGame() {
 	log.Debug("begin start game hzmj")
 	room.ForEachUser(func(u *client.User) {
-		room.setUsetStatus(u, US_PLAYING)
+		room.SetUsetStatus(u, US_PLAYING)
 	})
 
 	//初始化
@@ -764,7 +585,7 @@ func (room *Room) GameEnd(Forced bool) {
 		return
 	}
 	room.ForEachUser(func(u *client.User) {
-		room.setUsetStatus(u, US_FREE)
+		room.SetUsetStatus(u, US_FREE)
 	})
 
 	room.PlayCount++
@@ -1717,60 +1538,4 @@ func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) int 
 	}
 
 	return 0
-}
-
-//获取对方信息
-func (room *Room) GetUserChairInfo(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
-	user := args[1].(*client.User)
-	tagUser := room.GetUserByChairId(recvMsg.ChairID)
-	if tagUser == nil {
-		log.Error("at GetUserChairInfo no foud tagUser %v, userId:%d", args[0], user.Id)
-		return
-	}
-
-	user.WriteMsg(&msg.G2C_UserEnter{
-		UserID:      tagUser.Id,          //用户 I D
-		FaceID:      tagUser.FaceID,      //头像索引
-		CustomID:    tagUser.CustomID,    //自定标识
-		Gender:      tagUser.Gender,      //用户性别
-		MemberOrder: tagUser.MemberOrder, //会员等级
-		TableID:     tagUser.RoomId,      //桌子索引
-		ChairID:     tagUser.ChairId,     //椅子索引
-		UserStatus:  tagUser.Status,      //用户状态
-		Score:       tagUser.Score,       //用户分数
-		WinCount:    tagUser.WinCount,    //胜利盘数
-		LostCount:   tagUser.LostCount,   //失败盘数
-		DrawCount:   tagUser.DrawCount,   //和局盘数
-		FleeCount:   tagUser.FleeCount,   //逃跑盘数
-		Experience:  tagUser.Experience,  //用户经验
-		NickName:    tagUser.NickName,    //昵称
-		HeaderUrl:   tagUser.HeadImgUrl,  //头像
-	})
-}
-
-func (room *Room) DissumeRoom(args []interface{}) {
-	user := args[0].(*client.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			user.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
-		}
-	}()
-	if user.Id != room.Owner {
-		retcode = NotOwner
-		return
-	}
-
-	Cance := &msg.G2C_CancelTable{}
-	room.ForEachUser(func(u *client.User) {
-		u.WriteMsg(Cance)
-	})
-
-	Diis := &msg.G2C_PersonalTableEnd{}
-	room.ForEachUser(func(u *client.User) {
-		u.WriteMsg(Diis)
-	})
-
-	room.Destroy()
 }

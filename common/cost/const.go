@@ -66,6 +66,33 @@ const (
 	GAME_GENRE_PERSONAL = 0x0010 //约战类型
 )
 
+/// 通用状态
+const (
+	//用户状态
+	US_NULL    = 0x00 //没有状态
+	US_FREE    = 0x01 //站立状态
+	US_SIT     = 0x02 //坐下状态
+	US_READY   = 0x03 //同意状态
+	US_LOOKON  = 0x04 //旁观状态
+	US_PLAYING = 0x05 //游戏状态
+	US_OFFLINE = 0x06 //断线状态
+)
+
+const (
+	//房间状态
+	RoomStatusReady    = 0
+	RoomStatusStarting = 1
+	RoomStatusEnd      = 2
+)
+
+const (
+	//结束原因
+	GER_NORMAL        = 0x00 //常规结束
+	GER_DISMISS       = 0x01 //游戏解散
+	GER_USER_LEAVE    = 0x02 //用户离开
+	GER_NETWORK_ERROR = 0x03 //网络错误
+)
+
 //积分修改类型
 ///
 const (

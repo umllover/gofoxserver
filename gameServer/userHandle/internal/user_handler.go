@@ -153,7 +153,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	user.Agent = agent
 	AddUser(user.Id, user)
-	agent.WriteMsg(retMsg)
+
 	agent.SetUserData(user)
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: common.TableFullCount,
@@ -182,6 +182,8 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		NickName:    user.NickName,    //昵称
 		HeaderUrl:   user.HeadImgUrl,  //头像
 	})
+
+	agent.WriteMsg(retMsg)
 }
 
 ////////////////////// help
@@ -235,9 +237,13 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 		return
 	}
 
-	r := RoomMgr.GetRoom(recvMsg.TableID)
+	roomid := recvMsg.TableID
+	if recvMsg.TableID == INVALID_CHAIR {
+		roomid = user.RoomId
+	}
+	r := RoomMgr.GetRoom(roomid)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
 		return
 	}
 
@@ -339,18 +345,18 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 func (m *UserModule) DissumeRoom(args []interface{}) {
 	user := m.a.UserData().(*client.User)
 	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
 		return
 	}
 
 	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		log.Error("at DissumeRoom not foud roomd id userid:%d", user.Id)
 		return
 	}
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
 		return
 	}
 

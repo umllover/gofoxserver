@@ -4,6 +4,7 @@ import (
 	"mj/gameServer/base"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
+	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
 	"mj/gameServer/mj_xs"
 
@@ -59,4 +60,10 @@ func HasKind(kind int) bool {
 func GetModByKind(kind int) (room_base.Module, bool) {
 	mod, ok := modules[kind]
 	return mod, ok
+}
+
+func ClearLoocker() {
+	model.GamescorelockerOp.DeleteByMap(map[string]interface{}{
+		"NodeID": conf.Server.NodeId,
+	})
 }

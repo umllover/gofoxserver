@@ -222,8 +222,8 @@ func loadUser(u *user.User) bool {
 
 	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
-		log.Error("at loadUser not foud GamescorelockerOp by user %d", u.Id)
-		return false
+		log.Debug("at loadUser not foud GamescorelockerOp by user  %d", u.Id)
+		glInfo = &model.Gamescorelocker{}
 	}
 	u.Gamescorelocker = glInfo
 
@@ -351,7 +351,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	tm.Second = acinfo.RegisterDate.Second()
 	tm.Minute = acinfo.RegisterDate.Minute()
 	retMsg.RegisterDate = tm
-
 	//额外信息
 	retMsg.MbTicket = user.MbTicket
 	retMsg.MbPayTotal = user.MbPayTotal
@@ -362,6 +361,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.RoomCard = user.RoomCard
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
+	retMsg.LockServerID = user.ServerID
 }
 
 /////////////////////////////// help 函数

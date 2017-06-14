@@ -9,7 +9,6 @@ import (
 	"mj/gameServer/conf"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
-	"mj/gameServer/user"
 	"strconv"
 	"time"
 
@@ -46,6 +45,8 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.CollectScore = make([]int, userCnt)
 	room.Trustee = make([]bool, userCnt)
 	room.KickOut = make(map[int]*timer.Timer)
+	room.StartGameCb = room.StartGame
+	room.GameConcludeCb = room.OnEventGameConclude
 	RegisterHandler(room)
 	room.OnInit()
 	room.RoomRun()
@@ -60,20 +61,13 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 //吧room 当一张桌子理解
 type Room struct {
 	*room_base.RoomBase
-	Kind            int   //第一类型
-	ServerId        int   //第二类型 注意 非房间id
-	TimeLimit       int   //时间显示
-	CountLimit      int   //局数限制
-	TimeOutCard     int   //出牌时间
-	TimeOperateCard int   //操作时间
-	TimeStartGame   int64 //开始时间
-	Status          int   //当前状态
-	MaxPayCnt       int   //最大局数
-	Temp            *tbase.GameServiceOption
-	EndTime         *timer.Timer
-	KickOut         map[int]*timer.Timer
-
-	ChatRoomId        int                //聊天房间id
+	TimeLimit         int   //时间显示
+	CountLimit        int   //局数限制
+	TimeOutCard       int   //出牌时间
+	TimeOperateCard   int   //操作时间
+	TimeStartGame     int64 //开始时间
+	MaxPayCnt         int   //最大局数
+	EndTime           *timer.Timer
 	Name              string             //房间名字
 	Source            int                //底分
 	IniSource         int                //初始分数
@@ -89,7 +83,6 @@ type Room struct {
 	LeftCardCount     int                //剩下拍的数量
 	EndLeftCount      int                //荒庄牌数
 	LastCatchCardUser int                //最后一个摸牌的用户
-	Owner             int                //房主id
 	OutCardCount      int                //出牌数目
 	ChiHuCard         int                //吃胡扑克
 	MinusHeadCount    int                //头部空缺
@@ -197,16 +190,4 @@ func (room *Room) AfterNotBegin() {
 //开始多久没打完界山房间
 func (room *Room) AfterGameTimeOut() {
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
-}
-
-//玩家离线超时踢出
-func (room *Room) OfflineKickOut(user *user.User) {
-	room.LeaveRoom(user)
-	if room.Status != RoomStatusReady {
-		room.OnEventGameConclude(0, nil, GER_DISMISS)
-	} else {
-		if room.CheckPlayerCnt() {
-			room.Destroy()
-		}
-	}
 }

@@ -23,6 +23,7 @@ type Gamescorelocker struct {
 	EnterIP      string     `db:"EnterIP" json:"EnterIP"`           // 进入地址
 	EnterMachine string     `db:"EnterMachine" json:"EnterMachine"` // 进入机器
 	CollectDate  *time.Time `db:"CollectDate" json:"CollectDate"`   // 录入日期
+	NodeID       int        `db:"NodeID" json:"NodeID"`             // 在哪个服务器上
 }
 
 type gamescorelockerOp struct{}
@@ -117,7 +118,7 @@ func (op *gamescorelockerOp) Insert(m *Gamescorelocker) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *gamescorelockerOp) InsertTx(ext sqlx.Ext, m *Gamescorelocker) (int64, error) {
-	sql := "insert into gamescorelocker(UserID,KindID,ServerID,EnterID,EnterIP,EnterMachine,CollectDate) values(?,?,?,?,?,?,?)"
+	sql := "insert into gamescorelocker(UserID,KindID,ServerID,EnterID,EnterIP,EnterMachine,CollectDate,NodeID) values(?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.KindID,
@@ -126,6 +127,7 @@ func (op *gamescorelockerOp) InsertTx(ext sqlx.Ext, m *Gamescorelocker) (int64, 
 		m.EnterIP,
 		m.EnterMachine,
 		m.CollectDate,
+		m.NodeID,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -152,7 +154,7 @@ func (op *gamescorelockerOp) Update(m *Gamescorelocker) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *gamescorelockerOp) UpdateTx(ext sqlx.Ext, m *Gamescorelocker) error {
-	sql := `update gamescorelocker set KindID=?,ServerID=?,EnterID=?,EnterIP=?,EnterMachine=?,CollectDate=? where UserID=?`
+	sql := `update gamescorelocker set KindID=?,ServerID=?,EnterID=?,EnterIP=?,EnterMachine=?,CollectDate=?,NodeID=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.KindID,
 		m.ServerID,
@@ -160,6 +162,7 @@ func (op *gamescorelockerOp) UpdateTx(ext sqlx.Ext, m *Gamescorelocker) error {
 		m.EnterIP,
 		m.EnterMachine,
 		m.CollectDate,
+		m.NodeID,
 		m.UserID,
 	)
 
@@ -184,6 +187,9 @@ func (op *gamescorelockerOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[str
 	var params []interface{}
 	var set_sql string
 	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}

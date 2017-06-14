@@ -182,6 +182,9 @@ func (op *systemgrantcountOp) UpdateWithMapTx(ext sqlx.Ext, DateID int, Register
 	var params []interface{}
 	var set_sql string
 	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}

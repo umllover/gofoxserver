@@ -16,4 +16,5 @@ func GetModules() []module.Module {
 
 func Init() {
 	internal.LoadAllModule()
+	internal.ClearLoocker()
 }
