@@ -12,8 +12,6 @@ import (
 
 	. "mj/gameServer/common/mj_logic_base"
 
-	"runtime/debug"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -135,6 +133,30 @@ func (room *Room) SetGameOption(args []interface{}) {
 		StatusFree.CountLimit = room.CountLimit           //局数限制
 		user.WriteMsg(StatusFree)
 	} else { //开始了
+		//把所有玩家信息推送给自己
+		room.ForEachUser(func(eachuser *client.User) {
+			if eachuser.Id == user.Id {
+				return
+			}
+			user.WriteMsg(&msg.G2C_UserEnter{
+				UserID:      eachuser.Id,          //用户 I D
+				FaceID:      eachuser.FaceID,      //头像索引
+				CustomID:    eachuser.CustomID,    //自定标识
+				Gender:      eachuser.Gender,      //用户性别
+				MemberOrder: eachuser.MemberOrder, //会员等级
+				TableID:     eachuser.RoomId,      //桌子索引
+				ChairID:     eachuser.ChairId,     //椅子索引
+				UserStatus:  eachuser.Status,      //用户状态
+				Score:       eachuser.Score,       //用户分数
+				WinCount:    eachuser.WinCount,    //胜利盘数
+				LostCount:   eachuser.LostCount,   //失败盘数
+				DrawCount:   eachuser.DrawCount,   //和局盘数
+				FleeCount:   eachuser.FleeCount,   //逃跑盘数
+				Experience:  eachuser.Experience,  //用户经验
+				NickName:    eachuser.NickName,    //昵称
+				HeaderUrl:   eachuser.HeadImgUrl,  //头像
+			})
+		})
 		StatusPlay := &msg.G2C_StatusPlay{}
 		//自定规则
 		StatusPlay.TimeOutCard = room.TimeOutCard
@@ -152,7 +174,13 @@ func (room *Room) SetGameOption(args []interface{}) {
 		StatusPlay.CellScore = room.Source
 		StatusPlay.MagicIndex = room.MagicIndex
 		StatusPlay.Trustee = room.Trustee
-
+		StatusPlay.HuCardCount = make([]int, MAX_COUNT)
+		StatusPlay.HuCardData = make([][]int, MAX_COUNT)
+		StatusPlay.OutCardDataEx = make([]int, MAX_COUNT)
+		StatusPlay.CardCount = make([]int, room.UserCnt)
+		StatusPlay.TurnScore = make([]int, room.UserCnt)
+		StatusPlay.CollectScore = make([]int, room.UserCnt)
+		StatusPlay.CardData = make([]int, MAX_COUNT)
 		//状态变量
 		StatusPlay.ActionCard = room.ProvideCard
 		StatusPlay.LeftCardCount = room.LeftCardCount
@@ -173,7 +201,7 @@ func (room *Room) SetGameOption(args []interface{}) {
 		StatusPlay.DiscardCard = room.DiscardCard
 		StatusPlay.DiscardCount = room.DiscardCount
 
-		//组合扑克
+		//组合扑克 todo decopy
 		StatusPlay.WeaveItemArray = room.WeaveItemArray
 		StatusPlay.WeaveItemCount = room.WeaveItemCount
 
@@ -196,8 +224,10 @@ func (room *Room) SetGameOption(args []interface{}) {
 		//历史积分
 		for j := 0; j < room.UserCnt; j++ {
 			//设置变量
-			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
+			if room.HistoryScores[j] != nil {
+				StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
+				StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
+			}
 		}
 
 		user.WriteMsg(StatusPlay)
@@ -404,7 +434,6 @@ func (room *Room) StartGame() {
 
 //游戏结束
 func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason int) bool {
-	debug.PrintStack()
 	template, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
 	if !ok {
 		log.Error("at OnEventGameConclude not foud tempplate")

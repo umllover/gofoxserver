@@ -35,7 +35,7 @@ type GameLogic struct {
 
 func NewGameLogic() *GameLogic {
 	g := new(GameLogic)
-	g.BaseLogic = NewBaseLogic(g.SwitchToCardIndex, g.CheckValid)
+	g.BaseLogic = NewBaseLogic(g.SwitchToCardIndex, g.IsValidCard)
 	g.MagicIndex = MAX_INDEX
 	return g
 }

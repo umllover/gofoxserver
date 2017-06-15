@@ -269,16 +269,6 @@ func createUser(UserID int, accountData *model.Accountsinfo) (*user.User, bool) 
 	}
 
 	now := time.Now()
-	U.Gamescorelocker = &model.Gamescorelocker{
-		UserID:      UserID,
-		CollectDate: &now,
-	}
-	_, err = model.GamescorelockerOp.Insert(U.Gamescorelocker)
-	if err != nil {
-		log.Error("at createUser insert Gamescorelocker error")
-		return nil, false
-	}
-
 	U.Gamescoreinfo = &model.Gamescoreinfo{
 		UserID:        UserID,
 		LastLogonDate: &now,
