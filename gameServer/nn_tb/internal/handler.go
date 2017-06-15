@@ -2,7 +2,7 @@ package internal
 
 import (
 	"mj/common/msg"
-	"mj/gameServer/mj_hz/room"
+	"mj/gameServer/nn_tb/room"
 	"reflect"
 
 	"github.com/lovelly/leaf/gate"
@@ -13,7 +13,7 @@ import (
 	"mj/gameServer/idGenerate"
 	"mj/gameServer/user"
 
-	"mj/common/msg/mj_hz_msg"
+	"mj/common/msg/nn_tb_msg"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -35,8 +35,8 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
-	handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
+//	handlerC2S(&nn_tb_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+//	handlerC2S(&nn_tb_msg.C2G_HZMJ_OperateCard{}, OperateCard)
 	// rpc
 	handleRpc("DelRoom", DelRoom)
 	handleRpc("CreateRoom", CreaterRoom)

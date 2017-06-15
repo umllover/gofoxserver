@@ -1,7 +1,7 @@
 package hzmj
 
 import (
-	"mj/gameServer/mj_hz/internal"
+	"mj/gameServer/nn_tb/internal"
 )
 
 var (
