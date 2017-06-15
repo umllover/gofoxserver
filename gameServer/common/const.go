@@ -12,6 +12,7 @@ const (
 	NetWorkError   = 1 //网络错误
 	ReadErrorMsg   = 2 //读到非法消息
 	ServerShutdown = 3 //服务器关闭
+	KickOutOffline = 4 //踢出
 )
 
 const (

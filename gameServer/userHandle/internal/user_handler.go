@@ -31,6 +31,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
 	m.ChanRPC.Register("WriteUserScore", m.WriteUserScore)
 	m.ChanRPC.Register("LeaveRoom", m.LeaveRoom)
+	m.ChanRPC.Register("ForceClose", m.ForceClose)
 	//c2s
 	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
@@ -81,6 +82,11 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	}
 
 	return nil
+}
+
+func (m *UserModule) ForceClose(args []interface{}) {
+	log.Debug("at ForceClose ..... ")
+	m.Close(common.KickOutOffline)
 }
 
 func (m *UserModule) GetUserInfo(args []interface{}) {
@@ -150,6 +156,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 				r.GetChanRPC().Go("userRelogin", user)
 			}
 		}
+		user.ChanRPC().Go("ForceClose")
 		user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
 	}
 

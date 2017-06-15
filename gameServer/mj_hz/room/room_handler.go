@@ -589,7 +589,9 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 
 		//用户扑克
 		for i := 0; i < room.UserCnt; i++ {
-			GameConclude.CardCount[i] = room.gameLogic.SwitchToCardData2(room.CardIndex[i], GameConclude.HandCardData[i])
+			if len(room.CardIndex[i]) > 0 {
+				GameConclude.CardCount[i] = room.gameLogic.SwitchToCardData2(room.CardIndex[i], GameConclude.HandCardData[i])
+			}
 		}
 
 		//发送信息
