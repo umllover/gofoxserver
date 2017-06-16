@@ -4,7 +4,7 @@ import (
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
+	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/Chat"
 	"mj/gameServer/db/model/base"
 	client "mj/gameServer/user"
@@ -15,61 +15,40 @@ import (
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"mj/common/msg/mj_hz_msg"
 )
 
 func RegisterHandler(r *Room) {
 	r.ChanRPC.Register("Sitdown", r.Sitdown)
 	r.ChanRPC.Register("SetGameOption", r.SetGameOption)
 	r.ChanRPC.Register("UserStandup", r.UserStandup)
-	r.ChanRPC.Register("OutCard", r.OutCard)
-	r.ChanRPC.Register("OperateCard", r.UserOperateCard)
 	r.ChanRPC.Register("UserReady", r.UserReady)
 	r.ChanRPC.Register("userOffline", r.UserOffline)
 	r.ChanRPC.Register("userRelogin", r.UserReLogin)
 	r.ChanRPC.Register("GetUserChairInfo", r.GetUserChairInfo)
 	r.ChanRPC.Register("DissumeRoom", r.DissumeRoom)
+
 }
 
-func (room *Room) OutCard(args []interface{}) {
-	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_HZOutCard)
+func (room  *Room) CallScore(args []interface{})  {
+	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
 	user := args[1].(*client.User)
 	retcode := 0
+
+	log.Debug("Enter Room TBNN id=%d", room.GetRoomId())
 	defer func() {
 		if retcode != 0 {
 			user.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
 
-	retcode = room.OnUserOutCard(user.ChairId, recvMsg.CardData, false)
-	return
-}
-
-func (room *Room) UserOperateCard(args []interface{}) {
-	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_OperateCard)
-	user := args[1].(*client.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			user.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-	if user.ChairId >= room.UserCnt {
-		log.Error("user not in room at OperateCard")
-		retcode = ErrUserNotInRoom
+	if recvMsg.CallScore >= 0 {
+		room.CellScore = recvMsg.CallScore
+	}	else {
+		retcode = -1
 		return
 	}
 
-	//if room.CurrentUser != user.ChairId && room.CurrentUser != INVALID_CHAIR {
-	//	log.Error("CurrentUser != user.ChairId at OperateCard")
-	//	retcode = ErrUserNotInRoom
-	//	return
-	//}
-
-	if room.CurrentUser == INVALID_CHAIR {
-		room.Operater(user, recvMsg.OperateCard, recvMsg.OperateCode, false)
-	} else {
-		room.Operater(user, recvMsg.OperateCard, recvMsg.OperateCode, true)
-	}
 }
 
 func (room *Room) SetGameOption(args []interface{}) {
@@ -87,7 +66,8 @@ func (room *Room) SetGameOption(args []interface{}) {
 		return
 	}
 
-	template, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
+	//template, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
+	_, ok := base.GameServiceOptionCache.Get(room.Kind, room.ServerId)
 	if !ok {
 		retcode = ConfigError
 		return
@@ -108,27 +88,24 @@ func (room *Room) SetGameOption(args []interface{}) {
 		DrawTimeLimit:     room.TimeLimit,                           //时间限制
 		PlayCount:         room.PlayCount,                           //已玩局数
 		PlayTime:          int(room.CreateTime - time.Now().Unix()), //已玩时间
-		CellScore:         room.Source,                              //游戏底分
-		IniScore:          room.IniSource,                           //初始分数
+		CellScore:         room.CellScore,                              //游戏底分
+		IniScore:          room.InitCellScore,                           //初始分数
 		ServerID:          strconv.Itoa(room.GetRoomId()),           //房间编号
 		IsJoinGame:        0,                                        //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                   //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	})
 
-	if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //约战类型。。。
+	/*if (template.ServerType & GAME_GENRE_PERSONAL) != 0 { //约战类型。。。
 		user.WriteMsg(room.Record)
-	}
+	}*/
 
 	if room.Status == RoomStatusReady { // 没开始
 		StatusFree := &msg.G2C_StatusFree{}
-		StatusFree.CellScore = room.Source                //基础积分
+		StatusFree.CellScore = room.CellScore                //基础积分
 		StatusFree.TimeOutCard = room.TimeOutCard         //出牌时间
 		StatusFree.TimeOperateCard = room.TimeOperateCard //操作时间
 		StatusFree.TimeStartGame = room.TimeStartGame     //开始时间
-		StatusFree.TurnScore = room.TurnScore             //积分信息
-		StatusFree.CollectScore = room.CollectScore       //积分信息
 		StatusFree.PlayerCount = room.PlayCount           //玩家人数
-		StatusFree.MaCount = room.MaCount                 //码数
 		StatusFree.CountLimit = room.CountLimit           //局数限制
 		user.WriteMsg(StatusFree)
 	} else { //开始了
@@ -141,54 +118,11 @@ func (room *Room) SetGameOption(args []interface{}) {
 		room.OnUserTrustee(user.ChairId, false) //重入取消托管
 
 		//规则
-		StatusPlay.MaCount = room.MaCount
 		StatusPlay.PlayerCount = int(room.PlayerCount)
 		//游戏变量
 		StatusPlay.BankerUser = room.BankerUser
-		StatusPlay.CurrentUser = room.OutCardUser
-		StatusPlay.CellScore = room.Source
-		StatusPlay.MagicIndex = room.MagicIndex
-		StatusPlay.Trustee = room.Trustee
-
-		//状态变量
-		StatusPlay.ActionCard = room.ProvideCard
-		StatusPlay.LeftCardCount = room.LeftCardCount
-		if !room.Response[user.ChairId] {
-			StatusPlay.ActionMask = room.UserAction[user.ChairId]
-		} else {
-			StatusPlay.ActionMask = WIK_NULL
-		}
-
-		StatusPlay.Ting = room.Ting
-		//当前能胡的牌
-		StatusPlay.OutCardCount = room.gameLogic.AnalyseTingCard(room.CardIndex[user.ChairId], room.WeaveItemArray[user.ChairId],
-			room.WeaveItemCount[user.ChairId], StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData)
-
-		//历史记录
-		StatusPlay.OutCardUser = room.OutCardUser
-		StatusPlay.OutCardData = room.OutCardData
-		StatusPlay.DiscardCard = room.DiscardCard
-		StatusPlay.DiscardCount = room.DiscardCount
-
-		//组合扑克
-		StatusPlay.WeaveItemArray = room.WeaveItemArray
-		StatusPlay.WeaveItemCount = room.WeaveItemCount
-
-		//堆立信息
-		StatusPlay.HeapHead = room.HeapHead
-		StatusPlay.HeapTail = room.HeapTail
-		StatusPlay.HeapCardInfo = room.HeapCardInfo
-
-		//扑克数据
-		for j := 0; j < room.UserCnt; j++ {
-			StatusPlay.CardCount[j] = room.gameLogic.GetCardCount(room.CardIndex[j])
-		}
-		room.gameLogic.SwitchToCardData2(room.CardIndex[user.ChairId], StatusPlay.CardData)
-		if room.CurrentUser == user.ChairId {
-			StatusPlay.SendCardData = room.SendCardData
-		} else {
-			StatusPlay.SendCardData = 0x00
-		}
+		StatusPlay.CellScore = room.CellScore
+		//StatusPlay.Trustee = room.Trustee
 
 		//历史积分
 		for j := 0; j < room.UserCnt; j++ {
@@ -384,12 +318,12 @@ func (room *Room) isAllReady() bool {
 }
 
 func (room *Room) StartGame() {
-	log.Debug("begin start game hzmj")
+	log.Debug("begin start game TBNN")
 	room.ForEachUser(func(u *client.User) {
 		room.setUsetStatus(u, US_PLAYING)
 	})
 
-	//初始化
+/*	//初始化
 	room.RepertoryCard = make([]int, MAX_REPERTORY)
 	room.HandCardCount = make([]int, room.UserCnt)
 	for i := 0; i < room.UserCnt; i++ {
@@ -572,7 +506,268 @@ func (room *Room) StartGame() {
 
 	room.EndTime.Stop()
 	room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, room.AfterGameTimeOut)
-	log.Debug("end startgame ... ")
+	log.Debug("end startgame ... ")*/
+
+	ZeroMemory(m_IsOpenCard, sizeof(m_IsOpenCard));
+	room.IsOpenCard  
+	memset(m_gMMcbCardData,0,sizeof(m_gMMcbCardData));
+
+	//m_pITableFrame->SetGameStatus(GS_TK_CALL);
+	m_pITableFrame->SetGameStatus(GS_TK_PLAYING);
+	//用户状态
+	for (WORD i=0;i<m_wPlayerCount;i++)
+	{
+		//获取用户
+		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
+
+		if(pIServerUser==NULL)
+		{
+			m_cbPlayStatus[i]=FALSE;
+		}
+		else
+		{
+				m_wCurrentUser=i;//1.29
+				m_cbPlayStatus[i]=TRUE;
+				if (m_lDrawCellScore <0 || (pIServerUser->GetUserScore()/m_wMaxScoreTimes) < m_lDrawCellScore/* *2/3*/)
+				{
+					//CString str;
+					//str.Format(TEXT("玩家%s作弊，分数为%I64d,底注设置为%ld"),pIServerUser->GetNickName(),pIServerUser->GetUserScore(),m_lDrawCellScore);
+					//CTraceService::TraceString(str,TraceLevel_Debug);
+					//OnEventGameConclude(INVALID_CHAIR,NULL,GER_NORMAL);
+					//return false;
+				}
+		}
+	}
+
+	ZeroMemory(m_bBuckleServiceCharge,sizeof(m_bBuckleServiceCharge));
+
+	//设置变量
+	CMD_S_CallBanker  CallBanker;
+		CallBanker.bQiang_Start=false;//不用抢庄 直接开始
+	//首局随机始叫
+	//if(m_wFisrtCallUser==INVALID_CHAIR) //第一局
+	//{
+	//	m_wFisrtCallUser=rand()%m_wPlayerCount;
+	//	CallBanker.bQiang_Start=true;
+	//	m_pITableFrame->SetGameTimer(IDI_QAIANG,TIME_QAIANG,1,0);
+	//	//当上局庄家退出游戏、上局游戏闲家中出现牛九或以上牌型且战胜庄家时，下局游戏将重新选择庄家。
+	//}
+	//else
+	//{
+	//
+	//	m_wFisrtCallUser=rand()%m_wPlayerCount;
+	//}
+
+	//始叫用户
+	/*while(m_cbPlayStatus[m_wFisrtCallUser]!=TRUE)
+	{
+
+		m_wFisrtCallUser=rand()%m_wPlayerCount;
+	}*/
+
+	CallBanker.bFirstTimes=true;
+
+	//if (m_bChongXuan||CallBanker.bQiang_Start)
+	//{
+	//	//当前用户
+	//	m_wCurrentUser=m_wFisrtCallUser;//更改庄家
+	//
+	//	m_bChongXuan=false;
+	//	CallBanker.bQiang_Start=true;
+	//	m_pITableFrame->SetGameTimer(IDI_QAIANG,TIME_QAIANG,1,0);
+	//}
+
+	CallBanker.wCallBanker=m_wCurrentUser;
+
+	//发送数据
+	for (WORD i=0;i<m_wPlayerCount;i++)
+	{
+		if(m_cbPlayStatus[i]!=TRUE) continue;
+		m_pITableFrame->SendTableData(i,SUB_S_CALL_BANKER,&CallBanker,sizeof(CallBanker));
+	}
+
+
+
+	m_pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_CALL_BANKER,&CallBanker,sizeof(CallBanker));
+	//删除时间
+	m_pITableFrame->KillGameTimer(IDI_SO_OPERATE);
+	m_pITableFrame->SetGameTimer(IDI_SO_OPERATE,TIME_SO_OPERATE,1,0);
+
+
+	//随机扑克
+	CMD_S_AllCard AllCard={0};
+	BYTE bTempArray[GAME_PLAYER*MAX_COUNT];
+	m_GameLogic.RandCardList(bTempArray,sizeof(bTempArray));
+	for (WORD i=0;i<m_wPlayerCount;i++)
+	{
+
+		//派发扑克
+		CopyMemory(m_cbHandCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT);
+		//CopyMemory(AllCard.cbCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT);
+
+		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
+		if(pIServerUser==NULL)continue;
+		if(pIServerUser->IsAndroidUser())AllCard.bAICount[i] =true;
+
+		m_bBuckleServiceCharge[i]=true;
+	}
+
+	//m_cbHandCardData[0][0]=0x34;
+	//m_cbHandCardData[0][1]=0x37;
+	//m_cbHandCardData[0][2]=0x39;
+	//m_cbHandCardData[0][3]=0x4E;
+	//m_cbHandCardData[0][4]=0x4F;
+
+	//m_cbHandCardData[2][0]=0x3B;
+	//m_cbHandCardData[2][1]=0x3D;
+	//m_cbHandCardData[2][2]=0x0D;
+	//m_cbHandCardData[2][3]=0x1D;
+	//m_cbHandCardData[2][4]=0x2D;//5hua
+
+	//m_cbHandCardData[1][0]=0x05;
+	//m_cbHandCardData[1][1]=0x38;
+	//m_cbHandCardData[1][2]=0x12;
+	//m_cbHandCardData[1][3]=0x0B;
+	//m_cbHandCardData[1][4]=0x28;
+
+	//m_cbHandCardData[3][0]=0x31;
+	//m_cbHandCardData[3][1]=0x3C;
+	//m_cbHandCardData[3][2]=0x3D;
+	//m_cbHandCardData[3][3]=0x06;
+	//m_cbHandCardData[3][4]=0x18;
+
+	////牛牛数据
+	//BOOL bUserOxData[GAME_PLAYER]={0};
+	//ZeroMemory(bUserOxData, sizeof(bUserOxData));
+	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//{
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
+	//	if(pIServerUserItem==NULL) continue;
+
+	//	if(m_GameLogic.GetOxCard(m_cbHandCardData[i], MAX_COUNT))
+	//	  bUserOxData[i]=TRUE;
+	//}
+	////预分析牌型
+	//WORD wWinUser = INVALID_CHAIR;
+	//WORD wLostUser = INVALID_CHAIR;
+	////查找数据
+	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//{
+	//	//用户过滤
+	//	//if (m_cbPlayStatus[i] == FALSE)
+	//	//	continue;
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
+	//	if(pIServerUserItem==NULL) continue;
+
+	//	//设置用户
+	//	if (wWinUser == INVALID_CHAIR)
+	//	{
+	//		wWinUser = i;
+	//		continue;
+	//	}
+
+	//	//对比扑克
+	//	if (m_GameLogic.CompareCard(m_cbHandCardData[i], m_cbHandCardData[wWinUser], MAX_COUNT, bUserOxData[i], bUserOxData[wWinUser]))
+	//	{
+	//		wWinUser = i;
+	//	}
+	//}
+	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//{
+	//	//用户过滤
+	//	//if (m_cbPlayStatus[i] == FALSE)
+	//	//	continue;
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
+	//	if(pIServerUserItem==NULL) continue;
+
+	//	//设置用户
+	//	if (wLostUser == INVALID_CHAIR)
+	//	{
+	//		wLostUser = i;
+	//		continue;
+	//	}
+
+	//	//对比扑克
+	//	if (!m_GameLogic.CompareCard(m_cbHandCardData[i], m_cbHandCardData[wLostUser], MAX_COUNT, bUserOxData[i], bUserOxData[wLostUser]))
+	//	{
+	//		wLostUser = i;
+	//	}
+	//}
+	////黑白名单控制
+	//CArray<int> canUsePlayerLst;
+	//canUsePlayerLst.RemoveAll();
+
+	//if(m_pITableFrame)
+	//{
+	//	//-----------------------------------//
+	//	int iWhiteUser=m_pITableFrame->GetBlackWhiteControl(canUsePlayerLst);
+	//	if(iWhiteUser==INVALID_CHAIR && canUsePlayerLst.GetCount()>0) iWhiteUser=canUsePlayerLst.GetAt(rand()%canUsePlayerLst.GetCount()); //剩下玩家处理
+	//	if(iWhiteUser!=INVALID_CHAIR && m_lStockScore > 0)
+	//	{
+	//		if(iWhiteUser!=wWinUser)
+	//		{
+	//			BYTE bCardData[MAX_COUNT] = {0};
+	//			memcpy(bCardData,m_cbHandCardData[wWinUser],sizeof(bCardData));
+	//			memcpy(m_cbHandCardData[wWinUser],m_cbHandCardData[iWhiteUser],sizeof(bCardData));
+	//			memcpy(m_cbHandCardData[iWhiteUser],bCardData,sizeof(bCardData));
+	//		}
+	//	}
+	//	//判断是否有黑名单
+	//	int iBlackUser=INVALID_CHAIR;
+	//	for(int i=0;i<m_wPlayerCount;i++)
+	//	{
+	//		//用户过滤
+	//		if (m_cbPlayStatus[i] == FALSE)
+	//			continue;
+	//	    IServerUserItem *pCurUser=m_pITableFrame->GetTableUserItem(i);
+	//		if(pCurUser==NULL) continue;
+	//		tagUserListProp curUserInf=pCurUser->GetUserListProp();
+	//		if(curUserInf.iListProp==2)
+	//		{
+	//			iBlackUser=i;
+	//			break;
+	//		}
+	//	}
+	//	if(wLostUser!=INVALID_CHAIR && iBlackUser!=INVALID_CHAIR)
+	//	{
+	//		if(iBlackUser!=wLostUser)
+	//		{
+	//			BYTE bCardData[MAX_COUNT] = {0};
+	//			memcpy(bCardData,m_cbHandCardData[wLostUser],sizeof(bCardData));
+	//			memcpy(m_cbHandCardData[wLostUser],m_cbHandCardData[iBlackUser],sizeof(bCardData));
+	//			memcpy(m_cbHandCardData[iBlackUser],bCardData,sizeof(bCardData));
+	//		}
+	//	}
+	//}
+
+	//canUsePlayerLst.RemoveAll();
+	//重拷数据
+	for (WORD i=0;i<m_wPlayerCount;i++)
+	{
+		//派发扑克
+		CopyMemory(AllCard.cbCardData[i],m_cbHandCardData[i],MAX_COUNT);
+	}
+	//发送数据
+	for (WORD i=0;i<m_wPlayerCount;i++)
+	{
+		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
+		if(pIServerUser==NULL)continue;
+#ifndef _DEBUG
+		if(CUserRight::IsGameCheatUser(pIServerUser->GetUserRight())==false || m_bSpecialClient[i]==false)continue;
+#endif
+		//fdl modify
+		//m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard));
+		//只发给机器人。不能发到客户端
+		if(pIServerUser->IsAndroidUser())
+		{
+			m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard));
+		}
+	}
+
+    //记录房间局数
+	m_HistoryScore.OnRecordGameCount();
+
+
 	return
 }
 
@@ -1774,3 +1969,4 @@ func (room *Room) DissumeRoom(args []interface{}) {
 
 	room.Destroy()
 }
+*/
