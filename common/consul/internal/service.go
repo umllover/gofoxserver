@@ -134,7 +134,7 @@ func WatchAllFaildServices(client *api.Client, ServiceName string) {
 		}
 
 		if len(newFaildSvr) > 0 {
-			ChanRPC.Go("SvrFaild", newFaildSvr)
+			ChanRPC.Go("NotifySvrFaild", newFaildSvr)
 		}
 	}
 }

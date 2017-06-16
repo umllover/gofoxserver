@@ -1,9 +1,10 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/module"
-	"github.com/lovelly/leaf/log"
 	"mj/common/base"
+
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/module"
 )
 
 var (
@@ -19,19 +20,19 @@ func (m *Module) OnInit() {
 	log.Debug("at consul model OnInit")
 	m.Skeleton = skeleton
 	InitConsul("http")
-	if Config.GetRegistSelf(){
+	if Config.GetRegistSelf() {
 		Register()
 	}
 
 	wn := Config.GetWatchSvrName()
-	if wn != ""{
+	if wn != "" {
 		WatchServices(wn)
 	}
 
-	wf := Config.GetWatchFaildSvrName()
-	if wf != ""{
-		WatchAllFaild(wf)
-	}
+	//wf := Config.GetWatchFaildSvrName()
+	//if wf != ""{
+	//	WatchAllFaild(wf)
+	//}
 }
 
 func (m *Module) OnDestroy() {

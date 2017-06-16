@@ -18,7 +18,7 @@ func init() {
 	caches = make(map[string]*CacheInfo)
 	//regist
 	handleRpc("AddServerInfo", AddServerInfo)
-	handleRpc("SvrFaild", SvrFaild)
+	handleRpc("NotifySvrFaild", NotifySvrFaild)
 	handleRpc("KvUpdate", KvUpdate)
 	handleRpc("GetAllSvrInfo", GetAllSvrInfo)
 }
@@ -30,6 +30,11 @@ func handleRpc(id interface{}, f interface{}) {
 func AddServerInfo(args []interface{}) {
 	log.Debug("at AddServerInfo ......")
 	svrInfo := args[0].(map[string]*CacheInfo)
+	for id, _ := range caches {
+		if _, ok := svrInfo[id]; !ok {
+			SvrFaild(id)
+		}
+	}
 	for id, svr := range svrInfo {
 		if _, ok := caches[id]; !ok && svr.Csid != SelfId && len(InitiativeSvr) > 0 {
 			for _, v := range InitiativeSvr {
@@ -47,18 +52,23 @@ func AddServerInfo(args []interface{}) {
 
 	caches = svrInfo
 }
-
-func SvrFaild(args []interface{}) {
+func NotifySvrFaild(args []interface{}) {
 	log.Debug("at SvrFaild ==== %v", args)
 	faildInfo := args[0].(map[string]string)
 	for id, _ := range faildInfo {
 		if _, ok := caches[id]; ok {
-			delete(caches, id)
-			cluster.RemoveClient(id)
+			SvrFaild(id)
 		} else {
 			log.Debug("no foud old svr %v", caches)
 		}
 	}
+}
+
+func SvrFaild(id string) {
+	log.Debug(" SvrFaild ==== :%s", id)
+	delete(caches, id)
+	cluster.RemoveClient(id)
+
 }
 
 func KvUpdate(args []interface{}) {
