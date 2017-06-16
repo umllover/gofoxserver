@@ -2,7 +2,7 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 
-	"WSAddr": "192.168.1.141:20001",
+	"WSAddr": "192.168.1.75:20001",
 	"MaxConnNum": 20000,
 
     "BaseDbHost":"192.168.1.33",
@@ -22,8 +22,8 @@
     "StatsDbPassword":"hfwl@2017",
 
     "ConsulAddr":"192.168.1.144:8500",
-	"ListenAddr": "192.168.1.141:30001",
+	"ListenAddr": "192.168.1.75:30001",
 	"PendingWriteNum": 100,
     "PrivatePort":7001,
-    "NodeId": 1
+    "NodeId": 2
 }
