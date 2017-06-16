@@ -35,23 +35,34 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-//	handlerC2S(&nn_tb_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+	handlerC2S(&nn_tb_msg.C2G_TBNN_CallScore{}, TBNNCallScore)
 //	handlerC2S(&nn_tb_msg.C2G_HZMJ_OperateCard{}, OperateCard)
+
+	/*msg.Processor.Register(&C2G_TBNN_CallScore{})
+	msg.Processor.Register(&C2G_TBNN_AddScore{})
+	msg.Processor.Register(&C2G_TBNN_CallBanker{})
+	msg.Processor.Register(&C2G_TBNN_OxCard{})
+	msg.Processor.Register(&C2G_TBNN_QIANG{})*/
+
+
+
 	// rpc
 	handleRpc("DelRoom", DelRoom)
 	handleRpc("CreateRoom", CreaterRoom)
 }
 
-func HZOutCard(args []interface{}) {
+
+func TBNNCallScore(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
+	log.Debug("Enter TBNN Call Score")
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.ChanRPC.Go("OutCard", args[0], user)
+		r.ChanRPC.Go("CallScore", args[0], user)
 	}
 }
-
+/*
 func OperateCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
@@ -60,7 +71,7 @@ func OperateCard(args []interface{}) {
 	if r != nil {
 		r.ChanRPC.Go("OperateCard", args[0], user)
 	}
-}
+}*/
 
 //////////////// rcp ///////////////////
 func DelRoom(args []interface{}) {
@@ -135,7 +146,7 @@ func CreaterRoom(args []interface{}) {
 	if recvMsg.DrawTimeLimit == 0 {
 		r.TimeLimit = feeTemp.DrawTimeLimit
 		r.CountLimit = feeTemp.DrawCountLimit
-		r.Source = feeTemp.IniScore
+		r.CellScore = feeTemp.IniScore
 	}
 	r.TimeOutCard = template.OutCardTime
 	r.TimeOperateCard = template.OperateCardTime
