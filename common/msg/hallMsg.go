@@ -45,6 +45,12 @@ type C2L_User_Individual struct {
 	UserId int
 }
 
+//请求房间列表
+type C2L_GetRoomList struct {
+	KindID int
+	PageId int //获取第几页
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
@@ -107,4 +113,10 @@ type L2C_UserIndividual struct {
 	MemberOrder int8 //会员等级
 	Score       int64
 	HeadImgUrl  string
+}
+
+//返回房间列表
+type L2C_GetRoomList struct {
+	Lists []*RoomInfo //房间信息
+	Count int         //有多少条
 }

@@ -1,10 +1,11 @@
 package network
 
 import (
-	"github.com/lovelly/leaf/log"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/lovelly/leaf/log"
 )
 
 type TCPClient struct {

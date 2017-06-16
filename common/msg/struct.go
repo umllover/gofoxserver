@@ -48,6 +48,7 @@ type RoomInfo struct {
 	PayCnt     int   //可玩局数
 	CurPayCnt  int   //已玩局数
 	CreateTime int64 //创建时间
+	Idx        int   //服务器标识用的字段
 }
 
 //用户状态信息
