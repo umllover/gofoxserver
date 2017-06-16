@@ -12,6 +12,7 @@ import (
 	"mj/hallServer/gameList"
 	"mj/hallServer/gate"
 	"mj/hallServer/userHandle"
+	"mj/hallServer/raceMsg"
 	"os"
 
 	"flag"
@@ -57,5 +58,6 @@ func main() {
 		consul.Module,
 		userHandle.UserMgr,
 		gameList.Module,
+		raceMsg.Module,
 	)
 }
