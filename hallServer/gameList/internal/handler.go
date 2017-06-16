@@ -7,6 +7,8 @@ import (
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 
+	"sort"
+
 	"github.com/chanxuehong/util/math"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
@@ -36,6 +38,7 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 	handlerC2S(&msg.C2L_GetRoomList{}, GetRoomList)
+	handlerC2S(&msg.C2L_QuickMatch{}, QuickMatch)
 
 	handleRpc("sendGameList", sendGameList)
 	handleRpc("updateGameInfo", updateGameInfo)
@@ -91,6 +94,53 @@ func GetRoomList(args []interface{}) {
 			retMsg.Count++
 		}
 	}
+}
+
+func QuickMatch(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_QuickMatch)
+	retMsg := msg.G2C_SearchResult{}
+	agent := args[1].(gate.Agent)
+	defer func() {
+		agent.WriteMsg(retMsg)
+	}()
+
+	m, ok := roomKindList[recvMsg.KindID]
+	if !ok {
+		log.Debug("not found KindID:%v", recvMsg.KindID)
+		return
+	}
+
+	maxLen := len(m)
+	if maxLen < 2 {
+		for _, id := range m {
+			v := roomList[id]
+			retMsg.ServerID = v.ServerID
+			retMsg.TableID = v.RoomID
+			return
+		}
+	}
+
+	arr := make([]*msg.RoomInfo, maxLen)
+	i := 0
+	for _, roomid := range m {
+		arr[i] = roomList[roomid]
+	}
+
+	sort.Slice(arr, func(i, j int) bool {
+		if arr[i].CreateTime < arr[j].CreateTime {
+			return true
+		}
+
+		if arr[i].CurCnt < arr[j].CurCnt {
+			return true
+		}
+		return false
+	})
+
+	v := arr[0]
+	retMsg.ServerID = v.ServerID
+	retMsg.TableID = v.RoomID
+	return
 }
 
 //////////////////// rpc

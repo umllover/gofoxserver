@@ -22,6 +22,8 @@ func init() {
 	Processor.Register(&C2L_User_Individual{})
 	Processor.Register(&L2C_UserIndividual{})
 	Processor.Register(&C2L_GetRoomList{})
+	Processor.Register(&C2L_QuickMatch{})
+
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})

@@ -51,6 +51,11 @@ type C2L_GetRoomList struct {
 	PageId int //获取第几页
 }
 
+//请求匹配一个房间
+type C2L_QuickMatch struct {
+	KindID int //
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
