@@ -30,7 +30,7 @@ func (m *Module) OnInit() {
 }
 
 func (m *Module) OnDestroy() {
-
+	ClearLoocker()
 }
 
 func LoadAllModule() {

@@ -12,12 +12,26 @@ import (
 	"mj/gameServer/kindList"
 	"mj/gameServer/userHandle"
 
+	"flag"
+
+	"fmt"
+	"os"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
 )
 
+var version = 0
+
+var printVersion = flag.Bool("version", false, "print version")
+
 func main() {
+
+	if *printVersion {
+		fmt.Println(" version: ", version)
+		os.Exit(0)
+	}
 	conf.Init()
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath

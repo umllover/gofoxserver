@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"mj/common"
 	"mj/common/consul"
 	. "mj/common/cost"
@@ -11,12 +12,23 @@ import (
 	"mj/hallServer/gameList"
 	"mj/hallServer/gate"
 	"mj/hallServer/userHandle"
+	"os"
+
+	"flag"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 )
 
+var version = 0
+
+var printVersion = flag.Bool("version", false, "print version")
+
 func main() {
+	if *printVersion {
+		fmt.Println(" version: ", version)
+		os.Exit(0)
+	}
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
