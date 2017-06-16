@@ -28,6 +28,7 @@ func handleRpc(id interface{}, f interface{}) {
 }
 
 func AddServerInfo(args []interface{}) {
+	log.Debug("at AddServerInfo ......")
 	svrInfo := args[0].(map[string]*CacheInfo)
 	for id, svr := range svrInfo {
 		if _, ok := caches[id]; !ok && svr.Csid != SelfId && len(InitiativeSvr) > 0 {
