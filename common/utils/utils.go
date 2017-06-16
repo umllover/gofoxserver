@@ -17,7 +17,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/name5566/leaf/log"
+	"github.com/lovelly/leaf/log"
 )
 
 func DumpsMapStringInterface(data map[string]interface{}) string {
