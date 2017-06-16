@@ -25,6 +25,7 @@ var version = 0
 var printVersion = flag.Bool("version", false, "print version")
 
 func main() {
+	flag.Parse()
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)
