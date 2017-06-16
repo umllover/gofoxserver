@@ -82,7 +82,6 @@ func _removeClient(serverName string) {
 }
 
 func RemoveClient(serverName string) {
-	log.Debug("at RemoveClient serverName:%s", serverName)
 	clientsMutex.Lock()
 	defer clientsMutex.Unlock()
 
@@ -107,6 +106,7 @@ func addAgent(serverName string, agent *Agent) {
 func _removeAgent(serverName string) {
 	agent, ok := agents[serverName]
 	if ok {
+		log.Debug("remove svr name ==== == %v", serverName)
 		delete(agents, serverName)
 		agent.Destroy()
 		log.Release("%v server is offline", serverName)
@@ -242,6 +242,7 @@ func (a *Agent) Run() {
 				log.Error("unmarshal message error: %v", err)
 				continue
 			}
+			log.Debug("cluster IN = %v", msg)
 			err = Processor.Route(msg, a)
 			if err != nil {
 				log.Error("route message error: %v", err)
@@ -257,7 +258,9 @@ func (a *Agent) OnClose() {
 }
 
 func (a *Agent) WriteMsg(msg interface{}) {
+
 	if Processor != nil {
+		log.Debug("cluster OUT = %v", msg)
 		a.encMutex.Lock()
 		data, err := Processor.Marshal(a.encoder, msg)
 		a.encMutex.Unlock()
@@ -265,11 +268,16 @@ func (a *Agent) WriteMsg(msg interface{}) {
 			log.Error("marshal message %v error: %v", reflect.TypeOf(msg), err)
 			return
 		}
+		if len(data) < 1 {
+			log.Error("cluster WriteMsg msg len == 0")
+			return
+		}
 		err = a.conn.WriteMsg(data...)
 		if err != nil {
 			log.Error("write message %v error: %v", reflect.TypeOf(msg), err)
 		}
 	}
+
 }
 
 func (a *Agent) LocalAddr() net.Addr {

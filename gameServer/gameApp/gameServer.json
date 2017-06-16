@@ -3,7 +3,7 @@
 	"LogPath": "",
 	"RoomModuleCount": 4,
 	
-	"WSAddr": "192.168.1.75:20002",
+	"WSAddr": "192.168.1.141:20002",
 	"MaxConnNum": 20000,
 	
     "BaseDbHost":"192.168.1.33",
@@ -23,9 +23,9 @@
     "StatsDbPassword":"hfwl@2017",
 
     "ConsulAddr":"192.168.1.144:8500",
-	"ListenAddr": "192.168.1.75:32001",
+	"ListenAddr": "192.168.1.141:32001",
 	"PendingWriteNum": 100,
     "ValidKind":"389,28",
     "PrivatePort":7002,
-    "NodeId": 2
+    "NodeId": 1
 }

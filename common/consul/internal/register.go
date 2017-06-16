@@ -73,10 +73,20 @@ func register(c *api.Client, service *api.AgentServiceRegistration) (dereg chan 
 
 //构建一个配置用于注册到consul
 func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api.AgentServiceRegistration, error) {
+	tcpPort := -1
+	list := strings.Split(Addr, ":")
+	if len(list) > 1 {
+		var err error
+		tcpPort, err = strconv.Atoi(list[1])
+		if err != nil {
+			log.Error("at buildRoomSvrConfig get tcp port error:", err.Error())
+			panic("bug")
+		}
+	}
 
 	consulSvrId := fmt.Sprintf(svrName+"_%v", svrID)
 	q := &api.QueryOptions{RequireConsistent: true}
-	svcs, _, err := Cli.Catalog().Service(svrName+"/"+consulSvrId, "", q)
+	svcs, _, err := Cli.Catalog().Service(svrName, "", q)
 	if err != nil {
 		log.Fatal("check regist faild at buildRoomSvrConfig %v", consulSvrId)
 		return nil, errors.New("check regist faild at buildRoomSvrConfig")
@@ -87,16 +97,10 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 			log.Fatal("check regist faild at buildRoomSvrConfig 11 %v", consulSvrId)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
-	}
 
-	tcpPort := -1
-	list := strings.Split(Addr, ":")
-	if len(list) > 1 {
-		var err error
-		tcpPort, err = strconv.Atoi(list[1])
-		if err != nil {
-			log.Error("at buildRoomSvrConfig get tcp port error:", err.Error())
-			panic("bug")
+		if v.Address == list[0] && v.ServicePort == tcpPort {
+			log.Fatal("check regist faild at buildRoomSvrConfig 22 %v", consulSvrId)
+			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 	}
 

@@ -502,6 +502,10 @@ func execCb(ri *RetInfo) {
 		}
 	}()
 
+	if ri == nil {
+		return
+	}
+
 	// execute
 	switch ri.Cb.(type) {
 	case func(error):

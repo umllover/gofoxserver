@@ -24,6 +24,8 @@ var Server struct {
 	CertFile        string
 	KeyFile         string
 	TCPAddr         string
+	HttpAddr        string
+	WatchAddr       string
 	MaxConnNum      int
 	ConsolePort     int
 	ProfilePath     string

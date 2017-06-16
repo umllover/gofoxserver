@@ -17,6 +17,8 @@ import (
 	"fmt"
 	"os"
 
+	"mj/gameServer/http_service"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
@@ -45,6 +47,8 @@ func main() {
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 
 	common.Init()
+	http_service.StartHttpServer()
+	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})
 	consul.SetSelfId(conf.ServerName())
 	db.InitDB(&conf.DBConfig{})
