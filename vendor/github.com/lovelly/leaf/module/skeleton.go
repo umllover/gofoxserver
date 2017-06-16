@@ -1,11 +1,12 @@
 package module
 
 import (
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/console"
 	"github.com/lovelly/leaf/go"
 	"github.com/lovelly/leaf/timer"
-	"time"
 )
 
 type Skeleton struct {
@@ -55,6 +56,8 @@ func (s *Skeleton) Run(closeSig chan bool) {
 			return
 		case ri := <-s.client.ChanAsynRet:
 			s.client.Cb(ri)
+		case ri := <-s.server.RemoteAsynRet:
+			s.client.ExecRemoveCb(ri)
 		case ci := <-s.server.ChanCall:
 			s.server.Exec(ci)
 		case ci := <-s.commandServer.ChanCall:
@@ -68,7 +71,7 @@ func (s *Skeleton) Run(closeSig chan bool) {
 }
 
 func (s *Skeleton) GetChanAsynRet() chan *chanrpc.RetInfo {
-	return s.client.ChanAsynRet
+	return s.server.RemoteAsynRet
 }
 
 func (s *Skeleton) AfterFunc(d time.Duration, cb func()) *timer.Timer {

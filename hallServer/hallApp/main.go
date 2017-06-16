@@ -16,6 +16,8 @@ import (
 
 	"flag"
 
+	"mj/hallServer/http_service"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 )
@@ -42,6 +44,8 @@ func main() {
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 
 	common.Init()
+	http_service.StartHttpServer()
+	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})
 	consul.SetSelfId(lconf.ServerName)
 	consul.AddinitiativeSvr(GamePrefix)

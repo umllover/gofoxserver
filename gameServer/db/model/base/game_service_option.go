@@ -14,6 +14,7 @@ import (
 // +gen
 type GameServiceOption struct {
 	KindID                      int    `db:"KindID" json:"KindID"`                                           // 名称号码
+	GameName                    string `db:"GameName" json:"GameName"`                                       //
 	NodeID                      int    `db:"NodeID" json:"NodeID"`                                           //
 	SortID                      int    `db:"SortID" json:"SortID"`                                           // 排列标识
 	ServerID                    int    `db:"ServerID" json:"ServerID"`                                       // 房间标识
@@ -43,6 +44,8 @@ type GameServiceOption struct {
 	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入 1是允许
 	OutCardTime                 int    `db:"OutCardTime" json:"OutCardTime"`                                 // 多久没出牌自动出牌
 	OperateCardTime             int    `db:"OperateCardTime" json:"OperateCardTime"`                         // 操作最大时间
+	MaxScore                    int64  `db:"MaxScore" json:"MaxScore"`                                       //
+	MaxScoreTimes               int    `db:"MaxScoreTimes" json:"MaxScoreTimes"`                             //
 }
 
 var DefaultGameServiceOption = GameServiceOption{}

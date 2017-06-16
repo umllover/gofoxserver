@@ -8,5 +8,6 @@ func InitTableMap() {
 	   db.BaseDBMap.AddTableWithName(GameServiceOption{}, "game_service_option").SetKeys(false,"KindID","ServerID")
 	   db.BaseDBMap.AddTableWithName(GlobalVar{}, "global_var").SetKeys(false,"K")
 	   db.BaseDBMap.AddTableWithName(PersonalTableFee{}, "personal_table_fee").SetKeys(false,"ServerID","KindID","DrawCountLimit","DrawTimeLimit")
+	   db.BaseDBMap.AddTableWithName(ServerList{}, "server_list").SetKeys(false,"SvrId","SvrType")
 	*/
 }

@@ -16,6 +16,9 @@ var Server struct {
 	CertFile    string
 	KeyFile     string
 	TCPAddr     string
+	ListenAddr  string
+	HttpAddr    string
+	WatchAddr   string
 	MaxConnNum  int
 	ConsolePort int
 	ProfilePath string
@@ -37,7 +40,6 @@ var Server struct {
 	StatsDbPassword string
 	ConsulAddr      string
 
-	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
 	PrivatePort     int

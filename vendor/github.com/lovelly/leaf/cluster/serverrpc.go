@@ -2,9 +2,10 @@ package cluster
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
-	"regexp"
 )
 
 var (
@@ -53,7 +54,7 @@ func Broadcast(Prefix string, id interface{}, args ...interface{}) {
 	defer agentsMutex.RUnlock()
 
 	for agentName, agent := range agents {
-		if ok, _ := regexp.MatchString(Prefix,agentName); ok{
+		if ok, _ := regexp.MatchString(Prefix, agentName); ok {
 			agent.Go(id, args...)
 		}
 	}
@@ -63,7 +64,7 @@ func Go(serverName string, id interface{}, args ...interface{}) {
 	agent := GetAgent(serverName)
 	if agent != nil {
 		agent.Go(id, args...)
-	}else {
+	} else {
 		log.Error("%v server is offline", serverName)
 	}
 }

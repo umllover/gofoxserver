@@ -23,9 +23,10 @@ type Server struct {
 	// func(args []interface{})
 	// func(args []interface{}) interface{}
 	// func(args []interface{}) []interface{}
-	functions map[interface{}]*FuncInfo
-	ChanCall  chan *CallInfo
-	CloseFlg  bool
+	functions     map[interface{}]*FuncInfo
+	ChanCall      chan *CallInfo
+	RemoteAsynRet chan *RetInfo
+	CloseFlg      bool
 }
 
 type FuncInfo struct {
@@ -75,6 +76,7 @@ func NewServer(l int) *Server {
 	s := new(Server)
 	s.functions = make(map[interface{}]*FuncInfo)
 	s.ChanCall = make(chan *CallInfo, l)
+	s.RemoteAsynRet = make(chan *RetInfo, l)
 	return s
 }
 
@@ -249,6 +251,7 @@ func (s *Server) Close() {
 		return
 	}
 	close(s.ChanCall)
+	close(s.RemoteAsynRet)
 	s.CloseFlg = true
 	for ci := range s.ChanCall {
 		s.ret(ci, &RetInfo{
@@ -520,10 +523,19 @@ func (c *Client) Cb(ri *RetInfo) {
 	execCb(ri)
 }
 
+func (c *Client) ExecRemoveCb(ri *RetInfo) {
+	execCb(ri)
+}
+
 func (c *Client) Close() {
 	for c.pendingAsynCall > 0 {
 		c.Cb(<-c.ChanAsynRet)
 	}
+}
+
+func (c *Client) GetpendingAsynCall() int {
+	log.Debug("pendingAsynCall %v", c.pendingAsynCall)
+	return c.pendingAsynCall
 }
 
 func (c *Client) Idle() bool {
