@@ -51,11 +51,15 @@ type RoomBase struct {
 	Owner               int                //房主id
 	Status              int                //当前状态
 	ChatRoomId          int                //聊天房间id
+	TimeStartGame       int64              //开始时间
+	MaxPayCnt           int                //最大局数
+	PlayCount           int                //已玩局数
 	KickOut             map[int]*timer.Timer
 	Temp                *tbase.GameServiceOption
 	//cb
 	StartGameCb    func() //开始函数
 	GameConcludeCb func(ChairId int, user *user.User, cbReason int) bool
+	OnDestroyCb    func() //销毁回调函数
 }
 
 func NewRoomBase(userCnt, rid int, mgrCh *chanrpc.Server, name string) *RoomBase {
@@ -88,12 +92,15 @@ func (r *RoomBase) RoomRun() {
 	}()
 }
 
-func (r *RoomBase) End() {
+func (r *RoomBase) GetCurlPlayerCount() int {
+	cnt := 0
 	for _, u := range r.Users {
 		if u != nil {
-			u.ChanRPC().Go("LeaveRoom")
+			cnt++
 		}
 	}
+
+	return cnt
 }
 
 func (r *RoomBase) Destroy() {
@@ -102,9 +109,31 @@ func (r *RoomBase) Destroy() {
 			log.Recover(r)
 		}
 	}()
-
+	r.OnDestroyCb()
 	r.CloseSig <- true
-	log.Debug("room Room Destroy ok,  Name:%s", r.id)
+	log.Debug("room Room Destroy ok,  Name:%s", r.Name)
+}
+
+func (r *RoomBase) End() {
+	for _, u := range r.Users {
+		if u != nil {
+			u.ChanRPC().Go("LeaveRoom")
+		}
+	}
+}
+
+func (r *RoomBase) GetBirefInfo() *msg.RoomInfo {
+	msg := &msg.RoomInfo{}
+	msg.ServerID = r.ServerId
+	msg.KindID = r.Kind
+	msg.NodeID = conf.Server.NodeId
+	msg.RoomID = r.GetRoomId()
+	msg.CurCnt = r.PlayerCount
+	msg.MaxCnt = r.UserCnt           //最多多人数
+	msg.PayCnt = r.MaxPayCnt         //可玩局数
+	msg.CurPayCnt = r.PlayCount      //已玩局数
+	msg.CreateTime = r.TimeStartGame //创建时间
+	return msg
 }
 
 func (r *RoomBase) GetChanRPC() *chanrpc.Server {

@@ -6,7 +6,6 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/common"
 	"mj/gameServer/common/room_base"
-	"mj/gameServer/conf"
 	tbase "mj/gameServer/db/model/base"
 	"mj/gameServer/idGenerate"
 	"strconv"
@@ -45,8 +44,10 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.CollectScore = make([]int, userCnt)
 	room.Trustee = make([]bool, userCnt)
 	room.KickOut = make(map[int]*timer.Timer)
+
 	room.StartGameCb = room.StartGame
 	room.GameConcludeCb = room.OnEventGameConclude
+	room.OnDestroyCb = room.OnDestroy
 	RegisterHandler(room)
 	room.OnInit()
 	room.RoomRun()
@@ -61,12 +62,10 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 //吧room 当一张桌子理解
 type Room struct {
 	*room_base.RoomBase
-	TimeLimit         int   //时间显示
-	CountLimit        int   //局数限制
-	TimeOutCard       int   //出牌时间
-	TimeOperateCard   int   //操作时间
-	TimeStartGame     int64 //开始时间
-	MaxPayCnt         int   //最大局数
+	TimeLimit         int //时间显示
+	CountLimit        int //局数限制
+	TimeOutCard       int //出牌时间
+	TimeOperateCard   int //操作时间
 	EndTime           *timer.Timer
 	Name              string             //房间名字
 	Source            int                //底分
@@ -126,57 +125,16 @@ type Room struct {
 	TurnScore         []int              //积分信息
 	CollectScore      []int              //积分信息
 	Trustee           []bool             //是否托管 index 就是椅子id
-	PlayCount         int                //已玩局数
 	gameLogic         *GameLogic
 }
 
-func (r *Room) Destroy() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Recover(r)
-		}
-	}()
-	r.OnDestroy()
-	r.CloseSig <- true
-	log.Debug("room Room Destroy ok,  Name:%s", r.Name)
-}
-
-func (r *Room) GetCurlPlayerCount() int {
-	cnt := 0
-	for _, u := range r.Users {
-		if u != nil {
-			cnt++
-		}
-	}
-
-	return cnt
-}
-
 func (r *Room) OnInit() {
-	r.Skeleton.AfterFunc(10*time.Second, r.Update)
+	//r.Skeleton.AfterFunc(10*time.Second, r.Update)
 }
 
 func (r *Room) OnDestroy() {
 	idGenerate.DelRoomId(r.GetRoomId())
 	r.MgrCh.Go("DelRoom", r.GetRoomId())
-}
-
-func (r *Room) GetBirefInfo() *msg.RoomInfo {
-	msg := &msg.RoomInfo{}
-	msg.ServerID = r.ServerId
-	msg.KindID = r.Kind
-	msg.NodeID = conf.Server.NodeId
-	msg.RoomID = r.GetRoomId()
-	msg.CurCnt = r.PlayerCount
-	msg.MaxCnt = r.UserCnt           //最多多人数
-	msg.PayCnt = r.MaxPayCnt         //可玩局数
-	msg.CurPayCnt = r.PlayCount      //已玩局数
-	msg.CreateTime = r.TimeStartGame //创建时间
-	return msg
-}
-
-func (r *Room) Update() {
-	r.Skeleton.AfterFunc(10*time.Second, r.Update)
 }
 
 /////////////////// 超时处理函数
