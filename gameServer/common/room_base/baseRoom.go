@@ -51,7 +51,6 @@ type RoomBase struct {
 	Owner               int                //房主id
 	Status              int                //当前状态
 	ChatRoomId          int                //聊天房间id
-	TimeStartGame       int64              //开始时间
 	MaxPayCnt           int                //最大局数
 	PlayCount           int                //已玩局数
 	KickOut             map[int]*timer.Timer
@@ -132,7 +131,7 @@ func (r *RoomBase) GetBirefInfo() *msg.RoomInfo {
 	msg.MaxCnt = r.UserCnt           //最多多人数
 	msg.PayCnt = r.MaxPayCnt         //可玩局数
 	msg.CurPayCnt = r.PlayCount      //已玩局数
-	msg.CreateTime = r.TimeStartGame //创建时间
+	msg.CreateTime = r.CreateTime //创建时间
 	return msg
 }
 

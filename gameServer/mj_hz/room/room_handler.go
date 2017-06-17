@@ -125,7 +125,7 @@ func (room *Room) SetGameOption(args []interface{}) {
 		StatusFree.CellScore = room.Source                //基础积分
 		StatusFree.TimeOutCard = room.TimeOutCard         //出牌时间
 		StatusFree.TimeOperateCard = room.TimeOperateCard //操作时间
-		StatusFree.TimeStartGame = room.TimeStartGame     //开始时间
+		StatusFree.CreateTime = room.CreateTime     //开始时间
 		StatusFree.TurnScore = room.TurnScore             //积分信息
 		StatusFree.CollectScore = room.CollectScore       //积分信息
 		StatusFree.PlayerCount = room.PlayCount           //玩家人数
@@ -161,7 +161,7 @@ func (room *Room) SetGameOption(args []interface{}) {
 		//自定规则
 		StatusPlay.TimeOutCard = room.TimeOutCard
 		StatusPlay.TimeOperateCard = room.TimeOperateCard
-		StatusPlay.TimeStartGame = room.TimeStartGame
+		StatusPlay.CreateTime = room.CreateTime
 
 		room.OnUserTrustee(user.ChairId, false) //重入取消托管
 

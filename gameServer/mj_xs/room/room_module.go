@@ -33,7 +33,7 @@ func NewRoom(mgrCh *chanrpc.Server, param *msg.C2G_CreateTable, t *tbase.GameSer
 	room.Owner = uid
 	room.BankerUser = INVALID_CHAIR
 	now := time.Now().Unix()
-	room.TimeStartGame = now
+	room.CreateTime = now
 	room.EendTime = now + 900
 	room.CardIndex = make([][]int, room.UserCnt)
 	room.HistoryScores = make([]*HistoryScore, room.UserCnt)
@@ -119,7 +119,7 @@ type Room struct {
 	Trustee           []bool            //是否托管 index 就是椅子id
 	CurrentUser       int               //当前玩家
 	MaxPayCnt         int
-	TimeStartGame     int64
+	CreateTime     int64
 }
 
 func (r *Room) GetCurlPlayerCount() int {
@@ -163,6 +163,6 @@ func (r *Room) GetBirefInfo() *msg.RoomInfo {
 	msg.MaxCnt = r.UserCnt           //最多多人数
 	msg.PayCnt = r.MaxPayCnt         //可玩局数
 	msg.CurPayCnt = r.PlayCount      //已玩局数
-	msg.CreateTime = r.TimeStartGame //创建时间
+	msg.CreateTime = r.CreateTime //创建时间
 	return msg
 }
