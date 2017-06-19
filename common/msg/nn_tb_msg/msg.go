@@ -16,6 +16,7 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_GameEnd{})
 	msg.Processor.Register(&G2C_TBNN_AddScore{})
 	msg.Processor.Register(&G2C_TBNN_SendCard{})
+	msg.Processor.Register(&G2C_TBNN_AllCard{})
 	msg.Processor.Register(&G2C_TBNN_PlayerExit{})
 	msg.Processor.Register(&G2C_TBNN_Open_Card{})
 
@@ -141,13 +142,10 @@ type G2C_TBNN_SendCard struct {
 	CardData				[][]int     	//用户扑克
 }
 
-/*
 //发牌数据包
-type G2C_TBNN_AllCard
-{
-bool								bAICount[]
-BYTE								cbCardData[][]	//用户扑克
-}*/
+type G2C_TBNN_AllCard struct {
+	CardData				[][]int			//用户扑克
+}
 
 //用户退出
 type G2C_TBNN_PlayerExit struct {
