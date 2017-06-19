@@ -319,14 +319,11 @@ func (room *Room) isAllReady() bool {
 
 func (room *Room) StartGame() {
 	log.Debug("begin start game TBNN")
-	room.ForEachUser(func(u *client.User) {
-		room.setUsetStatus(u, US_PLAYING)
-	})
 
 /*	//初始化
 	room.RepertoryCard = make([]int, MAX_REPERTORY)
 	room.HandCardCount = make([]int, room.UserCnt)
-	for i := 0; i < room.UserCnt; i++ {
+	for i := 0 i < room.UserCnt i++ {
 		room.CardIndex[i] = make([]int, MAX_INDEX)
 	}
 	room.ChiHuKind = make([]int, room.UserCnt)
@@ -346,7 +343,7 @@ func (room *Room) StartGame() {
 	room.WeaveItemCount = make([]int, room.UserCnt)
 	room.ChiHuRight = make([]int, room.UserCnt)
 
-	for i := 0; i < room.UserCnt; i++ {
+	for i := 0 i < room.UserCnt i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
 	}
 
@@ -409,7 +406,7 @@ func (room *Room) StartGame() {
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % room.UserCnt
 	TakeCount := MAX_REPERTORY - room.LeftCardCount
-	for i := 0; i < room.UserCnt; i++ {
+	for i := 0 i < room.UserCnt i++ {
 		//计算数目
 		var ValidCount int
 		if i == 0 {
@@ -458,9 +455,9 @@ func (room *Room) StartGame() {
 		HuData.OutCardCount = Count
 		if Count > 0 {
 			room.UserAction[room.BankerUser] |= WIK_LISTEN
-			for i := 0; i < MAX_COUNT; i++ {
+			for i := 0 i < MAX_COUNT i++ {
 				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
+					for j := 0 j < HuData.HuCardCount[i] j++ {
 						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j]))
 					}
 				} else {
@@ -501,271 +498,229 @@ func (room *Room) StartGame() {
 
 	if (template.ServerType & GAME_GENRE_MATCH) != 0 {
 		//room.SetGameTimer(IDI_CHECK_TABLE, 30000, -1, NULL)
-		//room.WaitTime = 0;
+		//room.WaitTime = 0
 	}
 
 	room.EndTime.Stop()
 	room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, room.AfterGameTimeOut)
 	log.Debug("end startgame ... ")*/
 
-	ZeroMemory(m_IsOpenCard, sizeof(m_IsOpenCard));
-	room.IsOpenCard  
-	memset(m_gMMcbCardData,0,sizeof(m_gMMcbCardData));
+	// 初始化
+	for i, _ := range room.IsOpenCard {
+		room.IsOpenCard[i] = false
+	}
 
-	//m_pITableFrame->SetGameStatus(GS_TK_CALL);
-	m_pITableFrame->SetGameStatus(GS_TK_PLAYING);
-	//用户状态
-	for (WORD i=0;i<m_wPlayerCount;i++)
-	{
-		//获取用户
-		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
-
-		if(pIServerUser==NULL)
-		{
-			m_cbPlayStatus[i]=FALSE;
-		}
-		else
-		{
-				m_wCurrentUser=i;//1.29
-				m_cbPlayStatus[i]=TRUE;
-				if (m_lDrawCellScore <0 || (pIServerUser->GetUserScore()/m_wMaxScoreTimes) < m_lDrawCellScore/* *2/3*/)
-				{
-					//CString str;
-					//str.Format(TEXT("玩家%s作弊，分数为%I64d,底注设置为%ld"),pIServerUser->GetNickName(),pIServerUser->GetUserScore(),m_lDrawCellScore);
-					//CTraceService::TraceString(str,TraceLevel_Debug);
-					//OnEventGameConclude(INVALID_CHAIR,NULL,GER_NORMAL);
-					//return false;
-				}
+	for i, _ := range room.CardData {
+		for j, _ := range room.CardData[i] {
+			room.CardData[i][j] = 0
 		}
 	}
 
-	ZeroMemory(m_bBuckleServiceCharge,sizeof(m_bBuckleServiceCharge));
+	//游戏状态
+	room.Status = RoomStatusStarting
+
+	//用户状态
+	room.ForEachUser(func(u *client.User) {
+		room.setUsetStatus(u, US_PLAYING)
+	})
+
+	for i,_ := range room.BuckleServiceCharge {
+		room.BuckleServiceCharge[i] = false
+	}
 
 	//设置变量
-	CMD_S_CallBanker  CallBanker;
-		CallBanker.bQiang_Start=false;//不用抢庄 直接开始
-	//首局随机始叫
-	//if(m_wFisrtCallUser==INVALID_CHAIR) //第一局
-	//{
-	//	m_wFisrtCallUser=rand()%m_wPlayerCount;
-	//	CallBanker.bQiang_Start=true;
-	//	m_pITableFrame->SetGameTimer(IDI_QAIANG,TIME_QAIANG,1,0);
-	//	//当上局庄家退出游戏、上局游戏闲家中出现牛九或以上牌型且战胜庄家时，下局游戏将重新选择庄家。
-	//}
-	//else
-	//{
-	//
-	//	m_wFisrtCallUser=rand()%m_wPlayerCount;
-	//}
+	CallBanker := nn_tb_msg.G2C_TBNN_CallBanker{}
+		CallBanker.Qiang_Start = false//不用抢庄 直接开始
 
-	//始叫用户
-	/*while(m_cbPlayStatus[m_wFisrtCallUser]!=TRUE)
-	{
+	CallBanker.FirstTimes = true
+	CallBanker.CallBanker = room.CurrentUser
 
-		m_wFisrtCallUser=rand()%m_wPlayerCount;
-	}*/
-
-	CallBanker.bFirstTimes=true;
-
-	//if (m_bChongXuan||CallBanker.bQiang_Start)
-	//{
-	//	//当前用户
-	//	m_wCurrentUser=m_wFisrtCallUser;//更改庄家
-	//
-	//	m_bChongXuan=false;
-	//	CallBanker.bQiang_Start=true;
-	//	m_pITableFrame->SetGameTimer(IDI_QAIANG,TIME_QAIANG,1,0);
-	//}
-
-	CallBanker.wCallBanker=m_wCurrentUser;
-
-	//发送数据
-	for (WORD i=0;i<m_wPlayerCount;i++)
-	{
-		if(m_cbPlayStatus[i]!=TRUE) continue;
-		m_pITableFrame->SendTableData(i,SUB_S_CALL_BANKER,&CallBanker,sizeof(CallBanker));
+	for _, u := range room.Users {
+		if u == nil {
+			continue
+		}
+		u.WriteMsg(CallBanker)
 	}
 
 
-
-	m_pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_CALL_BANKER,&CallBanker,sizeof(CallBanker));
+	//m_pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_CALL_BANKER,&CallBanker,sizeof(CallBanker))
 	//删除时间
-	m_pITableFrame->KillGameTimer(IDI_SO_OPERATE);
-	m_pITableFrame->SetGameTimer(IDI_SO_OPERATE,TIME_SO_OPERATE,1,0);
+	//m_pITableFrame->KillGameTimer(IDI_SO_OPERATE) 代打定时器
+	//m_pITableFrame->SetGameTimer(IDI_SO_OPERATE,TIME_SO_OPERATE,1,0)
 
 
 	//随机扑克
-	CMD_S_AllCard AllCard={0};
-	BYTE bTempArray[GAME_PLAYER*MAX_COUNT];
-	m_GameLogic.RandCardList(bTempArray,sizeof(bTempArray));
-	for (WORD i=0;i<m_wPlayerCount;i++)
+	AllCard	:= nn_tb_msg.G2C_TBNN_AllCard{}
+	var TempArray [GAME_PLAYER*MAX_COUNT]int
+	m_GameLogic.RandCardList(bTempArray,sizeof(bTempArray))
+	for (WORD i=0i<m_wPlayerCounti++)
 	{
 
 		//派发扑克
-		CopyMemory(m_cbHandCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT);
-		//CopyMemory(AllCard.cbCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT);
+		CopyMemory(m_cbHandCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT)
+		//CopyMemory(AllCard.cbCardData[i],&bTempArray[i*MAX_COUNT],MAX_COUNT)
 
-		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
-		if(pIServerUser==NULL)continue;
-		if(pIServerUser->IsAndroidUser())AllCard.bAICount[i] =true;
+		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i)
+		if(pIServerUser==NULL)continue
+		if(pIServerUser->IsAndroidUser())AllCard.bAICount[i] =true
 
-		m_bBuckleServiceCharge[i]=true;
+		m_bBuckleServiceCharge[i]=true
 	}
 
-	//m_cbHandCardData[0][0]=0x34;
-	//m_cbHandCardData[0][1]=0x37;
-	//m_cbHandCardData[0][2]=0x39;
-	//m_cbHandCardData[0][3]=0x4E;
-	//m_cbHandCardData[0][4]=0x4F;
+	//m_cbHandCardData[0][0]=0x34
+	//m_cbHandCardData[0][1]=0x37
+	//m_cbHandCardData[0][2]=0x39
+	//m_cbHandCardData[0][3]=0x4E
+	//m_cbHandCardData[0][4]=0x4F
 
-	//m_cbHandCardData[2][0]=0x3B;
-	//m_cbHandCardData[2][1]=0x3D;
-	//m_cbHandCardData[2][2]=0x0D;
-	//m_cbHandCardData[2][3]=0x1D;
-	//m_cbHandCardData[2][4]=0x2D;//5hua
+	//m_cbHandCardData[2][0]=0x3B
+	//m_cbHandCardData[2][1]=0x3D
+	//m_cbHandCardData[2][2]=0x0D
+	//m_cbHandCardData[2][3]=0x1D
+	//m_cbHandCardData[2][4]=0x2D//5hua
 
-	//m_cbHandCardData[1][0]=0x05;
-	//m_cbHandCardData[1][1]=0x38;
-	//m_cbHandCardData[1][2]=0x12;
-	//m_cbHandCardData[1][3]=0x0B;
-	//m_cbHandCardData[1][4]=0x28;
+	//m_cbHandCardData[1][0]=0x05
+	//m_cbHandCardData[1][1]=0x38
+	//m_cbHandCardData[1][2]=0x12
+	//m_cbHandCardData[1][3]=0x0B
+	//m_cbHandCardData[1][4]=0x28
 
-	//m_cbHandCardData[3][0]=0x31;
-	//m_cbHandCardData[3][1]=0x3C;
-	//m_cbHandCardData[3][2]=0x3D;
-	//m_cbHandCardData[3][3]=0x06;
-	//m_cbHandCardData[3][4]=0x18;
+	//m_cbHandCardData[3][0]=0x31
+	//m_cbHandCardData[3][1]=0x3C
+	//m_cbHandCardData[3][2]=0x3D
+	//m_cbHandCardData[3][3]=0x06
+	//m_cbHandCardData[3][4]=0x18
 
 	////牛牛数据
-	//BOOL bUserOxData[GAME_PLAYER]={0};
-	//ZeroMemory(bUserOxData, sizeof(bUserOxData));
-	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//BOOL bUserOxData[GAME_PLAYER]={0}
+	//ZeroMemory(bUserOxData, sizeof(bUserOxData))
+	//for (WORD i = 0 i < GAME_PLAYER i++)
 	//{
-	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
-	//	if(pIServerUserItem==NULL) continue;
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i)
+	//	if(pIServerUserItem==NULL) continue
 
 	//	if(m_GameLogic.GetOxCard(m_cbHandCardData[i], MAX_COUNT))
-	//	  bUserOxData[i]=TRUE;
+	//	  bUserOxData[i]=TRUE
 	//}
 	////预分析牌型
-	//WORD wWinUser = INVALID_CHAIR;
-	//WORD wLostUser = INVALID_CHAIR;
+	//WORD wWinUser = INVALID_CHAIR
+	//WORD wLostUser = INVALID_CHAIR
 	////查找数据
-	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//for (WORD i = 0 i < GAME_PLAYER i++)
 	//{
 	//	//用户过滤
 	//	//if (m_cbPlayStatus[i] == FALSE)
-	//	//	continue;
-	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
-	//	if(pIServerUserItem==NULL) continue;
+	//	//	continue
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i)
+	//	if(pIServerUserItem==NULL) continue
 
 	//	//设置用户
 	//	if (wWinUser == INVALID_CHAIR)
 	//	{
-	//		wWinUser = i;
-	//		continue;
+	//		wWinUser = i
+	//		continue
 	//	}
 
 	//	//对比扑克
 	//	if (m_GameLogic.CompareCard(m_cbHandCardData[i], m_cbHandCardData[wWinUser], MAX_COUNT, bUserOxData[i], bUserOxData[wWinUser]))
 	//	{
-	//		wWinUser = i;
+	//		wWinUser = i
 	//	}
 	//}
-	//for (WORD i = 0; i < GAME_PLAYER; i++)
+	//for (WORD i = 0 i < GAME_PLAYER i++)
 	//{
 	//	//用户过滤
 	//	//if (m_cbPlayStatus[i] == FALSE)
-	//	//	continue;
-	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i);
-	//	if(pIServerUserItem==NULL) continue;
+	//	//	continue
+	//	IServerUserItem * pIServerUserItem=m_pITableFrame->GetTableUserItem(i)
+	//	if(pIServerUserItem==NULL) continue
 
 	//	//设置用户
 	//	if (wLostUser == INVALID_CHAIR)
 	//	{
-	//		wLostUser = i;
-	//		continue;
+	//		wLostUser = i
+	//		continue
 	//	}
 
 	//	//对比扑克
 	//	if (!m_GameLogic.CompareCard(m_cbHandCardData[i], m_cbHandCardData[wLostUser], MAX_COUNT, bUserOxData[i], bUserOxData[wLostUser]))
 	//	{
-	//		wLostUser = i;
+	//		wLostUser = i
 	//	}
 	//}
 	////黑白名单控制
-	//CArray<int> canUsePlayerLst;
-	//canUsePlayerLst.RemoveAll();
+	//CArray<int> canUsePlayerLst
+	//canUsePlayerLst.RemoveAll()
 
 	//if(m_pITableFrame)
 	//{
 	//	//-----------------------------------//
-	//	int iWhiteUser=m_pITableFrame->GetBlackWhiteControl(canUsePlayerLst);
-	//	if(iWhiteUser==INVALID_CHAIR && canUsePlayerLst.GetCount()>0) iWhiteUser=canUsePlayerLst.GetAt(rand()%canUsePlayerLst.GetCount()); //剩下玩家处理
+	//	int iWhiteUser=m_pITableFrame->GetBlackWhiteControl(canUsePlayerLst)
+	//	if(iWhiteUser==INVALID_CHAIR && canUsePlayerLst.GetCount()>0) iWhiteUser=canUsePlayerLst.GetAt(rand()%canUsePlayerLst.GetCount()) //剩下玩家处理
 	//	if(iWhiteUser!=INVALID_CHAIR && m_lStockScore > 0)
 	//	{
 	//		if(iWhiteUser!=wWinUser)
 	//		{
-	//			BYTE bCardData[MAX_COUNT] = {0};
-	//			memcpy(bCardData,m_cbHandCardData[wWinUser],sizeof(bCardData));
-	//			memcpy(m_cbHandCardData[wWinUser],m_cbHandCardData[iWhiteUser],sizeof(bCardData));
-	//			memcpy(m_cbHandCardData[iWhiteUser],bCardData,sizeof(bCardData));
+	//			BYTE bCardData[MAX_COUNT] = {0}
+	//			memcpy(bCardData,m_cbHandCardData[wWinUser],sizeof(bCardData))
+	//			memcpy(m_cbHandCardData[wWinUser],m_cbHandCardData[iWhiteUser],sizeof(bCardData))
+	//			memcpy(m_cbHandCardData[iWhiteUser],bCardData,sizeof(bCardData))
 	//		}
 	//	}
 	//	//判断是否有黑名单
-	//	int iBlackUser=INVALID_CHAIR;
-	//	for(int i=0;i<m_wPlayerCount;i++)
+	//	int iBlackUser=INVALID_CHAIR
+	//	for(int i=0i<m_wPlayerCounti++)
 	//	{
 	//		//用户过滤
 	//		if (m_cbPlayStatus[i] == FALSE)
-	//			continue;
-	//	    IServerUserItem *pCurUser=m_pITableFrame->GetTableUserItem(i);
-	//		if(pCurUser==NULL) continue;
-	//		tagUserListProp curUserInf=pCurUser->GetUserListProp();
+	//			continue
+	//	    IServerUserItem *pCurUser=m_pITableFrame->GetTableUserItem(i)
+	//		if(pCurUser==NULL) continue
+	//		tagUserListProp curUserInf=pCurUser->GetUserListProp()
 	//		if(curUserInf.iListProp==2)
 	//		{
-	//			iBlackUser=i;
-	//			break;
+	//			iBlackUser=i
+	//			break
 	//		}
 	//	}
 	//	if(wLostUser!=INVALID_CHAIR && iBlackUser!=INVALID_CHAIR)
 	//	{
 	//		if(iBlackUser!=wLostUser)
 	//		{
-	//			BYTE bCardData[MAX_COUNT] = {0};
-	//			memcpy(bCardData,m_cbHandCardData[wLostUser],sizeof(bCardData));
-	//			memcpy(m_cbHandCardData[wLostUser],m_cbHandCardData[iBlackUser],sizeof(bCardData));
-	//			memcpy(m_cbHandCardData[iBlackUser],bCardData,sizeof(bCardData));
+	//			BYTE bCardData[MAX_COUNT] = {0}
+	//			memcpy(bCardData,m_cbHandCardData[wLostUser],sizeof(bCardData))
+	//			memcpy(m_cbHandCardData[wLostUser],m_cbHandCardData[iBlackUser],sizeof(bCardData))
+	//			memcpy(m_cbHandCardData[iBlackUser],bCardData,sizeof(bCardData))
 	//		}
 	//	}
 	//}
 
-	//canUsePlayerLst.RemoveAll();
+	//canUsePlayerLst.RemoveAll()
 	//重拷数据
-	for (WORD i=0;i<m_wPlayerCount;i++)
+	for (WORD i=0i<m_wPlayerCounti++)
 	{
 		//派发扑克
-		CopyMemory(AllCard.cbCardData[i],m_cbHandCardData[i],MAX_COUNT);
+		CopyMemory(AllCard.cbCardData[i],m_cbHandCardData[i],MAX_COUNT)
 	}
 	//发送数据
-	for (WORD i=0;i<m_wPlayerCount;i++)
+	for (WORD i=0i<m_wPlayerCounti++)
 	{
-		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i);
-		if(pIServerUser==NULL)continue;
+		IServerUserItem *pIServerUser=m_pITableFrame->GetTableUserItem(i)
+		if(pIServerUser==NULL)continue
 #ifndef _DEBUG
-		if(CUserRight::IsGameCheatUser(pIServerUser->GetUserRight())==false || m_bSpecialClient[i]==false)continue;
+		if(CUserRight::IsGameCheatUser(pIServerUser->GetUserRight())==false || m_bSpecialClient[i]==false)continue
 #endif
 		//fdl modify
-		//m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard));
+		//m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard))
 		//只发给机器人。不能发到客户端
 		if(pIServerUser->IsAndroidUser())
 		{
-			m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard));
+			m_pITableFrame->SendTableData(i,SUB_S_ALL_CARD,&AllCard,sizeof(AllCard))
 		}
 	}
 
     //记录房间局数
-	m_HistoryScore.OnRecordGameCount();
+	m_HistoryScore.OnRecordGameCount()
 
 
 	return
@@ -779,7 +734,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		return false
 	}
 	if (template.ServerType & GAME_GENRE_MATCH) != 0 {
-		//room.KillGameTimer(IDI_CHECK_TABLE);
+		//room.KillGameTimer(IDI_CHECK_TABLE)
 	}
 
 	switch cbReason {
@@ -804,7 +759,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		GameConclude.LeftUser = INVALID_CHAIR
 		room.ChiHuKind = make([]int, room.UserCnt)
 		//结束信息
-		for i := 0; i < room.UserCnt; i++ {
+		for i := 0 i < room.UserCnt i++ {
 			GameConclude.ChiHuKind[i] = room.ChiHuKind[i]
 			//权位过滤
 			if room.ChiHuKind[i] == WIK_CHI_HU {
@@ -825,7 +780,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 			nCount++
 		}
 
-		for i := 0; i < nCount; i++ {
+		for i := 0 i < nCount i++ {
 			GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
 		}
 
@@ -883,7 +838,7 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		//发送数据
 		room.SendMsgAll(GameConclude)
 		//todo
-		//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_GAME_CONCLUDE, &GameConclude, sizeof(GameConclude));
+		//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_GAME_CONCLUDE, &GameConclude, sizeof(GameConclude))
 
 		//写入积分 todo
 		room.WriteTableScore(ScoreInfoArray, room.PlayCount, HZMJ_CHANGE_SOURCE)
@@ -927,14 +882,14 @@ func (room *Room) OnEventGameConclude(ChairId int, user *client.User, cbReason i
 		GameConclude.SendCardData = room.SendCardData
 
 		//用户扑克
-		for i := 0; i < room.UserCnt; i++ {
+		for i := 0 i < room.UserCnt i++ {
 			GameConclude.CardCount[i] = room.gameLogic.SwitchToCardData2(room.CardIndex[i], GameConclude.HandCardData[i])
 		}
 
 		//发送信息
 		room.SendMsgAll(GameConclude)
 		//todo
-		//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_GAME_CONCLUDE, &GameConclude, sizeof(GameConclude));
+		//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_GAME_CONCLUDE, &GameConclude, sizeof(GameConclude))
 
 		//结束游戏
 		room.GameEnd(true)
@@ -971,12 +926,12 @@ func (room *Room) GameEnd(Forced bool) {
 func (room *Room) GetRemainingCount(ChairId int, cbCardData int) int {
 	cbIndex := room.gameLogic.SwitchToCardIndex(cbCardData)
 	Count := 0
-	for i := room.MinusLastCount; i < MAX_REPERTORY-room.MinusHeadCount; i++ {
+	for i := room.MinusLastCount i < MAX_REPERTORY-room.MinusHeadCount i++ {
 		if room.RepertoryCard[i] == cbCardData {
 			Count++
 		}
 	}
-	for i := 0; i < room.UserCnt; i++ {
+	for i := 0 i < room.UserCnt i++ {
 		if i == ChairId {
 			continue
 		}
@@ -1017,7 +972,7 @@ func (room *Room) CalHuPaiScore(EndScore []int) {
 	WinUser := make([]int, room.UserCnt)
 	WinCount := 0
 
-	for i := 0; i < room.UserCnt; i++ {
+	for i := 0 i < room.UserCnt i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%room.UserCnt] {
 			WinUser[WinCount] = (room.BankerUser + i) % room.UserCnt
 			WinCount++
@@ -1033,7 +988,7 @@ func (room *Room) CalHuPaiScore(EndScore []int) {
 		if bZiMo {
 			//自摸
 			cbTimes := room.GetTimes(WinUser[0])
-			for i := 0; i < room.UserCnt; i++ {
+			for i := 0 i < room.UserCnt i++ {
 
 				if i != WinUser[0] {
 					EndScore[i] -= cbTimes * CellScore
@@ -1042,9 +997,9 @@ func (room *Room) CalHuPaiScore(EndScore []int) {
 			}
 		} else {
 			//抢杠
-			for i := 0; i < WinCount; i++ {
+			for i := 0 i < WinCount i++ {
 				cbTimes := room.GetTimes(WinUser[i])
-				for j := 0; j < room.UserCnt; j++ {
+				for j := 0 j < room.UserCnt j++ {
 					if j != WinUser[i] {
 						EndScore[WinUser[i]] += cbTimes * CellScore
 					}
@@ -1080,7 +1035,7 @@ func (room *Room) GetTimes(wChairId int) int {
 			room.UserMaCount[wChairId]++
 		}
 
-		for i := 0; i < room.UserMaCount[wChairId]; i++ {
+		for i := 0 i < room.UserMaCount[wChairId] i++ {
 			carddata := room.RepertoryCard[room.MinusLastCount+i]
 
 			if room.gameLogic.GetCardValue(carddata)%4 == 1 { //1,5,9,红中 算中码
@@ -1268,7 +1223,7 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 
 	//加牌
 	room.CardIndex[wCurrentUser][room.gameLogic.SwitchToCardIndex(room.ProvideCard)]++
-	//room.UserCatchCardCount[wCurrentUser]++;
+	//room.UserCatchCardCount[wCurrentUser]++
 
 	if !room.Trustee[wCurrentUser] {
 		//胡牌判断
@@ -1297,9 +1252,9 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 		if cbCount > 0 {
 			room.UserAction[wCurrentUser] |= WIK_LISTEN
 
-			for i := 0; i < MAX_COUNT; i++ {
+			for i := 0 i < MAX_COUNT i++ {
 				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
+					for j := 0 j < HuData.HuCardCount[i] j++ {
 						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j]))
 					}
 				} else {
@@ -1326,12 +1281,12 @@ func (room *Room) DispatchCardData(wCurrentUser int, bTail bool) bool {
 	room.SendMsgAllNoSelf(user.Id, SendCard)
 
 	//todo
-	//room.pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_SEND_CARD, &SendCard, sizeof(SendCard));
+	//room.pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_SEND_CARD, &SendCard, sizeof(SendCard))
 
 	room.UserActionDone = false
 	if room.Trustee[wCurrentUser] {
 		room.UserActionDone = true
-		//room.pITableFrame->SetGameTimer(IDI_OUT_CARD,1000,1,0); todo
+		//room.pITableFrame->SetGameTimer(IDI_OUT_CARD,1000,1,0) todo
 	}
 	return true
 }
@@ -1452,7 +1407,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 		}
 
 		//执行判断
-		for i := 0; i < room.PlayerCount; i++ {
+		for i := 0 i < room.PlayerCount i++ {
 			//获取动作
 			cbUserAction := room.UserAction[i]
 			if room.Response[i] {
@@ -1500,7 +1455,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 			room.ChiHuCard = cbTargetCard
 
 			wChiHuUser := room.BankerUser
-			for i := 0; i < room.PlayerCount; i++ {
+			for i := 0 i < room.PlayerCount i++ {
 				wChiHuUser = (room.BankerUser + i) % room.PlayerCount
 				//过虑判断
 				if (room.PerformAction[wChiHuUser] & WIK_CHI_HU) == 0 {
@@ -1515,7 +1470,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 				//插入扑克
 				if room.ChiHuKind[wChiHuUser] != WIK_NULL {
 					wTargetUser = wChiHuUser
-					//break;
+					//break
 				}
 			}
 
@@ -1640,9 +1595,9 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 				HuData.OutCardCount = cbCount
 				if cbCount > 0 {
 					room.UserAction[wTargetUser] |= WIK_LISTEN
-					for i := 0; i < MAX_COUNT; i++ {
+					for i := 0 i < MAX_COUNT i++ {
 						if HuData.HuCardCount[i] > 0 {
-							for j := 0; j < HuData.HuCardCount[i]; j++ {
+							for j := 0 j < HuData.HuCardCount[i] j++ {
 								HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j])
 							}
 						} else {
@@ -1658,7 +1613,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 
 		//发送消息
 		room.SendMsgAll(OperateResult)
-		//room.pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_OPERATE_RESULT, &OperateResult, sizeof(OperateResult));
+		//room.pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_OPERATE_RESULT, &OperateResult, sizeof(OperateResult))
 
 		//设置用户
 		room.CurrentUser = wTargetUser
@@ -1699,7 +1654,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 			//杠牌处理
 			if room.CardIndex[user.ChairId][cbCardIndex] == 1 {
 				//寻找组合
-				for i := 0; i < room.WeaveItemCount[user.ChairId]; i++ {
+				for i := 0 i < room.WeaveItemCount[user.ChairId] i++ {
 					cbWeaveKind := room.WeaveItemArray[user.ChairId][i].WeaveKind
 					cbCenterCard := room.WeaveItemArray[user.ChairId][i].CenterCard
 					if (cbCenterCard == cbOperateCard[0]) && (cbWeaveKind == WIK_PENG) {
@@ -1736,7 +1691,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 				room.WeaveItemArray[user.ChairId][cbWeaveIndex].ProvideUser = user.ChairId
 				room.WeaveItemArray[user.ChairId][cbWeaveIndex].WeaveKind = cbOperateCode
 				room.WeaveItemArray[user.ChairId][cbWeaveIndex].CenterCard = cbOperateCard[0]
-				for j := 0; j < 4; j++ {
+				for j := 0 j < 4 j++ {
 					room.WeaveItemArray[user.ChairId][cbWeaveIndex].CardData[j] = cbOperateCard[0]
 				}
 			}
@@ -1757,7 +1712,7 @@ func (room *Room) Operater(user *client.User, cbOperateCard []int, cbOperateCode
 
 			//发送消息
 			room.SendMsgAll(OperateResult)
-			//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_OPERATE_RESULT, &OperateResult, sizeof(OperateResult));
+			//room.pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_OPERATE_RESULT, &OperateResult, sizeof(OperateResult))
 
 			//效验动作
 			bAroseAction := false
@@ -1806,7 +1761,7 @@ func (room *Room) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		ChairID: wChairID,
 	})
 
-	//m_pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_TRUSTEE,&Trustee,sizeof(Trustee));
+	//m_pITableFrame->SendLookonData(INVALID_CHAIR,SUB_S_TRUSTEE,&Trustee,sizeof(Trustee))
 
 	if bTrustee {
 		if wChairID == room.CurrentUser && room.UserActionDone == false {
@@ -1814,7 +1769,7 @@ func (room *Room) OnUserTrustee(wChairID int, bTrustee bool) bool {
 			if room.SendCardData != 0 {
 				cardindex = room.gameLogic.SwitchToCardIndex(room.SendCardData)
 			} else {
-				for i := 0; i < MAX_INDEX; i++ {
+				for i := 0 i < MAX_INDEX i++ {
 					if room.CardIndex[wChairID][i] > 0 {
 						cardindex = i
 						break
@@ -1887,7 +1842,7 @@ func (room *Room) OnUserOutCard(wChairID int, cbCardData int, bSysOut bool) int 
 	OutCard.SysOut = bSysOut
 	//发送消息
 	room.SendMsgAll(OutCard)
-	//m_pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_OUT_CARD, &OutCard, sizeof(OutCard));
+	//m_pITableFrame->SendLookonData(INVALID_CHAIR, SUB_S_OUT_CARD, &OutCard, sizeof(OutCard))
 
 	room.ProvideUser = wChairID
 	room.ProvideCard = cbCardData
