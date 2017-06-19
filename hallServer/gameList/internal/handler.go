@@ -4,12 +4,11 @@ import (
 	"mj/common/msg"
 	"reflect"
 
+	"math"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
-
 	"sort"
 
-	"github.com/chanxuehong/util/math"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
