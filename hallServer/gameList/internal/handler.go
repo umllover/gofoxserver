@@ -4,7 +4,7 @@ import (
 	"mj/common/msg"
 	"reflect"
 
-	"math"
+	//"math"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"sort"
@@ -170,9 +170,9 @@ func NotifyNewRoom(args []interface{}) {
 		roomKindList[recvMsg.KindID] = m
 	}
 
-	if KindListInc >= math.MaxInt {
+	/*if KindListInc >= math.MaxInt {
 		KindListInc = 0
-	}
+	}*/
 	KindListInc++
 	recvMsg.Idx = KindListInc
 	m[KindListInc] = recvMsg.RoomID

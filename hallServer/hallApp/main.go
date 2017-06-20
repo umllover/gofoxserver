@@ -21,6 +21,7 @@ import (
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
 )
 
 var version = 0
@@ -28,6 +29,9 @@ var version = 0
 var printVersion = flag.Bool("version", false, "print version")
 
 func main() {
+
+	log.Debug("enter hallApp main")
+
 	flag.Parse()
 	if *printVersion {
 		fmt.Println(" version: ", version)
