@@ -21,8 +21,6 @@ func init() {
 	Processor.Register(&G2C_HZMJ_Trustee{})
 }
 
-
-
 //发送扑克
 type G2C_HZMG_GameStart struct {
 	BankerUser   int     //当前庄家
@@ -34,8 +32,6 @@ type G2C_HZMG_GameStart struct {
 	HeapCardInfo [][]int //堆立信息
 	UserAction   int     //用户动作
 	CardData     []int   //麻将列表
-	OutCardCount int
-	OutCardData  [][]int
 }
 
 //游戏结束

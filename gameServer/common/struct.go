@@ -24,3 +24,9 @@ type tagGameServer struct {
 	dwSurportType int //支持类型
 	wTableCount   int //桌子数目
 }
+
+//杠牌结果
+type TagGangCardResult struct {
+	CardCount int   //扑克数目
+	CardData  []int //扑克数据
+}
