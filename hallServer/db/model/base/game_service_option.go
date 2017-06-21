@@ -14,7 +14,7 @@ import (
 // +gen
 type GameServiceOption struct {
 	KindID                      int    `db:"KindID" json:"KindID"`                                           // 名称号码
-	GameName                    string `db:"GameName" json:"GameName"`                                       //
+	GameName                    string `db:"GameName" json:"GameName"`                                       // 房间名字
 	NodeID                      int    `db:"NodeID" json:"NodeID"`                                           //
 	SortID                      int    `db:"SortID" json:"SortID"`                                           // 排列标识
 	ServerID                    int    `db:"ServerID" json:"ServerID"`                                       // 房间标识

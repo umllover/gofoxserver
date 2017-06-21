@@ -4,7 +4,7 @@ package base
 //
 
 import (
-	"mj/hallServer/db"
+	"mj/gameServer/db"
 	"time"
 
 	"github.com/lovelly/leaf/log"
@@ -24,5 +24,5 @@ func LoadBaseData() {
 	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
 	db.BaseDataCaches["ServerList"] = ServerListCache
-	log.Debug("loadBaseData %v  %v %v", 6, time.Now().UnixNano()-start, "ns")
+	log.Debug("loadBaseData %v, %v %v", 6, time.Now().UnixNano()-start, "ns")
 }

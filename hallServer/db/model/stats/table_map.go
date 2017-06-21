@@ -9,5 +9,8 @@ func InitTableMap() {
 	   db.StatsDBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
 	   db.StatsDBMap.AddTableWithName(Systemstatusinfo{}, "systemstatusinfo").SetKeys(false,"StatusName")
 	   db.StatsDBMap.AddTableWithName(Systemstreaminfo{}, "systemstreaminfo").SetKeys(false,"DateID")
+	   db.StatsDBMap.AddTableWithName(Version{}, "version").SetKeys(false,"Id")
+	   db.StatsDBMap.AddTableWithName(VersionLocker{}, "version_locker").SetKeys(false,"Id")
+	   db.StatsDBMap.AddTableWithName(VersionUpdateTest{}, "version_update_test").SetKeys(false,"Id")
 	*/
 }

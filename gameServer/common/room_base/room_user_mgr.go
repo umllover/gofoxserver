@@ -18,10 +18,10 @@ import (
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) common.UserManager {
 	r := new(RoomUserMgr)
-	r.Name = Temp.GameName
 	r.UserCnt = UserCnt
 	r.id = roomId
 	r.Users = make([]*user.User, r.UserCnt)
+	r.Trustee = make([]bool, r.UserCnt)
 	r.Onlookers = make(map[int]*user.User)
 	return r
 }
@@ -38,6 +38,19 @@ type RoomUserMgr struct {
 	Onlookers   map[int]*user.User   /// 旁观的玩家
 	ChatRoomId  int                  //聊天房间id
 	KickOut     map[int]*timer.Timer //即将被踢出的超时定时器
+	Trustee     []bool               //是否托管 index 就是椅子id
+}
+
+func (r *RoomUserMgr) GetTrustees() []bool {
+	return r.Trustee
+}
+
+func (r *RoomUserMgr) SetUsetTrustee(chairId int, isTruste bool) {
+	r.Trustee[chairId] = isTruste
+}
+
+func (r *RoomUserMgr) IsTrustee(chairId int) bool {
+	return r.Trustee[chairId]
 }
 
 func (r *RoomUserMgr) GetCurPlayerCnt() int {
@@ -257,6 +270,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
+	return 0
 }
 
 //广播某个玩家的信息
