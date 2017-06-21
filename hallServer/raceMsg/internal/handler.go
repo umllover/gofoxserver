@@ -26,7 +26,7 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
-
+	//StartHorseRaceLamp()	// 启动跑马灯协程
 }
 
 // 接收到消息，存表
@@ -59,10 +59,27 @@ func startTimer(nTime int) {
 		select {
 		case <-timerMsg.C:
 			log.Debug("定时器时间到了，开始发消息")
-			msgInfo, err := model.RaceMsgInfoOp.SelectAll()
+			allMsg, err := model.RaceMsgInfoOp.SelectAll()
 			if err != nil {
 				log.Error("race_msg_info查找所有数据失败,error=%i", err)
 				break
+			}
+
+			var msgInfo []*model.RaceMsgInfo // 存储符合条件的数据
+
+			// 先删除过期数据
+			nowTime := time.Now().Unix()
+			for _, value := range allMsg {
+				if value.EndTime <= int(nowTime) {
+					model.RaceMsgInfoOp.Delete(value.MsgID)
+					continue
+				}
+
+				if value.StartTime > int(nowTime) {
+					continue
+				}
+
+				msgInfo = append(msgInfo, value)
 			}
 
 			msgCount := len(msgInfo)
