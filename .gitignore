@@ -8,6 +8,7 @@
 /hallServer/hallApp/hallServer.json
 /gameServer/gameApp/gameApp
 /hallServer/hallApp/hallApp
+/hallServer/hallApp/hallServer.json
 /build.bat
 ./gameServer.json
 
