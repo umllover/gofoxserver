@@ -14,6 +14,7 @@ type loader interface {
 
 var (
 	BaseDataCaches = make(map[string]loader)
+	NeedReloadBaseDB bool
 )
 
 const (
@@ -22,22 +23,28 @@ const (
 
 // 仅用于运行时刷新Base库
 func RefreshInTime() {
-	// go func() {
-	// 	ticker := time.NewTicker(refreshInterval)
+	 go func() {
+	 	ticker := time.NewTicker(refreshInterval)
 
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			refreshBase()
-	// 		}
-	// 	}
-	// }()
+	 	for {
+			if NeedReloadBaseDB == false {
+				continue
+			}
+	 		select {
+	 		case <-ticker.C:
+	 			refreshBase()
+	 		}
+	 	}
+	 }()
 }
 
 func refreshBase() {
+
+	log.Debug("refreshBase")
 	tableListStr := ""
 	cnt := 0
-	row := BaseDB.QueryRowx("select refresh_table_list, cnt from  refresh_in_time where id=?;",conf.Server.NodeId)
+	row := BaseDB.QueryRowx("select refresh_table_list, cnt from  refresh_in_time where node_id=?;",conf.Server.NodeId)
+	log.Debug("node_id : %d", conf.Server.NodeId)
 	err := row.Scan(&tableListStr, &cnt)
 	if err != nil {
 		log.Error("Query refresh_table_list encounter a error.")
@@ -51,6 +58,9 @@ func refreshBase() {
 	tableList := strings.Split(tableListStr, ",")
 	log.Debug("Some table is need to refresh.Names:%v, %D", tableList, cnt)
 
+	for key := range BaseDataCaches {
+		log.Debug("%s", key)
+	}
 	for _, tableName := range tableList {
 		key, err := common.TranslatePascal(tableName)
 		if err != nil {
@@ -67,8 +77,8 @@ func refreshBase() {
 
 	cnt--
 	if cnt < 1 {
-		BaseDB.Exec("update refresh_in_time set refresh_table_list = '', cnt = 0 where id =?;", conf.Server.NodeId)
+		BaseDB.Exec("update refresh_in_time set refresh_table_list = '', cnt = 0 where node_id =?;", conf.Server.NodeId)
 	} else {
-		BaseDB.Exec("update refresh_in_time set cnt = ? where id =?;", cnt, conf.Server.NodeId)
+		BaseDB.Exec("update refresh_in_time set cnt = ? where node_id =?;", cnt, conf.Server.NodeId)
 	}
 }

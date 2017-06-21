@@ -21,17 +21,27 @@ import (
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
 )
 
 var version = 0
 
 var printVersion = flag.Bool("version", false, "print version")
+var reloadDB = flag.Bool("reload", false, "reload base db")
 
 func main() {
+
+	log.Debug("enter hallApp main")
+
 	flag.Parse()
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)
+	}
+	if *reloadDB {
+		db.NeedReloadBaseDB = true
+		log.Debug("need reload base db")
+		db.RefreshInTime()
 	}
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
