@@ -1,7 +1,6 @@
 package room_base
 
 import (
-	. "mj/common/cost"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model/base"
 	"time"
@@ -10,7 +9,7 @@ import (
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomTimerMgr(roomId, UserCnt int, Temp *base.GameServiceOption) common.TimerManager {
+func NewRoomTimerMgr(TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, Temp *base.GameServiceOption) common.TimerManager {
 	r := new(RoomTimerMgr)
 	return r
 }
@@ -26,6 +25,22 @@ type RoomTimerMgr struct {
 	CreateTime      int64        //创建时间
 }
 
+func (room *RoomTimerMgr) GetTimeOperateCard() int {
+	return room.TimeOperateCard
+}
+
+func (room *RoomTimerMgr) GetTimeOutCard() int {
+	return room.MaxPlayCnt
+}
+
+func (room *RoomTimerMgr) GetMaxPayCnt() int {
+	return room.MaxPlayCnt
+}
+
+func (room *RoomTimerMgr) GetCreatrTime() int64 {
+	return room.CreateTime
+}
+
 func (room *RoomTimerMgr) GetPlayCount() int {
 	return room.PlayCount
 }
@@ -34,18 +49,26 @@ func (room *RoomTimerMgr) AddPlayCount() {
 	room.PlayCount++
 }
 
+func (room *RoomTimerMgr) GetCountLimit() int {
+	return room.CountLimit
+}
+
+func (room *RoomTimerMgr) GetTimeLimit() int {
+	return room.TimeLimit
+}
+
 //创建房间多久没开始解散房间
-func (room *RoomTimerMgr) StartCreatorTimer(skeleton *module.Skeleton, cb func()) {
+func (room *RoomTimerMgr) StartCreatorTimer(Skeleton *module.Skeleton, cb func()) {
 	room.EndTime.Stop()
 	if room.TimeLimit != 0 {
-		room.EndTime = skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second,cb)
+		room.EndTime = Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, cb)
 	}
 }
 
 //开始多久没打完解散房间房间
-func (room *RoomTimerMgr) StartPlayingTimer(skeleton *module.Skeleton, cb func()) {
+func (room *RoomTimerMgr) StartPlayingTimer(Skeleton *module.Skeleton, cb func()) {
 	room.EndTime.Stop()
 	if room.TimeLimit != 0 {
-		room.EndTime = skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second,cb)
+		room.EndTime = Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, cb)
 	}
 }

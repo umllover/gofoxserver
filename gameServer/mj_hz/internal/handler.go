@@ -32,7 +32,7 @@ func HZOutCard(args []interface{}) {
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.ChanRPC.Go("OutCard", args[0], user)
+		r.GetChanRPC().Go("OutCard", args[0], user)
 	}
 }
 
@@ -42,6 +42,6 @@ func OperateCard(args []interface{}) {
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.ChanRPC.Go("OperateCard", args[0], user)
+		r.GetChanRPC().Go("OperateCard", args[0], user)
 	}
 }

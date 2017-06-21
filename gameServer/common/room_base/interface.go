@@ -2,12 +2,14 @@ package room_base
 
 import (
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/module"
 )
 
 type Module interface {
-	Destroy(int)
-	RoomRun(int)
-	Skeleton() *module.Skeleton
 	GetChanRPC() *chanrpc.Server
+	GetClientCount() int
+	GetTableCount() int
+	OnDestroy()
+	OnInit()
+	Run(chan bool)
+	CreateRoom(args ...interface{}) bool
 }

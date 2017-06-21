@@ -3,10 +3,10 @@ package room
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/common/mj_base"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/idGenerate"
 	"mj/gameServer/user"
 
 	"mj/gameServer/common/room_base"
@@ -15,7 +15,7 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-func CreaterRoom(args []interface{}) room_base.Module {
+func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	recvMsg := args[0].(*msg.C2G_CreateTable)
 	retMsg := &msg.G2C_CreateTableSucess{}
 	agent := args[1].(gate.Agent)
@@ -47,26 +47,33 @@ func CreaterRoom(args []interface{}) room_base.Module {
 		return nil
 	}
 
-	rid, iok := idGenerate.GetRoomId(u.Id)
-	if !iok {
-		retCode = RandRoomIdError
-		return nil
-	}
+	//rid, iok := idGenerate.GetRoomId(u.Id)
+	//if !iok {
+	//	retCode = RandRoomIdError
+	//	return nil
+	//}
 
 	if recvMsg.CellScore > template.CellScore {
 		retCode = MaxSoucrce
 		return nil
 	}
 
-	r := mj_base.NewMJBase(recvMsg.RoomID, u.Id, room_base.NewRoomUserMgr)
+	cfg := &mj_base.NewMjCtlConfig{
+		NUserF:  room_base.NewRoomUserMgr,
+		NDataF:  mj_base.NewDataMgr,
+		NBaseF:  room_base.NewRoomBase,
+		NLogicF: mj_base.NewBaseLogic,
+		NTimerF: room_base.NewRoomTimerMgr,
+	}
+	r := mj_base.NewMJBase(recvMsg.RoomID, u.Id, recvMsg.DrawTimeLimit, recvMsg.DrawCountLimit, 0, 0, 4, cfg)
 	if r == nil {
 		retCode = Errunlawful
 		return nil
 	}
 
 	retMsg.TableID = r.DataMgr.GetRoomId()
-	retMsg.DrawCountLimit = r.DataMgr.GetCountLimit()
-	retMsg.DrawTimeLimit = r.DataMgr.GetTimeLimit()
+	retMsg.DrawCountLimit = r.TimerMgr.GetCountLimit()
+	retMsg.DrawTimeLimit = r.TimerMgr.GetTimeLimit()
 	retMsg.Beans = feeTemp.TableFee
 	retMsg.RoomCard = u.RoomCard
 	u.KindID = recvMsg.Kind
