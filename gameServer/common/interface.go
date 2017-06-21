@@ -16,53 +16,49 @@ import (
 
 type DataManager interface {
 	InitRoom(UserCnt int)
-	StartGame()
+	StartGame(UserManager, LogicManager, *base.GameServiceOption)
 	SendGameStart(gameLogic LogicManager, userMgr UserManager)
-	SendPersonalTableTip(*user.User)
-	SendStatusReady(*user.User)
-	SendStatusPlay(*user.User, int, int, LogicManager)
-	OnUserOutCard(int, int, bool) int
+	SendPersonalTableTip(*user.User, TimerManager)
+	SendStatusPlay(u *user.User, userMgr UserManager, gameLogic LogicManager, timerMgr TimerManager)
 	NotifySendCard(u *user.User, cbCardData int, userMgr UserManager, bSysOut bool)
-	EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int, userMgr UserManager) bool
-	DispatchCardData(int, bool) bool
+	EstimateUserRespond(int, int, int, UserManager, LogicManager) bool
+	DispatchCardData(int, UserManager, LogicManager, bool) int
 	HasOperator(ChairId, OperateCode int) bool
 	HasCard(ChairId, cardIdx int) bool
 	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard, LogicManager) (int, int)
 	UserChiHu(wTargetUser, userCnt int, gameLogic LogicManager)
 	WeaveCard(cbTargetAction, wTargetUser int)
 	RemoveCardByOP(wTargetUser, ChoOp int, gameLogic LogicManager) bool
-	OperateResult(wTargetUser, cbTargetAction int, userMgr UserManager, gameLogic LogicManager)
+	CallOperateResult(wTargetUser, cbTargetAction int, userMgr UserManager, gameLogic LogicManager)
 	ZiMo(u *user.User, gameLogic LogicManager)
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int, userMgr UserManager, gameLogic LogicManager) int
 	NormalEnd(userMgr UserManager, gameLogic LogicManager, template *base.GameServiceOption)
 	DismissEnd(userMgr UserManager, gameLogic LogicManager)
-	OnUserTrustee(wChairID int, bTrustee bool) bool
+	GetTrusteeOutCard(wChairID int, gameLogic LogicManager) int
+	CanOperatorRoom(uid int) bool
+	SendStatusReady(u *user.User, timerMgr TimerManager)
+
 	GetResumeUser() int
 	GetGangStatus() int
 	GetUserCardIndex(ChairId int) []int
-	GetMaxPayCnt() int
-	GetCurPayInt() int
-	GetCreatrTime() int64
 	GetCurrentUser() int //当前出牌用户
 	GetRoomId() int
-	GetCountLimit() int
-	GetTimeLimit() int
 	GetProvideUser() int
+	IsActionDone() bool
 }
 
 type BaseManager interface {
 	Destroy(int)
 	RoomRun(int)
-	Skeleton() *module.Skeleton
+	GetSkeleton() *module.Skeleton
 	GetChanRPC() *chanrpc.Server
 }
 
 type UserManager interface {
 	Sit(*user.User, int) int
 	Standup(*user.User) bool
-	CanOperatorRoom(int) bool
 	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User)
+	LeaveRoom(*user.User) bool
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
@@ -77,32 +73,43 @@ type UserManager interface {
 	GetUserInfoByChairId(int) interface{}
 	GetUserByChairId(int) *user.User
 	GetUserByUid(userId int) (*user.User, int)
+	SetUsetTrustee(chairId int, isTruste bool)
+	IsTrustee(chairId int) bool
+	GetTrustees() []bool
 }
 
 type LogicManager interface {
 	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
 	GetCardCount(cbCardIndex []int) int
-	SwitchToCardData([]int) []int
-	IsValidCard(int) bool
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
 	EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
-	SwitchToCardIndex(cbCardData int) int
 	GetUserActionRank(cbUserAction int) int
 	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
-	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbWeaveCount, cbProvideCard int, gcr *TagGangCardResult) int
+	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
+	GetUserCards(cbCardIndex []int) (cbCardData []int)
+	SwitchToCardData(cbCardIndex int) int
+	SwitchToCardIndex(cbCardData int) int
+	IsValidCard(card int) bool
 
 	GetMagicIndex() int
 	SetMagicIndex(int)
 }
 
 type TimerManager interface {
+	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
+	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
+
+	GetCountLimit() int
+	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
-	StartCreatorTimer(skeleton *module.Skeleton, cb func())
-	StartPlayingTimer(skeleton *module.Skeleton, cb func())
+	GetMaxPayCnt() int
+	GetCreatrTime() int64
+	GetTimeOutCard() int
+	GetTimeOperateCard() int
 }
 
 ////////////////////////////////////////////

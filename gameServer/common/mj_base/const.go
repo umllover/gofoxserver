@@ -87,6 +87,13 @@ const (
 	MAX_RIGHT_COUNT = 1  //最大权位DWORD个数
 )
 
+const (
+	//税收定义
+	REVENUE_BENCHMARK   = 0    //税收起点
+	REVENUE_DENOMINATOR = 1000 //税收分母
+	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
+)
+
 type HistoryScore struct {
 	TurnScore    int
 	CollectScore int
@@ -99,4 +106,11 @@ type TagAnalyseItem struct {
 	WeaveKind  []int   //组合类型
 	CenterCard []int   //中心扑克
 	CardData   [][]int //实际扑克
+}
+
+//类型子项
+type TagKindItem struct {
+	WeaveKind  int   //组合类型
+	CenterCard int   //中心扑克
+	CardIndex  []int //扑克索引
 }

@@ -40,9 +40,8 @@ func (m *Module) GetChanRPC() *chanrpc.Server {
 	return ChanRPC
 }
 
-func getRoom(id int) *room.Room {
-	r, _ := RoomMgr.GetRoom(id).(*room.Room)
-	return r
+func getRoom(id int) RoomMgr.IRoom {
+	return RoomMgr.GetRoom(id)
 }
 
 func (m *Module) GetClientCount() int {
