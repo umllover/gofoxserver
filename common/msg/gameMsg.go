@@ -35,6 +35,7 @@ type C2G_CreateTable struct {
 	GameRule            []int8 //游戏规则 弟 0 位标识 是否设置规则 0 代表未设置 1 代表设置
 	Kind                int    //游戏类型
 	ServerId            int    //子类型
+	RoomID              int    //房间id
 }
 
 //解散房间
@@ -139,7 +140,7 @@ type G2C_StatusFree struct {
 	CellScore       int   //基础积分
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //操作时间
-	CreateTime   int64 //开始时间
+	CreateTime      int64 //开始时间
 	TurnScore       []int //积分信息
 	CollectScore    []int //积分信息
 	PlayerCount     int   //玩家人数
@@ -152,7 +153,7 @@ type G2C_StatusPlay struct {
 	//时间信息
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //叫分时间
-	CreateTime   int64 //开始时间
+	CreateTime      int64 //开始时间
 
 	//游戏变量
 	CellScore   int //单元积分

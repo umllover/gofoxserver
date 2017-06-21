@@ -34,6 +34,7 @@ const (
 	ErrGameIsStart     = 113 //游戏已开始，不能离开房间
 	ErrCreateRoomFaild = 114 //创建聊天室失败
 	NotOwner           = 115 //不是房主
+	Errunlawful        = 116 //非法操作
 )
 
 //红中麻将错误码
@@ -43,6 +44,7 @@ const (
 	ErrNotFoudCard   = 203 //没找到牌
 	ErrGameNotStart  = 204 //游戏没开始
 	ErrNotSelfOut    = 205 //不是自己出牌
+	ErrNoOperator    = 206 //没有操作
 )
 
 ///////// 无效的数字
@@ -55,6 +57,17 @@ const (
 	INVALID_TABLE  = 0xFFFF     //无效桌子
 	INVALID_SERVER = 0xFFFF     //无效房间
 	INVALID_KIND   = 0xFFFF     //无效游戏
+)
+
+const (
+	//积分类型
+	SCORE_TYPE_NULL    = 0x00 //无效积分
+	SCORE_TYPE_WIN     = 0x01 //胜局积分
+	SCORE_TYPE_LOSE    = 0x02 //输局积分
+	SCORE_TYPE_DRAW    = 0x03 //和局积分
+	SCORE_TYPE_FLEE    = 0x04 //逃局积分
+	SCORE_TYPE_PRESENT = 0x10 //赠送积分
+	SCORE_TYPE_SERVICE = 0x11 //服务积分
 )
 
 ///////////////游戏模式.

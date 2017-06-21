@@ -25,6 +25,16 @@ func (m *MgrModule) OnInit() {
 
 }
 
+func (m *MgrModule) ForEachUser(f func(u *user.User)) {
+	UsersLock.RLock()
+	defer UsersLock.RUnlock()
+	for _, u := range Users {
+		if u != nil {
+			f(u)
+		}
+	}
+}
+
 func (m *MgrModule) OnDestroy() {
 	log.Debug("at server close offline user ")
 }

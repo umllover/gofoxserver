@@ -6,7 +6,6 @@ import (
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
-	"mj/gameServer/mj_xs"
 
 	"mj/gameServer/common/room_base"
 
@@ -18,6 +17,9 @@ var (
 	ChanRPC  = skeleton.ChanRPCServer
 	modules  = make(map[int]room_base.Module) //key kind
 	KModule  = new(Module)
+	Kinds    = map[int]room_base.Module{ // Register here
+		common.KIND_TYPE_HZMJ: hzmj.Module,
+	}
 )
 
 type Module struct {
@@ -34,13 +36,15 @@ func (m *Module) OnDestroy() {
 }
 
 func LoadAllModule() {
-	if HasKind(common.KIND_TYPE_HZMJ) {
-		modules[common.KIND_TYPE_HZMJ] = hzmj.Module
+	for kind, m := range Kinds {
+		if HasKind(kind) {
+			AddMoudle(kind, m)
+		}
 	}
+}
 
-	if HasKind(common.KIND_TYPE_XSMJ) {
-		modules[common.KIND_TYPE_XSMJ] = mj_xs.Module
-	}
+func AddMoudle(kindID int, m room_base.Module) {
+	modules[kindID] = m
 }
 
 func GetModules() []module.Module {

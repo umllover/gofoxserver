@@ -14,8 +14,11 @@ import (
 
 	"mj/gameServer/RoomMgr"
 
+	"mj/gameServer/kindList"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -42,6 +45,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
 	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
+	handlerC2S(m, &msg.C2G_CreateTable{}, m.CreateRoom)
 }
 
 //连接进来的通知
@@ -348,6 +352,28 @@ func (m *UserModule) UserStandup(args []interface{}) {
 //客户端请求更换椅子
 func (m *UserModule) UserChairReq(args []interface{}) {
 
+}
+
+//创建房间
+func (m *UserModule) CreateRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_CreateTable)
+	agent := args[1].(gate.Agent)
+	retCode := 0
+
+	defer func() {
+		if retCode != 0 {
+			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+		}
+	}()
+
+	mod, ok := kindList.GetModByKind(recvMsg.Kind)
+	if !ok {
+		retCode = NotFoudGameType
+		return
+	}
+
+	log.Debug("begin CreateRoom.....")
+	mod.CreateRoom(recvMsg, agent)
 }
 
 //解散房间
