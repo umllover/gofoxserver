@@ -66,11 +66,14 @@ func startTimer(nTime int) {
 			}
 
 			msgCount := len(msgInfo)
-			r := rand.New(rand.NewSource(time.Now().UnixNano()))
-			index := r.Intn(msgCount)
+			if msgCount > 0 {
+				r := rand.New(rand.NewSource(time.Now().UnixNano()))
+				index := r.Intn(msgCount)
 
-			//timerMsg.Stop()
-			SendMsgToAll(msgInfo[index].Context)
+				//timerMsg.Stop()
+				SendMsgToAll(msgInfo[index].Context)
+			}
+
 		default:
 		}
 	}
