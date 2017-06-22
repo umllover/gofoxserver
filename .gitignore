@@ -7,5 +7,6 @@
 /hallServer/hallApp/hallApp.exe
 /gameServer/gameApp/gameApp
 /hallServer/hallApp/hallApp
+/hallServer/hallApp/hallServer.json
 /build.bat
 ./gameServer.json
