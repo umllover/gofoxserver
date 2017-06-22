@@ -16,7 +16,8 @@ import (
 
 type DataManager interface {
 	InitRoom(UserCnt int)
-	StartGame(UserManager, LogicManager, *base.GameServiceOption)
+	StartDispatchCard(UserManager, LogicManager, *base.GameServiceOption)
+	CheckZiMo(gameLogic LogicManager, userMgr UserManager)
 	SendGameStart(gameLogic LogicManager, userMgr UserManager)
 	SendPersonalTableTip(*user.User, TimerManager)
 	SendStatusPlay(u *user.User, userMgr UserManager, gameLogic LogicManager, timerMgr TimerManager)

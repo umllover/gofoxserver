@@ -787,7 +787,7 @@ func (room *RoomData) GetSice() (int, int) {
 	return Sice2<<8 | Sice1, minSice
 }
 
-func (room *RoomData) StartGame(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
+func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
 	log.Debug("begin start game hzmj")
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, US_PLAYING)
@@ -881,8 +881,13 @@ func (room *RoomData) StartGame(userMgr common.UserManager, gameLogic common.Log
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, true)
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
+	return
+}
+
+func (room *RoomData) CheckZiMo(gameLogic common.LogicManager, userMgr common.UserManager) {
 	//听牌判断
 	Count := 0
+	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
 	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, MAX_COUNT), HuCardCount: make([]int, MAX_COUNT), HuCardData: make([][]int, MAX_COUNT), HuCardRemainingCount: make([][]int, MAX_COUNT)}
 	if room.Ting[room.BankerUser] == false {
 		Count = gameLogic.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
@@ -901,8 +906,6 @@ func (room *RoomData) StartGame(userMgr common.UserManager, gameLogic common.Log
 			OwnerUser.WriteMsg(HuData)
 		}
 	}
-
-	return
 }
 
 func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr common.UserManager) {
@@ -954,7 +957,6 @@ func (room *RoomData) NormalEnd(userMgr common.UserManager, gameLogic common.Log
 		if room.ChiHuKind[i] == WIK_CHI_HU {
 			room.FiltrateRight(i, &room.ChiHuRight[i])
 			GameConclude.ChiHuRight[i] = room.ChiHuRight[i]
-
 		}
 		GameConclude.HandCardData[i] = gameLogic.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
