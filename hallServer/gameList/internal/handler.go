@@ -170,7 +170,7 @@ func NotifyNewRoom(args []interface{}) {
 		roomKindList[recvMsg.KindID] = m
 	}
 
-	if KindListInc >= math.MaxInt {
+	if KindListInc >= int(math.MaxInt32) {
 		KindListInc = 0
 	}
 	KindListInc++
