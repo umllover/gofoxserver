@@ -150,9 +150,14 @@ func (room *Mj_base) UserReady(args []interface{}) {
 
 	room.UserMgr.SetUsetStatus(u, US_READY)
 	if room.UserMgr.IsAllReady() {
+		//初始房间
 		room.DataMgr.InitRoom(room.UserMgr.GetMaxPlayerCnt())
-		room.DataMgr.StartGame(room.UserMgr, room.LogicMgr, room.Temp)
+		//派发初始扑克
+		room.DataMgr.StartDispatchCard(room.UserMgr, room.LogicMgr, room.Temp)
 		room.Status = RoomStatusStarting
+		//检查自摸
+		room.DataMgr.CheckZiMo(room.LogicMgr, room.UserMgr)
+		//通知客户端开始了
 		room.DataMgr.SendGameStart(room.LogicMgr, room.UserMgr)
 	}
 }
@@ -166,6 +171,8 @@ func (room *Mj_base) UserReLogin(args []interface{}) {
 	}
 
 	room.UserMgr.ReLogin(u, room.Status)
+	//重入取消托管
+	room.OnUserTrustee(u.ChairId, false)
 }
 
 //玩家离线
@@ -247,7 +254,6 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		//把所有玩家信息推送给自己
 		room.UserMgr.SendUserInfoToSelf(u)
 		room.DataMgr.SendStatusPlay(u, room.UserMgr, room.LogicMgr, room.TimerMgr)
-		room.OnUserTrustee(u.ChairId, false) //重入取消托管
 	}
 }
 
