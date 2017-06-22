@@ -63,6 +63,9 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	retMsg := &msg.L2C_LogonSuccess{}
 	agent := m.a
 	retcode := 0
+
+	log.Debug("enter mbLogin  user:%s", recvMsg.Accounts)
+
 	defer func() {
 		if retcode != 0 {
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
