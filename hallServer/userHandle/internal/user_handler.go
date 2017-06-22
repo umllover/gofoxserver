@@ -6,6 +6,7 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/db/model"
+	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
 	"mj/hallServer/user"
 	"reflect"
@@ -14,6 +15,8 @@ import (
 	"mj/hallServer/common"
 
 	"mj/hallServer/conf"
+
+	"mj/hallServer/idGenerate"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
@@ -37,6 +40,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
 	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
 
+	handlerC2S(m, &msg.C2G_CreateTable{}, m.CreateRoom)
 }
 
 //连接进来的通知
@@ -209,6 +213,50 @@ func (m *UserModule) UserOffline() {
 
 }
 
+func (m *UserModule) CreateRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_CreateTable)
+	retMsg := &msg.G2C_CreateTableSucess{}
+	agent := args[1].(gate.Agent)
+	retCode := 0
+	defer func() {
+		if retCode == 0 {
+			agent.WriteMsg(retMsg)
+		} else {
+			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+		}
+	}()
+	template, ok := base.GameServiceOptionCache.Get(recvMsg.Kind, recvMsg.ServerId)
+	if !ok {
+		retCode = NoFoudTemplate
+		return
+	}
+
+	feeTemp, ok1 := base.PersonalTableFeeCache.Get(recvMsg.ServerId, recvMsg.Kind, recvMsg.DrawCountLimit)
+	if !ok1 {
+		log.Error("not foud PersonalTableFeeCache")
+		retCode = NoFoudTemplate
+		return
+	}
+
+	u := agent.UserData().(*user.User)
+	if u.GetRoomCnt() > common.GetGlobalVarInt(MAX_CREATOR_ROOM_CNT) {
+		retCode = ErrMaxRoomCnt
+		return
+	}
+
+	rid, iok := idGenerate.GetRoomId(u.Id)
+	if !iok {
+		retCode = RandRoomIdError
+		return
+	}
+
+	if recvMsg.CellScore > template.CellScore {
+		retCode = MaxSoucrce
+		return
+	}
+	_, _ = feeTemp, rid
+}
+
 ///////
 func loadUser(u *user.User) bool {
 	ainfo, aok := model.AccountsmemberOp.Get(u.Id)
@@ -254,6 +302,17 @@ func loadUser(u *user.User) bool {
 		return false
 	}
 	u.Usertoken = userToken
+
+	rooms, err := model.CreateRoomInfoOp.QueryByMap(map[string]interface{}{
+		"user_id": u.Id,
+	})
+	if err != nil {
+		log.Error("at loadUser not foud CreateRoomInfoOp by user  %d", u.Id)
+		return false
+	}
+	for _, v := range rooms {
+		u.AddRooms(v.RoomId, v)
+	}
 	return true
 }
 

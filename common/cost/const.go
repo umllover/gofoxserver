@@ -35,6 +35,7 @@ const (
 	ErrCreateRoomFaild = 114 //创建聊天室失败
 	NotOwner           = 115 //不是房主
 	Errunlawful        = 116 //非法操作
+	ErrMaxRoomCnt      = 117 //房间超限， 不能再创建了
 )
 
 //红中麻将错误码
@@ -146,3 +147,9 @@ func GetGameSvrName(sververId int) string {
 func GetHallSvrName(sververId int) string {
 	return fmt.Sprintf(HallPrefix+"_%d", sververId)
 }
+
+///////////////// global 常量 ///////////////////////
+
+const (
+	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
+)

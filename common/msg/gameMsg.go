@@ -29,13 +29,13 @@ type C2G_CreateTable struct {
 	CellScore           int    //底分设置
 	DrawCountLimit      int    //局数限制
 	DrawTimeLimit       int    //时间限制
-	JoinGamePeopleCount int    //参与游戏的人数
-	RoomTax             int    //单独一个私人房间的税率，千分比
+	JoinGamePeopleCount int    //参与游戏的人数， 如果非0， 是玩家指定多少人玩
 	Password            string //密码设置
 	GameRule            []int8 //游戏规则 弟 0 位标识 是否设置规则 0 代表未设置 1 代表设置
 	Kind                int    //游戏类型
 	ServerId            int    //子类型
 	RoomID              int    //房间id
+	PayType             int    //1是自己付钱， 2是AA
 }
 
 //解散房间

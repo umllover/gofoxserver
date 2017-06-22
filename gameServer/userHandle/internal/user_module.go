@@ -48,7 +48,6 @@ func (m *UserModule) GetChanRPC() *chanrpc.Server {
 }
 
 ///////////////////////////////////
-
 func (m *UserModule) OnInit() {
 
 }

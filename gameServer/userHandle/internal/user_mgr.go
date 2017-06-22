@@ -22,7 +22,6 @@ type MgrModule struct {
 
 func (m *MgrModule) OnInit() {
 	m.Skeleton = skeleton
-
 }
 
 func (m *MgrModule) ForEachUser(f func(u *user.User)) {

@@ -10,7 +10,7 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/gameServer/idGenerate"
+	"mj/hallServer/idGenerate"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"

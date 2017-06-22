@@ -18,12 +18,15 @@ type User struct {
 	*model.Userattr
 	*model.Usertoken
 	*model.Userextrainfo
-	Id int
+	Rooms map[int]*model.CreateRoomInfo
+	Id    int
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
-	return &User{Id: UserId}
+	u := &User{Id: UserId}
+	u.Rooms = make(map[int]*model.CreateRoomInfo)
+	return u
 }
 
 func (u *User) GetUid() int {
@@ -61,4 +64,31 @@ func (u *User) GetCurrency() int {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Currency
+}
+
+func (u *User) AddRooms(id int, r *model.CreateRoomInfo) {
+	u.Lock()
+	defer u.Unlock()
+	u.Rooms[id] = r
+}
+
+func (u *User) DelRooms(id int) {
+	u.Lock()
+	defer u.Unlock()
+	_, ok := u.Rooms[id]
+	if ok {
+		delete(u.Rooms, id)
+		model.CreateRoomInfoOp.Delete(id)
+	}
+}
+
+func (u *User) HasRoom(id int) bool {
+	u.RLock()
+	defer u.RUnlock()
+	_, ok := u.Rooms[id]
+	return ok
+}
+
+func (u *User) GetRoomCnt() int {
+	return len(u.Rooms)
 }

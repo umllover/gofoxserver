@@ -45,7 +45,6 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
 	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
-	handlerC2S(m, &msg.C2G_CreateTable{}, m.CreateRoom)
 }
 
 //连接进来的通知
