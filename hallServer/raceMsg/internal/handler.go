@@ -48,51 +48,36 @@ func ReciveMsg(beginTime int, endTime int, interval int, context string) {
 
 // 启动跑马灯
 func StartHorseRaceLamp() {
-	go startTimer(5 * 60)
-}
+	// 先从数据库里取所有数据
+	allMsg, err := model.RaceMsgInfoOp.SelectAll()
+	if err != nil {
+		log.Error("race_msg_info查找所有数据失败,error=%i", err)
+		return
+	}
 
-// 启动定时器
-func startTimer(nTime int) {
-	log.Debug("定时器启动了")
-	timerMsg := time.NewTicker(time.Duration(nTime) * time.Second)
-	for {
-		select {
-		case <-timerMsg.C:
-			log.Debug("定时器时间到了，开始发消息")
-			allMsg, err := model.RaceMsgInfoOp.SelectAll()
-			if err != nil {
-				log.Error("race_msg_info查找所有数据失败,error=%i", err)
-				break
-			}
+	var msgInfo []*model.RaceMsgInfo // 存储符合条件的数据
 
-			var msgInfo []*model.RaceMsgInfo // 存储符合条件的数据
-
-			// 先删除过期数据
-			nowTime := time.Now().Unix()
-			for _, value := range allMsg {
-				if value.EndTime <= int(nowTime) {
-					model.RaceMsgInfoOp.Delete(value.MsgID)
-					continue
-				}
-
-				if value.StartTime > int(nowTime) {
-					continue
-				}
-
-				msgInfo = append(msgInfo, value)
-			}
-
-			msgCount := len(msgInfo)
-			if msgCount > 0 {
-				r := rand.New(rand.NewSource(time.Now().UnixNano()))
-				index := r.Intn(msgCount)
-
-				//timerMsg.Stop()
-				SendMsgToAll(msgInfo[index].Context)
-			}
-
-		default:
+	// 先删除过期数据
+	nowTime := time.Now().Unix()
+	for _, value := range allMsg {
+		if value.EndTime <= int(nowTime) {
+			model.RaceMsgInfoOp.Delete(value.MsgID)
+			continue
 		}
+
+		if value.StartTime > int(nowTime) {
+			continue
+		}
+
+		msgInfo = append(msgInfo, value)
+	}
+
+	msgCount := len(msgInfo)
+	if msgCount > 0 {
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		index := r.Intn(msgCount)
+
+		SendMsgToAll(msgInfo[index].Context)
 	}
 }
 
