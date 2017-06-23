@@ -22,6 +22,7 @@ type RoomBase struct {
 func NewRoomBase() *RoomBase {
 	r := new(RoomBase)
 	skeleton := &module.Skeleton{
+
 		GoLen:              1000,
 		TimerDispatcherLen: 1000,
 		AsynCallLen:        1000,

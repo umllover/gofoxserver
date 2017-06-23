@@ -85,28 +85,6 @@ type G2C_LogonFailur struct {
 	DescribeString string
 }
 
-// 创建房间失败消息
-type G2C_CreateTableFailure struct {
-	ErrorCode      int
-	DescribeString string
-}
-
-//创建房间成功的消息
-type G2C_CreateTableSucess struct {
-	TableID        int    //房间编号
-	DrawCountLimit int    //局数限制
-	DrawTimeLimit  int    //时间限制
-	Beans          int    //游戏豆
-	RoomCard       int    //房卡数量
-	ServerIP       string //去哪个逻辑服玩
-}
-
-//查询房间的结果
-type G2C_SearchResult struct {
-	ServerID int //房间 I D
-	TableID  int //桌子 I D
-}
-
 //玩家状态
 type G2C_UserStatus struct {
 	UserID     int

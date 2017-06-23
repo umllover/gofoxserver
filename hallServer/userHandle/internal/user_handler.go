@@ -215,14 +215,14 @@ func (m *UserModule) UserOffline() {
 
 func (m *UserModule) CreateRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_CreateTable)
-	retMsg := &msg.G2C_CreateTableSucess{}
+	retMsg := &msg.L2C_CreateTableSucess{}
 	agent := args[1].(gate.Agent)
 	retCode := 0
 	defer func() {
 		if retCode == 0 {
 			agent.WriteMsg(retMsg)
 		} else {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			agent.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 	template, ok := base.GameServiceOptionCache.Get(recvMsg.Kind, recvMsg.ServerId)
@@ -302,7 +302,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 func (m *UserModule) SrarchTableResult(args []interface{}) {
 	roomInfo := args[0].(*msg.RoomInfo)
 	u := m.a.UserData().(*user.User)
-	retMsg := &msg.G2C_SearchResult{}
+	retMsg := &msg.L2C_SearchResult{}
 	retcode := 0
 	defer func() {
 		if retcode != 0 {

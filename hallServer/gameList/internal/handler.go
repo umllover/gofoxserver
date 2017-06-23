@@ -108,7 +108,7 @@ func GetRoomList(args []interface{}) {
 
 func QuickMatch(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_QuickMatch)
-	retMsg := msg.G2C_SearchResult{}
+	retMsg := msg.L2C_SearchResult{}
 	agent := args[1].(gate.Agent)
 	defer func() {
 		agent.WriteMsg(retMsg)
