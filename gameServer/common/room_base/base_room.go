@@ -1,7 +1,6 @@
 package room_base
 
 import (
-	"mj/gameServer/common"
 	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
@@ -20,7 +19,7 @@ type RoomBase struct {
 	wg       sync.WaitGroup //
 }
 
-func NewRoomBase() common.BaseManager {
+func NewRoomBase() *RoomBase {
 	r := new(RoomBase)
 	skeleton := &module.Skeleton{
 		GoLen:              1000,

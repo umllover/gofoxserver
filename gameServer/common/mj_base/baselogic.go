@@ -46,7 +46,7 @@ type BaseLogic struct {
 	SwitchToCard  func(int) int
 }
 
-func NewBaseLogic() common.LogicManager {
+func NewBaseLogic() *BaseLogic {
 	bl := new(BaseLogic)
 	bl.CheckValid = IsValidCard
 	bl.SwitchToIdx = SwitchToCardIndex

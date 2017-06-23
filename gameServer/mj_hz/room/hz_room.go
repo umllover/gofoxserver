@@ -10,16 +10,17 @@ import (
 	"mj/gameServer/user"
 
 	"mj/gameServer/common/room_base"
+	"mj/gameServer/db/model/base"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
 
-	u := args[1].(user.User)
+	u := args[1].(*user.User)
 	retCode := 0
 	defer func() {
 		if retCode != 0 {
-			u.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 
@@ -28,12 +29,20 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 
+	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
+	if !ok {
+		retCode = NoFoudTemplate
+		return nil
+	}
+
+
+
 	cfg := &mj_base.NewMjCtlConfig{
-		NUserF:  room_base.NewRoomUserMgr,
-		NDataF:  mj_base.NewDataMgr,
-		NBaseF:  room_base.NewRoomBase,
-		NLogicF: mj_base.NewBaseLogic,
-		NTimerF: room_base.NewRoomTimerMgr,
+		BaseMgr:  room_base.NewRoomBase(),
+		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, temp.GameName, temp),
+		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		LogicMgr: mj_base.NewBaseLogic(),
+		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
 	r := mj_base.NewMJBase(info, u.Id, 0, info.Num, 0, 0, 4, cfg)
 	if r == nil {

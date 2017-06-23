@@ -15,7 +15,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) common.DataManager {
+func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -76,6 +76,7 @@ type RoomData struct {
 	CurrentUser       int                //当前操作用户
 	Ting              []bool             //是否听牌
 	BankerUser        int                //庄家用户
+
 }
 
 func (room *RoomData) CanOperatorRoom(uid int) bool {

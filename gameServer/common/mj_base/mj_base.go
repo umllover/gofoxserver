@@ -14,12 +14,6 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-type NewUserMgrFunc func(int, int, *base.GameServiceOption) common.UserManager
-type NewDataMgrFunc func(id, uid int, name string, temp *base.GameServiceOption) common.DataManager
-type NewBaseMgrFunc func() common.BaseManager
-type NewLogicMgrFunc func() common.LogicManager
-type NewTimerMgrFunc func(TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, Temp *base.GameServiceOption) common.TimerManager
-
 type Mj_base struct {
 	common.BaseManager
 	DataMgr  common.DataManager
@@ -33,11 +27,11 @@ type Mj_base struct {
 
 //创建的配置文件
 type NewMjCtlConfig struct {
-	NUserF    NewUserMgrFunc
-	NDataF    NewDataMgrFunc
-	NBaseF    NewBaseMgrFunc
-	NLogicF   NewLogicMgrFunc
-	NTimerF   NewTimerMgrFunc
+	BaseMgr   common.BaseManager
+	DataMgr   common.DataManager
+	UserMgr   common.UserManager
+	LogicMgr  common.LogicManager
+	TimerMgr  common.TimerManager
 	GetCardsF func() []int
 }
 
@@ -49,11 +43,12 @@ func NewMJBase(info *model.CreateRoomInfo, uid, TimeLimit, CountLimit, TimeOutCa
 
 	mj := new(Mj_base)
 	mj.Temp = Temp
-	mj.UserMgr = cfg.NUserF(info.RoomId, info.MaxPlayerCnt, Temp)
-	mj.DataMgr = cfg.NDataF(info.RoomId, uid, "", Temp)
-	mj.BaseManager = cfg.NBaseF()
-	mj.LogicMgr = cfg.NLogicF()
-	mj.TimerMgr = cfg.NTimerF(TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt, Temp)
+	mj.UserMgr = cfg.UserMgr
+	mj.DataMgr = cfg.DataMgr
+	mj.BaseManager = cfg.BaseMgr
+	mj.LogicMgr = cfg.LogicMgr
+	mj.TimerMgr = cfg.TimerMgr
+	mj.RoomRun(mj.GetRoomId())
 	return mj
 }
 
@@ -73,11 +68,13 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 		}
 	}()
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
+
 		retcode = GameIsStart
 		return
 	}
 
 	retcode = r.UserMgr.Sit(u, recvMsg.ChairID)
+
 }
 
 //起立
@@ -143,6 +140,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		return
 	}
 
+	log.Debug("at UserReady ==== ")
 	room.UserMgr.SetUsetStatus(u, US_READY)
 	if room.UserMgr.IsAllReady() {
 		//初始房间
