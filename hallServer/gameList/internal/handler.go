@@ -9,18 +9,25 @@ import (
 	"mj/hallServer/conf"
 	"sort"
 
+	"mj/common/cost"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
 var (
-	gameLists    = make(map[int]map[int]*msg.TagGameServer) //k1 is kind k2 is server Id
-	SvrvetType   = make(map[int]map[int]struct{})           //key sverId v KingId
-	roomList     = make(map[int]*msg.RoomInfo)              // key1 is roomId
-	roomKindList = make(map[int]map[int]int)                //key1 is kind Id key2 incId
+	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
+	TypeInfo     = make(map[int]map[int]struct{}) //key is nodeID key2 i
+	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
+	roomKindList = make(map[int]map[int]int)      //key1 is kind Id key2 incId
 	KindListInc  = 0
 )
+
+type ServerInfo struct {
+	wight int
+	list  map[int]*msg.TagGameServer //key is KindID
+}
 
 ////注册rpc 消息
 func handleRpc(id interface{}, f interface{}) {
@@ -51,21 +58,25 @@ func init() {
 }
 
 ////// c2s
+//玩家请求查找房间
 func SrarchTable(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SearchServerTable)
-	retMsg := &msg.G2C_SearchResult{}
 	agent := args[1].(gate.Agent)
+	retcode := 0
 	defer func() {
-		agent.WriteMsg(retMsg)
+		if retcode != 0 {
+			agent.WriteMsg(cost.RenderErrorMessage(retcode))
+		}
 	}()
 
 	roomInfo := getRoomInfo(recvMsg.TableID)
 	if roomInfo == nil {
 		log.Error("at SrarchTable not foud room, %v", recvMsg)
+		retcode = cost.ErrNoFoudRoom
 		return
 	}
-	retMsg.TableID = roomInfo.RoomID
-	retMsg.ServerID = roomInfo.ServerID
+
+	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
 	return
 }
 
@@ -147,7 +158,7 @@ func sendGameList(args []interface{}) {
 	agent := args[0].(gate.Agent)
 	list := make(msg.L2C_ServerList, 0)
 	for _, v := range gameLists {
-		for _, v1 := range v {
+		for _, v1 := range v.list {
 			list = append(list, v1)
 		}
 	}
@@ -244,29 +255,43 @@ func CloseServerAgent(args []interface{}) {
 
 ///////////////// help
 func delGameList(args []interface{}) {
-	svrId := args[0].(int)
-	typeInfo := SvrvetType[svrId]
-	for kind, _ := range typeInfo {
-		gminfo, ok := gameLists[kind]
-		if ok {
-			delete(gminfo, svrId)
-		}
-	}
+	NodeId := args[0].(int)
+	delete(gameLists, NodeId)
 }
 
 func addGameList(v *msg.TagGameServer) {
-	gminfo, ok := gameLists[v.KindID]
+	gminfo, ok := gameLists[v.NodeID]
 	if !ok {
-		gminfo = make(map[int]*msg.TagGameServer)
-		gameLists[v.KindID] = gminfo
+		gminfo = new(ServerInfo)
+		gminfo.list = make(map[int]*msg.TagGameServer)
+		gameLists[v.NodeID] = gminfo
 	}
 
-	gminfo[v.ServerID] = v
+	gminfo.list[v.KindID] = v
+}
 
-	typeInfo, ok1 := SvrvetType[v.ServerID]
-	if !ok1 {
-		typeInfo = make(map[int]struct{})
-		SvrvetType[v.ServerID] = typeInfo
+func GetSvrByKind(kindId int) string {
+	minNub := 0
+	var minv *ServerInfo
+	for _, v := range gameLists {
+		if _, ok := v.list[kindId]; !ok {
+			continue
+		}
+
+		if minv == nil {
+			minNub = v.wight
+			minv = v
+		}
+
+		if v.wight < minNub {
+			minNub = v.wight
+			minv = v
+		}
 	}
-	typeInfo[v.KindID] = struct{}{}
+
+	if minv == nil || len(minv.list) < 0 {
+		return ""
+	}
+	minv.wight++
+	return minv.list[0].ServerAddr
 }

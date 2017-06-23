@@ -18,7 +18,6 @@ import (
 
 	"mj/hallServer/idGenerate"
 
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -34,13 +33,14 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("NewAgent", m.NewAgent)
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
 	m.ChanRPC.Register("GetUser", m.GetUser)
+	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
 	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
 
-	handlerC2S(m, &msg.C2G_CreateTable{}, m.CreateRoom)
+	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
 }
 
 //连接进来的通知
@@ -214,7 +214,7 @@ func (m *UserModule) UserOffline() {
 }
 
 func (m *UserModule) CreateRoom(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_CreateTable)
+	recvMsg := args[0].(*msg.C2L_CreateTable)
 	retMsg := &msg.G2C_CreateTableSucess{}
 	agent := args[1].(gate.Agent)
 	retCode := 0
@@ -250,11 +250,105 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	if recvMsg.CellScore > template.CellScore {
-		retCode = MaxSoucrce
+	if recvMsg.JoinGamePeopleCount != 0 {
+		if recvMsg.JoinGamePeopleCount > template.MaxPlayer || recvMsg.JoinGamePeopleCount < template.MaxPlayer {
+			retCode = ErrParamError
+			return
+		}
+	}
+
+	host := gameList.GetSvrByKind(recvMsg.Kind)
+	if host == "" {
+		retCode = ErrNotFoudServer
 		return
 	}
-	_, _ = feeTemp, rid
+
+	if recvMsg.PayType == SELF_PAY_TYPE {
+		if u.SubCurrency(feeTemp.TableFee) {
+			retCode = NotEnoughFee
+			return
+		}
+
+		record := &model.TokenRecord{}
+		record.UserId = u.Id
+		record.Amount = feeTemp.TableFee
+		record.TokenType = SELF_PAY_TYPE
+		record.KindID = template.KindID
+		_, err := model.TokenRecordOp.Insert(record)
+		if err != nil {
+			retCode = ErrServerError
+			u.AddCurrency(feeTemp.TableFee)
+			return
+		}
+	}
+
+	//记录创建房间信息
+	info := &model.CreateRoomInfo{}
+	info.UserId = u.Id
+	info.PayType = recvMsg.PayType
+	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
+	info.RoomId = rid
+	info.Num = recvMsg.DrawCountLimit
+
+	//回给客户端的消息
+	retMsg.TableID = rid
+	retMsg.DrawCountLimit = info.Num
+	retMsg.DrawTimeLimit = 0
+	retMsg.Beans = feeTemp.TableFee
+	retMsg.RoomCard = u.Currency
+	retMsg.ServerIP = host
+}
+
+func (m *UserModule) SrarchTableResult(args []interface{}) {
+	roomInfo := args[0].(*msg.RoomInfo)
+	u := m.a.UserData().(*user.User)
+	retMsg := &msg.G2C_SearchResult{}
+	retcode := 0
+	defer func() {
+		if retcode != 0 {
+			u.WriteMsg(RenderErrorMessage(retcode))
+		} else {
+			u.WriteMsg(retMsg)
+		}
+	}()
+
+	template, ok := base.GameServiceOptionCache.Get(roomInfo.KindID, roomInfo.ServerID)
+	if !ok {
+		retcode = ConfigError
+		return
+	}
+
+	feeTemp, ok1 := base.PersonalTableFeeCache.Get(roomInfo.ServerID, roomInfo.KindID, roomInfo.PayCnt)
+	if !ok1 {
+		log.Error("not foud PersonalTableFeeCache")
+		retcode = NoFoudTemplate
+		return
+	}
+
+	monrey := feeTemp.TableFee
+	if roomInfo.PayType == AA_PAY_TYPE {
+		monrey = feeTemp.TableFee / roomInfo.MaxCnt
+
+		if u.SubCurrency(monrey) {
+			retcode = NotEnoughFee
+			return
+		}
+		record := &model.TokenRecord{}
+		record.UserId = u.Id
+		record.Amount = monrey
+		record.TokenType = AA_PAY_TYPE
+		record.KindID = template.KindID
+		_, err := model.TokenRecordOp.Insert(record)
+		if err != nil {
+			retcode = ErrServerError
+			u.AddCurrency(monrey)
+			return
+		}
+	}
+
+	retMsg.TableID = roomInfo.RoomID
+	retMsg.ServerID = roomInfo.ServerID
+	u.WriteMsg(retMsg)
 }
 
 ///////
@@ -414,34 +508,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 }
 
 /////////////////////////////// help 函数
-
-/////主消息函数
-func (m *UserModule) handleMsgData(args []interface{}) error {
-	if msg.Processor != nil {
-		str := args[0].([]byte)
-		data, err := msg.Processor.Unmarshal(str)
-		if err != nil {
-			return err
-		}
-
-		msgType := reflect.TypeOf(data)
-		if msgType == nil || msgType.Kind() != reflect.Ptr {
-			return errors.New("json message pointer required 11")
-		}
-
-		f, ok := m.ChanRPC.HasFunc(msgType)
-		if ok {
-			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
-			return nil
-		}
-
-		err = msg.Processor.RouteByType(msgType, data, m.a)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 	u, ok := m.a.UserData().(*user.User)

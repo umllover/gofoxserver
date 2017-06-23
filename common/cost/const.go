@@ -21,7 +21,7 @@ const (
 const (
 	RoomFull           = 101 //房间满了，不能再创建
 	NotFoudGameType    = 102 //玩家不存在
-	CreateParamError   = 103 //参数错误
+	ErrParamError      = 103 //参数错误
 	NoFoudTemplate     = 104 //配置没找到
 	ConfigError        = 105 //配置错误
 	NotEnoughFee       = 106 //代币不足
@@ -36,6 +36,9 @@ const (
 	NotOwner           = 115 //不是房主
 	Errunlawful        = 116 //非法操作
 	ErrMaxRoomCnt      = 117 //房间超限， 不能再创建了
+	ErrServerError     = 118 //服务器内部错误
+	ErrNotFoudServer   = 119 //没有找到可以服务的server
+	ErrNoFoudRoom      = 120 //房间没有找到
 )
 
 //红中麻将错误码
@@ -108,9 +111,14 @@ const (
 )
 
 //积分修改类型
-///
 const (
 	HZMJ_CHANGE_SOURCE = 1
+)
+
+//自己支付
+const (
+	SELF_PAY_TYPE = 1
+	AA_PAY_TYPE   = 2
 )
 
 //////////////////////////////////////////////
@@ -133,7 +141,7 @@ func RenderErrorMessage(code int, Desc ...string) *msg.ShowErrCode {
 	if len(Desc) < 1 {
 		des = fmt.Sprintf("请求错误, 错误码: %d", code)
 	} else {
-		des = fmt.Sprintf(Desc[0]+"请求错误, 错误码: %d", code)
+		des = fmt.Sprintf(Desc[0]+", 错误码: %d", code)
 	}
 	return &msg.ShowErrCode{
 		ErrorCode:      code,

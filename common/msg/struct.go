@@ -30,8 +30,8 @@ type TagGameServer struct {
 	MaxEnterScore int64 `json:"lMaxEnterScore"` //最高积分
 	//fdl add end
 
-	ServerAddr string `json:"szServerAddr"` //房间名称
-	ServerName string `json:"szServerName"` //房间名称
+	ServerAddr string `json:"szServerAddr"` //ip地址
+	ServerName string `json:"szServerName"` //游戏名称
 	//私人房添加
 	SurportType int64 `json:"DdwSurportType"` //支持类型
 	TableCount  int   `json:"wTableCount"`    //桌子数目
@@ -46,6 +46,7 @@ type RoomInfo struct {
 	CurCnt     int   //当前人数
 	MaxCnt     int   //最多多人数
 	PayCnt     int   //可玩局数
+	PayType    int   //支付类型
 	CurPayCnt  int   //已玩局数
 	CreateTime int64 //创建时间
 	Idx        int   //服务器标识用的字段

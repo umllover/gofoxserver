@@ -41,21 +41,16 @@ type NewMjCtlConfig struct {
 	GetCardsF func() []int
 }
 
-func NewMJBase(roomId, uid, TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, cfg *NewMjCtlConfig) *Mj_base {
-	lk, ok := model.CreateRoomInfoOp.Get(roomId)
-	if !ok {
-		return nil
-	}
-
-	Temp, ok1 := base.GameServiceOptionCache.Get(lk.KindId, lk.ServiceId)
+func NewMJBase(info *model.CreateRoomInfo, uid, TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, cfg *NewMjCtlConfig) *Mj_base {
+	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok1 {
 		return nil
 	}
 
 	mj := new(Mj_base)
 	mj.Temp = Temp
-	mj.UserMgr = cfg.NUserF(roomId, lk.MaxPlayerCnt, Temp)
-	mj.DataMgr = cfg.NDataF(roomId, uid, "", Temp)
+	mj.UserMgr = cfg.NUserF(info.RoomId, info.MaxPlayerCnt, Temp)
+	mj.DataMgr = cfg.NDataF(info.RoomId, uid, "", Temp)
 	mj.BaseManager = cfg.NBaseF()
 	mj.LogicMgr = cfg.NLogicF()
 	mj.TimerMgr = cfg.NTimerF(TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt, Temp)

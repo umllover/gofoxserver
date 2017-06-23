@@ -31,7 +31,7 @@ func init() {
 	Processor.Register(&G2C_UserEnter{})
 	Processor.Register(&C2G_GR_LogonMobile{})
 	Processor.Register(&C2G_GR_UserChairReq{})
-	Processor.Register(&C2G_CreateTable{})
+	Processor.Register(&C2L_CreateTable{})
 	Processor.Register(&G2C_CreateTableFailure{})
 	Processor.Register(&G2C_CreateTableSucess{})
 	Processor.Register(&C2L_SearchServerTable{})

@@ -25,17 +25,8 @@ type C2G_GR_UserChairReq struct {
 }
 
 //请求创建房间消息
-type C2G_CreateTable struct {
-	CellScore           int    //底分设置
-	DrawCountLimit      int    //局数限制
-	DrawTimeLimit       int    //时间限制
-	JoinGamePeopleCount int    //参与游戏的人数， 如果非0， 是玩家指定多少人玩
-	Password            string //密码设置
-	GameRule            []int8 //游戏规则 弟 0 位标识 是否设置规则 0 代表未设置 1 代表设置
-	Kind                int    //游戏类型
-	ServerId            int    //子类型
-	RoomID              int    //房间id
-	PayType             int    //1是自己付钱， 2是AA
+type C2G_LoadTable struct {
+	RoomID int //房间id
 }
 
 //解散房间
@@ -102,11 +93,12 @@ type G2C_CreateTableFailure struct {
 
 //创建房间成功的消息
 type G2C_CreateTableSucess struct {
-	TableID        int //房间编号
-	DrawCountLimit int //局数限制
-	DrawTimeLimit  int //时间限制
-	Beans          int //游戏豆
-	RoomCard       int //房卡数量
+	TableID        int    //房间编号
+	DrawCountLimit int    //局数限制
+	DrawTimeLimit  int    //时间限制
+	Beans          int    //游戏豆
+	RoomCard       int    //房卡数量
+	ServerIP       string //去哪个逻辑服玩
 }
 
 //查询房间的结果

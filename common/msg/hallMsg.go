@@ -34,6 +34,20 @@ type C2L_Regist struct {
 	MobilePhone string //电话号码  //默认不获取本机号码
 }
 
+//请求创建房间消息
+type C2L_CreateTable struct {
+	CellScore           int    //底分设置
+	DrawCountLimit      int    //局数限制
+	DrawTimeLimit       int    //时间限制
+	JoinGamePeopleCount int    //参与游戏的人数， 如果非0， 是玩家指定多少人玩
+	Password            string //密码设置
+	GameRule            []int8 //游戏规则 弟 0 位标识 是否设置规则 0 代表未设置 1 代表设置
+	Kind                int    //游戏类型
+	ServerId            int    //子类型
+	RoomID              int    //房间id
+	PayType             int    //1是自己付钱， 2是AA
+}
+
 //查询房间信息
 type C2L_SearchServerTable struct {
 	TableID int
