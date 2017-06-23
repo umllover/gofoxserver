@@ -21,27 +21,34 @@ type ZP_RoomData struct {
 	ChaHuaMap map[int]int
 }
 
-func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) *ZP_RoomData {
+func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption, base *Mj_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(id, uid, name, temp)
+	r.RoomData = mj_base.NewDataMgr(id, uid, name, temp, base)
 	return r
 }
 
 func (room *ZP_RoomData) StartGameing(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
-
+	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
+		userMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_GetChaHua{})
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(template.OutCardTime)*time.Second, func() {
+			room.StartDispatchCard(userMgr, gameLogic, template)
+			//检查自摸
+			room.CheckZiMo(gameLogic, userMgr)
+			//通知客户端开始了
+			room.SendGameStart(gameLogic, userMgr)
+		})
+	} else {
+		room.StartDispatchCard(userMgr, gameLogic, template)
+		//检查自摸
+		room.CheckZiMo(gameLogic, userMgr)
+		//通知客户端开始了
+		room.SendGameStart(gameLogic, userMgr)
+	}
 }
 
 func (room *ZP_RoomData) AfterStartGame(userMgr common.UserManager, gameLogic common.LogicManager) {
 
-}
-
-func (room *ZP_RoomData) SetChaHua(arg interface{}) {
-	bRoom := arg.(zpMj_base)
-	bRoom.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_GetChaHua{})
-	bRoom.GetSkeleton().AfterFunc(time.Duration(bRoom.Temp.OutCardTime)*time.Second, func() {
-		bRoom.StartPlay()
-	})
 }
 
 func (room *ZP_RoomData) GetChaHua(args []interface{}) {
@@ -50,4 +57,11 @@ func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 
 	getData := &mj_zp_msg.C2G_MJZP_SetChaHua{}
 	room.ChaHuaMap[user.ChairId] = getData.SetCount
+	if len(room.ChaHuaMap) == 4 {
+		room.StartDispatchCard(room.MjBase.UserMgr, room.MjBase.LogicMgr, room.MjBase.Temp)
+		//检查自摸
+		room.CheckZiMo(room.MjBase.LogicMgr, room.MjBase.UserMgr)
+		//通知客户端开始了
+		room.SendGameStart(room.MjBase.LogicMgr, room.MjBase.UserMgr)
+	}
 }
