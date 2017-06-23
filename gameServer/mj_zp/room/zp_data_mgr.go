@@ -1,7 +1,9 @@
 package room
 
 import (
+	"mj/gameServer/common"
 	"mj/gameServer/common/mj_base"
+	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
 	"mj/common/msg/mj_zp_msg"
@@ -13,10 +15,25 @@ import (
 )
 
 type ZP_RoomData struct {
-	mj_base.RoomData
+	*mj_base.RoomData
 	ChaHuaTime *timer.Timer
 
 	ChaHuaMap map[int]int
+}
+
+func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) *ZP_RoomData {
+	r := new(ZP_RoomData)
+	r.ChaHuaMap = make(map[int]int)
+	r.RoomData = mj_base.NewDataMgr(id, uid, name, temp)
+	return r
+}
+
+func (room *ZP_RoomData) StartGameing(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
+
+}
+
+func (room *ZP_RoomData) AfterStartGame(userMgr common.UserManager, gameLogic common.LogicManager) {
+
 }
 
 func (room *ZP_RoomData) SetChaHua(arg interface{}) {
