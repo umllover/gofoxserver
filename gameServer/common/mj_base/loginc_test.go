@@ -11,15 +11,13 @@ import (
 	"net"
 	"testing"
 
-	"mj/gameServer/RoomMgr"
-
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
 )
 
 var (
-	room RoomMgr.IRoom
+	room *Mj_base
 	u1   *user.User
 	u2   *user.User
 	u3   *user.User
@@ -27,7 +25,7 @@ var (
 )
 
 func TestGameStart_1(t *testing.T) {
-
+	room.UserReady([]interface{}{nil, u1})
 }
 
 //func TestGameLogic_OutCard(t *testing.T) {
@@ -112,10 +110,10 @@ func init() {
 
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
 
-	u1 := newTestUser(1)
+	u1 = newTestUser(1)
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, temp.GameName, temp, r)
+	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, temp.GameName, temp, r)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
@@ -124,6 +122,7 @@ func init() {
 		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
 	r.Init(cfg)
+	room = r
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
@@ -143,7 +142,10 @@ func newTestUser(uid int) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1
-	u.Status = US_READY
+	if uid != 1 {
+		u.Status = US_READY
+	}
+
 	u.ChairId = 0
 	u.Agent = new(TAgent)
 	return u
