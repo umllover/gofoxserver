@@ -43,7 +43,7 @@ func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
 
 	mj := new(Mj_base)
 	mj.Temp = Temp
-	mj.RoomRun(mj.GetRoomId())
+
 	return mj
 }
 
@@ -53,6 +53,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.BaseManager = cfg.BaseMgr
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
+	r.RoomRun(r.DataMgr.GetRoomId())
 }
 
 func (r *Mj_base) GetRoomId() int {
