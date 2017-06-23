@@ -1,11 +1,11 @@
 package mj_base
 
 import (
-	"mj/common/msg"
-	"mj/gameServer/common/mj_base"
+	. "mj/common/cost"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -100,15 +100,30 @@ func init() {
 	if !ok {
 		return
 	}
+
+	info := &model.CreateRoomInfo{
+		RoomId:       777777,
+		MaxPlayerCnt: 4,
+		KindId:       389,
+		ServiceId:    1,
+	}
+
+	base := room_base.NewRoomBase()
+
+	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+
 	u1 := newTestUser(1)
+	userg.Users[0] = u1
+	r := NewMJBase(info)
+	datag := NewDataMgr(info.RoomId, u1.Id, temp.GameName, temp, r)
 	cfg := &NewMjCtlConfig{
-		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(7777777, 1, temp.GameName, temp),
-		UserMgr:  room_base.NewRoomUserMgr(7777777, 4, temp),
+		BaseMgr:  base,
+		DataMgr:  datag,
+		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
-	r := mj_base.NewMJBase(info, cfg)
+	r.Init(cfg)
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
@@ -120,19 +135,15 @@ func init() {
 		} else if i == 3 {
 			u4 = u
 		}
-		data := &msg.C2G_UserSitdown{}
-		data.TableID = room.GetRoomId()
-		data.ChairID = i
-		room.GetChanRPC().Go("Sitdown", data, u)
+		userg.Users[i] = u
 	}
-
 }
 
 func newTestUser(uid int) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1
-	u.Status = 0
+	u.Status = US_READY
 	u.ChairId = 0
 	u.Agent = new(TAgent)
 	return u
