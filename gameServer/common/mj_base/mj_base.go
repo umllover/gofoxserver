@@ -35,7 +35,7 @@ type NewMjCtlConfig struct {
 	GetCardsF func() []int
 }
 
-func NewMJBase(info *model.CreateRoomInfo, uid, TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, cfg *NewMjCtlConfig) *Mj_base {
+func NewMJBase(info *model.CreateRoomInfo, cfg *NewMjCtlConfig) *Mj_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok1 {
 		return nil
@@ -144,14 +144,13 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	room.UserMgr.SetUsetStatus(u, US_READY)
 	if room.UserMgr.IsAllReady() {
 		//初始房间
-		room.DataMgr.InitRoom(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.StartGameing(room.UserMgr, room.LogicMgr, room.Temp)
+		room.DataMgr.AfterStartGame(room.UserMgr, room.LogicMgr)
 		//派发初始扑克
-		room.DataMgr.StartDispatchCard(room.UserMgr, room.LogicMgr, room.Temp)
+
 		room.Status = RoomStatusStarting
-		//检查自摸
-		room.DataMgr.CheckZiMo(room.LogicMgr, room.UserMgr)
-		//通知客户端开始了
-		room.DataMgr.SendGameStart(room.LogicMgr, room.UserMgr)
+
 	}
 }
 
