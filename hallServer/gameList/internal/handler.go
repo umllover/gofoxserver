@@ -124,7 +124,6 @@ func QuickMatch(args []interface{}) {
 	if maxLen < 2 {
 		for _, id := range m {
 			v := roomList[id]
-			retMsg.ServerID = v.ServerID
 			retMsg.TableID = v.RoomID
 			return
 		}
@@ -148,7 +147,6 @@ func QuickMatch(args []interface{}) {
 	})
 
 	v := arr[0]
-	retMsg.ServerID = v.ServerID
 	retMsg.TableID = v.RoomID
 	return
 }
