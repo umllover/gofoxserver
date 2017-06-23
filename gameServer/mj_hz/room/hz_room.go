@@ -35,8 +35,6 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 
-
-
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
 		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, temp.GameName, temp),
@@ -44,7 +42,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		LogicMgr: mj_base.NewBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
-	r := mj_base.NewMJBase(info, u.Id, 0, info.Num, 0, 0, 4, cfg)
+	r := mj_base.NewMJBase(info, cfg)
 	if r == nil {
 		retCode = Errunlawful
 		return nil

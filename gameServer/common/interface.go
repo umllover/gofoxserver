@@ -15,10 +15,9 @@ import (
 )
 
 type DataManager interface {
-	InitRoom(UserCnt int)
-	StartDispatchCard(UserManager, LogicManager, *base.GameServiceOption)
-	CheckZiMo(gameLogic LogicManager, userMgr UserManager)
-	SendGameStart(gameLogic LogicManager, userMgr UserManager, TimerMgr TimerManager)
+	BeforeStartGame(UserCnt int)
+	StartGameing(userMgr UserManager, gameLogic LogicManager, template *base.GameServiceOption)
+	AfterStartGame(userMgr UserManager, gameLogic LogicManager)
 	SendPersonalTableTip(*user.User, TimerManager)
 	SendStatusPlay(u *user.User, userMgr UserManager, gameLogic LogicManager, timerMgr TimerManager)
 	NotifySendCard(u *user.User, cbCardData int, userMgr UserManager, bSysOut bool)
@@ -46,8 +45,6 @@ type DataManager interface {
 	GetRoomId() int
 	GetProvideUser() int
 	IsActionDone() bool
-
-	SetChaHua(arg interface{})
 }
 
 type BaseManager interface {

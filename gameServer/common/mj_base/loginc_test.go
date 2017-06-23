@@ -2,9 +2,10 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -96,17 +97,14 @@ func init() {
 	base.LoadBaseData()
 
 	u1 := newTestUser(1)
-	room = CreaterRoom([]interface{}{&model.CreateRoomInfo{
-		UserId:       1,
-		KindId:       389,
-		ServiceId:    1,
-		NodeId:       1,
-		RoomId:       777777,
-		Num:          2,
-		Status:       1,
-		MaxPlayerCnt: 1,
-		PayType:      2,
-	}, u1})
+	cfg := &NewMjCtlConfig{
+		BaseMgr:  room_base.NewRoomBase(),
+		DataMgr:  NewDataMgr(info.RoomId, u.Id, temp.GameName, temp),
+		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		LogicMgr: NewBaseLogic(),
+		TimerMgr: room_base.NewRoomTimerMgr(),
+	}
+	r := mj_base.NewMJBase(info, cfg)
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {

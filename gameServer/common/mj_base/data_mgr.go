@@ -753,6 +753,21 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, userMgr common.UserMana
 	return 0
 }
 
+func (room *RoomData) BeforeStartGame(UserCnt int) {
+	room.InitRoom(UserCnt)
+}
+
+func (room *RoomData) StartGameing(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
+	room.StartDispatchCard(userMgr, gameLogic, template)
+}
+
+func (room *RoomData) AfterStartGame(userMgr common.UserManager, gameLogic common.LogicManager) {
+	//检查自摸
+	room.CheckZiMo(gameLogic, userMgr)
+	//通知客户端开始了
+	room.SendGameStart(gameLogic, userMgr)
+}
+
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
 	room.RepertoryCard = make([]int, MAX_REPERTORY)
