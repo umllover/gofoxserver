@@ -347,7 +347,6 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	}
 
 	retMsg.TableID = roomInfo.RoomID
-	retMsg.ServerID = roomInfo.ServerID
 	u.WriteMsg(retMsg)
 }
 
