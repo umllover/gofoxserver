@@ -926,7 +926,7 @@ func (room *RoomData) CheckZiMo(gameLogic common.LogicManager, userMgr common.Us
 	}
 }
 
-func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr common.UserManager) {
+func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr common.UserManager, TimerMgr common.TimerManager) {
 
 	//构造变量
 	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
@@ -944,6 +944,7 @@ func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr commo
 		u.WriteMsg(GameStart)
 	})
 	log.Debug("end startgame ... ")
+
 }
 
 //正常结束房间
