@@ -35,6 +35,7 @@ func HZOutCard(args []interface{}) {
 	if r != nil {
 		r.GetChanRPC().Go("OutCard", args[0], user)
 	}
+
 }
 
 func OperateCard(args []interface{}) {

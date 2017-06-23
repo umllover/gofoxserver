@@ -151,7 +151,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		//检查自摸
 		room.DataMgr.CheckZiMo(room.LogicMgr, room.UserMgr)
 		//通知客户端开始了
-		room.DataMgr.SendGameStart(room.LogicMgr, room.UserMgr)
+		room.DataMgr.SendGameStart(room.LogicMgr, room.UserMgr,room.TimerMgr)
 	}
 }
 
