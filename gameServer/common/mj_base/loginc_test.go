@@ -96,11 +96,15 @@ func init() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 
+	temp, ok := base.GameServiceOptionCache.Get(389, 1)
+	if !ok {
+		return
+	}
 	u1 := newTestUser(1)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, temp.GameName, temp),
-		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		DataMgr:  NewDataMgr(7777777, 1, temp.GameName, temp),
+		UserMgr:  room_base.NewRoomUserMgr(7777777, 4, temp),
 		LogicMgr: NewBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(),
 	}

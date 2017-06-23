@@ -35,7 +35,7 @@ type NewMjCtlConfig struct {
 	GetCardsF func() []int
 }
 
-func NewMJBase(info *model.CreateRoomInfo, cfg *NewMjCtlConfig) *Mj_base {
+func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok1 {
 		return nil
@@ -43,13 +43,16 @@ func NewMJBase(info *model.CreateRoomInfo, cfg *NewMjCtlConfig) *Mj_base {
 
 	mj := new(Mj_base)
 	mj.Temp = Temp
-	mj.UserMgr = cfg.UserMgr
-	mj.DataMgr = cfg.DataMgr
-	mj.BaseManager = cfg.BaseMgr
-	mj.LogicMgr = cfg.LogicMgr
-	mj.TimerMgr = cfg.TimerMgr
 	mj.RoomRun(mj.GetRoomId())
 	return mj
+}
+
+func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
+	r.UserMgr = cfg.UserMgr
+	r.DataMgr = cfg.DataMgr
+	r.BaseManager = cfg.BaseMgr
+	r.LogicMgr = cfg.LogicMgr
+	r.TimerMgr = cfg.TimerMgr
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -143,14 +146,11 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	log.Debug("at UserReady ==== ")
 	room.UserMgr.SetUsetStatus(u, US_READY)
 	if room.UserMgr.IsAllReady() {
-		//初始房间
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing(room.UserMgr, room.LogicMgr, room.Temp)
 		room.DataMgr.AfterStartGame(room.UserMgr, room.LogicMgr)
 		//派发初始扑克
-
 		room.Status = RoomStatusStarting
-
 	}
 }
 

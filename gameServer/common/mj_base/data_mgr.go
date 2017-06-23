@@ -15,7 +15,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) *RoomData {
+func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -24,6 +24,7 @@ func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption) *RoomDat
 		r.Name = name
 	}
 	r.CreateUser = uid
+	r.MjBase = base
 	return r
 }
 
@@ -32,6 +33,7 @@ type RoomData struct {
 	id         int
 	Name       string //房间名字
 	CreateUser int    //创建房间的人
+	MjBase     *Mj_base
 
 	CardDataArray     []int              //原始扑克
 	IsResponse        []bool             //标记是否对吃碰杠胡做出过动作
@@ -76,7 +78,6 @@ type RoomData struct {
 	CurrentUser       int                //当前操作用户
 	Ting              []bool             //是否听牌
 	BankerUser        int                //庄家用户
-
 }
 
 func (room *RoomData) CanOperatorRoom(uid int) bool {
