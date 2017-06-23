@@ -64,3 +64,4 @@ func GetKindList(args []interface{}) (interface{}, error) {
 	log.Debug("at GetKindList ==== %v", ret)
 	return ret, nil
 }
+

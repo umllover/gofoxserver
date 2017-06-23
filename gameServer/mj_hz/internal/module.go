@@ -32,8 +32,7 @@ func (m *Module) CreateRoom(args ...interface{}) bool {
 		return false
 	}
 
-	RoomMgr.AddRoom(r)
-	return true
+	return RoomMgr.AddRoom(r)
 }
 
 func (m *Module) GetChanRPC() *chanrpc.Server {

@@ -13,8 +13,8 @@ import (
 
 // +gen
 type PersonalTableFee struct {
-	ServerID       int `db:"ServerID" json:"ServerID"`             //
 	KindID         int `db:"KindID" json:"KindID"`                 // 游戏标识
+	ServerID       int `db:"ServerID" json:"ServerID"`             //
 	DrawCountLimit int `db:"DrawCountLimit" json:"DrawCountLimit"` // 局数限制
 	DrawTimeLimit  int `db:"DrawTimeLimit" json:"DrawTimeLimit"`   // 时间限制
 	TableFee       int `db:"TableFee" json:"TableFee"`             // 创建费用
@@ -24,7 +24,7 @@ type PersonalTableFee struct {
 var DefaultPersonalTableFee = PersonalTableFee{}
 
 type personalTableFeeCache struct {
-	objMap  map[int]map[int]map[int]map[int]*PersonalTableFee
+	objMap  map[int]map[int]map[int]*PersonalTableFee
 	objList []*PersonalTableFee
 }
 
@@ -37,27 +37,22 @@ func (c *personalTableFeeCache) LoadAll() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	c.objMap = make(map[int]map[int]map[int]map[int]*PersonalTableFee)
+	c.objMap = make(map[int]map[int]map[int]*PersonalTableFee)
 	log.Debug("Load all personal_table_fee success %v", len(c.objList))
 	for _, v := range c.objList {
-		obj, ok := c.objMap[v.ServerID]
+		obj, ok := c.objMap[v.KindID]
 		if !ok {
-			obj = make(map[int]map[int]map[int]*PersonalTableFee)
-			c.objMap[v.ServerID] = obj
+			obj = make(map[int]map[int]*PersonalTableFee)
+			c.objMap[v.KindID] = obj
 		}
 
-		obj2, ok2 := obj[v.KindID]
+		obj2, ok2 := obj[v.ServerID]
 		if !ok2 {
-			obj2 = make(map[int]map[int]*PersonalTableFee)
-			obj[v.KindID] = obj2
+			obj2 = make(map[int]*PersonalTableFee)
+			obj[v.ServerID] = obj2
 		}
+		obj2[v.DrawCountLimit] = v
 
-		obj3, ok3 := obj2[v.DrawCountLimit]
-		if !ok3 {
-			obj3 = make(map[int]*PersonalTableFee)
-			obj2[v.DrawCountLimit] = obj3
-		}
-		obj3[v.DrawTimeLimit] = v
 	}
 }
 
@@ -69,53 +64,34 @@ func (c *personalTableFeeCache) Count() int {
 	return len(c.objList)
 }
 
-func (c *personalTableFeeCache) Get(ServerID int, KindID int, DrawCountLimit int, DrawTimeLimit int) (*PersonalTableFee, bool) {
-	return c.GetKey4(ServerID, KindID, DrawCountLimit, DrawTimeLimit)
+func (c *personalTableFeeCache) Get(KindID int, ServerID int, DrawCountLimit int) (*PersonalTableFee, bool) {
+	return c.GetKey3(KindID, ServerID, DrawCountLimit)
 }
 
-func (c *personalTableFeeCache) GetKey1(ServerID int) (map[int]map[int]map[int]*PersonalTableFee, bool) {
-	v, ok := c.objMap[ServerID]
+func (c *personalTableFeeCache) GetKey1(KindID int) (map[int]map[int]*PersonalTableFee, bool) {
+	v, ok := c.objMap[KindID]
 	return v, ok
 }
 
-func (c *personalTableFeeCache) GetKey2(ServerID int, KindID int) (map[int]map[int]*PersonalTableFee, bool) {
-	v, ok := c.objMap[ServerID]
+func (c *personalTableFeeCache) GetKey2(KindID int, ServerID int) (map[int]*PersonalTableFee, bool) {
+	v, ok := c.objMap[KindID]
 	if !ok {
 		return nil, false
 	}
-	v1, ok1 := v[KindID]
+	v1, ok1 := v[ServerID]
 	return v1, ok1
 }
-func (c *personalTableFeeCache) GetKey3(ServerID int, KindID int, DrawCountLimit int) (map[int]*PersonalTableFee, bool) {
-	v, ok := c.objMap[ServerID]
+func (c *personalTableFeeCache) GetKey3(KindID int, ServerID int, DrawCountLimit int) (*PersonalTableFee, bool) {
+	v, ok := c.objMap[KindID]
 	if !ok {
 		return nil, false
 	}
 
-	v1, ok1 := v[KindID]
+	v1, ok1 := v[ServerID]
 	if !ok1 {
 		return nil, false
 	}
 
 	v2, ok2 := v1[DrawCountLimit]
 	return v2, ok2
-}
-func (c *personalTableFeeCache) GetKey4(ServerID int, KindID int, DrawCountLimit int, DrawTimeLimit int) (*PersonalTableFee, bool) {
-	v, ok := c.objMap[ServerID]
-	if !ok {
-		return nil, false
-	}
-
-	v1, ok1 := v[KindID]
-	if !ok1 {
-		return nil, false
-	}
-
-	v2, ok2 := v1[DrawCountLimit]
-	if !ok2 {
-		return nil, false
-	}
-
-	v3, ok3 := v2[DrawTimeLimit]
-	return v3, ok3
 }

@@ -13,6 +13,7 @@ func RegisterHandler(r *mj_base.Mj_base) {
 	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
 	r.GetChanRPC().Register("userOffline", r.UserOffline)
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
+
 	r.GetChanRPC().Register("OutCard", r.OutCard)
 	r.GetChanRPC().Register("OperateCard", r.UserOperateCard)
 }
