@@ -11,6 +11,5 @@ func InitTableMap() {
 	   db.BaseDBMap.AddTableWithName(PersonalTableFee{}, "personal_table_fee").SetKeys(false,"ServerID","KindID","DrawCountLimit")
 	   db.BaseDBMap.AddTableWithName(RefreshInTime{}, "refresh_in_time").SetKeys(false,"Id")
 	   db.BaseDBMap.AddTableWithName(ServerList{}, "server_list").SetKeys(false,"SvrId","SvrType")
-	   db.BaseDBMap.AddTableWithName(TokenRecord{}, "token_record").SetKeys(false,"UserId")
 	*/
 }

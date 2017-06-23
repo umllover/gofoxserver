@@ -13,6 +13,7 @@ type IRoom interface {
 	GetChanRPC() *chanrpc.Server
 	GetRoomId() int
 	GetBirefInfo() *msg.RoomInfo
+	Destroy(int)
 }
 
 var (
@@ -20,11 +21,16 @@ var (
 	Rooms   = make(map[int]IRoom)
 )
 
-func AddRoom(r IRoom) {
+func AddRoom(r IRoom) bool {
 	cluster.Broadcast(HallPrefix, "notifyNewRoom", r.GetBirefInfo())
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
+	if _, ok := Rooms[r.GetRoomId()]; ok {
+		r.Destroy(r.GetRoomId())
+		return false
+	}
 	Rooms[r.GetRoomId()] = r
+	return true
 }
 
 func GetRoom(id int) IRoom {

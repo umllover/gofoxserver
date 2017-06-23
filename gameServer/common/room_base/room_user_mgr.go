@@ -4,7 +4,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/Chat"
-	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
@@ -16,7 +15,7 @@ import (
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) common.UserManager {
+func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.UserCnt = UserCnt
 	r.id = roomId
@@ -243,19 +242,19 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 
 //坐下
 func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
+
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
 		return ChairHasUser
 	}
-
-	if room.ChatRoomId == 0 {
-		id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
-		if err != nil {
-			log.Error("create Chat Room faild")
-			return ErrCreateRoomFaild
-		}
-		room.ChatRoomId = id.(int)
-	}
+	//if room.ChatRoomId == 0 {
+	//	id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
+	//	if err != nil {
+	//		log.Error("create Chat Room faild")
+	//		return ErrCreateRoomFaild
+	//	}
+	//	room.ChatRoomId = id.(int)
+	//}
 
 	_, chairId := room.GetUserByUid(u.Id)
 	if chairId > 0 {

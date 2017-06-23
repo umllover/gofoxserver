@@ -1,15 +1,13 @@
 package room_base
 
 import (
-	"mj/gameServer/common"
-	"mj/gameServer/db/model/base"
 	"time"
 
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomTimerMgr(TimeLimit, CountLimit, TimeOutCard, TimeOperateCard, MaxPlayCnt int, Temp *base.GameServiceOption) common.TimerManager {
+func NewRoomTimerMgr() *RoomTimerMgr {
 	r := new(RoomTimerMgr)
 	return r
 }

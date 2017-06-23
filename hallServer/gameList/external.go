@@ -2,6 +2,7 @@ package gameList
 
 import (
 	"mj/hallServer/gameList/internal"
+
 	"github.com/lovelly/leaf/cluster"
 )
 
@@ -10,6 +11,10 @@ var (
 	ChanRPC = internal.ChanRPC
 )
 
-func init(){
+func init() {
 	cluster.AgentChanRPC = ChanRPC
+}
+
+func GetSvrByKind(kindId int) string {
+	return internal.GetSvrByKind(kindId)
 }

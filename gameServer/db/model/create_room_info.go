@@ -35,11 +35,11 @@ var CreateRoomInfoOp = &createRoomInfoOp{}
 var DefaultCreateRoomInfo = &CreateRoomInfo{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *createRoomInfoOp) Get(room_id int) (*CreateRoomInfo, bool) {
+func (op *createRoomInfoOp) Get(user_id int) (*CreateRoomInfo, bool) {
 	obj := &CreateRoomInfo{}
-	sql := "select * from create_room_info where room_id=? "
+	sql := "select * from create_room_info where user_id=? "
 	err := db.DB.Get(obj, sql,
-		room_id,
+		user_id,
 	)
 
 	if err != nil {
@@ -160,19 +160,19 @@ func (op *createRoomInfoOp) Update(m *CreateRoomInfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *createRoomInfoOp) UpdateTx(ext sqlx.Ext, m *CreateRoomInfo) error {
-	sql := `update create_room_info set user_id=?,kind_id=?,service_id=?,create_time=?,node_id=?,num=?,status=?,max_player_cnt=?,pay_type=?,other_info=? where room_id=?`
+	sql := `update create_room_info set kind_id=?,service_id=?,create_time=?,node_id=?,room_id=?,num=?,status=?,max_player_cnt=?,pay_type=?,other_info=? where user_id=?`
 	_, err := ext.Exec(sql,
-		m.UserId,
 		m.KindId,
 		m.ServiceId,
 		m.CreateTime,
 		m.NodeId,
+		m.RoomId,
 		m.Num,
 		m.Status,
 		m.MaxPlayerCnt,
 		m.PayType,
 		m.OtherInfo,
-		m.RoomId,
+		m.UserId,
 	)
 
 	if err != nil {
@@ -184,14 +184,14 @@ func (op *createRoomInfoOp) UpdateTx(ext sqlx.Ext, m *CreateRoomInfo) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *createRoomInfoOp) UpdateWithMap(room_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, room_id, m)
+func (op *createRoomInfoOp) UpdateWithMap(user_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *createRoomInfoOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[string]interface{}) error {
+func (op *createRoomInfoOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, m map[string]interface{}) error {
 
-	sql := `update create_room_info set %s where 1=1 and room_id=? ;`
+	sql := `update create_room_info set %s where 1=1 and user_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -202,7 +202,7 @@ func (op *createRoomInfoOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[str
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, room_id)
+	params = append(params, user_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -215,17 +215,17 @@ func (i *CreateRoomInfo) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *createRoomInfoOp) Delete(room_id int) error {
-	return op.DeleteTx(db.DB, room_id)
+func (op *createRoomInfoOp) Delete(user_id int) error {
+	return op.DeleteTx(db.DB, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *createRoomInfoOp) DeleteTx(ext sqlx.Ext, room_id int) error {
+func (op *createRoomInfoOp) DeleteTx(ext sqlx.Ext, user_id int) error {
 	sql := `delete from create_room_info where 1=1
-        and room_id=?
+        and user_id=?
         `
 	_, err := ext.Exec(sql,
-		room_id,
+		user_id,
 	)
 	return err
 }
