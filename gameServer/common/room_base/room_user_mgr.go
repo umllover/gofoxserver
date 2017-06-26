@@ -208,7 +208,9 @@ func (r *RoomUserMgr) ForEachUser(fn func(u *user.User)) {
 
 func (r *RoomUserMgr) WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int) {
 	for _, u := range r.Users {
-		u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
+		if u.ChanRPC() != nil {
+			u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
+		}
 	}
 }
 

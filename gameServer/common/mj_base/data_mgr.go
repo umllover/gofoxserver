@@ -797,6 +797,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
+	room.HistoryScores = make([]*HistoryScore, UserCnt)
 }
 
 func (room *RoomData) GetSice() (int, int) {
