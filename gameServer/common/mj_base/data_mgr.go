@@ -760,7 +760,7 @@ func (room *RoomData) BeforeStartGame(UserCnt int) {
 }
 
 func (room *RoomData) StartGameing() {
-	room.StartDispatchCard(room.MjBase.UserMgr, room.MjBase.LogicMgr, room.MjBase.Temp)
+	room.StartDispatchCard()
 }
 
 func (room *RoomData) AfterStartGame() {
@@ -773,6 +773,7 @@ func (room *RoomData) AfterStartGame() {
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
 	room.RepertoryCard = make([]int, MAX_REPERTORY)
+	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, MAX_INDEX)
 	}
@@ -786,7 +787,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.UserGangScore = make([]int, UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, UserCnt)
 	room.ChiHuRight = make([]int, UserCnt)
-
+	room.HeapCardInfo = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
 	}
@@ -805,8 +806,11 @@ func (room *RoomData) GetSice() (int, int) {
 	return Sice2<<8 | Sice1, minSice
 }
 
-func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
+func (room *RoomData) StartDispatchCard() {
 	log.Debug("begin start game hzmj")
+	userMgr := room.MjBase.UserMgr
+	gameLogic := room.MjBase.LogicMgr
+
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, US_PLAYING)
 	})
@@ -830,7 +834,7 @@ func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic co
 	})
 
 	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
-	if room.BankerUser == INVALID_CHAIR && (template.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
+	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
 		if OwnerUser != nil {
 			room.BankerUser = OwnerUser.ChairId
 		} else {
