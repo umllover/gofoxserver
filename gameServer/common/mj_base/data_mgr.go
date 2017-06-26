@@ -925,7 +925,7 @@ func (room *RoomData) CheckZiMo(gameLogic common.LogicManager, userMgr common.Us
 	}
 }
 
-func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr common.UserManager, TimerMgr common.TimerManager) {
+func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr common.UserManager) {
 
 	//构造变量
 	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}

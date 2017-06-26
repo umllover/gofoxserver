@@ -9,6 +9,8 @@ import (
 
 	"mj/common/msg/mj_hz_msg"
 
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
@@ -52,6 +54,7 @@ type BaseManager interface {
 	RoomRun(int)
 	GetSkeleton() *module.Skeleton
 	GetChanRPC() *chanrpc.Server
+	AfterFunc(d time.Duration, cb func()) *timer.Timer
 }
 
 type UserManager interface {
