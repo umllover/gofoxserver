@@ -1,20 +1,17 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/gameServer/RoomMgr"
+	"mj/gameServer/common"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
+	"mj/gameServer/kindList"
 	client "mj/gameServer/user"
 	"reflect"
 
-	"mj/gameServer/common"
-
-	"mj/gameServer/RoomMgr"
-
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
 )
@@ -252,8 +249,12 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	}
 	r := RoomMgr.GetRoom(roomid)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
-		return
+		m.LoadRoom(roomid)
+		r = RoomMgr.GetRoom(roomid)
+		if r == nil {
+			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
+			return
+		}
 	}
 
 	r.GetChanRPC().Go("Sitdown", args[0], user)
@@ -350,6 +351,31 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 
 }
 
+//创建房间
+func (m *UserModule) LoadRoom(roomid int) bool {
+	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
+		"room_id": roomid,
+	})
+	if err != nil {
+		log.Error("at LoadRoom error :%s", err.Error())
+		return false
+	}
+
+	if info.Status != 0 {
+		return false
+	}
+
+	mod, ok := kindList.GetModByKind(info.KindId)
+	if !ok {
+		return false
+	}
+
+	u := m.a.UserData().(*client.User)
+
+	log.Debug("begin CreateRoom.....")
+	return mod.CreateRoom(info, u)
+}
+
 //解散房间
 func (m *UserModule) DissumeRoom(args []interface{}) {
 	user := m.a.UserData().(*client.User)
@@ -408,32 +434,4 @@ func loadUser(u *client.User) bool {
 	u.InsureScore = info["InsureScore"].(int64)
 	u.MemberOrder = info["MemberOrder"].(int8)
 	return true
-}
-
-/////主消息函数
-func (m *UserModule) handleMsgData(args []interface{}) error {
-	if msg.Processor != nil {
-		str := args[0].([]byte)
-		data, err := msg.Processor.Unmarshal(str)
-		if err != nil {
-			return err
-		}
-
-		msgType := reflect.TypeOf(data)
-		if msgType == nil || msgType.Kind() != reflect.Ptr {
-			return errors.New("json message pointer required 11")
-		}
-
-		f, ok := m.ChanRPC.HasFunc(msgType)
-		if ok {
-			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
-			return nil
-		}
-
-		err = msg.Processor.RouteByType(msgType, data, m.a)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

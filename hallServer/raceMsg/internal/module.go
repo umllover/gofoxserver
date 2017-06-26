@@ -3,16 +3,12 @@ package internal
 import (
 	"mj/hallServer/base"
 
-	"github.com/lovelly/leaf/log"
+	"time"
+
 	"github.com/lovelly/leaf/module"
 )
 
-type HorseRaceMsg struct {
-	startTime	int	// 起始时间
-	endTime		int	// 结束时间
-	intervalTime	int	// 间隔时间
-	content		string	// 详情内容
-}
+const HorseRaceInterval = 5 * 60
 
 var (
 	skeleton = base.NewSkeleton()
@@ -25,9 +21,14 @@ type Module struct {
 
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
-	log.Debug("测试")
+	m.Skeleton.AfterFunc(HorseRaceInterval*time.Second, m.StartHorseRaceLamp)
 }
 
 func (m *Module) OnDestroy() {
 
+}
+
+func (m *Module) StartHorseRaceLamp() {
+	StartHorseRaceLamp() // 跑马灯
+	m.Skeleton.AfterFunc(HorseRaceInterval*time.Second, m.StartHorseRaceLamp)
 }

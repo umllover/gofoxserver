@@ -21,7 +21,7 @@ const (
 const (
 	RoomFull           = 101 //房间满了，不能再创建
 	NotFoudGameType    = 102 //玩家不存在
-	CreateParamError   = 103 //参数错误
+	ErrParamError      = 103 //参数错误
 	NoFoudTemplate     = 104 //配置没找到
 	ConfigError        = 105 //配置错误
 	NotEnoughFee       = 106 //代币不足
@@ -34,6 +34,11 @@ const (
 	ErrGameIsStart     = 113 //游戏已开始，不能离开房间
 	ErrCreateRoomFaild = 114 //创建聊天室失败
 	NotOwner           = 115 //不是房主
+	Errunlawful        = 116 //非法操作
+	ErrMaxRoomCnt      = 117 //房间超限， 不能再创建了
+	ErrServerError     = 118 //服务器内部错误
+	ErrNotFoudServer   = 119 //没有找到可以服务的server
+	ErrNoFoudRoom      = 120 //房间没有找到
 )
 
 //红中麻将错误码
@@ -43,6 +48,7 @@ const (
 	ErrNotFoudCard   = 203 //没找到牌
 	ErrGameNotStart  = 204 //游戏没开始
 	ErrNotSelfOut    = 205 //不是自己出牌
+	ErrNoOperator    = 206 //没有操作
 )
 
 ///////// 无效的数字
@@ -55,6 +61,17 @@ const (
 	INVALID_TABLE  = 0xFFFF     //无效桌子
 	INVALID_SERVER = 0xFFFF     //无效房间
 	INVALID_KIND   = 0xFFFF     //无效游戏
+)
+
+const (
+	//积分类型
+	SCORE_TYPE_NULL    = 0x00 //无效积分
+	SCORE_TYPE_WIN     = 0x01 //胜局积分
+	SCORE_TYPE_LOSE    = 0x02 //输局积分
+	SCORE_TYPE_DRAW    = 0x03 //和局积分
+	SCORE_TYPE_FLEE    = 0x04 //逃局积分
+	SCORE_TYPE_PRESENT = 0x10 //赠送积分
+	SCORE_TYPE_SERVICE = 0x11 //服务积分
 )
 
 ///////////////游戏模式.
@@ -94,9 +111,14 @@ const (
 )
 
 //积分修改类型
-///
 const (
 	HZMJ_CHANGE_SOURCE = 1
+)
+
+//自己支付
+const (
+	SELF_PAY_TYPE = 1
+	AA_PAY_TYPE   = 2
 )
 
 //////////////////////////////////////////////
@@ -119,7 +141,7 @@ func RenderErrorMessage(code int, Desc ...string) *msg.ShowErrCode {
 	if len(Desc) < 1 {
 		des = fmt.Sprintf("请求错误, 错误码: %d", code)
 	} else {
-		des = fmt.Sprintf(Desc[0]+"请求错误, 错误码: %d", code)
+		des = fmt.Sprintf(Desc[0]+", 错误码: %d", code)
 	}
 	return &msg.ShowErrCode{
 		ErrorCode:      code,
@@ -133,3 +155,9 @@ func GetGameSvrName(sververId int) string {
 func GetHallSvrName(sververId int) string {
 	return fmt.Sprintf(HallPrefix+"_%d", sververId)
 }
+
+///////////////// global 常量 ///////////////////////
+
+const (
+	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
+)

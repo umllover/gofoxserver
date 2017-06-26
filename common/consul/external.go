@@ -9,7 +9,7 @@ var (
 	ChanRPC = internal.ChanRPC
 )
 
-func SetConfig(cfg internal.Rgconfig){
+func SetConfig(cfg internal.Rgconfig) {
 	internal.Config = cfg
 }
 
@@ -17,6 +17,6 @@ func SetSelfId(selfId string) {
 	internal.SelfId = selfId
 }
 
-func AddinitiativeSvr(svrName ...string){
+func AddinitiativeSvr(svrName ...string) {
 	internal.InitiativeSvr = append(internal.InitiativeSvr, svrName...)
 }

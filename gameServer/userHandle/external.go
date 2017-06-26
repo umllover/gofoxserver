@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	UserMgr = new(internal.MgrModule)
+	UserMgr     = new(internal.MgrModule)
 )
 
 func NewUserHandle(a gate.Agent) gate.UserHandler {

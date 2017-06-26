@@ -1,7 +1,6 @@
 package internal
 
 import (
-	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
@@ -9,7 +8,6 @@ import (
 	"reflect"
 
 	"github.com/lovelly/leaf/cluster"
-	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -29,29 +27,6 @@ func init() {
 	//rpc
 	handleRpc("GetKindList", GetKindList)
 
-	handlerC2S(&msg.C2G_CreateTable{}, CreateTable)
-}
-
-//创建桌子
-func CreateTable(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_CreateTable)
-	agent := args[1].(gate.Agent)
-	retCode := 0
-
-	defer func() {
-		if retCode != 0 {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		}
-	}()
-
-	mod, ok := GetModByKind(recvMsg.Kind)
-	if !ok {
-		retCode = NotFoudGameType
-		return
-	}
-
-	log.Debug("begin CreateRoom.....")
-	mod.GetChanRPC().Go("CreateRoom", recvMsg, agent)
 }
 
 ///// rpc
@@ -89,3 +64,4 @@ func GetKindList(args []interface{}) (interface{}, error) {
 	log.Debug("at GetKindList ==== %v", ret)
 	return ret, nil
 }
+
