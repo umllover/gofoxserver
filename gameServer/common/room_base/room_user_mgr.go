@@ -63,7 +63,7 @@ func (r *RoomUserMgr) GetCurPlayerCnt() int {
 }
 
 func (r *RoomUserMgr) GetMaxPlayerCnt() int {
-	return r.PlayerCount
+	return r.UserCnt
 }
 
 func (r *RoomUserMgr) IsInRoom(userId int) bool {

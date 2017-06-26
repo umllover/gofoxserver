@@ -149,8 +149,8 @@ func (room *Mj_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
-		room.DataMgr.StartGameing(room.UserMgr, room.LogicMgr, room.Temp)
-		room.DataMgr.AfterStartGame(room.UserMgr, room.LogicMgr)
+		room.DataMgr.StartGameing()
+		room.DataMgr.AfterStartGame()
 		//派发初始扑克
 		room.Status = RoomStatusStarting
 	}
@@ -240,14 +240,14 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		AllowLookon: AllowLookon,
 	})
 
-	room.DataMgr.SendPersonalTableTip(u, room.TimerMgr)
+	room.DataMgr.SendPersonalTableTip(u)
 
 	if room.Status == RoomStatusReady { // 没开始
-		room.DataMgr.SendStatusReady(u, room.TimerMgr)
+		room.DataMgr.SendStatusReady(u)
 	} else { //开始了
 		//把所有玩家信息推送给自己
 		room.UserMgr.SendUserInfoToSelf(u)
-		room.DataMgr.SendStatusPlay(u, room.UserMgr, room.LogicMgr, room.TimerMgr)
+		room.DataMgr.SendStatusPlay(u)
 	}
 }
 
@@ -292,14 +292,14 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	u.UserLimit |= ^LimitPeng
 	u.UserLimit |= ^LimitGang
 
-	room.DataMgr.NotifySendCard(u, recvMsg.CardData, room.UserMgr, false)
+	room.DataMgr.NotifySendCard(u, recvMsg.CardData, false)
 
 	//响应判断
-	bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, recvMsg.CardData, EstimatKind_OutCard, room.UserMgr, room.LogicMgr)
+	bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, recvMsg.CardData, EstimatKind_OutCard)
 
 	//派发扑克
 	if !bAroseAction {
-		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), room.UserMgr, room.LogicMgr, false) > 0 {
+		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
@@ -325,7 +325,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//变量定义
-		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), recvMsg, room.LogicMgr)
+		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), recvMsg)
 		if cbTargetAction < 0 {
 			log.Debug("wait other user")
 			return
@@ -334,7 +334,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//放弃操作
 		if cbTargetAction == WIK_NULL {
 			//用户状态
-			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.UserMgr, room.LogicMgr, room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
+			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
 			return
@@ -342,7 +342,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 
 		//胡牌操作
 		if cbTargetAction == WIK_CHI_HU {
-			room.DataMgr.UserChiHu(wTargetUser, room.UserMgr.GetMaxPlayerCnt(), room.LogicMgr)
+			room.DataMgr.UserChiHu(wTargetUser, room.UserMgr.GetMaxPlayerCnt())
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			return
 		}
@@ -351,13 +351,13 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
 
 		//删除扑克
-		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction, room.LogicMgr) {
+		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) {
 			return
 		}
 
-		room.DataMgr.CallOperateResult(wTargetUser, cbTargetAction, room.UserMgr, room.LogicMgr)
+		room.DataMgr.CallOperateResult(wTargetUser, cbTargetAction)
 		if cbTargetAction == WIK_GANG {
-			if room.DataMgr.DispatchCardData(wTargetUser, room.UserMgr, room.LogicMgr, true) > 0 {
+			if room.DataMgr.DispatchCardData(wTargetUser, true) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
 		}
@@ -373,23 +373,23 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//执行动作
 		switch recvMsg.OperateCode {
 		case WIK_GANG: //杠牌操作
-			cbGangKind := room.DataMgr.AnGang(u, recvMsg.OperateCode, recvMsg.OperateCard, room.UserMgr, room.LogicMgr)
+			cbGangKind := room.DataMgr.AnGang(u, recvMsg.OperateCode, recvMsg.OperateCard)
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {
-				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, recvMsg.OperateCard[0], EstimatKind_GangCard, room.UserMgr, room.LogicMgr)
+				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, recvMsg.OperateCard[0], EstimatKind_GangCard)
 			}
 
 			//发送扑克
 
 			if !bAroseAction {
-				if room.DataMgr.DispatchCardData(u.ChairId, room.UserMgr, room.LogicMgr, true) > 0 {
+				if room.DataMgr.DispatchCardData(u.ChairId, true) > 0 {
 					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 				}
 			}
 		case WIK_CHI_HU: //自摸
 			//结束游戏
-			room.DataMgr.ZiMo(u, room.LogicMgr)
+			room.DataMgr.ZiMo(u)
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
@@ -399,7 +399,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
 	case GER_NORMAL: //常规结束
-		room.DataMgr.NormalEnd(room.UserMgr, room.LogicMgr, room.Temp)
+		room.DataMgr.NormalEnd()
 		room.AfertEnd(false)
 	case GER_USER_LEAVE: //用户强退
 		if (room.Temp.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
@@ -408,7 +408,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		//自动托管
 		room.OnUserTrustee(user.ChairId, true)
 	case GER_DISMISS: //游戏解散
-		room.DataMgr.DismissEnd(room.UserMgr, room.LogicMgr)
+		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
 	}
 
@@ -449,7 +449,7 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 
 	if bTrustee {
 		if wChairID == room.DataMgr.GetCurrentUser() && !room.DataMgr.IsActionDone() {
-			cardindex := room.DataMgr.GetTrusteeOutCard(wChairID, room.LogicMgr)
+			cardindex := room.DataMgr.GetTrusteeOutCard(wChairID)
 			if cardindex == INVALID_BYTE {
 				return false
 			}
@@ -466,14 +466,14 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 			u.UserLimit |= ^LimitPeng
 			u.UserLimit |= ^LimitGang
 
-			room.DataMgr.NotifySendCard(u, card, room.UserMgr, false)
+			room.DataMgr.NotifySendCard(u, card, false)
 
 			//响应判断
-			bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, card, EstimatKind_OutCard, room.UserMgr, room.LogicMgr)
+			bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, card, EstimatKind_OutCard)
 
 			//派发扑克
 			if !bAroseAction {
-				if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), room.UserMgr, room.LogicMgr, false) > 0 {
+				if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
 					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 				}
 			}

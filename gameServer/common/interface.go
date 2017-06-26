@@ -6,6 +6,7 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
+	"time"
 
 	"mj/common/msg/mj_hz_msg"
 
@@ -18,27 +19,27 @@ import (
 
 type DataManager interface {
 	BeforeStartGame(UserCnt int)
-	StartGameing(userMgr UserManager, gameLogic LogicManager, template *base.GameServiceOption)
-	AfterStartGame(userMgr UserManager, gameLogic LogicManager)
-	SendPersonalTableTip(*user.User, TimerManager)
-	SendStatusPlay(u *user.User, userMgr UserManager, gameLogic LogicManager, timerMgr TimerManager)
-	NotifySendCard(u *user.User, cbCardData int, userMgr UserManager, bSysOut bool)
-	EstimateUserRespond(int, int, int, UserManager, LogicManager) bool
-	DispatchCardData(int, UserManager, LogicManager, bool) int
+	StartGameing()
+	AfterStartGame()
+	SendPersonalTableTip(*user.User)
+	SendStatusPlay(u *user.User)
+	NotifySendCard(u *user.User, cbCardData int, bSysOut bool)
+	EstimateUserRespond(int, int, int) bool
+	DispatchCardData(int, bool) int
 	HasOperator(ChairId, OperateCode int) bool
 	HasCard(ChairId, cardIdx int) bool
-	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard, LogicManager) (int, int)
-	UserChiHu(wTargetUser, userCnt int, gameLogic LogicManager)
+	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard) (int, int)
+	UserChiHu(wTargetUser, userCnt int)
 	WeaveCard(cbTargetAction, wTargetUser int)
-	RemoveCardByOP(wTargetUser, ChoOp int, gameLogic LogicManager) bool
-	CallOperateResult(wTargetUser, cbTargetAction int, userMgr UserManager, gameLogic LogicManager)
-	ZiMo(u *user.User, gameLogic LogicManager)
-	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int, userMgr UserManager, gameLogic LogicManager) int
-	NormalEnd(userMgr UserManager, gameLogic LogicManager, template *base.GameServiceOption)
-	DismissEnd(userMgr UserManager, gameLogic LogicManager)
-	GetTrusteeOutCard(wChairID int, gameLogic LogicManager) int
+	RemoveCardByOP(wTargetUser, ChoOp int) bool
+	CallOperateResult(wTargetUser, cbTargetAction int)
+	ZiMo(u *user.User)
+	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int
+	NormalEnd()
+	DismissEnd()
+	GetTrusteeOutCard(wChairID int) int
 	CanOperatorRoom(uid int) bool
-	SendStatusReady(u *user.User, timerMgr TimerManager)
+	SendStatusReady(u *user.User)
 
 	GetResumeUser() int
 	GetGangStatus() int
@@ -53,6 +54,7 @@ type BaseManager interface {
 	Destroy(int)
 	RoomRun(int)
 	GetSkeleton() *module.Skeleton
+	AfterFunc(d time.Duration, cb func()) *timer.Timer
 	GetChanRPC() *chanrpc.Server
 	AfterFunc(d time.Duration, cb func()) *timer.Timer
 }
