@@ -11,6 +11,8 @@ import (
 	"net"
 	"testing"
 
+	"mj/common/msg/mj_hz_msg"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
@@ -28,46 +30,19 @@ func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
 }
 
-//func TestGameLogic_OutCard(t *testing.T) {
-//	user := room.GetUserByChairId(0)
-//	if user == nil {
-//		t.Error("not foud t")
-//	}
-//
-//	var cardidx int
-//	var cnt int
-//	for cardidx, cnt = range room.CardIndex[0] {
-//		if cnt > 0 {
-//			break
-//		}
-//	}
-//
-//	card := room.gameLogic.SwitchToCardData(int(cardidx))
-//	dt := &msg.C2G_HZMJ_HZOutCard{CardData: card}
-//	room.OutCard([]interface{}{dt, user})
-//}
-//
-//func TestRoomUserOperateCard(t *testing.T) {
-//	user := room.GetUserByChairId(0)
-//	if user == nil {
-//		t.Error("not foud t")
-//	}
-//
-//	var cardidx int
-//	var cnt int
-//	for cardidx, cnt = range room.CardIndex[0] {
-//		if cnt > 0 {
-//			break
-//		}
-//	}
-//
-//	card := room.gameLogic.SwitchToCardData(int(cardidx))
-//	dt := &msg.C2G_HZMJ_OperateCard{OperateCard: []int{card, card, card}, OperateCode: WIK_PENG}
-//	room.UserOperateCard([]interface{}{dt, user})
-//}
+func TestOutCard(t *testing.T) {
+	msg := &mj_hz_msg.C2G_HZMJ_HZOutCard{
+		CardData: 1,
+	}
+	room.OutCard([]interface{}{msg, u1})
+}
 
 func TestGameConclude(t *testing.T) {
-
+	msg := &mj_hz_msg.C2G_HZMJ_OperateCard{
+		OperateCode: 64,
+		OperateCard: []int{1, 1, 1},
+	}
+	room.UserOperateCard([]interface{}{msg, u1})
 }
 
 func TestDispatchCardData(t *testing.T) {

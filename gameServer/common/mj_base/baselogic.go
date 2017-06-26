@@ -292,7 +292,7 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		}
 		if cbCardIndex[i] == 4 {
 			cbActionMask |= WIK_GANG
-			gangCardResult.CardData[gangCardResult.CardCount] = lg.SwitchToCard(i)
+			gangCardResult.CardData = append(gangCardResult.CardData, lg.SwitchToCard(i))
 			gangCardResult.CardCount++
 		}
 	}
@@ -355,9 +355,11 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		for j := 0; j < MAX_INDEX; j++ {
 			cbCurrentCard := lg.SwitchToCard(j)
 			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, false) {
+				log.Debug("cbCount === %v", cbHuCardData)
 				if len(cbHuCardData[0]) < 1 {
-					cbHuCardData[cbOutCount-1] = make([]int, MAX_INDEX)
+					cbHuCardData[0] = make([]int, MAX_INDEX)
 				}
+
 				cbHuCardData[0][cbCount] = cbCurrentCard
 				cbCount++
 			}
