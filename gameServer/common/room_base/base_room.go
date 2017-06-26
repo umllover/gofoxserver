@@ -3,9 +3,12 @@ package room_base
 import (
 	"sync"
 
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"github.com/lovelly/leaf/timer"
 )
 
 //房间管理类
@@ -36,6 +39,10 @@ func NewRoomBase() *RoomBase {
 
 func (r *RoomBase) GetSkeleton() *module.Skeleton {
 	return r.Skeleton
+}
+
+func (r *RoomBase) AfterFunc(d time.Duration, cb func()) *timer.Timer {
+	return r.Skeleton.AfterFunc(d, cb)
 }
 
 func (r *RoomBase) RoomRun(id int) {

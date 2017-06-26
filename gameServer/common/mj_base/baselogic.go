@@ -420,11 +420,13 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 		for i := 0; i < MAX_INDEX; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 {
-				KindItem[cbKindItemCount].CenterCard = i
-				KindItem[cbKindItemCount].CardIndex[0] = i
-				KindItem[cbKindItemCount].CardIndex[1] = i
-				KindItem[cbKindItemCount].CardIndex[2] = i
-				KindItem[cbKindItemCount].WeaveKind = WIK_PENG
+				tg := &TagKindItem{CardIndex: make([]int, 4)}
+				tg.CenterCard = i
+				tg.CardIndex[0] = i
+				tg.CardIndex[1] = i
+				tg.CardIndex[2] = i
+				tg.WeaveKind = WIK_PENG
+				KindItem = append(KindItem, tg)
 				cbKindItemCount++
 			}
 
@@ -432,11 +434,13 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 			if (i < (MAX_INDEX - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
 				for j := 1; j <= cbCardIndex[i]; j++ {
 					if (cbCardIndex[i+1] >= j) && (cbCardIndex[i+2] >= j) {
-						KindItem[cbKindItemCount].CenterCard = i
-						KindItem[cbKindItemCount].CardIndex[0] = i
-						KindItem[cbKindItemCount].CardIndex[1] = i + 1
-						KindItem[cbKindItemCount].CardIndex[2] = i + 2
-						KindItem[cbKindItemCount].WeaveKind = WIK_LEFT
+						tg := &TagKindItem{CardIndex: make([]int, 4)}
+						tg.CenterCard = i
+						tg.CardIndex[0] = i
+						tg.CardIndex[1] = i + 1
+						tg.CardIndex[2] = i + 2
+						tg.WeaveKind = WIK_LEFT
+						KindItem = append(KindItem, tg)
 						cbKindItemCount++
 					}
 				}

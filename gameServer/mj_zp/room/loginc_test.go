@@ -1,4 +1,4 @@
-package mj_base
+package room
 
 import (
 	. "mj/common/cost"
@@ -11,7 +11,9 @@ import (
 	"net"
 	"testing"
 
-	"mj/common/msg/mj_hz_msg"
+	"mj/gameServer/common/mj_base"
+
+	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -19,30 +21,60 @@ import (
 )
 
 var (
-	room *Mj_base
+	room *mj_base.Mj_base //Mj_base
 	u1   *user.User
 	u2   *user.User
 	u3   *user.User
 	u4   *user.User
 )
 
+var Wg sync.WaitGroup
+
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+	Wg.Wait()
 }
 
-func TestOutCard(t *testing.T) {
-	msg := &mj_hz_msg.C2G_HZMJ_HZOutCard{
-		CardData: 1,
-	}
-	room.OutCard([]interface{}{msg, u1})
-}
+//func TestGameLogic_OutCard(t *testing.T) {
+//	user := room.GetUserByChairId(0)
+//	if user == nil {
+//		t.Error("not foud t")
+//	}
+//
+//	var cardidx int
+//	var cnt int
+//	for cardidx, cnt = range room.CardIndex[0] {
+//		if cnt > 0 {
+//			break
+//		}
+//	}
+//
+//	card := room.gameLogic.SwitchToCardData(int(cardidx))
+//	dt := &msg.C2G_HZMJ_HZOutCard{CardData: card}
+//	room.OutCard([]interface{}{dt, user})
+//}
+//
+//func TestRoomUserOperateCard(t *testing.T) {
+//	user := room.GetUserByChairId(0)
+//	if user == nil {
+//		t.Error("not foud t")
+//	}
+//
+//	var cardidx int
+//	var cnt int
+//	for cardidx, cnt = range room.CardIndex[0] {
+//		if cnt > 0 {
+//			break
+//		}
+//	}
+//
+//	card := room.gameLogic.SwitchToCardData(int(cardidx))
+//	dt := &msg.C2G_HZMJ_OperateCard{OperateCard: []int{card, card, card}, OperateCode: WIK_PENG}
+//	room.UserOperateCard([]interface{}{dt, user})
+//}
 
 func TestGameConclude(t *testing.T) {
-	msg := &mj_hz_msg.C2G_HZMJ_OperateCard{
-		OperateCode: 64,
-		OperateCard: []int{1, 1, 1},
-	}
-	room.UserOperateCard([]interface{}{msg, u1})
+
 }
 
 func TestDispatchCardData(t *testing.T) {
@@ -54,6 +86,7 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func init() {
+	Wg.Add(1)
 	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -86,10 +119,11 @@ func init() {
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
 
 	u1 = newTestUser(1)
+	u1.ChairId = 0
 	userg.Users[0] = u1
-	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_ZPMJ, temp.GameName, temp, r)
-	cfg := &NewMjCtlConfig{
+	r := mj_base.NewMJBase(info)
+	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r)
+	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
@@ -98,6 +132,7 @@ func init() {
 	}
 	r.Init(cfg)
 	room = r
+
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
@@ -110,6 +145,7 @@ func init() {
 			u4 = u
 		}
 		userg.Users[i] = u
+		u.ChairId = i
 	}
 }
 

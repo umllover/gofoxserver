@@ -772,6 +772,7 @@ func (room *RoomData) AfterStartGame() {
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
+	log.Debug("初始化房间")
 	room.RepertoryCard = make([]int, MAX_REPERTORY)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -949,7 +950,6 @@ func (room *RoomData) SendGameStart() {
 		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
 		u.WriteMsg(GameStart)
 	})
-	log.Debug("end startgame ... ")
 
 }
 
