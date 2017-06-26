@@ -7,6 +7,8 @@ import (
 
 	"github.com/lovelly/leaf/log"
 
+	//"github.com/lovelly/leaf/util"
+	"github.com/lovelly/leaf/util"
 )
 
 
@@ -110,4 +112,282 @@ func NNGetCardType(CardData []int, CardCount int) int {
 }
 
 
+//获取牛牛倍数
+func NNGetTimes (cardData []int, cardCount int, niu int) int {
+	if niu != 1 {
+		return  1
+	}
+	if cardCount != NN_MAX_COUNT {
+		return 0
+	}
+	times := NNGetCardType(cardData, NN_MAX_COUNT)
+	log.Debug("times %d", times)
+
+
+	/*if(bTimes<7)return 1;
+	else if(bTimes==7)return 1;
+	else if(bTimes==8)return 2;
+	else if(bTimes==9)return 3;
+	else if(bTimes==10)return 4;*/
+	//else if(bTimes==OX_THREE_SAME)return 5;
+	//else if(bTimes==OX_FOUR_SAME)return 5;
+	//else if(bTimes==OX_FOURKING)return 5;
+	//else if(bTimes==OX_FIVEKING)return 5;
+
+	if times < 7 {
+		return 1
+	} else if (times >=7 && times <=10) {
+		return times - 6
+	} else if (times == OX_FIVEKING) {
+		return 5
+	}
+	return  0
+}
+
+// 获取牛牛
+func  NNGetOxCard(cardData []int, cardCount int) bool  {
+	if cardCount != NN_MAX_COUNT {
+		return  false
+	}
+	var temp [NN_MAX_COUNT]int
+	//var tempData[NN_MAX_COUNT]int
+	sum := 0
+	for i:=0; i<NN_MAX_COUNT; i++ {
+		temp[i] = NNGetCardLogicValue(cardData[i])
+		sum += temp[i]
+	}
+	//王的数量
+	kingCount := 0
+	tenCount := 0
+
+	for i:=0; i<NN_MAX_COUNT; i++ {
+		if cardData[i] == 0x4E || cardData[i] == 0x4F {
+			kingCount++
+		} else if pk_base.GetCardValue(cardData[i]) == 10 {
+			tenCount++
+		}
+	}
+	maxNiuZi := 0
+	maxNiuPos := 0
+	var niuTemp [30][NN_MAX_COUNT]int
+	var isKingPai [30]bool
+
+	niuCount := 0
+	haveKing := false
+	//查找牛牛
+	for i:=0; i<cardCount-1; i++ {
+		for j := 0; j < cardCount; j++ {
+			haveKing = false
+			left := (sum - temp[i] - temp[j]) % 10
+			if left > 0 && kingCount > 0 {
+				for k := 0; k < cardCount; k++ {
+					if k != i && k != j {
+						if cardData[k] == 0x4E || cardData[k] == 0x4F {
+							haveKing = true
+						}
+					}
+				}
+			}
+			if (sum-temp[i]-temp[j])%10==0 || haveKing { ////如果减去2个剩下3个是10的倍数
+				count := 0
+				for k := 0; k < cardCount; k++ {
+					if k != i && k != j {
+						niuTemp[niuCount][count] = cardData[k]
+						count++
+					}
+				}
+				if count != 3 {
+					log.Debug("NNGetOxCard err not 3")
+					return false
+				}
+				niuTemp[niuCount][count] = cardData[i]
+				count++
+				niuTemp[niuCount][count] = cardData[j]
+				count++
+				value := temp[i]
+				value += temp[j]
+				if value > 10 {
+					if cardData[i] == 0x4E || cardData[j] == 0x4F || cardData[i] == 0x4F || cardData[j] == 0x4E {
+						haveKing = true
+						value = 10
+					} else {
+						value -= 10
+					}
+				}
+				isKingPai[niuCount] = haveKing
+				if value > maxNiuZi {
+					maxNiuZi = value     //最大牛数量
+					maxNiuPos = niuCount //记录最大牛牌的位置
+				}
+				niuCount++
+				continue
+			}
+		}
+	}
+	if niuCount>0 {
+		for i := 0; i < cardCount; i++ {
+			cardData[i] = niuTemp[maxNiuPos][i]
+		}
+		return true
+	}
+	return false
+}
+
+// 牛牛获取整数
+func  NNIsIntValue(cardData []int, cardCount int) bool  {
+	sum := 0
+	for i:=0; i<cardCount; i++ {
+		sum += NNGetCardLogicValue(cardData[i])
+	}
+	if !(sum>0) {
+		return false
+	}
+	return (sum%10 == 0)
+}
+
+// 牛牛比牌
+func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, nextOX bool) bool  {
+	if firstOX != nextOX {
+		return (int(firstOX)>int(nextOX))
+	}
+	if NNGetCardType(firstData, cardCount) == OX_FIVEKING && NNGetCardType(nextData, cardCount) != OX_FIVEKING {
+		return true
+	}
+	if NNGetCardType(firstData, cardCount) != OX_FIVEKING && NNGetCardType(nextData, cardCount) == OX_FIVEKING {
+		return false
+	}
+	//比较牛大小
+	if (firstOX == true) {
+		//获取点数
+		firstType := 0
+		nextType := 0
+
+		value := NNGetCardLogicValue(nextData[3])
+		value += NNGetCardLogicValue(nextData[4])
+
+		firstKing := false
+		nextKing := false
+
+		firstDa := false
+		nextDa := false //nextDa是判断4,5有没有利用大王的
+
+		if value>10 {
+			if nextData[3]==0x4E || nextData[4]==0x4F || nextData[4]==0x4E || nextData[3]==0x4F {
+				left := 0
+				value = 0
+				for i:=3; i<5; i++ {
+					value += NNGetCardLogicValue(nextData[i])
+				}
+				left = value%10
+				if left>0 {
+					nextDa = true
+				}
+				value = 10
+			} else {
+				value -= 10
+			}
+		}
+		nextType = value
+		kingCount := 0
+		for i:=0; i<3; i++ {
+			if nextData[i] == 0x4E || nextData[i] == 0x4F {
+				kingCount++
+			}
+		}
+		if kingCount>0 {
+			value = 0
+			left := 0
+			for i:=0; i<3; i++ {
+				value += NNGetCardLogicValue(nextData[i])
+			}
+			left = value%10
+			if left>10 {
+				nextKing = true
+			}
+		}
+		value = 0
+		value = NNGetCardLogicValue(firstData[3])
+		value += NNGetCardLogicValue(firstData[4])
+		if value >10 {
+			if firstData[3]==0x4E || firstData[4]==0x4F || firstData[4]==0x4E || firstData[3]==0x4F {
+				left := 0
+				value = 0
+				for i:=3; i<5; i++ {
+					value += NNGetCardLogicValue(firstData[i])
+				}
+				left = value%10
+				if left>0 {
+					firstDa = true
+				}
+				value = 10
+			} else {
+				value -= 10
+			}
+		}
+		firstType = value
+		kingCount = 0
+		for i:=0; i<3; i++ {
+			if firstData[i]==0x4E || firstData[i]==0x4F {
+				kingCount++
+			}
+		}
+		if kingCount>0 {
+			value = 0
+			left := 0
+			for i:=0;i<3;i++ {
+				value += NNGetCardLogicValue(firstData[i])
+			}
+			left = value%10
+			if left>0 {
+				firstKing = true
+			}
+		}
+		if firstType==nextType {
+			//同点数大王>小王>...
+			firstKingPoint := 10
+			nextKingPoint := 10
+			for i:=0;i<5;i++ {
+				if firstData[i]==0x4E {
+					firstKingPoint = 11
+				} else if firstData[i]==0x4F {
+					firstKingPoint = 12
+				}
+				if nextData[i]==0x4E {
+					nextKingPoint = 11
+				} else if nextData[i]==0x4F {
+					nextKingPoint = 12
+				}
+			}
+			if firstKingPoint != nextKingPoint {
+				return (firstKingPoint>nextKingPoint)
+			}
+			if firstKing || firstDa {
+				return  true
+			} else if nextKing || nextDa {
+				return false
+			}
+		}
+		//点数判断
+		if firstType != nextType {
+			return  (firstType>nextType)
+		}
+	}
+	//排序大小
+	var firstTemp	[]int
+	var nextTemp	[]int
+	util.DeepCopy(firstTemp, firstData)
+	util.DeepCopy(nextTemp, nextData)
+	pk_base.SortCardList(firstTemp, cardCount)
+	pk_base.SortCardList(nextTemp, cardCount)
+	//比较数值
+	nextMaxValue := pk_base.GetCardValue(nextTemp[0])
+	firstMaxValue := pk_base.GetCardValue(firstTemp[0])
+	if nextMaxValue != firstMaxValue {
+		return (firstMaxValue>nextMaxValue)
+	}
+	//比较颜色
+	return (pk_base.GetCardColor(firstTemp[0])>pk_base.GetCardColor(nextTemp[0]))
+
+	return false
+}
 
