@@ -1,18 +1,19 @@
-package mj_base
+package room
 
 const (
 	MAX_INDEX = 42 //最大索引
 
 	//动作标志
-	WIK_NULL     = 0x00 //没有类型
-	WIK_LEFT     = 0x01 //左吃类型
-	WIK_CENTER   = 0x02 //中吃类型
-	WIK_RIGHT    = 0x04 //右吃类型
-	WIK_PENG     = 0x08 //碰牌类型
-	WIK_GANG     = 0x10 //杠牌类型
-	WIK_LISTEN   = 0x20 //听牌类型
-	WIK_CHI_HU   = 0x40 //吃胡类型
-	WIK_FANG_PAO = 0x80 //放炮
+	WIK_NULL     = 0x00  //没有类型
+	WIK_LEFT     = 0x01  //左吃类型
+	WIK_CENTER   = 0x02  //中吃类型
+	WIK_RIGHT    = 0x04  //右吃类型
+	WIK_PENG     = 0x08  //碰牌类型
+	WIK_GANG     = 0x10  //杠牌类型
+	WIK_LISTEN   = 0x20  //听牌类型
+	WIK_CHI_HU   = 0x40  //吃胡类型
+	WIK_FANG_PAO = 0x80  //放炮
+	WIK_CHI      = 0X100 //吃牌类型
 )
 
 //逻辑掩码
@@ -24,9 +25,9 @@ const (
 //常量定义
 const (
 	MAX_WEAVE     = 5   //最大组合
-	MAX_COUNT     = 14  //最大数目
-	MAX_REPERTORY = 112 //最大库存
-	MAX_HUA_INDEX = 0   //花牌索引
+	MAX_COUNT     = 17  //最大数目
+	MAX_REPERTORY = 144 //最大库存
+	MAX_HUA_INDEX = 8   //花牌索引
 	MAX_HUA_COUNT = 8   //花牌个数
 )
 

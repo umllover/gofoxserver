@@ -1,4 +1,4 @@
-package mj_base
+package room
 
 import (
 	. "mj/common/cost"
@@ -11,18 +11,24 @@ import (
 	"net"
 	"testing"
 
+	"mj/gameServer/common/mj_base"
+
+	"sync"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
 )
 
 var (
-	room *Mj_base
+	room *mj_base.Mj_base //Mj_base
 	u1   *user.User
 	u2   *user.User
 	u3   *user.User
 	u4   *user.User
 )
+
+var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
@@ -79,6 +85,7 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func init() {
+	Wg.Add(1)
 	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -112,9 +119,9 @@ func init() {
 
 	u1 = newTestUser(1)
 	userg.Users[0] = u1
-	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_ZPMJ, temp.GameName, temp, r)
-	cfg := &NewMjCtlConfig{
+	r := mj_base.NewMJBase(info)
+	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r)
+	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
@@ -123,19 +130,23 @@ func init() {
 	}
 	r.Init(cfg)
 	room = r
-	var userCnt = 4
 
-	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
-		if i == 1 {
-			u2 = u
-		} else if 1 == 2 {
-			u3 = u
-		} else if i == 3 {
-			u4 = u
-		}
-		userg.Users[i] = u
-	}
+	cfg.DataMgr.StartGameing()
+	//var userCnt = 4
+
+	//for i := 1; i < userCnt; i++ {
+	//	u := newTestUser(i + 1)
+	//	if i == 1 {
+	//		u2 = u
+	//	} else if 1 == 2 {
+	//		u3 = u
+	//	} else if i == 3 {
+	//		u4 = u
+	//	}
+	//	userg.Users[i] = u
+	//}
+
+	Wg.Wait()
 }
 
 func newTestUser(uid int) *user.User {

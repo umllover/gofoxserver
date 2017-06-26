@@ -34,17 +34,15 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		retCode = NoFoudTemplate
 		return nil
 	}
-
-
-
+	r := mj_base.NewMJBase(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, temp.GameName, temp),
+		DataMgr:  NewDataMgr(info.RoomId, u.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: mj_base.NewBaseLogic(),
+		LogicMgr: NewBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
-	r := mj_base.NewMJBase(info, u.Id, 0, info.Num, 0, 0, 4, cfg)
+	r.Init(cfg)
 	if r == nil {
 		retCode = Errunlawful
 		return nil
