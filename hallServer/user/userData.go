@@ -18,47 +18,76 @@ type User struct {
 	*model.Userattr
 	*model.Usertoken
 	*model.Userextrainfo
-	Id int
+	Rooms map[int]*model.CreateRoomInfo
+	Id    int
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
-	return &User{Id: UserId}
+	u := &User{Id: UserId}
+	u.Rooms = make(map[int]*model.CreateRoomInfo)
+	return u
 }
 
 func (u *User) GetUid() int {
 	return u.Id
 }
 
-//关键函数加锁
-func (u *User) SubRoomCard(card int) {
+func (u *User) AddRooms(id int, r *model.CreateRoomInfo) {
 	u.Lock()
 	defer u.Unlock()
-	if card < u.RoomCard {
-		log.Error("card < u.RoomCar userId:%d", u.Id)
-		u.RoomCard = 0
-	}
-	u.RoomCard -= card
+	u.Rooms[id] = r
 }
 
-func (u *User) GetRoomCard() int {
-	u.RLock()
-	defer u.RUnlock()
-	return u.RoomCard
-}
-
-func (u *User) SubCurrency(menry int) {
+func (u *User) DelRooms(id int) {
 	u.Lock()
 	defer u.Unlock()
-	if menry < u.Currency {
-		log.Error("card < u.Currency userId:%d", u.Id)
-		u.Currency = 0
+	_, ok := u.Rooms[id]
+	if ok {
+		delete(u.Rooms, id)
+		model.CreateRoomInfoOp.Delete(id)
 	}
-	u.Currency -= menry
 }
 
-func (u *User) GetCurrency() int {
+func (u *User) HasRoom(id int) bool {
 	u.RLock()
 	defer u.RUnlock()
-	return u.Currency
+	_, ok := u.Rooms[id]
+	return ok
+}
+
+func (u *User) GetRoomCnt() int {
+	return len(u.Rooms)
+}
+
+//扣砖石
+func (u *User) SubCurrency(sub int) bool {
+	u.Lock()
+	defer u.Unlock()
+	if u.Currency < sub {
+		return false
+	}
+
+	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"Currency": u.Currency,
+	})
+	if err != nil {
+		log.Error("at SubCurrency UpdateWithMap error, %v,  sub Currency:%v", err.Error(), sub)
+	}
+	return true
+}
+
+//加砖石
+func (u *User) AddCurrency(add int) bool {
+	u.Lock()
+	defer u.Unlock()
+	u.Currency += add
+	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"Currency": u.Currency,
+	})
+	if err != nil {
+		log.Error("at AddCurrency UpdateWithMap error, %v,  sub Currency:%v", err.Error(), add)
+		return false
+	}
+	return true
 }

@@ -4,19 +4,18 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/Chat"
-	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/gameServer/idGenerate"
+	"mj/hallServer/idGenerate"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) common.UserManager {
+func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.UserCnt = UserCnt
 	r.id = roomId
@@ -64,7 +63,7 @@ func (r *RoomUserMgr) GetCurPlayerCnt() int {
 }
 
 func (r *RoomUserMgr) GetMaxPlayerCnt() int {
-	return r.PlayerCount
+	return r.UserCnt
 }
 
 func (r *RoomUserMgr) IsInRoom(userId int) bool {
@@ -209,7 +208,9 @@ func (r *RoomUserMgr) ForEachUser(fn func(u *user.User)) {
 
 func (r *RoomUserMgr) WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int) {
 	for _, u := range r.Users {
-		u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
+		if u.ChanRPC() != nil {
+			u.ChanRPC().Go("WriteUserScore", source[u.ChairId], Type)
+		}
 	}
 }
 
@@ -243,19 +244,19 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 
 //坐下
 func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
+
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
 		return ChairHasUser
 	}
-
-	if room.ChatRoomId == 0 {
-		id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
-		if err != nil {
-			log.Error("create Chat Room faild")
-			return ErrCreateRoomFaild
-		}
-		room.ChatRoomId = id.(int)
-	}
+	//if room.ChatRoomId == 0 {
+	//	id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
+	//	if err != nil {
+	//		log.Error("create Chat Room faild")
+	//		return ErrCreateRoomFaild
+	//	}
+	//	room.ChatRoomId = id.(int)
+	//}
 
 	_, chairId := room.GetUserByUid(u.Id)
 	if chairId > 0 {

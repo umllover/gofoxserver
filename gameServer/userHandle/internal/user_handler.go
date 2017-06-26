@@ -1,24 +1,18 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/gameServer/RoomMgr"
+	"mj/gameServer/common"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
+	"mj/gameServer/kindList"
 	client "mj/gameServer/user"
 	"reflect"
 
-	"mj/gameServer/common"
-
-	"mj/gameServer/RoomMgr"
-
-	"mj/gameServer/kindList"
-
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
-	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -45,7 +39,6 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
 	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
-	handlerC2S(m, &msg.C2G_CreateTable{}, m.CreateRoom)
 }
 
 //连接进来的通知
@@ -256,8 +249,12 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	}
 	r := RoomMgr.GetRoom(roomid)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
-		return
+		m.LoadRoom(roomid)
+		r = RoomMgr.GetRoom(roomid)
+		if r == nil {
+			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
+			return
+		}
 	}
 
 	r.GetChanRPC().Go("Sitdown", args[0], user)
@@ -355,25 +352,28 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 }
 
 //创建房间
-func (m *UserModule) CreateRoom(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_CreateTable)
-	agent := args[1].(gate.Agent)
-	retCode := 0
-
-	defer func() {
-		if retCode != 0 {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		}
-	}()
-
-	mod, ok := kindList.GetModByKind(recvMsg.Kind)
-	if !ok {
-		retCode = NotFoudGameType
-		return
+func (m *UserModule) LoadRoom(roomid int) bool {
+	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
+		"room_id": roomid,
+	})
+	if err != nil {
+		log.Error("at LoadRoom error :%s", err.Error())
+		return false
 	}
 
+	if info.Status != 0 {
+		return false
+	}
+
+	mod, ok := kindList.GetModByKind(info.KindId)
+	if !ok {
+		return false
+	}
+
+	u := m.a.UserData().(*client.User)
+
 	log.Debug("begin CreateRoom.....")
-	mod.CreateRoom(recvMsg, agent)
+	return mod.CreateRoom(info, u)
 }
 
 //解散房间
@@ -434,32 +434,4 @@ func loadUser(u *client.User) bool {
 	u.InsureScore = info["InsureScore"].(int64)
 	u.MemberOrder = info["MemberOrder"].(int8)
 	return true
-}
-
-/////主消息函数
-func (m *UserModule) handleMsgData(args []interface{}) error {
-	if msg.Processor != nil {
-		str := args[0].([]byte)
-		data, err := msg.Processor.Unmarshal(str)
-		if err != nil {
-			return err
-		}
-
-		msgType := reflect.TypeOf(data)
-		if msgType == nil || msgType.Kind() != reflect.Ptr {
-			return errors.New("json message pointer required 11")
-		}
-
-		f, ok := m.ChanRPC.HasFunc(msgType)
-		if ok {
-			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
-			return nil
-		}
-
-		err = msg.Processor.RouteByType(msgType, data, m.a)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

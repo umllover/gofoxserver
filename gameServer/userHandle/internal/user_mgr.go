@@ -22,7 +22,16 @@ type MgrModule struct {
 
 func (m *MgrModule) OnInit() {
 	m.Skeleton = skeleton
+}
 
+func (m *MgrModule) ForEachUser(f func(u *user.User)) {
+	UsersLock.RLock()
+	defer UsersLock.RUnlock()
+	for _, u := range Users {
+		if u != nil {
+			f(u)
+		}
+	}
 }
 
 func (m *MgrModule) ForEachUser(f func(u *user.User)) {

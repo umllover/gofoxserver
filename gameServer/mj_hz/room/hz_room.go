@@ -6,77 +6,49 @@ import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/common/mj_base"
-	"mj/gameServer/db/model/base"
+	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
 	"mj/gameServer/common/room_base"
-
-	"github.com/lovelly/leaf/gate"
-	"github.com/lovelly/leaf/log"
+	"mj/gameServer/db/model/base"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
-	recvMsg := args[0].(*msg.C2G_CreateTable)
-	retMsg := &msg.G2C_CreateTableSucess{}
-	agent := args[1].(gate.Agent)
+	info := args[0].(*model.CreateRoomInfo)
+
+	u := args[1].(*user.User)
 	retCode := 0
 	defer func() {
-		if retCode == 0 {
-			agent.WriteMsg(retMsg)
-		} else {
-			agent.WriteMsg(&msg.G2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+		if retCode != 0 {
+			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 
-	u := agent.UserData().(*user.User)
-	if recvMsg.Kind != common.KIND_TYPE_HZMJ {
-		retCode = CreateParamError
+	if info.KindId != common.KIND_TYPE_HZMJ {
+		retCode = ErrParamError
 		return nil
 	}
 
-	template, ok := base.GameServiceOptionCache.Get(recvMsg.Kind, recvMsg.ServerId)
+	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
 		retCode = NoFoudTemplate
 		return nil
 	}
-
-	feeTemp, ok1 := base.PersonalTableFeeCache.Get(recvMsg.ServerId, recvMsg.Kind, recvMsg.DrawCountLimit, recvMsg.DrawTimeLimit)
-	if !ok1 {
-		log.Error("not foud PersonalTableFeeCache")
-		retCode = NoFoudTemplate
-		return nil
-	}
-
-	//rid, iok := idGenerate.GetRoomId(u.Id)
-	//if !iok {
-	//	retCode = RandRoomIdError
-	//	return nil
-	//}
-
-	if recvMsg.CellScore > template.CellScore {
-		retCode = MaxSoucrce
-		return nil
-	}
-
+	r := mj_base.NewMJBase(info)
 	cfg := &mj_base.NewMjCtlConfig{
-		NUserF:  room_base.NewRoomUserMgr,
-		NDataF:  mj_base.NewDataMgr,
-		NBaseF:  room_base.NewRoomBase,
-		NLogicF: mj_base.NewBaseLogic,
-		NTimerF: room_base.NewRoomTimerMgr,
+		BaseMgr:  room_base.NewRoomBase(),
+		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, temp.GameName, temp, r),
+		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		LogicMgr: mj_base.NewBaseLogic(),
+		TimerMgr: room_base.NewRoomTimerMgr(),
 	}
-	r := mj_base.NewMJBase(recvMsg.RoomID, u.Id, recvMsg.DrawTimeLimit, recvMsg.DrawCountLimit, 0, 0, 4, cfg)
+	r.Init(cfg)
 	if r == nil {
 		retCode = Errunlawful
 		return nil
 	}
 
-	retMsg.TableID = r.DataMgr.GetRoomId()
-	retMsg.DrawCountLimit = r.TimerMgr.GetCountLimit()
-	retMsg.DrawTimeLimit = r.TimerMgr.GetTimeLimit()
-	retMsg.Beans = feeTemp.TableFee
-	retMsg.RoomCard = u.RoomCard
-	u.KindID = recvMsg.Kind
+	u.KindID = info.KindId
 	u.RoomId = r.DataMgr.GetRoomId()
 	RegisterHandler(r)
 	return r

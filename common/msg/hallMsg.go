@@ -34,6 +34,20 @@ type C2L_Regist struct {
 	MobilePhone string //电话号码  //默认不获取本机号码
 }
 
+//请求创建房间消息
+type C2L_CreateTable struct {
+	CellScore           int                    //底分设置
+	DrawCountLimit      int                    //局数限制
+	DrawTimeLimit       int                    //时间限制
+	JoinGamePeopleCount int                    //参与游戏的人数， 如果非0， 是玩家指定多少人玩
+	Password            string                 //密码设置
+	Kind                int                    //游戏类型
+	ServerId            int                    //子类型
+	RoomID              int                    //房间id
+	PayType             int                    //1是自己付钱， 2是AA
+	OtherInfo           map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
+}
+
 //查询房间信息
 type C2L_SearchServerTable struct {
 	TableID int
@@ -47,13 +61,13 @@ type C2L_User_Individual struct {
 
 //请求房间列表
 type C2L_GetRoomList struct {
-	KindID int
+	KindID int //要查看哪个游戏类型
 	PageId int //获取第几页
 }
 
 //请求匹配一个房间
 type C2L_QuickMatch struct {
-	KindID int //
+	KindID int //要匹配的游戏类型
 }
 
 /////////// l 2 c /////////////////////////
@@ -124,4 +138,25 @@ type L2C_UserIndividual struct {
 type L2C_GetRoomList struct {
 	Lists []*RoomInfo //房间信息
 	Count int         //有多少条
+}
+
+//查询房间的结果
+type L2C_SearchResult struct {
+	TableID int //桌子 I D 返回0 是没匹配到
+}
+
+// 创建房间失败消息
+type L2C_CreateTableFailure struct {
+	ErrorCode      int
+	DescribeString string
+}
+
+//创建房间成功的消息
+type L2C_CreateTableSucess struct {
+	TableID        int    //房间编号
+	DrawCountLimit int    //局数限制
+	DrawTimeLimit  int    //时间限制
+	Beans          int    //游戏豆
+	RoomCard       int    //房卡数量
+	ServerIP       string //去哪个逻辑服玩
 }
