@@ -231,7 +231,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	feeTemp, ok1 := base.PersonalTableFeeCache.Get(recvMsg.ServerId, recvMsg.Kind, recvMsg.DrawCountLimit)
+	feeTemp, ok1 := base.PersonalTableFeeCache.Get(recvMsg.Kind, recvMsg.ServerId, recvMsg.DrawCountLimit)
 	if !ok1 {
 		log.Error("not foud PersonalTableFeeCache")
 		retCode = NoFoudTemplate
@@ -264,13 +264,14 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 
 	if recvMsg.PayType == SELF_PAY_TYPE {
-		if u.SubCurrency(feeTemp.TableFee) {
+		if !u.SubCurrency(feeTemp.TableFee) {
 			retCode = NotEnoughFee
 			return
 		}
 
 		record := &model.TokenRecord{}
 		record.UserId = u.Id
+		record.RoomId = rid
 		record.Amount = feeTemp.TableFee
 		record.TokenType = SELF_PAY_TYPE
 		record.KindID = template.KindID
@@ -329,12 +330,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	if roomInfo.PayType == AA_PAY_TYPE {
 		monrey = feeTemp.TableFee / roomInfo.MaxCnt
 
-		if u.SubCurrency(monrey) {
+		if !u.SubCurrency(monrey) {
 			retcode = NotEnoughFee
 			return
 		}
 		record := &model.TokenRecord{}
 		record.UserId = u.Id
+		record.RoomId = roomInfo.RoomID
 		record.Amount = monrey
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID

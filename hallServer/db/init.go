@@ -1,11 +1,12 @@
 package db
 
 import (
-	"sync"
 	"fmt"
+	"sync"
+
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/lovelly/leaf/log"
 	"github.com/jmoiron/sqlx"
+	"github.com/lovelly/leaf/log"
 )
 
 const driverName = "mysql"
@@ -16,7 +17,7 @@ var DB *sqlx.DB
 var StatsDB *sqlx.DB
 
 type IDBCnf interface {
-	GetBaseDSN()string
+	GetBaseDSN() string
 	GetUserDSN() string
 	GetStatsDSN() string
 	GetBaseDBMaxOpen() int
@@ -44,5 +45,3 @@ func initSqlxDB(dbConfig, logHeader string, maxOpen, maxIdle int) *sqlx.DB {
 	db.SetMaxIdleConns(maxIdle)
 	return db
 }
-
-

@@ -9,8 +9,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/hallServer/idGenerate"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 )
@@ -358,8 +356,6 @@ func (room *RoomUserMgr) RoomDissume() {
 			u.ChanRPC().Go("LeaveRoom")
 		}
 	}
-
-	idGenerate.DelRoomId(room.id)
 }
 
 func (room *RoomUserMgr) IsAllReady() bool {

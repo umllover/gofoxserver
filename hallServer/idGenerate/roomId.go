@@ -3,7 +3,7 @@ package idGenerate
 import (
 	"mj/common/utils"
 
-	"mj/gameServer/db/model"
+	"mj/hallServer/db/model"
 	"sync"
 )
 

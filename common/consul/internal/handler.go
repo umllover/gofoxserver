@@ -28,7 +28,6 @@ func handleRpc(id interface{}, f interface{}) {
 }
 
 func AddServerInfo(args []interface{}) {
-	log.Debug("at AddServerInfo ......")
 	svrInfo := args[0].(map[string]*CacheInfo)
 	for id, _ := range caches {
 		if _, ok := svrInfo[id]; !ok {

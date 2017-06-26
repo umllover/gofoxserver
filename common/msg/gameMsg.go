@@ -1,6 +1,11 @@
 package msg
 
 ////// c 2 s
+//在大厅创建房间服成功后调用
+type C2G_LoadRoom struct {
+	RoomID int //房间id
+}
+
 //手机登录
 type C2G_GR_LogonMobile struct {
 	GameID         int //游戏标识
@@ -268,4 +273,6 @@ type G2C_GameChart_ToAll struct {
 	ChatString   string
 }
 
+type G2C_LoadRoomOk struct {
+}
 ///////////////////////// game chart end ///////////////////////////////

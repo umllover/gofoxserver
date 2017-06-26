@@ -11,6 +11,8 @@ import (
 
 	"mj/common/cost"
 
+	"mj/hallServer/idGenerate"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -193,6 +195,7 @@ func NotifyDelRoom(args []interface{}) {
 	roomId := args[1].(int)
 	ri := roomList[roomId]
 	delete(roomList, roomId)
+	idGenerate.DelRoomId(roomId)
 	m, ok := roomKindList[kindId]
 	if ok && ri != nil {
 		delete(m, ri.Idx)
@@ -269,27 +272,26 @@ func addGameList(v *msg.TagGameServer) {
 }
 
 func GetSvrByKind(kindId int) string {
-	minNub := 0
 	var minv *ServerInfo
+	log.Debug("aaaaaaaaaaa %v:%v", kindId, gameLists)
 	for _, v := range gameLists {
 		if _, ok := v.list[kindId]; !ok {
 			continue
 		}
 
 		if minv == nil {
-			minNub = v.wight
 			minv = v
 		}
 
-		if v.wight < minNub {
-			minNub = v.wight
+		if v.wight < minv.wight {
 			minv = v
 		}
+
 	}
 
-	if minv == nil || len(minv.list) < 0 {
+	if minv == nil || len(minv.list) < 1 {
 		return ""
 	}
 	minv.wight++
-	return minv.list[0].ServerAddr
+	return minv.list[kindId].ServerAddr
 }

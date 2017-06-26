@@ -43,7 +43,6 @@ type C2L_CreateTable struct {
 	Password            string                 //密码设置
 	Kind                int                    //游戏类型
 	ServerId            int                    //子类型
-	RoomID              int                    //房间id
 	PayType             int                    //1是自己付钱， 2是AA
 	OtherInfo           map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
 }

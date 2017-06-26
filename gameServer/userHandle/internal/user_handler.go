@@ -13,6 +13,7 @@ import (
 	"reflect"
 
 	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -39,6 +40,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
 	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
+	handlerC2S(m, &msg.C2G_LoadRoom{}, m.LoadRoom)
 }
 
 //连接进来的通知
@@ -249,12 +251,8 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	}
 	r := RoomMgr.GetRoom(roomid)
 	if r == nil {
-		m.LoadRoom(roomid)
-		r = RoomMgr.GetRoom(roomid)
-		if r == nil {
-			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
-			return
-		}
+		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
+		return
 	}
 
 	r.GetChanRPC().Go("Sitdown", args[0], user)
@@ -352,28 +350,45 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 }
 
 //创建房间
-func (m *UserModule) LoadRoom(roomid int) bool {
+func (m *UserModule) LoadRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_LoadRoom)
+	retMsg := &msg.G2C_LoadRoomOk{}
+	agent := args[1].(gate.Agent)
+	retCode := -1
+	defer func() {
+		if retCode != 0 {
+			agent.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+		} else {
+			agent.WriteMsg(retMsg)
+		}
+	}()
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
-		"room_id": roomid,
+		"room_id": recvMsg.RoomID,
 	})
 	if err != nil {
 		log.Error("at LoadRoom error :%s", err.Error())
-		return false
+		retCode = ErrNotFoundCreateRecord
+		return
 	}
 
 	if info.Status != 0 {
-		return false
+		retCode = ErrDoubleCreaterRoom
+		return
 	}
 
 	mod, ok := kindList.GetModByKind(info.KindId)
 	if !ok {
-		return false
+		retCode = ErrNotFoundCreateRecord
+		return
 	}
 
 	u := m.a.UserData().(*client.User)
-
 	log.Debug("begin CreateRoom.....")
-	return mod.CreateRoom(info, u)
+	ok := mod.CreateRoom(info, u)
+	if ok {
+		retCode = 0
+		return
+	}
 }
 
 //解散房间
