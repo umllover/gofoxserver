@@ -15,7 +15,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
+func NewDataMgr(id, uid, OriCardIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -25,6 +25,7 @@ func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption, base *Mj
 	}
 	r.CreateUser = uid
 	r.MjBase = base
+	r.OriCardIdx = OriCardIdx
 	return r
 }
 
@@ -34,8 +35,8 @@ type RoomData struct {
 	Name       string //房间名字
 	CreateUser int    //创建房间的人
 	MjBase     *Mj_base
+	OriCardIdx int
 
-	CardDataArray     []int              //原始扑克
 	IsResponse        []bool             //标记是否对吃碰杠胡做出过动作
 	PerformAction     []int              //记住玩家出的动作， 用来等待优先级更高的玩家
 	Source            int                //底分
@@ -814,7 +815,7 @@ func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic co
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	room.SiceCount, minSice = room.GetSice()
 
-	gameLogic.RandCardList(room.RepertoryCard, room.CardDataArray)
+	gameLogic.RandCardList(room.RepertoryCard, getCardByIdx(room.OriCardIdx))
 
 	//红中可以当财神
 	gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(0x35))
