@@ -14,7 +14,10 @@ type ZP_Logic struct {
 
 func NewBaseLogic() *ZP_Logic {
 	bl := new(ZP_Logic)
-	bl.BaseLogic = new(mj_base.BaseLogic)
+	bl.BaseLogic = mj_base.NewBaseLogic()
+	bl.BaseLogic.CheckValid = IsValidCard
+	bl.BaseLogic.SwitchToCard = SwitchToCardData
+	bl.BaseLogic.SwitchToIdx = SwitchToCardIndex
 	return bl
 }
 
@@ -35,11 +38,24 @@ func SwitchToCardIndex(cbCardData int) int {
 	}
 }
 
+//扑克转换
+func SwitchToCardData(cbCardIndex int) int {
+	if cbCardIndex >= 34 {
+		return (4 << 4) | (cbCardIndex - 34 + 1)
+	} else {
+		return (cbCardIndex/9)<<4 | (cbCardIndex%9 + 1)
+	}
+}
+
 //有效判断
-func (lg *ZP_Logic) IsValidCard(cbCardData int) bool {
+func IsValidCard(cbCardData int) bool {
 	var cbValue = int(cbCardData & MASK_VALUE)
 	var cbColor = int((cbCardData & MASK_COLOR) >> 4)
 	return ((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= 7) && (cbColor == 3) || ((cbValue >= 1) && (cbValue <= 8) && (cbColor == 4)))
+}
+
+func (lg *ZP_Logic) SwitchToCardIndex(cbCardData int) int {
+	return lg.SwitchToIdx(cbCardData)
 }
 
 //吃牌判断
@@ -82,13 +98,13 @@ func (lg *ZP_Logic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 //分析扑克
 func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) {
 	cbWeaveCount := len(WeaveItem)
-	log.Debug("at AnalyseChiHuCard %v, %v , %v ,%v ", cbCardIndex, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
+	log.Debug("zpmj at AnalyseChiHuCard %v, %v , %v ,%v ", cbCardIndex, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		log.Debug("zpmj at AnalyseCard (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
@@ -129,11 +145,13 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 		for i := 0; i < MAX_INDEX; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 {
-				KindItem[cbKindItemCount].CenterCard = i
-				KindItem[cbKindItemCount].CardIndex[0] = i
-				KindItem[cbKindItemCount].CardIndex[1] = i
-				KindItem[cbKindItemCount].CardIndex[2] = i
-				KindItem[cbKindItemCount].WeaveKind = WIK_PENG
+				tg := &TagKindItem{CardIndex:make([]int, 4)}
+				tg.CenterCard = i
+				tg.CardIndex[0] = i
+				tg.CardIndex[1] = i
+				tg.CardIndex[2] = i
+				tg.WeaveKind = WIK_PENG
+				KindItem = append(KindItem, tg)
 				cbKindItemCount++
 			}
 
@@ -141,11 +159,13 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 			if (i < (MAX_INDEX - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
 				for j := 1; j <= cbCardIndex[i]; j++ {
 					if (cbCardIndex[i+1] >= j) && (cbCardIndex[i+2] >= j) {
-						KindItem[cbKindItemCount].CenterCard = i
-						KindItem[cbKindItemCount].CardIndex[0] = i
-						KindItem[cbKindItemCount].CardIndex[1] = i + 1
-						KindItem[cbKindItemCount].CardIndex[2] = i + 2
-						KindItem[cbKindItemCount].WeaveKind = WIK_LEFT
+						tg := &TagKindItem{CardIndex:make([]int, 4)}
+						tg.CenterCard = i
+						tg.CardIndex[0] = i
+						tg.CardIndex[1] = i + 1
+						tg.CardIndex[2] = i + 2
+						tg.WeaveKind = WIK_LEFT
+						KindItem = append(KindItem, tg)
 						cbKindItemCount++
 					}
 				}
@@ -174,6 +194,7 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
+				log.Debug("#############",i/3)
 				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
@@ -271,15 +292,13 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
 	}
 
-	if b4HZHu && cbCardIndexTemp[31] == 4 { //四个红中直接胡牌
-		return WIK_CHI_HU
-	}
 	//分析扑克
 	_, TagAnalyseItemArray = lg.AnalyseCard(cbCardIndexTemp, WeaveItem, TagAnalyseItemArray)
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
 		log.Debug("len(TagAnalyseItemArray) > 0 ")
+		log.Debug("################")
 		ChiHuRight |= CHR_PING_HU
 	}
 
@@ -289,4 +308,64 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	}
 
 	return cbChiHuKind
+}
+
+//分析听牌
+func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
+
+	cbOutCount := 0
+	cbCardIndexTemp := make([]int, MAX_INDEX)
+	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+
+	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
+	chr := 0
+
+	if (cbCardCount-2)%3 == 0 {
+		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ {
+			if cbCardIndexTemp[i] == 0 {
+				continue
+			}
+			cbCardIndexTemp[i]--
+
+			bAdd := false
+			nCount := 0
+			for j := 0; j < MAX_INDEX-MAX_HUA_INDEX; j++ {
+				cbCurrentCard := lg.SwitchToCard(j)
+				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, false) {
+					if bAdd == false {
+						bAdd = true
+						cbOutCardData[cbOutCount] = lg.SwitchToCard(i)
+						cbOutCount++
+					}
+					if len(cbHuCardData[cbOutCount-1]) < 1 {
+						cbHuCardData[cbOutCount-1] = make([]int, MAX_INDEX-MAX_HUA_INDEX)
+					}
+					cbHuCardData[cbOutCount-1][nCount] = lg.SwitchToCard(j)
+					nCount++
+				}
+			}
+			if bAdd {
+				cbHuCardCount[cbOutCount-1] = nCount
+			}
+
+			cbCardIndexTemp[i]++
+		}
+	} else {
+		cbCount := 0
+		for j := 0; j < MAX_INDEX; j++ {
+			cbCurrentCard := lg.SwitchToCard(j)
+			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, false) {
+				log.Debug("cbCount === %v", cbHuCardData)
+				if len(cbHuCardData[0]) < 1 {
+					cbHuCardData[0] = make([]int, MAX_INDEX)
+				}
+
+				cbHuCardData[0][cbCount] = cbCurrentCard
+				cbCount++
+			}
+		}
+		cbHuCardCount[0] = cbCount
+	}
+
+	return cbOutCount
 }

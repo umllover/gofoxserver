@@ -4,7 +4,7 @@ import "github.com/lovelly/leaf/util"
 
 const (
 	IDX_HZMJ = 0
-	IDX_ZPMJ = 0
+	IDX_ZPMJ = 1
 )
 
 var cards = [][]int{

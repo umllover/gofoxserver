@@ -95,11 +95,6 @@ const (
 	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
 )
 
-type HistoryScore struct {
-	TurnScore    int
-	CollectScore int
-}
-
 //分析子项
 type TagAnalyseItem struct {
 	CardEye    int     //牌眼扑克

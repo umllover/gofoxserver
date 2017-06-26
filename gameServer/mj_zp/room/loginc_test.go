@@ -32,6 +32,7 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+	Wg.Wait()
 }
 
 //func TestGameLogic_OutCard(t *testing.T) {
@@ -118,6 +119,7 @@ func init() {
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
 
 	u1 = newTestUser(1)
+	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := mj_base.NewMJBase(info)
 	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r)
@@ -131,22 +133,20 @@ func init() {
 	r.Init(cfg)
 	room = r
 
-	cfg.DataMgr.StartGameing()
-	//var userCnt = 4
+	var userCnt = 4
 
-	//for i := 1; i < userCnt; i++ {
-	//	u := newTestUser(i + 1)
-	//	if i == 1 {
-	//		u2 = u
-	//	} else if 1 == 2 {
-	//		u3 = u
-	//	} else if i == 3 {
-	//		u4 = u
-	//	}
-	//	userg.Users[i] = u
-	//}
-
-	Wg.Wait()
+	for i := 1; i < userCnt; i++ {
+		u := newTestUser(i + 1)
+		if i == 1 {
+			u2 = u
+		} else if 1 == 2 {
+			u3 = u
+		} else if i == 3 {
+			u4 = u
+		}
+		userg.Users[i] = u
+		u.ChairId = i
+	}
 }
 
 func newTestUser(uid int) *user.User {
