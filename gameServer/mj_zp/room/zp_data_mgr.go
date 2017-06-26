@@ -28,22 +28,22 @@ func NewDataMgr(id, uid int, name string, temp *base.GameServiceOption, base *Mj
 	return r
 }
 
-func (room *ZP_RoomData) StartGameing(userMgr common.UserManager, gameLogic common.LogicManager, template *base.GameServiceOption) {
+func (room *ZP_RoomData) StartGameing() {
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
-		userMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_GetChaHua{})
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(template.OutCardTime)*time.Second, func() {
-			room.StartDispatchCard(userMgr, gameLogic, template)
+		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_GetChaHua{})
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+			room.StartDispatchCard(room.MjBase.UserMgr, room.MjBase.LogicMgr, room.MjBase.Temp)
 			//检查自摸
-			room.CheckZiMo(gameLogic, userMgr)
+			room.CheckZiMo(room.MjBase.LogicMgr, room.MjBase.UserMgr)
 			//通知客户端开始了
-			room.SendGameStart(gameLogic, userMgr)
+			room.SendGameStart()
 		})
 	} else {
-		room.StartDispatchCard(userMgr, gameLogic, template)
+		room.StartDispatchCard(room.MjBase.UserMgr, room.MjBase.LogicMgr, room.MjBase.Temp)
 		//检查自摸
-		room.CheckZiMo(gameLogic, userMgr)
+		room.CheckZiMo(room.MjBase.LogicMgr, room.MjBase.UserMgr)
 		//通知客户端开始了
-		room.SendGameStart(gameLogic, userMgr)
+		room.SendGameStart(room.MjBase.LogicMgr, room.MjBase.UserMgr)
 	}
 }
 
