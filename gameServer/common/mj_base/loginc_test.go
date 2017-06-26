@@ -54,7 +54,7 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func init() {
-	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
+	conf.Init("./gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
@@ -86,6 +86,7 @@ func init() {
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
 
 	u1 = newTestUser(1)
+	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
 	datag := NewDataMgr(info.RoomId, u1.Id, IDX_ZPMJ, temp.GameName, temp, r)
@@ -110,6 +111,7 @@ func init() {
 			u4 = u
 		}
 		userg.Users[i] = u
+		u.ChairId = i
 	}
 }
 

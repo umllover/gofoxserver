@@ -385,7 +385,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 	//变量定义
 	cbKindItemCount := 0
-	KindItem := make([]*TagKindItem, MAX_COUNT-2)
+	KindItem := make([]*TagKindItem, 0)
 
 	//需求判断
 	cbLessKindItem := (cbCardCount - 2) / 3
@@ -454,22 +454,17 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 		cbCardIndexTemp := make([]int, MAX_INDEX)
 		cbIndex := []int{0, 1, 2, 3}
 
-		pKindItem := make([]*TagKindItem, MAX_WEAVE)
 
 		//开始组合
 		for {
 			//设置变量
 			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-			for i := 0; i < cbLessKindItem; i++ {
-				pKindItem[i] = KindItem[cbIndex[i]]
-			}
-
 			//数量判断
 			bEnoughCard := true
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
-				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
+				cbCardIndex := KindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
 					break
@@ -506,10 +501,10 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, 
 
 					//设置牌型
 					for i := 0; i < cbLessKindItem; i++ {
-						analyseItem.WeaveKind[i+cbWeaveCount] = pKindItem[i].WeaveKind
-						cbCenterCard := lg.SwitchToCard(pKindItem[i].CenterCard)
+						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
+						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
 						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
-						lg.GetWeaveCard(pKindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
+						lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
 					}
 
 					//设置牌眼

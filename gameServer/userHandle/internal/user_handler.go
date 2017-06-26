@@ -384,8 +384,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 
 	u := m.a.UserData().(*client.User)
 	log.Debug("begin CreateRoom.....")
-	ok := mod.CreateRoom(info, u)
-	if ok {
+	ok1 := mod.CreateRoom(info, u)
+	if ok1 {
 		retCode = 0
 		return
 	}
