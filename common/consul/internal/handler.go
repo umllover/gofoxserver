@@ -3,6 +3,7 @@ package internal
 import (
 	"regexp"
 
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
 )
@@ -11,6 +12,7 @@ var (
 	caches        map[string]*CacheInfo
 	SelfId        string
 	InitiativeSvr []string //需要注定去连接的类型
+	HookChanRpc   *chanrpc.Server
 )
 
 func init() {
@@ -67,7 +69,9 @@ func SvrFaild(id string) {
 	log.Debug(" SvrFaild ==== :%s", id)
 	delete(caches, id)
 	cluster.RemoveClient(id)
-
+	if HookChanRpc != nil {
+		HookChanRpc.Go("ServerFaild", id)
+	}
 }
 
 func KvUpdate(args []interface{}) {

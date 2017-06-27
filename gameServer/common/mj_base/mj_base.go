@@ -9,7 +9,6 @@ import (
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"time"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -43,7 +42,6 @@ func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
 
 	mj := new(Mj_base)
 	mj.Temp = Temp
-
 	return mj
 }
 
@@ -54,6 +52,9 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
+	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
+		r.OnEventGameConclude(0, nil, GER_DISMISS)
+	})
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -153,6 +154,9 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 		//派发初始扑克
 		room.Status = RoomStatusStarting
+		room.TimerMgr.StartPlayingTimer(room.GetSkeleton(), func() {
+			room.OnEventGameConclude(0, nil, GER_DISMISS)
+		})
 	}
 }
 
@@ -165,6 +169,7 @@ func (room *Mj_base) UserReLogin(args []interface{}) {
 	}
 
 	room.UserMgr.ReLogin(u, room.Status)
+	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
 	room.OnUserTrustee(u.ChairId, false)
 }
@@ -178,14 +183,9 @@ func (room *Mj_base) UserOffline(args []interface{}) {
 	}
 
 	room.UserMgr.SetUsetStatus(u, US_OFFLINE)
-	if room.Temp.TimeOffLineCount != 0 {
-		t := room.GetSkeleton().AfterFunc(time.Duration(room.Temp.TimeOffLineCount)*time.Second, func() {
-			room.OffLineTimeOut(u)
-		})
-		room.UserMgr.AddKickOutTimer(u.Id, t)
-	} else {
+	room.TimerMgr.StartKickoutTimer(room.GetSkeleton(), u.Id, func() {
 		room.OffLineTimeOut(u)
-	}
+	})
 }
 
 //离线超时踢出

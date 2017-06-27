@@ -105,10 +105,11 @@ type L2C_LogonSuccess struct {
 	PayMbVipUpgrade int `json:"dwPayMbVipUpgrade"` //手机VIP升级，所需充值数（vip最高级时该值为0）
 
 	//约战房相关
-	RoomCard     int `json:"lRoomCard"`      //用户房卡
-	LockServerID int `json:"dwLockServerID"` //锁定房间
-	KindID       int `json:"dwKindID"`       //游戏类型
-	HallNodeID   int `json:"HallNodeID"`
+	RoomCard     int    `json:"lRoomCard"`      //用户房卡
+	LockServerID int    `json:"dwLockServerID"` //锁定房间
+	KindID       int    `json:"dwKindID"`       //游戏类型
+	HallNodeID   int    `json:"HallNodeID"`
+	ServerIP     string `json:"ServerIP"`
 }
 
 //房间列表
