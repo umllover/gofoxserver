@@ -54,7 +54,8 @@ func init() {
 	Processor.Register(&C2G_HostlDissumeRoom{})
 	Processor.Register(&G2C_CancelTable{})
 	Processor.Register(&G2C_PersonalTableEnd{})
-
+	Processor.Register(&C2G_LoadRoom{})
+	Processor.Register(&G2C_LoadRoomOk{})
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
 	Processor.Register(&G2C_GameChart_ToAll{})

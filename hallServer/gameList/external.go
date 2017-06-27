@@ -18,3 +18,7 @@ func init() {
 func GetSvrByKind(kindId int) string {
 	return internal.GetSvrByKind(kindId)
 }
+
+func SetTest(v bool) {
+	internal.Test = v
+}

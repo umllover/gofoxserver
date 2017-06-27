@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"mj/gameServer/db"
 
@@ -95,7 +96,7 @@ func (op *roomRecordOp) GetByMap(m map[string]interface{}) (*RoomRecord, error) 
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, nil
+	return nil, errors.New("no row in result")
 }
 
 /*

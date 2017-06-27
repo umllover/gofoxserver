@@ -20,6 +20,7 @@ func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUser
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
 	r.Onlookers = make(map[int]*user.User)
+	r.KickOut = make(map[int]*timer.Timer)
 	return r
 }
 

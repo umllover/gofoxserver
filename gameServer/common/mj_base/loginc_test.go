@@ -95,7 +95,7 @@ func init() {
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(),
-		TimerMgr: room_base.NewRoomTimerMgr(),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	room = r

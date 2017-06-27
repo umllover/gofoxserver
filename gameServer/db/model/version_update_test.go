@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"mj/gameServer/db"
 
@@ -96,7 +97,7 @@ func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdat
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, nil
+	return nil, errors.New("no row in result")
 }
 
 /*

@@ -7,6 +7,7 @@ import (
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/log"
 )
 
 type IRoom interface {
@@ -26,6 +27,7 @@ func AddRoom(r IRoom) bool {
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	if _, ok := Rooms[r.GetRoomId()]; ok {
+		log.Debug("at AddRoom doeble add, roomid:%v", r.GetRoomId())
 		r.Destroy(r.GetRoomId())
 		return false
 	}

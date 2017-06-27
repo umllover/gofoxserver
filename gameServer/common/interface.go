@@ -104,7 +104,6 @@ type TimerManager interface {
 	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
 
-	GetCountLimit() int
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
