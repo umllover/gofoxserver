@@ -62,7 +62,6 @@ type UserManager interface {
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
-	AddKickOutTimer(int, *timer.Timer)
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})
@@ -102,6 +101,8 @@ type LogicManager interface {
 type TimerManager interface {
 	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
+	StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func())
+	StopOfflineTimer(uid int)
 
 	GetTimeLimit() int
 	GetPlayCount() int

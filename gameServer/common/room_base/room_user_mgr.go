@@ -10,7 +10,6 @@ import (
 	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/timer"
 )
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -20,23 +19,21 @@ func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUser
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
 	r.Onlookers = make(map[int]*user.User)
-	r.KickOut = make(map[int]*timer.Timer)
 	return r
 }
 
 type RoomUserMgr struct {
-	id          int                  //唯一id 房间id
-	Kind        int                  //模板表第一类型
-	ServerId    int                  //模板表第二类型 注意 非房间id
-	EendTime    int64                //结束时间
-	UserCnt     int                  //可以容纳的用户数量
-	PlayerCount int                  //当前用户人数
-	JoinCount   int                  //房主设置的游戏人数
-	Users       []*user.User         /// index is chairId
-	Onlookers   map[int]*user.User   /// 旁观的玩家
-	ChatRoomId  int                  //聊天房间id
-	KickOut     map[int]*timer.Timer //即将被踢出的超时定时器
-	Trustee     []bool               //是否托管 index 就是椅子id
+	id          int                //唯一id 房间id
+	Kind        int                //模板表第一类型
+	ServerId    int                //模板表第二类型 注意 非房间id
+	EendTime    int64              //结束时间
+	UserCnt     int                //可以容纳的用户数量
+	PlayerCount int                //当前用户人数
+	JoinCount   int                //房主设置的游戏人数
+	Users       []*user.User       /// index is chairId
+	Onlookers   map[int]*user.User /// 旁观的玩家
+	ChatRoomId  int                //聊天房间id
+	Trustee     []bool             //是否托管 index 就是椅子id
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
@@ -121,6 +118,8 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	locak.KindID = u.KindID
 	locak.ServerID = u.ServerID
 	locak.NodeID = conf.Server.NodeId
+	locak.EnterIP = conf.Server.WSAddr
+
 	_, err := model.GamescorelockerOp.Insert(locak)
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
@@ -369,21 +368,11 @@ func (room *RoomUserMgr) IsAllReady() bool {
 }
 
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
-	tm, ok := room.KickOut[u.Id]
-	if ok {
-		tm.Stop()
-		delete(room.KickOut, u.Id)
-	}
-
 	if Status == RoomStatusStarting {
 		room.SetUsetStatus(u, US_PLAYING)
 	} else {
 		room.SetUsetStatus(u, US_SIT)
 	}
-}
-
-func (room *RoomUserMgr) AddKickOutTimer(uid int, t *timer.Timer) {
-	room.KickOut[uid] = t
 }
 
 func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {

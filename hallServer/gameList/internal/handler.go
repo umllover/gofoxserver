@@ -12,16 +12,17 @@ import (
 	"sort"
 	"strconv"
 
+	"strings"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
 var (
-	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
-	TypeInfo     = make(map[int]map[int]struct{}) //key is nodeID key2 i
-	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
-	roomKindList = make(map[int]map[int]int)      //key1 is kind Id key2 incId
+	gameLists    = make(map[int]*ServerInfo)   //k1 NodeID,
+	roomList     = make(map[int]*msg.RoomInfo) // key1 is roomId
+	roomKindList = make(map[int]map[int]int)   //key1 is kind Id key2 incId
 	KindListInc  = 0
 	Test         = false
 )
@@ -57,6 +58,8 @@ func init() {
 	handleRpc("notifyNewRoom", NotifyNewRoom)
 	handleRpc("notifyDelRoom", NotifyDelRoom)
 	handleRpc("updateRoomInfo", UpdateRoom)
+
+	handleRpc("SvrverFaild", ServerFaild)
 }
 
 ////// c2s
@@ -304,4 +307,25 @@ func GetSvrByKind(kindId int) string {
 	}
 	minv.wight++
 	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort)
+}
+
+func ServerFaild(args []interface{}) {
+	svrId := args[0].(string)
+	list := strings.Split(svrId, "_")
+	if len(list) < 2 {
+		log.Error("at ServerFaild param error ")
+		return
+	}
+
+	id, err := strconv.Atoi(list[1])
+	if err != nil {
+		log.Error("at ServerFaild param error : %s", err.Error())
+		return
+	}
+
+	for roomId, v := range roomList {
+		if v.NodeID == id {
+			delete(roomList, roomId)
+		}
+	}
 }

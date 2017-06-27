@@ -509,6 +509,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
+	retMsg.ServerIP = user.EnterIP
 }
 
 /////////////////////////////// help 函数
