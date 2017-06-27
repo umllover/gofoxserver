@@ -9,6 +9,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 )
