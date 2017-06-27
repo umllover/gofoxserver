@@ -1,14 +1,20 @@
 package room_base
 
 import (
+	"mj/gameServer/db/model/base"
 	"time"
 
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomTimerMgr() *RoomTimerMgr {
+func NewRoomTimerMgr(payCnt int, temp *base.GameServiceOption) *RoomTimerMgr {
 	r := new(RoomTimerMgr)
+	r.CreateTime = time.Now().Unix()
+	r.MaxPlayCnt = payCnt
+	r.TimeLimit = temp.PlayTimeLimit
+	r.TimeOutCard = temp.OutCardTime
+	r.TimeOperateCard = temp.OperateCardTime
 	return r
 }
 
@@ -16,7 +22,6 @@ type RoomTimerMgr struct {
 	EndTime         *timer.Timer //开局为加入的超时
 	ChaHuaTime      *timer.Timer //插花超时
 	TimeLimit       int          //时间限制
-	CountLimit      int          //局数限制
 	TimeOutCard     int          //出牌时间
 	TimeOperateCard int          //操作时间
 	PlayCount       int          //已玩局数
@@ -46,10 +51,6 @@ func (room *RoomTimerMgr) GetPlayCount() int {
 
 func (room *RoomTimerMgr) AddPlayCount() {
 	room.PlayCount++
-}
-
-func (room *RoomTimerMgr) GetCountLimit() int {
-	return room.CountLimit
 }
 
 func (room *RoomTimerMgr) GetTimeLimit() int {

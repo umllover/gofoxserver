@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"mj/common"
 	"mj/common/consul"
@@ -11,13 +12,10 @@ import (
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
 	"mj/hallServer/gate"
-	"mj/hallServer/userHandle"
-	"mj/hallServer/raceMsg"
-	"os"
-
-	"flag"
-
 	"mj/hallServer/http_service"
+	"mj/hallServer/raceMsg"
+	"mj/hallServer/userHandle"
+	"os"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -28,12 +26,15 @@ var version = 0
 
 var printVersion = flag.Bool("version", false, "print version")
 var reloadDB = flag.Bool("reload", false, "reload base db")
+var Test = flag.Bool("Test", false, "reload base db")
 
 func main() {
 
 	log.Debug("enter hallApp main")
 
 	flag.Parse()
+
+	gameList.SetTest(*Test)
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)

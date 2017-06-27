@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"mj/common/msg/mj_hz_msg"
-
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
@@ -26,7 +24,7 @@ type DataManager interface {
 	DispatchCardData(int, bool) int
 	HasOperator(ChairId, OperateCode int) bool
 	HasCard(ChairId, cardIdx int) bool
-	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard) (int, int)
+	CheckUserOperator(*user.User, int, int, []int) (int, int)
 	UserChiHu(wTargetUser, userCnt int)
 	WeaveCard(cbTargetAction, wTargetUser int)
 	RemoveCardByOP(wTargetUser, ChoOp int) bool
@@ -105,7 +103,6 @@ type TimerManager interface {
 	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
 
-	GetCountLimit() int
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()

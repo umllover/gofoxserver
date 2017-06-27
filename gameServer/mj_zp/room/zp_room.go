@@ -40,7 +40,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		DataMgr:  NewDataMgr(info.RoomId, u.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
 		LogicMgr: NewBaseLogic(),
-		TimerMgr: room_base.NewRoomTimerMgr(),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	if r == nil {

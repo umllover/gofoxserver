@@ -28,22 +28,24 @@ func init() {
 }
 
 func HZOutCard(args []interface{}) {
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_HZOutCard)
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OutCard", args[0], user)
+		r.GetChanRPC().Go("OutCard", user, recvMsg.CardData)
 	}
 
 }
 
 func OperateCard(args []interface{}) {
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_OperateCard)
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OperateCard", args[0], user)
+		r.GetChanRPC().Go("OperateCard", user, recvMsg.OperateCode, recvMsg.OperateCard)
 	}
 }

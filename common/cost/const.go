@@ -41,6 +41,7 @@ const (
 	ErrNoFoudRoom           = 120 //房间没有找到
 	ErrNotFoundCreateRecord = 121 //没有找到房间记录
 	ErrDoubleCreaterRoom    = 122 //重复创建房间
+	ErrCreaterError         = 123 //创建错误
 )
 
 //红中麻将错误码

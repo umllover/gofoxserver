@@ -110,7 +110,7 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.MjBase.TimerMgr.GetCountLimit(),                          //局数限制
+		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
 		DrawTimeLimit:     room.MjBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.MjBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.MjBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
@@ -134,7 +134,7 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	}
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetCountLimit() //局数限制
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
 }
 
@@ -267,24 +267,24 @@ func (room *RoomData) HasCard(ChairId, cardIdx int) bool {
 }
 
 //设置用户相应牌的操作 ,返回是否可以操作
-func (room *RoomData) CheckUserOperator(u *user.User, userCnt int, recvMsg *mj_hz_msg.C2G_HZMJ_OperateCard) (int, int) {
+func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, OperateCard []int) (int, int) {
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
 	room.IsResponse[u.ChairId] = true
-	room.PerformAction[u.ChairId] = recvMsg.OperateCode
-	room.OperateCard[u.ChairId] = recvMsg.OperateCard
+	room.PerformAction[u.ChairId] = OperateCode
+	room.OperateCard[u.ChairId] = OperateCard
 
 	u.UserLimit = 0
 	//放弃操作
-	if recvMsg.OperateCode == WIK_NULL {
+	if OperateCode == WIK_NULL {
 		////禁止这轮吃胡
 		if room.HasOperator(u.ChairId, WIK_CHI_HU) {
 			u.UserLimit |= LimitChiHu
 		}
 	}
 
-	cbTargetAction := recvMsg.OperateCode
+	cbTargetAction := OperateCode
 	wTargetUser := u.ChairId
 	//执行判断
 	for i := 0; i < userCnt; i++ {

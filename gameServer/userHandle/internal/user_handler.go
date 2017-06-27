@@ -365,8 +365,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
 		"room_id": recvMsg.RoomID,
 	})
-	if err != nil {
-		log.Error("at LoadRoom error :%s", err.Error())
+	if err != nil || info == nil {
+		log.Error("at LoadRoom error :%v", err)
 		retCode = ErrNotFoundCreateRecord
 		return
 	}
@@ -385,10 +385,13 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 	u := m.a.UserData().(*client.User)
 	log.Debug("begin CreateRoom.....")
 	ok1 := mod.CreateRoom(info, u)
-	if ok1 {
-		retCode = 0
+	if !ok1 {
+		retCode = ErrCreaterError
 		return
 	}
+
+	retCode = 0
+	return
 }
 
 //解散房间

@@ -239,7 +239,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 
 	u := agent.UserData().(*user.User)
-	if u.GetRoomCnt() > common.GetGlobalVarInt(MAX_CREATOR_ROOM_CNT) {
+	if u.GetRoomCnt() >= common.GetGlobalVarInt(MAX_CREATOR_ROOM_CNT) {
 		retCode = ErrMaxRoomCnt
 		return
 	}
@@ -290,6 +290,9 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
 	info.RoomId = rid
 	info.Num = recvMsg.DrawCountLimit
+	info.KindId = recvMsg.Kind
+	info.ServiceId = recvMsg.ServerId
+	model.CreateRoomInfoOp.Insert(info)
 
 	//回给客户端的消息
 	retMsg.TableID = rid
@@ -319,9 +322,9 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	feeTemp, ok1 := base.PersonalTableFeeCache.Get(roomInfo.ServerID, roomInfo.KindID, roomInfo.PayCnt)
+	feeTemp, ok1 := base.PersonalTableFeeCache.Get(roomInfo.KindID, roomInfo.ServerID, roomInfo.PayCnt)
 	if !ok1 {
-		log.Error("not foud PersonalTableFeeCache")
+		log.Error("not foud PersonalTableFeeCache kindId:%d, serverID:%d, payCnt:%d", roomInfo.KindID, roomInfo.ServerID, roomInfo.PayCnt)
 		retcode = NoFoudTemplate
 		return
 	}
@@ -349,7 +352,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	}
 
 	retMsg.TableID = roomInfo.RoomID
-	u.WriteMsg(retMsg)
+	return
 }
 
 ///////

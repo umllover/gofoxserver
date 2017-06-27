@@ -1,17 +1,16 @@
 package internal
 
 import (
+	"fmt"
+	"math"
+	"mj/common/cost"
 	"mj/common/msg"
-	"reflect"
-
-	//"math"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
-	"sort"
-
-	"mj/common/cost"
-
 	"mj/hallServer/idGenerate"
+	"reflect"
+	"sort"
+	"strconv"
 
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
@@ -24,6 +23,7 @@ var (
 	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
 	roomKindList = make(map[int]map[int]int)      //key1 is kind Id key2 incId
 	KindListInc  = 0
+	Test         = false
 )
 
 type ServerInfo struct {
@@ -172,7 +172,10 @@ func updateGameInfo(args []interface{}) {
 }
 
 func NotifyNewRoom(args []interface{}) {
-	log.Debug("at NotifyNewRoom === %v", args)
+	for _, v := range args {
+		log.Debug("at NotifyNewRoom === %v", v)
+	}
+
 	recvMsg := args[0].(*msg.RoomInfo)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
@@ -181,9 +184,9 @@ func NotifyNewRoom(args []interface{}) {
 		roomKindList[recvMsg.KindID] = m
 	}
 
-	/*if KindListInc >= math.MaxInt {
+	if int32(KindListInc) >= math.MaxInt32 {
 		KindListInc = 0
-	}*/
+	}
 	KindListInc++
 	recvMsg.Idx = KindListInc
 	m[KindListInc] = recvMsg.RoomID
@@ -273,7 +276,6 @@ func addGameList(v *msg.TagGameServer) {
 
 func GetSvrByKind(kindId int) string {
 	var minv *ServerInfo
-	log.Debug("aaaaaaaaaaa %v:%v", kindId, gameLists)
 	for _, v := range gameLists {
 		if _, ok := v.list[kindId]; !ok {
 			continue
@@ -287,11 +289,19 @@ func GetSvrByKind(kindId int) string {
 			minv = v
 		}
 
+		if Test {
+			fmt.Println(v.list[kindId].NodeID, conf.Server.NodeId)
+			if v.list[kindId].NodeID == conf.Server.NodeId {
+				minv = v
+				break
+			}
+		}
+
 	}
 
 	if minv == nil || len(minv.list) < 1 {
 		return ""
 	}
 	minv.wight++
-	return minv.list[kindId].ServerAddr
+	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort)
 }
