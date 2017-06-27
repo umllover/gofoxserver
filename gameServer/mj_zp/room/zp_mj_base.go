@@ -11,11 +11,14 @@ import (
 
 type ZP_base struct {
 	*mj_base.Mj_base
+	IsFollowCard bool //是否跟牌
 }
 
 func NewMJBase(info *model.CreateRoomInfo) *ZP_base {
 	mj := new(ZP_base)
 	mj.Mj_base = mj_base.NewMJBase(info)
+
+	mj.IsFollowCard = true
 	return mj
 }
 
@@ -71,6 +74,12 @@ func (room *ZP_base) OutCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
+
+	//todo,分饼记录
+	if room.IsFollowCard {
+
+	}
+
 	return
 }
 

@@ -23,6 +23,9 @@ type ZP_RoomData struct {
 	*mj_base.RoomData
 	ChaHuaTime *timer.Timer
 
+	FollowCard      []int //跟牌
+	FollowCardScore []int //跟牌得分
+
 	FlowerCnt map[int]int //补花数
 	ChaHuaMap map[int]int //插花数
 }
@@ -66,6 +69,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 
 	//设置漳浦麻将牌数据
 	room.EndLeftCount = 16
+	room.FollowCard = make([]int, 60)
 }
 
 func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
@@ -139,6 +143,15 @@ func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 		log.Debug("[用户补花] 用户：%d补花失败", user.ChairId)
 		return false
 	}
+
+	//记录补花
+	room.FlowerCnt[user.ChairId]++
+
+	//是否花杠
+	if room.FlowerCnt[user.ChairId] == 8 {
+		room.MjBase.OnEventGameConclude(user.ChairId, user, GER_NORMAL)
+	}
+
 	//状态变量
 	room.SendStatus = BuHua_Send
 	room.GangStatus = WIK_GANERAL
@@ -439,4 +452,38 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 //正常结束房间
 func (room *ZP_RoomData) NormalEnd() {
 	//todo,
+}
+
+//进行抓花
+func (room *ZP_RoomData) OnZhuaHua(CenterUser int) {
+	//todo,进行抓花
+
+	//room.RepertoryCard[room.l]
+}
+
+//记录分饼
+func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
+	room.FollowCard = append(room.FollowCard, cbCenterCard)
+
+	count := len(room.FollowCard) % 4
+	if count == 0 {
+		begin := count - 4
+		for i := begin; i < count; i++ {
+			if room.FollowCard[i] != cbCenterCard {
+				return false
+			}
+		}
+	}
+
+	userCNT := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	for i := 0; i < userCNT; i++ {
+		if i == room.BankerUser {
+			room.FollowCardScore[room.BankerUser] -= 3
+			continue
+		} else {
+			room.FollowCardScore[i] += 1
+		}
+	}
+
+	return true
 }
