@@ -1,6 +1,7 @@
 package room
 
 import (
+	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/common"
@@ -11,8 +12,6 @@ import (
 	"mj/common/msg/mj_zp_msg"
 
 	"time"
-
-	"math"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -64,6 +63,9 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
 	room.HistoryScores = make([]*mj_base.HistoryScore, UserCnt)
+
+	//设置漳浦麻将牌数据
+	room.EndLeftCount = 16
 }
 
 func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
@@ -110,7 +112,7 @@ func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
-	getData := &mj_zp_msg.C2G_MJZP_SetChaHua{}
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_SetChaHua)
 	room.ChaHuaMap[user.ChairId] = getData.SetCount
 	if len(room.ChaHuaMap) == 4 {
 		room.StartDispatchCard()
@@ -122,6 +124,60 @@ func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 		room.InitBankerAction()
 		//检查自摸
 		room.CheckZiMo()
+	}
+}
+
+//用户补花
+func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
+	agent := args[1].(gate.Agent)
+	user := agent.UserData().(*user.User)
+	gameLogic := room.MjBase.LogicMgr
+
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
+
+	if gameLogic.RemoveCard(room.CardIndex[user.ChairId], getData.CardData) == false {
+		log.Debug("[用户补花] 用户：%d补花失败", user.ChairId)
+		return false
+	}
+	//状态变量
+	room.SendStatus = BuHua_Send
+	room.GangStatus = WIK_GANERAL
+	room.ProvideUser = INVALID_CHAIR
+
+	//派发扑克
+	room.DispatchCardData(user.ChairId, true)
+
+	outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
+	outData.IsInitFlower = false
+	outData.ReplaceUser = user.ChairId
+	outData.ReplaceCard = getData.CardData
+	outData.NewCard = room.SendCardData
+	room.MjBase.UserMgr.SendMsgAll(&outData)
+
+	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", user.ChairId, getData.CardData, room.SendCardData)
+	return true
+}
+
+//用户听牌
+func (room *ZP_RoomData) OnUserListenCard(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user := agent.UserData().(*user.User)
+	//gameLogic := room.MjBase.LogicMgr
+
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_ListenCard)
+	if getData.ListenCard { //todo,用户点击听
+		//sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
+
+		//if WIK_LISTEN == gameLogic.AnalyseTingCard(room.CardIndex[user.ChairId], room.WeaveItemArray[user.ChairId],
+		//	, sendData.HuCardCount, sendData.HuCardData) {
+		//
+		//}
+	} else {
+		room.Ting[user.ChairId] = false
+		sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
+		sendData.ListenUser = user.ChairId
+		sendData.IsListen = false
+		room.MjBase.UserMgr.SendMsgAll(&sendData)
 	}
 }
 
@@ -144,7 +200,7 @@ func (room *ZP_RoomData) InitBuHua() {
 		if playerIndex >= 3 {
 			playerIndex = 0
 
-			outData := &mj_zp_msg.G2C_MJZP_FlowerCard{}
+			outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
 			outData.ReplaceUser = playerIndex
 			outData.IsInitFlower = true
 			for j := MAX_INDEX - MAX_HUA_INDEX; j < MAX_INDEX; j++ {
@@ -279,4 +335,108 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		TakeChairID = (TakeChairID + UserCnt - 1) % UserCnt
 	}
 	return
+}
+
+//响应判断
+func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int) bool {
+	//变量定义
+	bAroseAction := false
+
+	//用户状态
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.UserAction = make([]int, UserCnt)
+
+	//动作判断
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		//用户过滤
+		if wCenterUser == u.ChairId || room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+			return
+		}
+
+		//出牌类型
+		if EstimatKind == EstimatKind_OutCard {
+			//吃碰判断
+			if u.UserLimit&LimitPeng == 0 {
+				//碰牌判断
+				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimatePengCard(room.CardIndex[u.ChairId], cbCenterCard)
+
+				//吃牌判断
+				eatUser := (wCenterUser + 4 - 1) % 4 //4==GAME_PLAYER
+				if eatUser == u.ChairId {
+					room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateEatCard(room.CardIndex[u.ChairId], cbCenterCard)
+				}
+			}
+
+			//杠牌判断
+			if room.LeftCardCount > room.EndLeftCount && u.UserLimit&LimitGang == 0 {
+				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateGangCard(room.CardIndex[u.ChairId], cbCenterCard)
+			}
+
+			//吃胡判断
+			for i := 0; i < 4; i++ {
+				if i == wCenterUser {
+					continue
+				}
+				if u.UserLimit&LimitChiHu == 0 {
+					chr := 0
+					if room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, false) == WIK_CHI_HU {
+						room.UserAction[u.ChairId] |= WIK_CHI_HU
+					}
+				}
+			}
+		}
+
+		//检查抢杠胡
+		if EstimatKind == EstimatKind_GangCard {
+			//只有庄家和闲家之间才能放炮
+			MogicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
+			if room.MjBase.LogicMgr.GetMagicIndex() == MAX_INDEX || (room.MjBase.LogicMgr.GetMagicIndex() != MAX_INDEX && cbCenterCard != MogicCard) {
+				if u.UserLimit|LimitChiHu == 0 {
+					//吃胡判断
+					chr := 0
+					room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, false)
+				}
+			}
+		}
+
+		//结果判断
+		if room.UserAction[u.ChairId] != WIK_NULL {
+			bAroseAction = true
+		}
+	})
+
+	//结果处理
+	if bAroseAction {
+		//设置变量
+		room.ProvideUser = wCenterUser
+		room.ProvideCard = cbCenterCard
+		room.ResumeUser = room.CurrentUser
+		room.CurrentUser = INVALID_CHAIR
+
+		//发送提示
+		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+			if room.UserAction[u.ChairId] != WIK_NULL {
+				u.WriteMsg(&mj_zp_msg.C2G_MJZP_OperateNotify{
+					ActionMask: room.UserAction[u.ChairId],
+					ActionCard: room.ProvideCard,
+				})
+			}
+		})
+		return true
+	}
+
+	if room.GangStatus != WIK_GANERAL {
+		room.GangOutCard = true
+		room.GangStatus = WIK_GANERAL
+		room.ProvideGangUser = INVALID_CHAIR
+	} else {
+		room.GangOutCard = false
+	}
+
+	return false
+}
+
+//正常结束房间
+func (room *ZP_RoomData) NormalEnd() {
+	//todo,
 }
