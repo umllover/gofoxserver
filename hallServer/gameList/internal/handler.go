@@ -213,7 +213,7 @@ func delRoom(roomId int) {
 	if ok && ri != nil {
 		delete(m, ri.Idx)
 	} else {
-		log.Error("at NotifyDelRoom not foud kind id %v", kindId)
+		log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
 	}
 }
 
