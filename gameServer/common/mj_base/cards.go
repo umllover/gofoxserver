@@ -8,7 +8,7 @@ const (
 )
 
 var cards = [][]int{
-	0: []int{ //红中麻将原始麻将数据
+	IDX_HZMJ: []int{ //红中麻将原始麻将数据
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //万子
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //万子
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //万子
@@ -23,7 +23,7 @@ var cards = [][]int{
 		0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, //同子
 		0x35, 0x35, 0x35, 0x35, //红中
 	},
-	1: []int{ //漳浦麻将数据
+	IDX_ZPMJ: []int{ //漳浦麻将数据
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //同子
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //同子
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, //同子
@@ -44,19 +44,37 @@ var cards = [][]int{
 	},
 }
 
-func getCardByIdx(idx int) []int {
+type MJ_CFG struct {
+	MaxIdx       int //最多多少种牌
+	MaxWeave     int //最多多少种组合
+	MaxCount     int //最大手牌数目
+	MaxRepertory int //最多存放多少张牌
+	HuaIndex     int //花牌开始缩影
+	HuaCount     int //花牌数量
+}
+
+var cfg = []*MJ_CFG{
+	IDX_HZMJ: &MJ_CFG{
+		MaxIdx:       42,
+		MaxWeave:     5,
+		MaxCount:     14,
+		MaxRepertory: 112,
+		HuaIndex:     0,
+		HuaCount:     8,
+	},
+
+	IDX_ZPMJ: &MJ_CFG{},
+}
+
+func GetCardByIdx(idx int) []int {
 	hzcard := make([]int, len(cards[idx]))
 	oldcard := cards[idx]
 	util.DeepCopy(&hzcard, &oldcard)
 	return hzcard
 }
 
-//获红中麻将
-func GetHzmjCards() []int {
-	return getCardByIdx(IDX_HZMJ)
-}
 
-//获取漳浦麻将
-func GetZpmjCards() []int {
-	return getCardByIdx(IDX_ZPMJ)
+
+func GetCfg(idx int) *MJ_CFG {
+	return cfg[idx]
 }

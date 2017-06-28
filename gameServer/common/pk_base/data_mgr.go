@@ -151,9 +151,9 @@ func (room *RoomData) SendStatusPlay(u *user.User, userMgr common.UserManager, g
 	StatusPlay.CellScore = room.Source
 	StatusPlay.MagicIndex = gameLogic.GetMagicIndex()
 	StatusPlay.Trustee = userMgr.GetTrustees()
-	StatusPlay.HuCardCount = make([]int, room.MaxCount)
-	StatusPlay.HuCardData = make([][]int, room.MaxCount)
-	StatusPlay.OutCardDataEx = make([]int, room.MaxCount)
+	StatusPlay.HuCardCount = make([]int, room.GetCfg().MaxCount)
+	StatusPlay.HuCardData = make([][]int, room.GetCfg().MaxCount)
+	StatusPlay.OutCardDataEx = make([]int, room.GetCfg().MaxCount)
 	StatusPlay.CardCount = make([]int, UserCnt)
 	StatusPlay.TurnScore = make([]int, UserCnt)
 	StatusPlay.CollectScore = make([]int, UserCnt)
@@ -515,12 +515,12 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int, userMgr
 		room.UserAction[wTargetUser] |= gameLogic.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
 		if room.Ting[wTargetUser] == false {
-			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.MaxCount), HuCardCount: make([]int, room.MaxCount), HuCardData: make([][]int, room.MaxCount), HuCardRemainingCount: make([][]int, room.MaxCount)}
+			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 			cbCount := gameLogic.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
 			HuData.OutCardCount = cbCount
 			if cbCount > 0 {
 				room.UserAction[wTargetUser] |= WIK_LISTEN
-				for i := 0; i < room.MaxCount; i++ {
+				for i := 0; i < room.GetCfg().MaxCount; i++ {
 					if HuData.HuCardCount[i] > 0 {
 						for j := 0; j < HuData.HuCardCount[i]; j++ {
 							HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j], gameLogic)
@@ -711,14 +711,14 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, userMgr common.UserMana
 
 	log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
 	//听牌判断
-	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.MaxCount), HuCardCount: make([]int, room.MaxCount), HuCardData: make([][]int, room.MaxCount), HuCardRemainingCount: make([][]int, room.MaxCount)}
+	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[wCurrentUser] == false {
 		cbCount := gameLogic.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
 		HuData.OutCardCount = int(cbCount)
 		if cbCount > 0 {
 			room.UserAction[wCurrentUser] |= WIK_LISTEN
 
-			for i := 0; i < room.MaxCount; i++ {
+			for i := 0; i < room.GetCfg().MaxCount; i++ {
 				if HuData.HuCardCount[i] > 0 {
 					for j := 0; j < HuData.HuCardCount[i]; j++ {
 						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j], gameLogic))
@@ -806,7 +806,7 @@ func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic co
 	userMgr.ForEachUser(func(u *user.User) {
 		room.LeftCardCount -= 1
 		room.MinusHeadCount += 1
-		for i := 0; i < room.MaxCount-1; i++ {
+		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
 			room.CardIndex[u.ChairId][i] = gameLogic.SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 		}
 	})
@@ -888,13 +888,13 @@ func (room *RoomData) CheckZiMo(gameLogic common.LogicManager, userMgr common.Us
 	//听牌判断
 	Count := 0
 	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
-	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.MaxCount), HuCardCount: make([]int, room.MaxCount), HuCardData: make([][]int, room.MaxCount), HuCardRemainingCount: make([][]int, room.MaxCount)}
+	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[room.BankerUser] == false {
 		Count = gameLogic.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
 		HuData.OutCardCount = Count
 		if Count > 0 {
 			room.UserAction[room.BankerUser] |= WIK_LISTEN
-			for i := 0; i < room.MaxCount; i++ {
+			for i := 0; i < room.GetCfg().MaxCount; i++ {
 				if HuData.HuCardCount[i] > 0 {
 					for j := 0; j < HuData.HuCardCount[i]; j++ {
 						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j], gameLogic))
@@ -918,7 +918,7 @@ func (room *RoomData) SendGameStart(gameLogic common.LogicManager, userMgr commo
 	GameStart.HeapTail = room.HeapTail
 	GameStart.MagicIndex = gameLogic.GetMagicIndex()
 	GameStart.HeapCardInfo = room.HeapCardInfo
-	GameStart.CardData = make([]int, room.MaxCount)
+	GameStart.CardData = make([]int, room.GetCfg().MaxCount)
 	//发送数据
 	userMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]
@@ -944,7 +944,7 @@ func (room *RoomData) NormalEnd(userMgr common.UserManager, gameLogic common.Log
 	GameConclude.MaData = make([]int, UserCnt)
 
 	for i, _ := range GameConclude.HandCardData {
-		GameConclude.HandCardData[i] = make([]int, room.MaxCount)
+		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
 	}
 
 	GameConclude.SendCardData = room.SendCardData
@@ -1040,7 +1040,7 @@ func (room *RoomData) DismissEnd(userMgr common.UserManager, gameLogic common.Lo
 	GameConclude.MaCount = make([]int, UserCnt)
 	GameConclude.MaData = make([]int, UserCnt)
 	for i, _ := range GameConclude.HandCardData {
-		GameConclude.HandCardData[i] = make([]int, room.MaxCount)
+		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
 	}
 
 	room.BankerUser = INVALID_CHAIR

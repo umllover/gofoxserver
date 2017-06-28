@@ -11,7 +11,7 @@ import (
 func IsValidCard(cbCardData int) bool {
 	var cbValue = int(cbCardData & MASK_VALUE)
 	var cbColor = int((cbCardData & MASK_COLOR) >> 4)
-	return ((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= (7 + MAX_HUA_INDEX)) && (cbColor == 3))
+	return ((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= (7 + GetCfg(IDX_HZMJ).HuaIndex)) && (cbColor == 3))
 }
 
 //扑克转换
@@ -44,14 +44,20 @@ type BaseLogic struct {
 	SwitchToIdx   func(int) int
 	CheckValid    func(int) bool
 	SwitchToCard  func(int) int
+	ConfigIdx     int //配置文件索引
 }
 
-func NewBaseLogic() *BaseLogic {
+func NewBaseLogic(ConfIdx int) *BaseLogic {
 	bl := new(BaseLogic)
 	bl.CheckValid = IsValidCard
 	bl.SwitchToIdx = SwitchToCardIndex
 	bl.SwitchToCard = SwitchToCardData
+	bl.ConfigIdx = ConfIdx
 	return bl
+}
+
+func (lg *BaseLogic) GetCfg() *MJ_CFG {
+	return GetCfg(lg.ConfigIdx)
 }
 
 func (lg *BaseLogic) SwitchToCardData(cbCardIndex int) int {
@@ -141,7 +147,7 @@ func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
 func (lg *BaseLogic) GetCardCount(cbCardIndex []int) int {
 	//数目统计
 	cbCardCount := 0
-	for i := 0; i < MAX_INDEX; i++ {
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 		cbCardCount += cbCardIndex[i]
 	}
 	return cbCardCount
@@ -246,7 +252,7 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	TagAnalyseItemArray := make([]*TagAnalyseItem, 0) //
 
 	//构造扑克
-	cbCardIndexTemp := make([]int, MAX_INDEX)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
 
 	//cbCurrentCard一定不为0			!!!!!!!!!
@@ -284,9 +290,9 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	//设置变量
 	cbActionMask := WIK_NULL
 	cbWeaveCount := len(WeaveItem)
-	gangCardResult.CardData = make([]int, MAX_WEAVE)
+	gangCardResult.CardData = make([]int, lg.GetCfg().MaxWeave)
 	//手上杠牌
-	for i := 0; i < MAX_INDEX; i++ {
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 		if i == lg.MagicIndex {
 			continue
 		}
@@ -314,14 +320,14 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
 
 	cbOutCount := 0
-	cbCardIndexTemp := make([]int, MAX_INDEX)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
 
 	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
 	chr := 0
 
 	if (cbCardCount-2)%3 == 0 {
-		for i := 0; i < MAX_INDEX-MAX_HUA_INDEX; i++ {
+		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
 			if cbCardIndexTemp[i] == 0 {
 				continue
 			}
@@ -329,7 +335,7 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 			bAdd := false
 			nCount := 0
-			for j := 0; j < MAX_INDEX-MAX_HUA_INDEX; j++ {
+			for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
 				cbCurrentCard := lg.SwitchToCard(j)
 				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
 					if bAdd == false {
@@ -338,7 +344,7 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 						cbOutCount++
 					}
 					if len(cbHuCardData[cbOutCount-1]) < 1 {
-						cbHuCardData[cbOutCount-1] = make([]int, MAX_INDEX-MAX_HUA_INDEX)
+						cbHuCardData[cbOutCount-1] = make([]int, lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex)
 					}
 					cbHuCardData[cbOutCount-1][nCount] = lg.SwitchToCard(j)
 					nCount++
@@ -352,12 +358,12 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		}
 	} else {
 		cbCount := 0
-		for j := 0; j < MAX_INDEX; j++ {
+		for j := 0; j < lg.GetCfg().MaxIdx; j++ {
 			cbCurrentCard := lg.SwitchToCard(j)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount,false) {
+			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
 				log.Debug("cbCount === %v", cbHuCardData)
 				if len(cbHuCardData[0]) < 1 {
-					cbHuCardData[0] = make([]int, MAX_INDEX)
+					cbHuCardData[0] = make([]int, lg.GetCfg().MaxIdx)
 				}
 
 				cbHuCardData[0][cbCount] = cbCurrentCard
@@ -378,7 +384,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
@@ -391,7 +397,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 	//单吊判断
 	if cbLessKindItem == 0 {
 		//牌眼判断
-		for i := 0; i < MAX_INDEX; i++ {
+		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 			if cbCardIndex[i] == 2 {
 				//变量定义
 				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
@@ -415,7 +421,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 	}
 
 	if cbCardCount >= 3 {
-		for i := 0; i < MAX_INDEX; i++ { //不计算花牌
+		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 {
 				tg := &TagKindItem{CardIndex: make([]int, 4)}
@@ -429,7 +435,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 			}
 
 			//连牌判断
-			if (i < (MAX_INDEX - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
+			if (i < (lg.GetCfg().MaxIdx - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
 				for j := 1; j <= cbCardIndex[i]; j++ {
 					if (cbCardIndex[i+1] >= j) && (cbCardIndex[i+2] >= j) {
 						tg := &TagKindItem{CardIndex: make([]int, 4)}
@@ -449,7 +455,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 	//组合分析
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
-		cbCardIndexTemp := make([]int, MAX_INDEX)
+		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 		cbIndex := []int{0, 1, 2, 3}
 
 		//开始组合
@@ -475,7 +481,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 				//牌眼判断
 				cbCardEye := 0
 
-				for i := 0; i < MAX_INDEX; i++ {
+				for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 					if cbCardIndexTemp[i] == 2 {
 						cbCardEye = lg.SwitchToCard(i)
 						break
@@ -485,9 +491,9 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 				//组合类型
 				if cbCardEye != 0 {
 					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, MAX_WEAVE), CenterCard: make([]int, MAX_WEAVE), CardData: make([][]int, MAX_WEAVE)}
-					for i := 0; i < MAX_WEAVE; i++ {
-						analyseItem.CardData[i] = make([]int, MAX_WEAVE)
+					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx)}
+					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
+						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 					}
 					//设置组合
 					for i := 0; i < cbWeaveCount; i++ {
@@ -540,13 +546,13 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 func (lg *BaseLogic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	//转换扑克
 
-	if lg.MagicIndex != MAX_INDEX { //有财神， 把财神放进去
+	if lg.MagicIndex != lg.GetCfg().MaxIdx { //有财神， 把财神放进去
 		for i := 0; i < cbCardIndex[lg.MagicIndex]; i++ {
 			cbCardData = append(cbCardData, lg.SwitchToCard(lg.MagicIndex))
 		}
 	}
-	for i := 0; i < MAX_INDEX; i++ {
-		if i == lg.MagicIndex && lg.MagicIndex != lg.ReplaceCard && lg.ReplaceCard != MAX_INDEX {
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+		if i == lg.MagicIndex && lg.MagicIndex != lg.ReplaceCard && lg.ReplaceCard != lg.GetCfg().MaxIdx {
 			//如果财神有代替牌，则代替牌代替财神原来的位置
 			for j := 0; j < cbCardIndex[lg.ReplaceCard]; j++ {
 				cbCardData = append(cbCardData, lg.SwitchToCard(lg.ReplaceCard))
