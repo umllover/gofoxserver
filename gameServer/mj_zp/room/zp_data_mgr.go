@@ -11,8 +11,6 @@ import (
 
 	"mj/common/msg/mj_zp_msg"
 
-	"time"
-
 	"encoding/json"
 
 	"github.com/lovelly/leaf/gate"
@@ -49,12 +47,13 @@ func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOptio
 		log.Error("at NewDataMgr error:%s", err.Error())
 		return nil
 	}
-	getData, ok := info["ZhuaHua"].(int)
+
+	getData, ok := info["ZhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
 		return nil
 	}
-	r.ZhuaHuaCnt = getData
+	r.ZhuaHuaCnt = int(getData)
 
 	getData2, ok := info["WithZiCard"].(bool)
 	if !ok {
@@ -63,12 +62,12 @@ func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOptio
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := info["ScoreType"].(int)
+	getData3, ok := info["ScoreType"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ScoreType] error")
 		return nil
 	}
-	r.ScoreType = getData3
+	r.ScoreType = int(getData3)
 
 	return r
 }
@@ -117,19 +116,19 @@ func (room *ZP_RoomData) StartGameing() {
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_GetChaHua{})
 		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
-			log.Debug("超时插花")
-			//洗牌
-			room.StartDispatchCard()
-			//向客户端发牌
-			room.SendGameStart()
-			//开局补花
-			room.InitBuHua()
-			//庄家开局动作
-			room.InitBankerAction()
-			//检查自摸
-			room.CheckZiMo()
-		})
+		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
+		log.Debug("超时插花")
+		//洗牌
+		room.StartDispatchCard()
+		//向客户端发牌
+		room.SendGameStart()
+		//开局补花
+		room.InitBuHua()
+		//庄家开局动作
+		room.InitBankerAction()
+		//检查自摸
+		room.CheckZiMo()
+		//})
 	} else {
 		room.StartDispatchCard()
 		//向客户端发牌
@@ -275,14 +274,17 @@ func (room *ZP_RoomData) InitBuHua() {
 
 //庄家开局动作
 func (room *ZP_RoomData) InitBankerAction() {
+	log.Debug("庄家开局动作")
 	userMgr := room.MjBase.UserMgr
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	gameLogic := room.MjBase.LogicMgr
 	room.UserAction = make([]int, UserCnt)
 
+	log.Debug("庄家开局动作--杠牌")
 	gangCardResult := &common.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
+	log.Debug("庄家开局动作--胡牌判断")
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--

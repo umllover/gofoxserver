@@ -19,8 +19,6 @@ import (
 
 	"encoding/json"
 
-	"fmt"
-
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -39,6 +37,12 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+
+}
+
+func TestOutCard(t *testing.T) {
+	args := []interface{}{u1, 0x11}
+	room.OutCard(args)
 	Wg.Wait()
 }
 
@@ -105,6 +109,7 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
@@ -121,24 +126,23 @@ func init() {
 		ServiceId:    1,
 	}
 
+	//游戏配置
 	type gameCfg struct {
 		ZhuaHua    int
 		WithZiCard bool
 		ScoreType  int
 	}
-
-	setCfg := gameCfg{
-		ZhuaHua:    0,
-		WithZiCard: true,
-		ScoreType:  33,
+	setCfg := map[string]interface{}{
+		"ZhuaHua":    0,
+		"WithZiCard": true,
+		"ScoreType":  33,
 	}
-
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
 	}
-	fmt.Println("#############", string(myCfg))
+	info.OtherInfo = string(myCfg)
 
 	base := room_base.NewRoomBase()
 
@@ -148,8 +152,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	info.OtherInfo= string(myCfg)
-	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r, info.OtherInfo)
+	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, "", temp, r, info.OtherInfo)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
@@ -178,6 +181,7 @@ func init() {
 		userg.Users[i] = u
 		u.ChairId = i
 	}
+
 }
 
 func newTestUser(uid int) *user.User {
