@@ -10,6 +10,7 @@ import (
 	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/cluster"
 )
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -399,4 +400,13 @@ func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
 			HeaderUrl:   eachuser.HeadImgUrl,  //头像
 		})
 	})
+}
+
+func (room *RoomUserMgr) SendDataToHallUser(chiairID int, funcName string, data interface{}) {
+	u := room.GetUserByChairId(chiairID)
+	if u == nil {
+		return
+	}
+
+	cluster.Go(u.HallNodeName,funcName )
 }

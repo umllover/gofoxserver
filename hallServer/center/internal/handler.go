@@ -27,6 +27,8 @@ func init() {
 	handleRpc("SendMsgToUser", GoMsgToUser)
 	handleRpc("AsyncCallUser", AsyncCallUser)
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
+	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
+	handleRpc("SendMsgToHallUser", HanldeFromGameMsg)
 }
 
 //玩家在本服节点登录
@@ -76,6 +78,22 @@ func GoMsgToUser(args []interface{}) {
 	if ok1 {
 		cluster.Go(ServerName, "SendMsgToUser", args...)
 	}
+}
+
+func SendMsgToSelfNotdeUser(args []interface{}) {
+	uid := args[0].(int)
+	FuncName := args[1].(string)
+	ch, ok := Users[uid]
+	if ok {
+		ch.Go(FuncName, args[2:]...)
+		return
+	}
+	log.Debug("at SendMsgToSelfNotdeUser player not in node")
+}
+
+//处理来自游戏服的消息
+func HanldeFromGameMsg(args []interface{}) {
+	SendMsgToSelfNotdeUser(args)
 }
 
 //异步回调消息给别的玩家

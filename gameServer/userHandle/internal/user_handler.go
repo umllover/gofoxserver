@@ -272,7 +272,7 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		log.Error("at UserSitdown not foud roomd:%v, userid:%d", user.RoomId, user.Id)
 		return
 	}
 

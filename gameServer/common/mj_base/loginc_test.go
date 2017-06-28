@@ -11,10 +11,9 @@ import (
 	"net"
 	"testing"
 
-	"mj/common/msg/mj_hz_msg"
-
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -31,18 +30,12 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestOutCard(t *testing.T) {
-	msg := &mj_hz_msg.C2G_HZMJ_HZOutCard{
-		CardData: 1,
-	}
-	room.OutCard([]interface{}{msg, u1})
+
+	room.OutCard([]interface{}{u1, 1})
 }
 
 func TestGameConclude(t *testing.T) {
-	msg := &mj_hz_msg.C2G_HZMJ_OperateCard{
-		OperateCode: 64,
-		OperateCard: []int{1, 1, 1},
-	}
-	room.UserOperateCard([]interface{}{msg, u1})
+	room.UserOperateCard([]interface{}{u1, 1, []int{1}})
 }
 
 func TestDispatchCardData(t *testing.T) {
@@ -65,6 +58,7 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
@@ -89,12 +83,12 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_ZPMJ, temp.GameName, temp, r)
+	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
-		LogicMgr: NewBaseLogic(),
+		LogicMgr: NewBaseLogic(IDX_HZMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
@@ -148,3 +142,11 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+
+func InitLog() {
+	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
+	if err != nil {
+		panic(err)
+	}
+	log.Export(logger)
+}
