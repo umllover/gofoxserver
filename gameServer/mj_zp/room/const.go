@@ -22,14 +22,6 @@ const (
 	MASK_VALUE = 0x0F //数值掩码
 )
 
-//常量定义
-const (
-	MAX_WEAVE     = 5   //最大组合
-	room.MaxCount     = 17  //最大数目
-	MAX_REPERTORY = 144 //最大库存
-	MAX_HUA_INDEX = 8   //花牌索引
-	MAX_HUA_COUNT = 8   //花牌个数
-)
 
 //麻将限制行为
 const (

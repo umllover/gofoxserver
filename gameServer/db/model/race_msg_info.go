@@ -17,8 +17,7 @@ import (
 // +gen *
 type RaceMsgInfo struct {
 	MsgID        int    `db:"MsgID" json:"MsgID"`               //
-	StartTime    int    `db:"StartTime" json:"StartTime"`       //
-	EndTime      int    `db:"EndTime" json:"EndTime"`           //
+	SendTimes    int    `db:"SendTimes" json:"SendTimes"`       // 还需要发送多少次，发完删除该记录
 	IntervalTime int    `db:"IntervalTime" json:"IntervalTime"` //
 	Context      string `db:"Context" json:"Context"`           //
 	MsgType      int    `db:"MsgType" json:"MsgType"`           //
@@ -116,10 +115,9 @@ func (op *raceMsgInfoOp) Insert(m *RaceMsgInfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *raceMsgInfoOp) InsertTx(ext sqlx.Ext, m *RaceMsgInfo) (int64, error) {
-	sql := "insert into race_msg_info(StartTime,EndTime,IntervalTime,Context,MsgType) values(?,?,?,?,?)"
+	sql := "insert into race_msg_info(SendTimes,IntervalTime,Context,MsgType) values(?,?,?,?)"
 	result, err := ext.Exec(sql,
-		m.StartTime,
-		m.EndTime,
+		m.SendTimes,
 		m.IntervalTime,
 		m.Context,
 		m.MsgType,
@@ -149,10 +147,9 @@ func (op *raceMsgInfoOp) Update(m *RaceMsgInfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *raceMsgInfoOp) UpdateTx(ext sqlx.Ext, m *RaceMsgInfo) error {
-	sql := `update race_msg_info set StartTime=?,EndTime=?,IntervalTime=?,Context=?,MsgType=? where MsgID=?`
+	sql := `update race_msg_info set SendTimes=?,IntervalTime=?,Context=?,MsgType=? where MsgID=?`
 	_, err := ext.Exec(sql,
-		m.StartTime,
-		m.EndTime,
+		m.SendTimes,
 		m.IntervalTime,
 		m.Context,
 		m.MsgType,

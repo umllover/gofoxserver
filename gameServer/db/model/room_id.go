@@ -17,7 +17,7 @@ import (
 // +gen *
 type RoomId struct {
 	Id     int `db:"id" json:"id"`           //
-	UserId int `db:"user_id" json:"user_id"` //
+	NodeId int `db:"node_id" json:"node_id"` //
 }
 
 type roomIdOp struct{}
@@ -112,10 +112,10 @@ func (op *roomIdOp) Insert(m *RoomId) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *roomIdOp) InsertTx(ext sqlx.Ext, m *RoomId) (int64, error) {
-	sql := "insert into room_id(id,user_id) values(?,?)"
+	sql := "insert into room_id(id,node_id) values(?,?)"
 	result, err := ext.Exec(sql,
 		m.Id,
-		m.UserId,
+		m.NodeId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -142,9 +142,9 @@ func (op *roomIdOp) Update(m *RoomId) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *roomIdOp) UpdateTx(ext sqlx.Ext, m *RoomId) error {
-	sql := `update room_id set user_id=? where id=?`
+	sql := `update room_id set node_id=? where id=?`
 	_, err := ext.Exec(sql,
-		m.UserId,
+		m.NodeId,
 		m.Id,
 	)
 

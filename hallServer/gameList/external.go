@@ -15,14 +15,13 @@ func init() {
 	cluster.AgentChanRPC = ChanRPC
 }
 
-func GetSvrByKind(kindId int) string {
+func GetSvrByKind(kindId int) (string, int) {
 	return internal.GetSvrByKind(kindId)
 }
 
 func GetSvrByNodeID(kindId int) string {
 	return internal.GetSvrByNodeID(kindId)
 }
-
 
 func SetTest(v bool) {
 	internal.Test = v

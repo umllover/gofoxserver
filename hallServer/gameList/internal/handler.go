@@ -277,7 +277,7 @@ func addGameList(v *msg.TagGameServer) {
 	gminfo.list[v.KindID] = v
 }
 
-func GetSvrByKind(kindId int) string {
+func GetSvrByKind(kindId int) (string, int) {
 	var minv *ServerInfo
 	for _, v := range gameLists {
 		if _, ok := v.list[kindId]; !ok {
@@ -303,10 +303,10 @@ func GetSvrByKind(kindId int) string {
 	}
 
 	if minv == nil || len(minv.list) < 1 {
-		return ""
+		return "", 0
 	}
 	minv.wight++
-	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort)
+	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort), minv.list[kindId].NodeID
 }
 
 func GetSvrByNodeID(nodeid int) string {
