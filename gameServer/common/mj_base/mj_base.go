@@ -133,7 +133,7 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
-	room.Destroy(room.DataMgr.GetRoomId())
+	room.AfertEnd(true)
 }
 
 //玩家准备
@@ -196,7 +196,7 @@ func (room *Mj_base) OffLineTimeOut(u *user.User) {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
 	} else {
 		if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
-			room.Destroy(room.DataMgr.GetRoomId())
+			room.AfertEnd(true)
 		}
 	}
 }
@@ -421,7 +421,11 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Mj_base) AfertEnd(Forced bool) {
-	if Forced {
+	room.TimerMgr.AddPlayCount()
+	if Forced || room.TimerMgr.GetPlayCount() >= room.Temp.PlayTurnCount {
+		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: room.DataMgr.GetRoomId(),
+		})
 		room.Destroy(room.DataMgr.GetRoomId())
 		return
 	}
@@ -429,11 +433,6 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.SetUsetStatus(u, US_FREE)
 	})
-
-	room.TimerMgr.AddPlayCount()
-	if room.TimerMgr.GetPlayCount() >= room.Temp.PlayTurnCount {
-		room.Destroy(room.DataMgr.GetRoomId())
-	}
 }
 
 //托管

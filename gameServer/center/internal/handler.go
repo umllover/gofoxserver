@@ -16,11 +16,11 @@ func handleRpc(id interface{}, f interface{}) {
 }
 
 func init() {
-	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
-	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
-	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
-	handleRpc("SendMsgToUser", GoMsgToUser)
+	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)         //暂时无效
+	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)         //暂时无效
+	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)   //暂时无效
+	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout) //暂时无效
+	handleRpc("SendMsgToUser", GoMsgToUser)                   //暂时无效
 }
 
 //玩家在本服节点登录

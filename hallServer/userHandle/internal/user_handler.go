@@ -34,7 +34,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
 	m.ChanRPC.Register("GetUser", m.GetUser)
 	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
-
+	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
@@ -518,6 +518,11 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
 	retMsg.ServerIP = user.EnterIP
+}
+
+func (m *UserModule) RoomCloseInfo(args []interface{}) {
+
+	return
 }
 
 /////////////////////////////// help 函数

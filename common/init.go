@@ -14,4 +14,5 @@ func Init() {
 	gob.Register([]*msg.TagGameServer{})
 	gob.Register(&msg.RoomInfo{})
 	gob.Register([]*msg.RoomInfo{})
+	gob.Register(&msg.RoomEndInfo{})
 }

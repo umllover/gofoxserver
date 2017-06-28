@@ -7,19 +7,16 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
+	"mj/hallServer/db/model"
 	"mj/hallServer/idGenerate"
 	"reflect"
 	"sort"
 	"strconv"
-
 	"strings"
-
-	"mj/gameServer/db/model"
 
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
-	"mj/gameServer/center"
 )
 
 var (

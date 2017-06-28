@@ -66,6 +66,9 @@ type UserManager interface {
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
+	SendDataToHallUser(chiairID int, funcName string, data interface{})
+	SendMsgToHallServerAll(funcName string, data interface{})
+	SendCloseRoomToHall(data interface{})
 
 	GetCurPlayerCnt() int
 	GetMaxPlayerCnt() int

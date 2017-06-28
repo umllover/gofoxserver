@@ -9,8 +9,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/log"
 )
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -408,5 +408,18 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, funcName string, data 
 		return
 	}
 
-	cluster.Go(u.HallNodeName,funcName )
+	cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+}
+
+func (room *RoomUserMgr) SendMsgToHallServerAll(funcName string, data interface{}) {
+	for _, u := range room.Users {
+		if u == nil {
+			continue
+		}
+		cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+	}
+}
+
+func (room *RoomUserMgr) SendCloseRoomToHall(data interface{}) {
+	room.SendMsgToHallServerAll("RoomCloseInfo", data)
 }
