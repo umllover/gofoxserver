@@ -5,6 +5,8 @@ import (
 
 	"time"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
@@ -67,6 +69,7 @@ func (r *RoomBase) Destroy(id int) {
 			log.Recover(r)
 		}
 	}()
+	RoomMgr.DelRoom(id)
 	r.CloseSig <- true
 }
 

@@ -201,16 +201,15 @@ func addRoom(recvMsg *msg.RoomInfo) {
 
 func NotifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
-	kindId := args[0].(int)
-	roomId := args[1].(int)
-	delRoom(roomId, kindId)
+	roomId := args[0].(int)
+	delRoom(roomId)
 }
 
-func delRoom(roomId, kindId int) {
+func delRoom(roomId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
 	idGenerate.DelRoomId(roomId)
-	m, ok := roomKindList[kindId]
+	m, ok := roomKindList[ri.KindID]
 	if ok && ri != nil {
 		delete(m, ri.Idx)
 	} else {
