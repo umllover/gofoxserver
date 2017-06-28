@@ -11,14 +11,12 @@ import (
 
 type ZP_base struct {
 	*mj_base.Mj_base
-	IsFollowCard bool //是否跟牌
 }
 
 func NewMJBase(info *model.CreateRoomInfo) *ZP_base {
 	mj := new(ZP_base)
 	mj.Mj_base = mj_base.NewMJBase(info)
 
-	mj.IsFollowCard = true
 	return mj
 }
 
@@ -35,26 +33,26 @@ func (room *ZP_base) OutCard(args []interface{}) {
 
 	//效验状态
 	if room.Status != RoomStatusStarting {
-		log.Error("at OnUserOutCard game status != RoomStatusStarting ")
+		log.Error("zpmj at OnUserOutCard game status != RoomStatusStarting ")
 		retcode = ErrGameNotStart
 		return
 	}
 
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
-		log.Error("at OnUserOutCard not self out ")
+		log.Error("zpmj at OnUserOutCard not self out ")
 		retcode = ErrNotSelfOut
 		return
 	}
 
 	if !room.LogicMgr.IsValidCard(CardData) {
-		log.Error("at OnUserOutCard IsValidCard card ")
+		log.Error("zpmj at OnUserOutCard IsValidCard card ")
 		retcode = NotValidCard
 	}
 
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
-		log.Error("at OnUserOutCard not have card ")
+		log.Error("zpmj at OnUserOutCard not have card ")
 		retcode = ErrNotFoudCard
 		return
 	}
@@ -73,11 +71,6 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
-	}
-
-	//todo,分饼记录
-	if room.IsFollowCard {
-
 	}
 
 	return
@@ -115,7 +108,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
-			return
 		}
 
 		//胡牌操作

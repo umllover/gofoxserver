@@ -13,6 +13,8 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_GetChaHua{})
 	msg.Processor.Register(&G2C_MJZP_ReplaceCard{})
 	msg.Processor.Register(&G2C_MJZP_ListenCard{})
+	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
+	msg.Processor.Register(&G2C_ZPMJ_ZhuaHua{})
 
 }
 
@@ -66,4 +68,34 @@ type C2G_ZPMJ_OutCard struct {
 type C2G_ZPMJ_OperateCard struct {
 	OperateCode int
 	OperateCard []int
+}
+
+//游戏结束
+type G2C_ZPMJ_GameConclude struct {
+	//积分变量
+	CellScore int   //单元积分
+	GameScore []int //游戏积分
+	Revenue   []int //税收积分
+	GangScore []int //本局杠输赢分
+	//结束信息
+	ProvideUser  int   //供应用户
+	ProvideCard  int   //供应扑克
+	SendCardData int   //最后发牌
+	ChiHuKind    []int //胡牌类型
+	ChiHuRight   []int //胡牌类型
+	LeftUser     int   //玩家逃跑
+	LianZhuang   int   //连庄
+
+	//游戏信息
+	CardCount    []int   //扑克数目
+	HandCardData [][]int //扑克列表
+
+	MaCount []int //码数
+	MaData  []int //码数据
+}
+
+//抓花
+type G2C_ZPMJ_ZhuaHua struct {
+	ZhongHua []int
+	BuZhong  []int
 }

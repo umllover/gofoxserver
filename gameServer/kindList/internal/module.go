@@ -6,6 +6,7 @@ import (
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
+	"mj/gameServer/mj_zp"
 
 	"mj/gameServer/common/room_base"
 
@@ -19,6 +20,7 @@ var (
 	KModule  = new(Module)
 	Kinds    = map[int]room_base.Module{ // Register here
 		common.KIND_TYPE_HZMJ: hzmj.Module,
+		common.KIND_TYPE_ZPMJ: zpmj.Module,
 	}
 )
 
