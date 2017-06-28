@@ -44,8 +44,28 @@ type AnalyseResult struct {
 
 }
 
+
+type NNBaseLogic struct {
+	/*CardDataArray []int //扑克数据
+	MagicIndex    int   //钻牌索引
+	ReplaceCard   int   //替换金牌的牌
+	SwitchToIdx   func(int) int
+	CheckValid    func(int) bool
+	SwitchToCard  func(int) int*/
+}
+
+func NewNNBaseLogic() *NNBaseLogic {
+	bl := new(NNBaseLogic)
+	/*bl.CheckValid = IsValidCard
+	bl.SwitchToIdx = SwitchToCardIndex
+	bl.SwitchToCard = SwitchToCardData*/
+	return bl
+}
+
+
+
 //获取牛牛牌值
-func NNGetCardLogicValue( CardData int) int {
+func (lg *NNBaseLogic)NNGetCardLogicValue( CardData int) int {
 	//扑克属性
 	//CardColor = GetCardColor(CardData)
 	CardValue := pk_base.GetCardValue(CardData)
@@ -62,7 +82,7 @@ func NNGetCardLogicValue( CardData int) int {
 
 
 //获取牛牛牌型
-func NNGetCardType(CardData []int, CardCount int) int {
+func (lg *NNBaseLogic)NNGetCardType(CardData []int, CardCount int) int {
 
 	if CardCount != NN_MAX_COUNT {
 		return 0
@@ -74,7 +94,7 @@ func NNGetCardType(CardData []int, CardCount int) int {
 	var Temp [NN_MAX_COUNT]int
 	Sum :=0
 	for i:=0; i<CardCount; i++ {
-		Temp[i] = NNGetCardLogicValue(CardData[i])
+		Temp[i] = lg.NNGetCardLogicValue(CardData[i])
 		log.Debug("%d", Temp[i])
 		Sum += Temp[i]
 	}
@@ -96,8 +116,8 @@ func NNGetCardType(CardData []int, CardCount int) int {
 		return OX_FIVEKING//五花――5张牌都是10以上（不含10）的牌。。
 	}
 
-	Value := NNGetCardLogicValue(CardData[3])
-	Value += NNGetCardLogicValue(CardData[4])
+	Value := lg.NNGetCardLogicValue(CardData[3])
+	Value += lg.NNGetCardLogicValue(CardData[4])
 
 	if Value>10 {
 		if CardData[3]==0x4E||CardData[4]==0x4F||CardData[4]==0x4E||CardData[3]==0x4F {
@@ -113,14 +133,14 @@ func NNGetCardType(CardData []int, CardCount int) int {
 
 
 //获取牛牛倍数
-func NNGetTimes (cardData []int, cardCount int, niu int) int {
+func (lg *NNBaseLogic)NNGetTimes (cardData []int, cardCount int, niu int) int {
 	if niu != 1 {
 		return  1
 	}
 	if cardCount != NN_MAX_COUNT {
 		return 0
 	}
-	times := NNGetCardType(cardData, NN_MAX_COUNT)
+	times := lg.NNGetCardType(cardData, NN_MAX_COUNT)
 	log.Debug("times %d", times)
 
 
@@ -145,7 +165,7 @@ func NNGetTimes (cardData []int, cardCount int, niu int) int {
 }
 
 // 获取牛牛
-func  NNGetOxCard(cardData []int, cardCount int) bool  {
+func  (lg *NNBaseLogic)NNGetOxCard(cardData []int, cardCount int) bool  {
 	if cardCount != NN_MAX_COUNT {
 		return  false
 	}
@@ -153,7 +173,7 @@ func  NNGetOxCard(cardData []int, cardCount int) bool  {
 	//var tempData[NN_MAX_COUNT]int
 	sum := 0
 	for i:=0; i<NN_MAX_COUNT; i++ {
-		temp[i] = NNGetCardLogicValue(cardData[i])
+		temp[i] = lg.NNGetCardLogicValue(cardData[i])
 		sum += temp[i]
 	}
 	//王的数量
@@ -234,10 +254,10 @@ func  NNGetOxCard(cardData []int, cardCount int) bool  {
 }
 
 // 牛牛获取整数
-func  NNIsIntValue(cardData []int, cardCount int) bool  {
+func  (lg *NNBaseLogic)NNIsIntValue(cardData []int, cardCount int) bool  {
 	sum := 0
 	for i:=0; i<cardCount; i++ {
-		sum += NNGetCardLogicValue(cardData[i])
+		sum += lg.NNGetCardLogicValue(cardData[i])
 	}
 	if !(sum>0) {
 		return false
@@ -246,14 +266,14 @@ func  NNIsIntValue(cardData []int, cardCount int) bool  {
 }
 
 // 牛牛比牌
-func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, nextOX bool) bool  {
+func (lg *NNBaseLogic)NNCompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, nextOX bool) bool  {
 	if firstOX != nextOX {
 		return (int(firstOX)>int(nextOX))
 	}
-	if NNGetCardType(firstData, cardCount) == OX_FIVEKING && NNGetCardType(nextData, cardCount) != OX_FIVEKING {
+	if lg.NNGetCardType(firstData, cardCount) == OX_FIVEKING && lg.NNGetCardType(nextData, cardCount) != OX_FIVEKING {
 		return true
 	}
-	if NNGetCardType(firstData, cardCount) != OX_FIVEKING && NNGetCardType(nextData, cardCount) == OX_FIVEKING {
+	if lg.NNGetCardType(firstData, cardCount) != OX_FIVEKING && lg.NNGetCardType(nextData, cardCount) == OX_FIVEKING {
 		return false
 	}
 	//比较牛大小
@@ -262,8 +282,8 @@ func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, n
 		firstType := 0
 		nextType := 0
 
-		value := NNGetCardLogicValue(nextData[3])
-		value += NNGetCardLogicValue(nextData[4])
+		value := lg.NNGetCardLogicValue(nextData[3])
+		value += lg.NNGetCardLogicValue(nextData[4])
 
 		firstKing := false
 		nextKing := false
@@ -276,7 +296,7 @@ func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, n
 				left := 0
 				value = 0
 				for i:=3; i<5; i++ {
-					value += NNGetCardLogicValue(nextData[i])
+					value += lg.NNGetCardLogicValue(nextData[i])
 				}
 				left = value%10
 				if left>0 {
@@ -298,7 +318,7 @@ func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, n
 			value = 0
 			left := 0
 			for i:=0; i<3; i++ {
-				value += NNGetCardLogicValue(nextData[i])
+				value += lg.NNGetCardLogicValue(nextData[i])
 			}
 			left = value%10
 			if left>10 {
@@ -306,14 +326,14 @@ func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, n
 			}
 		}
 		value = 0
-		value = NNGetCardLogicValue(firstData[3])
-		value += NNGetCardLogicValue(firstData[4])
+		value = lg.NNGetCardLogicValue(firstData[3])
+		value += lg.NNGetCardLogicValue(firstData[4])
 		if value >10 {
 			if firstData[3]==0x4E || firstData[4]==0x4F || firstData[4]==0x4E || firstData[3]==0x4F {
 				left := 0
 				value = 0
 				for i:=3; i<5; i++ {
-					value += NNGetCardLogicValue(firstData[i])
+					value += lg.NNGetCardLogicValue(firstData[i])
 				}
 				left = value%10
 				if left>0 {
@@ -335,7 +355,7 @@ func CompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, n
 			value = 0
 			left := 0
 			for i:=0;i<3;i++ {
-				value += NNGetCardLogicValue(firstData[i])
+				value += lg.NNGetCardLogicValue(firstData[i])
 			}
 			left = value%10
 			if left>0 {

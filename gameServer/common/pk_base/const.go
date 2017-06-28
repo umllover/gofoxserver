@@ -1,4 +1,19 @@
 package pk_base
+
+
+type HistoryScore struct {
+	TurnScore    int
+	CollectScore int
+}
+
+const (
+	//税收定义
+	REVENUE_BENCHMARK   = 0    //税收起点
+	REVENUE_DENOMINATOR = 1000 //税收分母
+	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
+)
+
+
 /*
 const (
 	MAX_INDEX = 42 //最大索引
@@ -87,17 +102,7 @@ const (
 	MAX_RIGHT_COUNT = 1  //最大权位DWORD个数
 )
 
-const (
-	//税收定义
-	REVENUE_BENCHMARK   = 0    //税收起点
-	REVENUE_DENOMINATOR = 1000 //税收分母
-	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
-)
 
-type HistoryScore struct {
-	TurnScore    int
-	CollectScore int
-}
 
 //分析子项
 type TagAnalyseItem struct {

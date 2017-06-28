@@ -26,6 +26,7 @@ func GetCardColor(CardData int) int {
 }
 
 
+
 //排列扑克
 func  SortCardList(cardData []int, cardCount int)  {
 	var logicValue []int

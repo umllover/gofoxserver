@@ -31,27 +31,25 @@ func init() {
 // ------------ s2c ----------------
 //---------- 游戏状态-------
 type G2C_TBNN_StatusFree struct {
-	CellScore	 			int64						//基础积分
+	CellScore	 			int						//基础积分
 
 	//历史积分
-	TurnScore 				[]int64			//积分信息
-	CollectScore 			[]int64			//积分信息
+	TurnScore 				[]int			//积分信息
+	CollectScore 			[]int			//积分信息
 	GameRoomName			string						//房间名称
 
 	CtrFlag					int							//操作标志
 	MaxScoreTimes			int		 					//最大倍数
 
-	//LONG								lAndroidMaxCellScore				//机器人可设置的最大底注
-	//LONG								lAndroidMinCellScore				//机器人可设置的最小底注
 
 	TimeOutCard				int							//出牌时间
 	TimeOperateCard			int 						//操作时间
-	TimeStartGame			int 						//开始时间
+	TimeStartGame			int64 						//开始时间
 
 	PlayerCount				int							//玩家人数
 	TimesCount				int								//倍数
 	PlayMode				int								//游戏模式
-	PlayCount				int								//游戏局数
+	CountLimit				int								//局数限制
 
 	CurrentPlayCount		int							    //房间已玩局数
 	EachRoundScore			[][]int			//房间每局游戏比分
@@ -81,7 +79,7 @@ type G2C_TBNN_StatusScore struct {
 }
 
 type G2C_TBNN_StatusPlay struct {
-	CellScore       		int64							//基础积分
+	CellScore       		int							//基础积分
 
 	PlayStatus      		[]int          //用户状态
 	DynamicJoin     		int                 //动态加入
@@ -92,14 +90,12 @@ type G2C_TBNN_StatusPlay struct {
 	HandCardData  			[][]int         //桌面扑克
 	OxCard        			[]int				//通比牛牛数据
 
-	TurnScore 				[]int64			//积分信息
-	CollectScore 			[]int64			//积分信息
+	TurnScore 				[]int			//积分信息
+	CollectScore 			[]int			//积分信息
 	GameRoomName			string						//房间名称
 
 	CtrFlag					int							//操作标志
 	MaxScoreTimes			int 					//最大倍数
-	//lAndroidMaxCellScore				//机器人可设置的最大底注
-	//lAndroidMinCellScore				//机器人可设置的最小底注
 
 	IsOpenCard				[]bool			//用户是否摊牌
 	CurrentPlayCount		int							    //房间已玩局数

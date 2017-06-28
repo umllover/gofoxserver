@@ -1,4 +1,4 @@
-package hzmj
+package nn_tb
 
 import (
 	"mj/gameServer/nn_tb/internal"
