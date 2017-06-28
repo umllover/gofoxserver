@@ -21,7 +21,7 @@ type Module struct {
 
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
-	m.Skeleton.AfterFunc(HorseRaceInterval*time.Second, m.StartHorseRaceLamp)
+	//m.Skeleton.AfterFunc(HorseRaceInterval*time.Second, m.StartHorseRaceLamp)
 }
 
 func (m *Module) OnDestroy() {
