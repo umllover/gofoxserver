@@ -858,6 +858,7 @@ func (room *RoomData) StartDispatchCard() {
 	}
 
 	room.MinusHeadCount++
+	log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
 

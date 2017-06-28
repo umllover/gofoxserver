@@ -14,9 +14,12 @@ import (
 
 	"strings"
 
+	"mj/gameServer/db/model"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	"mj/gameServer/center"
 )
 
 var (
@@ -209,6 +212,7 @@ func delRoom(roomId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
 	idGenerate.DelRoomId(roomId)
+	model.CreateRoomInfoOp.Delete(roomId)
 	m, ok := roomKindList[ri.KindID]
 	if ok && ri != nil {
 		delete(m, ri.Idx)

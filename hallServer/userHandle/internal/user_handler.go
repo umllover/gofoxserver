@@ -289,6 +289,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.PayType = recvMsg.PayType
 	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
 	info.RoomId = rid
+	info.NodeId = nodeId
 	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId

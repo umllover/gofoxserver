@@ -1,6 +1,8 @@
 package mj_base
 
-import "github.com/lovelly/leaf/util"
+import (
+	"github.com/lovelly/leaf/util"
+)
 
 const (
 	IDX_HZMJ = 0
