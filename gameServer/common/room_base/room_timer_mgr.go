@@ -4,6 +4,7 @@ import (
 	"mj/gameServer/db/model/base"
 	"time"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
 )
@@ -85,6 +86,7 @@ func (room *RoomTimerMgr) StartPlayingTimer(Skeleton *module.Skeleton, cb func()
 //玩家离线超时
 func (room *RoomTimerMgr) StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func()) {
 	if room.OfflineKickotTime != 0 {
+		log.Debug("StartKickoutTimer : %d ", room.OfflineKickotTime)
 		room.KickOut[uid] = Skeleton.AfterFunc(time.Duration(room.OfflineKickotTime)*time.Second, cb)
 	} else {
 		cb()

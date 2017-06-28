@@ -47,3 +47,12 @@ func DelRoom(id int) {
 	defer mgrLock.Unlock()
 	delete(Rooms, id)
 }
+
+// 此函数有风险， 请注意 调用函数内不用mgrLock 锁， 此函数消耗也大， 请勿随意调用
+func ForEachRoom(cb func(r IRoom)) {
+	mgrLock.RLock()
+	defer mgrLock.RUnlock()
+	for _, v := range Rooms {
+		cb(v)
+	}
+}

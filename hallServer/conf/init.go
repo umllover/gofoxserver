@@ -43,7 +43,6 @@ var Server struct {
 	ConnAddrs       map[string]string
 	PendingWriteNum int
 	PrivatePort     int
-	TestNode        bool
 	NodeId          int
 }
 

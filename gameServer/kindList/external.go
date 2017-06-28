@@ -22,5 +22,5 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 
 func Init() {
 	internal.LoadAllModule()
-	internal.ClearLoocker()
+	internal.Clears()
 }

@@ -73,8 +73,6 @@ func GetCardByIdx(idx int) []int {
 	return hzcard
 }
 
-
-
 func GetCfg(idx int) *MJ_CFG {
 	return cfg[idx]
 }

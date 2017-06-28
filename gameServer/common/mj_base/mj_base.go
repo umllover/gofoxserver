@@ -177,6 +177,7 @@ func (room *Mj_base) UserReLogin(args []interface{}) {
 //玩家离线
 func (room *Mj_base) UserOffline(args []interface{}) {
 	u := args[0].(*user.User)
+	log.Debug("at UserOffline .... uid:%d", u.Id)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
 		return
@@ -306,7 +307,6 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 	return
 }
-
 
 // 吃碰杠胡各种操作
 func (room *Mj_base) UserOperateCard(args []interface{}) {

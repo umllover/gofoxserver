@@ -19,7 +19,7 @@ func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOptio
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
-		r.Name = temp.GameName
+		r.Name = temp.RoomName
 	} else {
 		r.Name = name
 	}
@@ -1174,33 +1174,8 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) {
 	}
 }
 
-//计算税收 //可以移植到base
+//计算税收  暂时没有这个 功能
 func (room *RoomData) CalculateRevenue(ChairId, lScore int) int {
-	//效验参数
-
-	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	template := room.MjBase.Temp
-	if ChairId >= UserCnt {
-		return 0
-	}
-
-	//计算税收
-	if (template.RevenueRatio > 0 || template.PersonalRoomTax > 0) && (lScore >= REVENUE_BENCHMARK) {
-		//获取用户
-		u := room.MjBase.UserMgr.GetUserByChairId(ChairId)
-		if u == nil {
-			log.Error("at CalculateRevenue not foud user user.ChairId:%d", u.ChairId)
-			return 0
-		}
-
-		//计算税收
-		lRevenue := lScore * template.RevenueRatio / REVENUE_DENOMINATOR
-
-		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 {
-			lRevenue = lScore * (template.RevenueRatio + template.PersonalRoomTax) / REVENUE_DENOMINATOR
-		}
-		return lRevenue
-	}
 	return 0
 }
 

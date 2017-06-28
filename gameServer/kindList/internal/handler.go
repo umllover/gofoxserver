@@ -7,6 +7,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"reflect"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
 )
@@ -26,7 +28,7 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	//rpc
 	handleRpc("GetKindList", GetKindList)
-
+	handleRpc("GetRooms", GetRooms)
 }
 
 ///// rpc
@@ -49,12 +51,11 @@ func GetKindList(args []interface{}) (interface{}, error) {
 			svrInfo.ServerType = int64(template.ServerType)
 			svrInfo.OnLineCount = int64(v.GetClientCount())
 			svrInfo.FullCount = common.TableFullCount
-			svrInfo.RestrictScore = int64(template.RestrictScore)
 			svrInfo.MinTableScore = int64(template.MinTableScore)
 			svrInfo.MinEnterScore = int64(template.MinEnterScore)
 			svrInfo.MaxEnterScore = int64(template.MaxEnterScore)
 			svrInfo.ServerAddr = ip
-			svrInfo.ServerName = template.ServerName
+			svrInfo.ServerName = template.RoomName
 			svrInfo.SurportType = 0
 			svrInfo.TableCount = v.GetTableCount()
 			ret = append(ret, svrInfo)
@@ -65,3 +66,11 @@ func GetKindList(args []interface{}) (interface{}, error) {
 	return ret, nil
 }
 
+func GetRooms(args []interface{}) (interface{}, error) {
+	rooms := make([]*msg.RoomInfo, 0)
+	RoomMgr.ForEachRoom(func(r RoomMgr.IRoom) {
+		rooms = append(rooms, r.GetBirefInfo())
+	})
+	log.Debug("at GetRooms ==== %v", rooms)
+	return rooms, nil
+}

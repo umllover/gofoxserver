@@ -15,26 +15,19 @@ import (
 type GameServiceOption struct {
 	KindID                      int    `db:"KindID" json:"KindID"`                                           // 名称号码
 	ServerID                    int    `db:"ServerID" json:"ServerID"`                                       // 房间标识
-	GameName                    string `db:"GameName" json:"GameName"`                                       // 房间名字
-	NodeID                      int    `db:"NodeID" json:"NodeID"`                                           //
 	SortID                      int    `db:"SortID" json:"SortID"`                                           // 排列标识
 	CellScore                   int    `db:"CellScore" json:"CellScore"`                                     // 单位积分
 	AndroidMaxCellScore         int    `db:"AndroidMaxCellScore" json:"AndroidMaxCellScore"`                 // 机器人最大进入底注
-	RevenueRatio                int    `db:"RevenueRatio" json:"RevenueRatio"`                               // 税收比例
-	ServiceScore                int    `db:"ServiceScore" json:"ServiceScore"`                               // 服务费用
-	RestrictScore               int    `db:"RestrictScore" json:"RestrictScore"`                             // 限制积分
-	MinTableScore               int    `db:"MinTableScore" json:"MinTableScore"`                             // 最低积分
-	MinEnterScore               int    `db:"MinEnterScore" json:"MinEnterScore"`                             // 最低积分
+	MinTableScore               int    `db:"MinTableScore" json:"MinTableScore"`                             // 最少进入
+	MinEnterScore               int    `db:"MinEnterScore" json:"MinEnterScore"`                             // 最低进入积分
 	MaxEnterScore               int    `db:"MaxEnterScore" json:"MaxEnterScore"`                             // 最高积分
-	ServerRule                  int    `db:"ServerRule" json:"ServerRule"`                                   // 房间规则
 	MinPlayer                   int    `db:"MinPlayer" json:"MinPlayer"`                                     // 最少几个人才能玩
 	MaxPlayer                   int    `db:"MaxPlayer" json:"MaxPlayer"`                                     // 最多多少人一起玩
 	ServerType                  int    `db:"ServerType" json:"ServerType"`                                   // 房间类型
-	ServerName                  string `db:"ServerName" json:"ServerName"`                                   // 房间名称
-	CbOffLineTrustee            int    `db:"cbOffLineTrustee" json:"cbOffLineTrustee"`                       // 是否短线代打
+	RoomName                    string `db:"RoomName" json:"RoomName"`                                       // 房间名称
+	OffLineTrustee              int    `db:"OffLineTrustee" json:"OffLineTrustee"`                           // 是否短线代打
 	CardOrBean                  int8   `db:"CardOrBean" json:"CardOrBean"`                                   // 消耗房卡还是游戏豆
 	FeeBeanOrRoomCard           int    `db:"FeeBeanOrRoomCard" json:"FeeBeanOrRoomCard"`                     // 消耗房卡或游戏豆的数量
-	PersonalRoomTax             int    `db:"PersonalRoomTax" json:"PersonalRoomTax"`                         // 私人房税收
 	MaxCellScore                int    `db:"MaxCellScore" json:"MaxCellScore"`                               // 房间最大底分
 	PlayTurnCount               int    `db:"PlayTurnCount" json:"PlayTurnCount"`                             // 房间能够进行游戏的最大局数
 	PlayTimeLimit               int    `db:"PlayTimeLimit" json:"PlayTimeLimit"`                             // 房间能够进行游戏的最大时间
@@ -45,8 +38,6 @@ type GameServiceOption struct {
 	DynamicJoin                 int    `db:"DynamicJoin" json:"DynamicJoin"`                                 // 是够允许游戏开始后加入 1是允许
 	OutCardTime                 int    `db:"OutCardTime" json:"OutCardTime"`                                 // 多久没出牌自动出牌
 	OperateCardTime             int    `db:"OperateCardTime" json:"OperateCardTime"`                         // 操作最大时间
-	MaxScore                    int64  `db:"MaxScore" json:"MaxScore"`                                       //
-	MaxScoreTimes               int    `db:"MaxScoreTimes" json:"MaxScoreTimes"`                             //
 }
 
 var DefaultGameServiceOption = GameServiceOption{}

@@ -180,6 +180,10 @@ func NotifyNewRoom(args []interface{}) {
 	}
 
 	recvMsg := args[0].(*msg.RoomInfo)
+	addRoom(recvMsg)
+}
+
+func addRoom(recvMsg *msg.RoomInfo) {
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -199,6 +203,10 @@ func NotifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
 	kindId := args[0].(int)
 	roomId := args[1].(int)
+	delRoom(roomId, kindId)
+}
+
+func delRoom(roomId, kindId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
 	idGenerate.DelRoomId(roomId)
@@ -238,20 +246,39 @@ func NewServerAgent(args []interface{}) {
 	log.Debug("at NewServerAgent :%s", serverName)
 	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
 		if err != nil {
-			log.Debug("GetKindList error:%s", err.Error())
+			log.Error("GetKindList error:%s", err.Error())
 			return
 		}
 
 		ret := data.([]*msg.TagGameServer)
 
 		for _, v := range ret {
-			if conf.Server.TestNode {
+			if Test {
 				if v.NodeID != conf.Server.NodeId {
 					continue
 				}
 			}
 			addGameList(v)
-			log.Debug("data %v", v)
+			log.Debug("add sverInfo %v", v)
+		}
+	})
+
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetRooms", func(data interface{}, err error) {
+		if err != nil {
+			log.Error("GetKindList error:%s", err.Error())
+			return
+		}
+
+		ret := data.([]*msg.RoomInfo)
+
+		for _, v := range ret {
+			if Test {
+				if v.NodeID != conf.Server.NodeId {
+					continue
+				}
+			}
+			addRoom(v)
+			log.Debug("add room %v", v)
 		}
 	})
 }
