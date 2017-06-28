@@ -63,7 +63,14 @@ var cfg = []*MJ_CFG{
 		HuaCount:     8,
 	},
 
-	IDX_ZPMJ: &MJ_CFG{},
+	IDX_ZPMJ: &MJ_CFG{
+		MaxIdx:       42,
+		MaxWeave:     5,
+		MaxCount:     17,
+		MaxRepertory: 144,
+		HuaIndex:     8,
+		HuaCount:     8,
+	},
 }
 
 func GetCardByIdx(idx int) []int {
@@ -72,8 +79,6 @@ func GetCardByIdx(idx int) []int {
 	util.DeepCopy(&hzcard, &oldcard)
 	return hzcard
 }
-
-
 
 func GetCfg(idx int) *MJ_CFG {
 	return cfg[idx]

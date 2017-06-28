@@ -286,7 +286,7 @@ func (room *ZP_RoomData) InitBankerAction() {
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, true)
+	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	if room.UserAction[room.BankerUser] != 0 {
@@ -311,7 +311,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	room.SiceCount, minSice = room.GetSice()
 
-	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx)())
+	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx))
 
 	//剔除大字
 	if room.WithZiCard == false {

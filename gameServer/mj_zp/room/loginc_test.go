@@ -17,6 +17,10 @@ import (
 
 	"os"
 
+	"encoding/json"
+
+	"fmt"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -117,6 +121,25 @@ func init() {
 		ServiceId:    1,
 	}
 
+	type gameCfg struct {
+		ZhuaHua    int
+		WithZiCard bool
+		ScoreType  int
+	}
+
+	setCfg := gameCfg{
+		ZhuaHua:    0,
+		WithZiCard: true,
+		ScoreType:  33,
+	}
+
+	myCfg, cfgOk := json.Marshal(setCfg)
+	if cfgOk != nil {
+		log.Error("测试错误，退出程序")
+		os.Exit(0)
+	}
+	fmt.Println("#############", string(myCfg))
+
 	base := room_base.NewRoomBase()
 
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
@@ -125,6 +148,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
+	info.OtherInfo= string(myCfg)
 	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r, info.OtherInfo)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
@@ -134,7 +158,7 @@ func init() {
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
-		LogicMgr: NewBaseLogic(),
+		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)

@@ -45,7 +45,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		BaseMgr:  zpBase,
 		DataMgr:  zpData,
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NewBaseLogic(),
+		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
