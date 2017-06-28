@@ -1,4 +1,4 @@
-package hzmj
+package zpmj
 
 import (
 	"mj/gameServer/mj_zp/internal"

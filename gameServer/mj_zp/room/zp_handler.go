@@ -1,10 +1,6 @@
 package room
 
-import (
-"mj/gameServer/common/mj_base"
-)
-
-func RegisterHandler(r *mj_base.Mj_base) {
+func RegisterHandler(r *ZP_base) {
 	r.GetChanRPC().Register("Sitdown", r.Sitdown)
 	r.GetChanRPC().Register("UserStandup", r.UserStandup)
 	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
