@@ -15,13 +15,16 @@ import (
 
 	"sync"
 
+	"os"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
 var (
-	room *mj_base.Mj_base //Mj_base
+	room *ZP_base //Mj_base
 	u1   *user.User
 	u2   *user.User
 	u3   *user.User
@@ -121,14 +124,18 @@ func init() {
 	u1 = newTestUser(1)
 	u1.ChairId = 0
 	userg.Users[0] = u1
-	r := mj_base.NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r)
+	r := NewMJBase(info)
+	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r, info.OtherInfo)
+	if datag == nil {
+		log.Error("测试错误，退出程序")
+		os.Exit(0)
+	}
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(),
-		TimerMgr: room_base.NewRoomTimerMgr(),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	room = r

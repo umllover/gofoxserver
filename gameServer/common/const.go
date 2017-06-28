@@ -3,6 +3,7 @@ package common
 const (
 	KIND_TYPE_HZMJ = 389
 	KIND_TYPE_XSMJ = 390
+	KIND_TYPE_ZPMJ = 391
 	KIND_TYPE_TBNN = 28
 )
 

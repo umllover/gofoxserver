@@ -116,6 +116,7 @@ const (
 //积分修改类型
 const (
 	HZMJ_CHANGE_SOURCE = 1
+	ZPMJ_CHANGE_SOURCE = 2
 )
 
 //自己支付

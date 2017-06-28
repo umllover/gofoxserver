@@ -569,3 +569,40 @@ func (lg *BaseLogic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	}
 	return cbCardData
 }
+
+//吃牌判断
+func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
+	//番子无连
+	if cbCurrentCard >= 0x31 {
+		return WIK_NULL
+	}
+
+	//变量定义
+	cbExcursion := [3]int{0, 1, 2}
+	cbItemKind := [3]int{WIK_LEFT, WIK_CENTER, WIK_RIGHT}
+
+	//吃牌判断
+	var i int
+	var cbEatKind int
+	CurrentIndex := SwitchToCardIndex(cbCurrentCard)
+	for i = 0; i < len(cbItemKind); i++ {
+		cbValueIndex := CurrentIndex % 9
+		if cbValueIndex >= cbExcursion[i] && (cbValueIndex-cbExcursion[i]) <= 6 {
+			//吃牌判断
+			cbFirstIndex := CurrentIndex - cbExcursion[i]
+			if CurrentIndex != cbFirstIndex && cbCardIndex[cbFirstIndex] == 0 {
+				continue
+			}
+			if CurrentIndex != (cbFirstIndex+1) && cbCardIndex[cbFirstIndex+1] == 0 {
+				continue
+			}
+			if CurrentIndex != (cbFirstIndex+2) && cbCardIndex[cbFirstIndex+2] == 0 {
+				continue
+			}
+			//设置类型
+			cbEatKind |= cbItemKind[i]
+		}
+	}
+
+	return cbEatKind
+}

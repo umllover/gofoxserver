@@ -84,6 +84,7 @@ type LogicManager interface {
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
 	EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
+	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
 	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
