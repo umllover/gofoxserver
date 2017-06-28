@@ -30,7 +30,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := mj_base.NewMJBase(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, temp.GameName, temp, r),
+		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
 		LogicMgr: mj_base.NewBaseLogic(mj_base.IDX_HZMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

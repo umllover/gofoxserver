@@ -167,7 +167,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		TableCount: common.TableFullCount,
 		ChairCount: 4,
 		ServerType: template.ServerType,
-		ServerRule: template.ServerRule,
+		ServerRule: 0, //废弃字段
 	})
 
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})

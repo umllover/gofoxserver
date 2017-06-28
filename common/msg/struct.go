@@ -52,6 +52,7 @@ type RoomInfo struct {
 	Idx        int   //服务器标识用的字段
 }
 
+
 //用户状态信息
 type UserStu struct {
 	TableID    int // 桌子索引

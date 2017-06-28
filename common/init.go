@@ -2,8 +2,9 @@ package common
 
 import (
 	"encoding/gob"
-	"gopkg.in/mgo.v2/bson"
 	"mj/common/msg"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func Init() {
@@ -12,4 +13,5 @@ func Init() {
 	gob.Register(map[string]string{})
 	gob.Register([]*msg.TagGameServer{})
 	gob.Register(&msg.RoomInfo{})
+	gob.Register([]*msg.RoomInfo{})
 }
