@@ -202,7 +202,7 @@ func (m *UserModule) UserOffline() {
 func (m *UserModule) WriteUserScore(args []interface{}) {
 	log.Debug("at WriteUserScore === %v", args)
 	info := args[0].(*msg.TagScoreInfo)
-	Type := args[0].(int)
+	Type := args[1].(int)
 	user := m.a.UserData().(*client.User)
 	user.Score += int64(info.Score)
 	user.Revenue += int64(info.Revenue)

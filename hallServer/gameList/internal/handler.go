@@ -309,6 +309,18 @@ func GetSvrByKind(kindId int) string {
 	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort)
 }
 
+func GetSvrByNodeID(nodeid int) string {
+	for _, v := range gameLists {
+		for _, v1 := range v.list {
+			if v1.NodeID != nodeid {
+				break
+			}
+			return v1.ServerAddr + ":" + strconv.Itoa(v1.ServerPort)
+		}
+	}
+	return ""
+}
+
 func ServerFaild(args []interface{}) {
 	svrId := args[0].(string)
 	list := strings.Split(svrId, "_")

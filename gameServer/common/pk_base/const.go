@@ -24,7 +24,7 @@ const (
 //常量定义
 const (
 	MAX_WEAVE     = 4   //最大组合
-	MAX_COUNT     = 14  //最大数目
+	room.MaxCount     = 14  //最大数目
 	MAX_REPERTORY = 112 //最大库存
 	MAX_HUA_INDEX = 0   //花牌索引
 	MAX_HUA_COUNT = 8   //花牌个数

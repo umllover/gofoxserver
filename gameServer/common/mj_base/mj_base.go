@@ -303,8 +303,10 @@ func (room *Mj_base) OutCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
+
 	return
 }
+
 
 // 吃碰杠胡各种操作
 func (room *Mj_base) UserOperateCard(args []interface{}) {
@@ -359,6 +361,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.CallOperateResult(wTargetUser, cbTargetAction)
 		if cbTargetAction == WIK_GANG {
 			if room.DataMgr.DispatchCardData(wTargetUser, true) > 0 {
+				room.DataMgr.GetRoomId()
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
 		}
@@ -382,7 +385,6 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			}
 
 			//发送扑克
-
 			if !bAroseAction {
 				if room.DataMgr.DispatchCardData(u.ChairId, true) > 0 {
 					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)

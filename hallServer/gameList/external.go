@@ -19,6 +19,11 @@ func GetSvrByKind(kindId int) string {
 	return internal.GetSvrByKind(kindId)
 }
 
+func GetSvrByNodeID(kindId int) string {
+	return internal.GetSvrByNodeID(kindId)
+}
+
+
 func SetTest(v bool) {
 	internal.Test = v
 }

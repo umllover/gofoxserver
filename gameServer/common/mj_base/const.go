@@ -1,7 +1,7 @@
 package mj_base
 
 const (
-	MAX_INDEX = 42 //最大索引
+	MAX_INDEX = 43 //最大索引
 
 	//动作标志
 	WIK_NULL     = 0x00 //没有类型

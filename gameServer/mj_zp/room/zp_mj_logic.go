@@ -103,14 +103,14 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
 	//效验数目
-	if (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("zpmj at AnalyseCard (cbCardCount < 2) || (cbCardCount > MAX_COUNT) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+	if (cbCardCount < 2) || (cbCardCount > room.MaxCount) || ((cbCardCount-2)%3 != 0) {
+		log.Debug("zpmj at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
 	//变量定义
 	cbKindItemCount := 0
-	KindItem := make([]*TagKindItem, MAX_COUNT-2)
+	KindItem := make([]*TagKindItem, room.MaxCount-2)
 
 	//需求判断
 	cbLessKindItem := (cbCardCount - 2) / 3
