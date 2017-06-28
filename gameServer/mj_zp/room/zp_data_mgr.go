@@ -609,13 +609,30 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
 	for i := 0; i < count; i++ {
 		room.LeftCardCount--
 		cardData := room.RepertoryCard[room.LeftCardCount]
+		cardColor := cardData & MASK_COLOR
 		cardValue := cardData & MASK_VALUE
-		if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-			sendData.ZhongHua = append(sendData.ZhongHua, cardData)
-			room.ZhuaHuaScore++
-		} else {
-			sendData.BuZhong = append(sendData.BuZhong, cardData)
+		if cardColor == 3 {
+			//东南西北
+			if cardValue < 5 {
+				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
+					sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+					room.ZhuaHuaScore++
+				}
+			} else {
+				//中发白
+				temp := cardValue - 4
+				if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
+					sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+					room.ZhuaHuaScore++
+				}
+			}
+		} else if cardColor >= 0 && cardColor <= 2 {
+			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
+				sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+				room.ZhuaHuaScore++
+			}
 		}
+		sendData.BuZhong = append(sendData.BuZhong, cardData)
 	}
 	return getData
 }
