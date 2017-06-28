@@ -244,9 +244,9 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	rid, iok := idGenerate.GetRoomId(u.Id)
-	if !iok {
-		retCode = RandRoomIdError
+	host, nodeId := gameList.GetSvrByKind(recvMsg.Kind)
+	if host == "" {
+		retCode = ErrNotFoudServer
 		return
 	}
 
@@ -257,9 +257,9 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		}
 	}
 
-	host := gameList.GetSvrByKind(recvMsg.Kind)
-	if host == "" {
-		retCode = ErrNotFoudServer
+	rid, iok := idGenerate.GenerateRoomId(nodeId)
+	if !iok {
+		retCode = RandRoomIdError
 		return
 	}
 

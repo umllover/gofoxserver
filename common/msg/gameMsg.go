@@ -155,7 +155,7 @@ type G2C_StatusPlay struct {
 
 	//扑克数据
 	CardCount    []int //扑克数目
-	CardData     []int //扑克列表 room.MaxCount
+	CardData     []int //扑克列表 room.GetCfg().MaxCount
 	SendCardData int   //发送扑克
 
 	//组合扑克
