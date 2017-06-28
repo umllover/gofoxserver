@@ -142,7 +142,8 @@ type L2C_GetRoomList struct {
 
 //查询房间的结果
 type L2C_SearchResult struct {
-	TableID int //桌子 I D 返回0 是没匹配到
+	TableID  int //桌子 I D 返回0 是没匹配到
+	ServerIP string
 }
 
 // 创建房间失败消息

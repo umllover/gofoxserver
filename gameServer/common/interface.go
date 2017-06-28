@@ -78,7 +78,7 @@ type UserManager interface {
 }
 
 type LogicManager interface {
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
 	GetCardCount(cbCardIndex []int) int
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
@@ -86,7 +86,7 @@ type LogicManager interface {
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
+	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
 	GetUserCards(cbCardIndex []int) (cbCardData []int)

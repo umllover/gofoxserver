@@ -329,6 +329,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
+	host := gameList.GetSvrByNodeID(roomInfo.NodeID)
+	if host == "" {
+		retcode = ErrNotFoudServer
+		return
+	}
+
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
 		monrey = feeTemp.TableFee / roomInfo.MaxCnt
@@ -352,6 +358,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	}
 
 	retMsg.TableID = roomInfo.RoomID
+	retMsg.ServerIP = host
 	return
 }
 

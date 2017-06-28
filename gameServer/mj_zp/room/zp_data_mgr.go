@@ -323,7 +323,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
-		for i := 0; i < MAX_COUNT-1; i++ {
+		for i := 0; i < room.MaxCount-1; i++ {
 			room.LeftCardCount -= 1
 			room.MinusHeadCount += 1
 			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
