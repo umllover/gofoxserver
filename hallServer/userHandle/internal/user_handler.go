@@ -277,6 +277,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		record.Amount = feeTemp.TableFee
 		record.TokenType = SELF_PAY_TYPE
 		record.KindID = template.KindID
+		record.ServerId = template.ServerID
 		_, err := model.TokenRecordOp.Insert(record)
 		if err != nil {
 			retCode = ErrServerError
@@ -429,7 +430,22 @@ func loadUser(u *user.User) bool {
 		log.Error("at loadUser not foud CreateRoomInfoOp by user  %d", u.Id)
 		return false
 	}
+
+	//加载扣钱记录
+	now := time.Now().Unix()
 	for _, v := range tokenRecords {
+		temp, ok := base.GameServiceOptionCache.Get(v.KindID, v.ServerId)
+		if ok {
+			if v.CreatorTime.Unix()+int64(temp.TimeNotBeginGame) < now && v.Status == 0 { //没开始返回钱
+				if u.AddCurrency(v.Amount) {
+					model.TokenRecordOp.Delete(v.RoomId)
+				}
+			}
+
+			if v.CreatorTime.Unix()+86400 < now { // 一天了还没删除？？？ 在这里删除。安全处理
+				model.TokenRecordOp.Delete(v.RoomId)
+			}
+		}
 		u.AddRecord(v)
 	}
 	return true

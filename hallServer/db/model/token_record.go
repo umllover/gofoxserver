@@ -24,6 +24,7 @@ type TokenRecord struct {
 	Status      int        `db:"status" json:"status"`             //
 	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` //
 	KindID      int        `db:"KindID" json:"KindID"`             //
+	ServerId    int        `db:"ServerId" json:"ServerId"`         //
 }
 
 type tokenRecordOp struct{}
@@ -118,7 +119,7 @@ func (op *tokenRecordOp) Insert(m *TokenRecord) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
-	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID) values(?,?,?,?,?,?,?)"
+	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
@@ -127,6 +128,7 @@ func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
 		m.Status,
 		m.CreatorTime,
 		m.KindID,
+		m.ServerId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -153,7 +155,7 @@ func (op *tokenRecordOp) Update(m *TokenRecord) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
-	sql := `update token_record set user_id=?,tokenType=?,amount=?,status=?,creator_time=?,KindID=? where room_id=?`
+	sql := `update token_record set user_id=?,tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=?`
 	_, err := ext.Exec(sql,
 		m.UserId,
 		m.TokenType,
@@ -161,6 +163,7 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 		m.Status,
 		m.CreatorTime,
 		m.KindID,
+		m.ServerId,
 		m.RoomId,
 	)
 
