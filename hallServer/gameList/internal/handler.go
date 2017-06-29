@@ -242,6 +242,7 @@ func UpdateRoom(args []interface{}) {
 		room.CurCnt = len(room.PlayerIds)
 		if status == 0 {
 			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
+
 		}
 	}
 
