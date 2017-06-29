@@ -129,6 +129,14 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: r.id,
+		OpName: "AddPlayerId",
+		Data: map[string]interface{}{
+			"UID": u.Id,
+		},
+	})
 	return true
 }
 
