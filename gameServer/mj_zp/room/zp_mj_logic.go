@@ -32,16 +32,16 @@ func GetCardWordArray(index []int) bool {
 	return true
 }
 
-func GetCardWord(index int) string {
-	CardWordArray := []string{
-		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
-		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
-		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
-		"东", "南", "西", "北", "中", "发", "白",
-		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
-	}
-	return CardWordArray[index]
-}
+//func GetCardWord(index int) string {
+//	CardWordArray := []string{
+//		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
+//		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+//		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
+//		"东", "南", "西", "北", "中", "发", "白",
+//		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
+//	}
+//	return CardWordArray[index]
+//}
 
 type ZP_Logic struct {
 	*mj_base.BaseLogic
@@ -188,7 +188,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 				tg.WeaveKind = WIK_PENG
 				KindItem = append(KindItem, tg)
 				cbKindItemCount++
-				log.Debug("同牌判断：%s", GetCardWord(i))
+				//log.Debug("同牌判断：%s", GetCardWord(i))
 			}
 
 			//连牌判断
@@ -203,7 +203,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 						tg.WeaveKind = WIK_LEFT
 						KindItem = append(KindItem, tg)
 						cbKindItemCount++
-						log.Debug("连牌判断：%s %s %s", GetCardWord(i), GetCardWord(i+1), GetCardWord(i+2))
+						//log.Debug("连牌判断：%s %s %s", GetCardWord(i), GetCardWord(i+1), GetCardWord(i+2))
 					}
 				}
 			}
@@ -230,7 +230,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
-				cbCardIndex := KindItem[i/3].CardIndex[i%3]
+				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
 					break

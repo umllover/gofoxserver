@@ -184,7 +184,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 
 	//是否花杠
 	if room.FlowerCnt[u.ChairId] == 8 {
-		room.MjBase.OnEventGameConclude(u.ChairId, user, GER_NORMAL)
+		room.MjBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
 	}
 
 	//状态变量
@@ -209,7 +209,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 //用户听牌
 func (room *ZP_RoomData) OnUserListenCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 	//gameLogic := room.MjBase.LogicMgr
 
 	getData := args[0].(*mj_zp_msg.C2G_MJZP_ListenCard)
@@ -221,9 +221,9 @@ func (room *ZP_RoomData) OnUserListenCard(args []interface{}) {
 		//
 		//}
 	} else {
-		room.Ting[user.ChairId] = false
+		room.Ting[u.ChairId] = false
 		sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
-		sendData.ListenUser = user.ChairId
+		sendData.ListenUser = u.ChairId
 		sendData.IsListen = false
 		room.MjBase.UserMgr.SendMsgAll(&sendData)
 	}
@@ -549,15 +549,6 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	//拷贝码数据
 	GameConclude.MaCount = make([]int, 0)
-
-	nCount := 0
-	if nCount > 1 {
-		nCount++
-	}
-
-	for i := 0; i < nCount; i++ {
-		GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
-	}
 
 	//积分变量
 	ScoreInfoArray := make([]*msg.TagScoreInfo, UserCnt)
