@@ -36,6 +36,9 @@ type DataManager interface {
 	GetTrusteeOutCard(wChairID int) int
 	CanOperatorRoom(uid int) bool
 	SendStatusReady(u *user.User)
+	GetChaHua(u *user.User, setCount int)
+	OnUserReplaceCard(u *user.User, CardData int) bool
+	OnUserListenCard(u *user.User, bListenCard bool) bool
 
 	GetResumeUser() int
 	GetGangStatus() int
