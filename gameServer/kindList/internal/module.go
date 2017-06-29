@@ -39,7 +39,7 @@ func (m *Module) OnDestroy() {
 
 func LoadAllModule() {
 	for kind, m := range Kinds {
-		if HasKind(kind) {
+		if HasKind(kind) && m != nil {
 			AddMoudle(kind, m)
 		}
 	}

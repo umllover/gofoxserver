@@ -7,19 +7,18 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
+	"mj/hallServer/db/model"
 	"mj/hallServer/idGenerate"
 	"reflect"
 	"sort"
 	"strconv"
-
 	"strings"
 
-	"mj/gameServer/db/model"
+	"mj/hallServer/center"
 
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
-	"mj/gameServer/center"
 )
 
 var (
@@ -222,22 +221,31 @@ func delRoom(roomId int) {
 }
 
 func UpdateRoom(args []interface{}) {
-	info := args[0].(map[string]interface{})
-	roomID := info["RoomID"].(int)
-	room, ok := roomList[roomID]
+	info := args[0].(*msg.UpdateRoomInfo)
+	room, ok := roomList[info.RoomId]
 	if !ok {
-		log.Debug("at  UpdateRoom not foud kindid:%d", roomID)
+		log.Debug("at  UpdateRoom not foud kindid:%d", info.RoomId)
 		return
 	}
 
-	for k, v := range info {
-		switch k {
-		case "CurCnt":
-			room.CurCnt = v.(int)
-		case "CurPayCnt":
-			room.CurPayCnt = v.(int)
+	switch info.OpName {
+	case "CurPayCnt":
+		room.CurPayCnt = info.Data["CurPayCnt"].(int)
+	case "AddPlayerId":
+		id := info.Data["UID"].(int)
+		room.PlayerIds[id] = struct{}{}
+		room.CurCnt = len(room.PlayerIds)
+	case "DelPlayerId":
+		id := info.Data["UID"].(int)
+		status := info.Data["Status"].(int)
+		delete(room.PlayerIds, id)
+		room.CurCnt = len(room.PlayerIds)
+		if status == 0 {
+			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
+
 		}
 	}
+
 }
 
 func getRoomInfo(tableId int) *msg.RoomInfo {

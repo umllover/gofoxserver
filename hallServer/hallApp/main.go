@@ -29,31 +29,18 @@ var reloadDB = flag.Bool("reload", false, "reload base db")
 var Test = flag.Bool("Test", false, "reload base db")
 
 func main() {
-
-	log.Debug("enter hallApp main")
-
-	flag.Parse()
-
-	gameList.SetTest(*Test)
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)
 	}
+	Init()
+	log.Debug("enter hallApp main")
+	gameList.SetTest(*Test)
 	if *reloadDB {
 		db.NeedReloadBaseDB = true
 		log.Debug("need reload base db")
 		db.RefreshInTime()
 	}
-	lconf.LogLevel = conf.Server.LogLevel
-	lconf.LogPath = conf.Server.LogPath
-	lconf.LogFlag = conf.LogFlag
-	lconf.ConsolePort = conf.Server.ConsolePort
-	lconf.ProfilePath = conf.Server.ProfilePath
-	lconf.ListenAddr = conf.Server.ListenAddr
-	lconf.ServerName = conf.ServerName()
-	lconf.ConnAddrs = conf.Server.ConnAddrs
-	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 
 	common.Init()
 	http_service.StartHttpServer()
@@ -71,4 +58,19 @@ func main() {
 		gameList.Module,
 		raceMsg.Module,
 	)
+}
+
+func Init() {
+	flag.Parse()
+	lconf.LogLevel = conf.Server.LogLevel
+	lconf.LogPath = conf.Server.LogPath
+	lconf.LogFlag = conf.LogFlag
+	lconf.ConsolePort = conf.Server.ConsolePort
+	lconf.ProfilePath = conf.Server.ProfilePath
+	lconf.ListenAddr = conf.Server.ListenAddr
+	lconf.ServerName = conf.ServerName()
+	lconf.ConnAddrs = conf.Server.ConnAddrs
+	lconf.PendingWriteNum = conf.Server.PendingWriteNum
+	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	leaf.InitLog()
 }

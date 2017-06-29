@@ -61,7 +61,7 @@ type UserManager interface {
 	Sit(*user.User, int) int
 	Standup(*user.User) bool
 	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User) bool
+	LeaveRoom(*user.User, int) bool
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
@@ -69,6 +69,9 @@ type UserManager interface {
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
+	SendDataToHallUser(chiairID int, funcName string, data interface{})
+	SendMsgToHallServerAll(funcName string, data interface{})
+	SendCloseRoomToHall(data interface{})
 
 	GetCurPlayerCnt() int
 	GetMaxPlayerCnt() int

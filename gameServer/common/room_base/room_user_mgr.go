@@ -4,13 +4,14 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/Chat"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/log"
 )
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -128,6 +129,14 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: r.id,
+		OpName: "AddPlayerId",
+		Data: map[string]interface{}{
+			"UID": u.Id,
+		},
+	})
 	return true
 }
 
@@ -140,7 +149,7 @@ func (r *RoomUserMgr) GetChairId() int {
 	return -1
 }
 
-func (r *RoomUserMgr) LeaveRoom(u *user.User) bool {
+func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	if len(r.Users) <= u.ChairId {
 		return false
 	}
@@ -148,13 +157,20 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User) bool {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
-
-	log.Debug("%v user leave room,  left %v count", u.ChairId, r.PlayerCount)
-
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: r.id,
+		OpName: "DelPlayerId",
+		Data: map[string]interface{}{
+			"Status": status,
+			"UID":    u.Id,
+		},
+	})
+	log.Debug("%v user leave room,  left %v count", u.Id, r.PlayerCount)
 	return true
 }
 
@@ -248,18 +264,18 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 	if oldUser != nil {
 		return ChairHasUser
 	}
-	//if room.ChatRoomId == 0 {
-	//	id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
-	//	if err != nil {
-	//		log.Error("create Chat Room faild")
-	//		return ErrCreateRoomFaild
-	//	}
-	//	room.ChatRoomId = id.(int)
-	//}
+	if room.ChatRoomId == 0 {
+		id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
+		if err != nil {
+			log.Error("create Chat Room faild")
+			return ErrCreateRoomFaild
+		}
+		room.ChatRoomId = id.(int)
+	}
 
 	_, chairId := room.GetUserByUid(u.Id)
 	if chairId > 0 {
-		room.LeaveRoom(u)
+		room.LeaveRoom(u, 1)
 	}
 
 	room.EnterRoom(ChairID, u)
@@ -324,7 +340,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
 	room.SetUsetStatus(u, US_FREE)
-	room.LeaveRoom(u)
+	room.LeaveRoom(u, 1)
 	return true
 }
 
@@ -408,5 +424,18 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, funcName string, data 
 		return
 	}
 
-	cluster.Go(u.HallNodeName,funcName )
+	cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+}
+
+func (room *RoomUserMgr) SendMsgToHallServerAll(funcName string, data interface{}) {
+	for _, u := range room.Users {
+		if u == nil {
+			continue
+		}
+		cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+	}
+}
+
+func (room *RoomUserMgr) SendCloseRoomToHall(data interface{}) {
+	room.SendMsgToHallServerAll("RoomCloseInfo", data)
 }
