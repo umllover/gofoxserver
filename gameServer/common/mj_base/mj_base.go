@@ -10,6 +10,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
+	"mj/common/msg/mj_zp_msg"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -306,6 +308,27 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	}
 
 	return
+}
+
+//插花
+func (room *Mj_base) ChaHuaMsg(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_SetChaHua)
+	room.DataMgr.GetChaHua(u, getData.SetCount)
+}
+
+//补花
+func (room *Mj_base) OnUserReplaceCard(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
+	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
+}
+
+//用户听牌
+func (room *Mj_base) OnUserListenCard(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ListenCard)
+	room.DataMgr.OnUserListenCard(u, getData.ListenCard)
 }
 
 // 吃碰杠胡各种操作

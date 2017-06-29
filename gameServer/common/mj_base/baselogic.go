@@ -401,7 +401,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 			if cbCardIndex[i] == 2 {
 				//变量定义
 				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
-				for i, _ := range analyseItem.CardData {
+				for i := range analyseItem.CardData {
 					analyseItem.CardData[i] = make([]int, 4)
 				}
 
@@ -457,17 +457,22 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 		//变量定义
 		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 		cbIndex := []int{0, 1, 2, 3}
+		pKindItem := make([]*TagKindItem, 4)
 
 		//开始组合
 		for {
 			//设置变量
 			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+			for i := 0; i < cbLessKindItem; i++ {
+				pKindItem[i] = KindItem[cbIndex[i]]
+			}
+
 			//数量判断
 			bEnoughCard := true
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
-				cbCardIndex := KindItem[i/3].CardIndex[i%3]
+				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
 					break

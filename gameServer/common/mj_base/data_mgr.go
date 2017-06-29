@@ -972,7 +972,7 @@ func (room *RoomData) NormalEnd() {
 	GameConclude.MaCount = make([]int, UserCnt)
 	GameConclude.MaData = make([]int, UserCnt)
 
-	for i, _ := range GameConclude.HandCardData {
+	for i := range GameConclude.HandCardData {
 		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
 	}
 
@@ -1271,4 +1271,18 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 		}
 	}
 	return cardindex
+}
+
+//插花
+func (room *RoomData) GetChaHua(u *user.User, setCount int) {
+}
+
+//补花
+func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
+	return true
+}
+
+//用户听牌
+func (room *RoomData) OnUserListenCard(u *user.User, bListenCard bool) bool {
+	return true
 }
