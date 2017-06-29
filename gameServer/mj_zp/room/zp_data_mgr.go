@@ -149,10 +149,10 @@ func (room *ZP_RoomData) AfterStartGame() {
 //获得插花
 func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
 	getData := args[0].(*mj_zp_msg.C2G_MJZP_SetChaHua)
-	room.ChaHuaMap[user.ChairId] = getData.SetCount
+	room.ChaHuaMap[u.ChairId] = getData.SetCount
 	if len(room.ChaHuaMap) == 4 {
 		room.StartDispatchCard()
 		//向客户端发牌
@@ -169,22 +169,22 @@ func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 //用户补花
 func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 	gameLogic := room.MjBase.LogicMgr
 
 	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
 
-	if gameLogic.RemoveCard(room.CardIndex[user.ChairId], getData.CardData) == false {
-		log.Debug("[用户补花] 用户：%d补花失败", user.ChairId)
+	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], getData.CardData) == false {
+		log.Debug("[用户补花] 用户：%d补花失败", u.ChairId)
 		return false
 	}
 
 	//记录补花
-	room.FlowerCnt[user.ChairId]++
+	room.FlowerCnt[u.ChairId]++
 
 	//是否花杠
-	if room.FlowerCnt[user.ChairId] == 8 {
-		room.MjBase.OnEventGameConclude(user.ChairId, user, GER_NORMAL)
+	if room.FlowerCnt[u.ChairId] == 8 {
+		room.MjBase.OnEventGameConclude(u.ChairId, user, GER_NORMAL)
 	}
 
 	//状态变量
@@ -193,16 +193,16 @@ func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 	room.ProvideUser = INVALID_CHAIR
 
 	//派发扑克
-	room.DispatchCardData(user.ChairId, true)
+	room.DispatchCardData(u.ChairId, true)
 
 	outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
 	outData.IsInitFlower = false
-	outData.ReplaceUser = user.ChairId
+	outData.ReplaceUser = u.ChairId
 	outData.ReplaceCard = getData.CardData
 	outData.NewCard = room.SendCardData
 	room.MjBase.UserMgr.SendMsgAll(&outData)
 
-	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", user.ChairId, getData.CardData, room.SendCardData)
+	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, getData.CardData, room.SendCardData)
 	return true
 }
 
@@ -285,8 +285,19 @@ func (room *ZP_RoomData) InitBankerAction() {
 	gameLogic := room.MjBase.LogicMgr
 	room.UserAction = make([]int, UserCnt)
 
+	//测试手牌
+	var temp []int
+	temp = make([]int, 42)
+	temp[0] = 3
+	temp[1] = 3
+	temp[2] = 3
+	temp[3] = 3
+	temp[4] = 3
+	temp[5] = 2
+	room.CardIndex[room.BankerUser] = temp
 	GetCardWordArray(room.CardIndex[room.BankerUser])
 
+	log.Debug("---------------------------------------------------")
 	gangCardResult := &common.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
@@ -441,7 +452,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				}
 				if u.UserLimit&LimitChiHu == 0 {
 					chr := 0
-					if room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr,  room.GetCfg().MaxCount,false) == WIK_CHI_HU {
+					if room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false) == WIK_CHI_HU {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
 					}
 				}
@@ -513,7 +524,7 @@ func (room *ZP_RoomData) NormalEnd() {
 	GameConclude.MaCount = make([]int, UserCnt)
 	GameConclude.MaData = make([]int, UserCnt)
 
-	for i, _ := range GameConclude.HandCardData {
+	for i := range GameConclude.HandCardData {
 		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
 	}
 
