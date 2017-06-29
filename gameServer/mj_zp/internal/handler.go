@@ -23,8 +23,8 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	// c 2 s
 	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OutCard{}, ZPOutCard)
-	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
-
+	//handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
+	//handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, room.)
 }
 
 func ZPOutCard(args []interface{}) {

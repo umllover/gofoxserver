@@ -8,6 +8,30 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
+func GetCardWordArray(index []int) bool {
+	CardWordArray := []string{
+		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
+		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
+		"东", "南", "西", "北", "中", "发", "白",
+		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
+	}
+
+	var data string
+	//var data2 []int
+	for k, v := range index {
+		if v > 0 {
+			for i := 0; i < v; i++ {
+				data = data + "," + CardWordArray[k]
+				//data2 = append(data2, k)
+			}
+		}
+	}
+	log.Debug("手牌：%s", data)
+	//log.Debug("手牌:%d", len(data2))
+	return true
+}
+
 type ZP_Logic struct {
 	*mj_base.BaseLogic
 }
@@ -100,6 +124,8 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 	cbWeaveCount := len(WeaveItem)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
+
+	GetCardWordArray(cbCardIndex)
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {

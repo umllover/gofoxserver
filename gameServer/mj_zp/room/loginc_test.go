@@ -109,7 +109,7 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
-	
+	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
@@ -217,3 +217,10 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func InitLog() {
+	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
+	if err != nil {
+		panic(err)
+	}
+	log.Export(logger)
+}

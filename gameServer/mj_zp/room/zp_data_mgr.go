@@ -28,7 +28,7 @@ type ZP_RoomData struct {
 
 	FollowCard   []int       //跟牌
 	IsFollowCard bool        //是否跟牌
-	FlowerCnt    map[int]int //补花数
+	FlowerCnt    [4]int      //补花数
 	ChaHuaMap    map[int]int //插花数
 
 	ZhuaHuaScore    int   //插花得分
@@ -247,29 +247,34 @@ func (room *ZP_RoomData) InitBuHua() {
 	for i := 0; i < playerCNT; i++ {
 		if playerIndex >= 3 {
 			playerIndex = 0
+		}
 
-			outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
-			outData.ReplaceUser = playerIndex
-			outData.IsInitFlower = true
-			for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
-				if room.CardIndex[playerIndex][j] == 1 {
-					for {
-						outData.NewCard = room.GetSendCard(true, playerCNT)
-						newCardIndex := SwitchToCardIndex(outData.NewCard)
-						outData.ReplaceCard = SwitchToCardIndex(j)
-						room.MjBase.UserMgr.SendMsgAll(&outData)
+		outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
+		outData.ReplaceUser = playerIndex
+		outData.IsInitFlower = true
 
-						room.FlowerCnt[playerIndex]++
-						room.CardIndex[playerIndex][newCardIndex]++
-						if newCardIndex >= (room.GetCfg().MaxIdx-room.GetCfg().HuaIndex) && newCardIndex <= room.GetCfg().MaxIdx {
-							break
-						}
+		for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
+			if room.CardIndex[playerIndex][j] == 1 {
+				index := j
+				for {
+					outData.NewCard = room.GetSendCard(true, playerCNT)
+					newCardIndex := SwitchToCardIndex(outData.NewCard)
+					outData.ReplaceCard = SwitchToCardData(index)
+					room.MjBase.UserMgr.SendMsgAll(&outData)
+					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), outData.NewCard)
+					room.FlowerCnt[playerIndex]++
+					room.CardIndex[playerIndex][newCardIndex]++
+					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
+						room.CardIndex[playerIndex][j]--
+						break
+					} else {
+						index = newCardIndex
 					}
 				}
 			}
 		}
+		playerIndex++
 	}
-	playerIndex++
 }
 
 //庄家开局动作
@@ -280,11 +285,11 @@ func (room *ZP_RoomData) InitBankerAction() {
 	gameLogic := room.MjBase.LogicMgr
 	room.UserAction = make([]int, UserCnt)
 
-	log.Debug("庄家开局动作--杠牌")
+	GetCardWordArray(room.CardIndex[room.BankerUser])
+
 	gangCardResult := &common.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
-	log.Debug("庄家开局动作--胡牌判断")
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
