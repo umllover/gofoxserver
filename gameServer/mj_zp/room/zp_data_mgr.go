@@ -13,7 +13,6 @@ import (
 
 	"encoding/json"
 
-	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -147,12 +146,8 @@ func (room *ZP_RoomData) AfterStartGame() {
 }
 
 //获得插花
-func (room *ZP_RoomData) GetChaHua(args []interface{}) {
-	agent := args[1].(gate.Agent)
-	u := agent.UserData().(*user.User)
-
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_SetChaHua)
-	room.ChaHuaMap[u.ChairId] = getData.SetCount
+func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
+	room.ChaHuaMap[u.ChairId] = setCount
 	if len(room.ChaHuaMap) == 4 {
 		room.StartDispatchCard()
 		//向客户端发牌
@@ -167,14 +162,9 @@ func (room *ZP_RoomData) GetChaHua(args []interface{}) {
 }
 
 //用户补花
-func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
-	agent := args[1].(gate.Agent)
-	u := agent.UserData().(*user.User)
+func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	gameLogic := room.MjBase.LogicMgr
-
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
-
-	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], getData.CardData) == false {
+	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
 		log.Debug("[用户补花] 用户：%d补花失败", u.ChairId)
 		return false
 	}
@@ -198,35 +188,46 @@ func (room *ZP_RoomData) OnUserReplaceCard(args []interface{}) bool {
 	outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
 	outData.IsInitFlower = false
 	outData.ReplaceUser = u.ChairId
-	outData.ReplaceCard = getData.CardData
+	outData.ReplaceCard = CardData
 	outData.NewCard = room.SendCardData
 	room.MjBase.UserMgr.SendMsgAll(&outData)
 
-	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, getData.CardData, room.SendCardData)
+	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
 	return true
 }
 
 //用户听牌
-func (room *ZP_RoomData) OnUserListenCard(args []interface{}) {
-	agent := args[1].(gate.Agent)
-	u := agent.UserData().(*user.User)
-	//gameLogic := room.MjBase.LogicMgr
+func (room *ZP_RoomData) OnUserListenCard(u *user.User, bListenCard bool) bool {
+	gameLogic := room.MjBase.LogicMgr
 
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ListenCard)
-	if getData.ListenCard { //todo,用户点击听
-		//sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
+	if bListenCard {
+		if WIK_LISTEN == gameLogic.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], nil, nil, nil, room.GetCfg().MaxCount) {
+			room.Ting[u.ChairId] = true
+			//发给消息
+			room.MjBase.UserMgr.SendMsgAllNoSelf(u.GetUid(), &mj_zp_msg.G2C_MJZP_ListenCard{
+				ListenUser: u.ChairId,
+				IsListen:   true,
+			})
 
-		//if WIK_LISTEN == gameLogic.AnalyseTingCard(room.CardIndex[user.ChairId], room.WeaveItemArray[user.ChairId],
-		//	, sendData.HuCardCount, sendData.HuCardData) {
-		//
-		//}
+			//计算胡几张字
+			sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
+			sendData.ListenUser = u.ChairId
+			sendData.IsListen = true
+			res := gameLogic.GetHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], sendData.HuCardData, room.GetCfg().MaxCount)
+			sendData.HuCardCount = res
+			u.WriteMsg(sendData)
+		} else {
+			return false
+		}
 	} else {
 		room.Ting[u.ChairId] = false
 		sendData := &mj_zp_msg.G2C_MJZP_ListenCard{}
 		sendData.ListenUser = u.ChairId
 		sendData.IsListen = false
-		room.MjBase.UserMgr.SendMsgAll(&sendData)
+		room.MjBase.UserMgr.SendMsgAll(sendData)
+		return true
 	}
+	return false
 }
 
 //剔除大字

@@ -354,6 +354,24 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
 	chr := 0
 
+	if cbOutCardData == nil || cbHuCardCount == nil || cbHuCardData == nil {
+		if (cbCardCount+1)%3 == 0 {
+			for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
+				if cbCardIndexTemp[i] == 0 {
+					continue
+				}
+				cbCardIndexTemp[i]--
+				for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
+					cbCurrentCard := lg.SwitchToCardData(j)
+					if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
+						return WIK_LISTEN
+					}
+				}
+			}
+		}
+		return cbCardCount
+	}
+
 	if (cbCardCount-2)%3 == 0 {
 		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
 			if cbCardIndexTemp[i] == 0 {

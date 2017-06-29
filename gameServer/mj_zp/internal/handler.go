@@ -23,27 +23,62 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	// c 2 s
 	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OutCard{}, ZPOutCard)
-	//handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
-	//handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, room.)
+	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
+	handlerC2S(&mj_zp_msg.C2G_MJZP_SetChaHua{}, SetChaHua)
+	handlerC2S(&mj_zp_msg.G2C_MJZP_ReplaceCard{}, SetBuHua)
+	handlerC2S(&mj_zp_msg.C2G_MJZP_ListenCard{}, SetTingCard)
 }
 
 func ZPOutCard(args []interface{}) {
 	recvMsg := args[0].(*mj_zp_msg.C2G_ZPMJ_OutCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OutCard", user, recvMsg.CardData)
+		r.GetChanRPC().Go("OutCard", u, recvMsg.CardData)
 	}
 }
 
 func OperateCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OperateCard", args[0], user)
+		r.GetChanRPC().Go("OperateCard", args[0], u)
+	}
+}
+
+//插花
+func SetChaHua(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+
+	r := getRoom(u.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("SetChaHua", args[0], u)
+	}
+}
+
+//补花
+func SetBuHua(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+
+	r := getRoom(u.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("SetBuHua", args[0], u)
+	}
+}
+
+//听牌
+func SetTingCard(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+
+	r := getRoom(u.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("SetTingCard", args[0], u)
 	}
 }
