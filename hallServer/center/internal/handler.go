@@ -25,7 +25,6 @@ func init() {
 	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
 	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
 	handleRpc("SendMsgToUser", GoMsgToUser)
-	handleRpc("AsyncCallUser", AsyncCallUser)
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
 	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
 	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)

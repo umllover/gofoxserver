@@ -35,6 +35,8 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("GetUser", m.GetUser)
 	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
 	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
+	m.ChanRPC.Register("restoreToken", m.restoreToken)
+
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
@@ -293,7 +295,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
-	model.CreateRoomInfoOp.Insert(info)
+	u.AddRooms(info)
 
 	//回给客户端的消息
 	retMsg.TableID = rid
@@ -417,7 +419,18 @@ func loadUser(u *user.User) bool {
 		return false
 	}
 	for _, v := range rooms {
-		u.AddRooms(v.RoomId, v)
+		u.AddRooms(v)
+	}
+
+	tokenRecords, terr := model.TokenRecordOp.QueryByMap(map[string]interface{}{
+		"user_id": u.Id,
+	})
+	if terr != nil {
+		log.Error("at loadUser not foud CreateRoomInfoOp by user  %d", u.Id)
+		return false
+	}
+	for _, v := range tokenRecords {
+		u.AddRecord(v)
 	}
 	return true
 }
@@ -520,9 +533,44 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.ServerIP = user.EnterIP
 }
 
+//房间结束了
 func (m *UserModule) RoomCloseInfo(args []interface{}) {
+	info := args[0].(*msg.RoomEndInfo)
+	player := m.a.UserData().(*user.User)
+	if info.Status == 0 { //没开始就结束
+		record := player.GetRecord(info.RoomId)
+		if record != nil { //还原扣的钱
+			err := player.DelRecord(record.RoomId)
+			if err == nil {
+				player.AddCurrency(record.Amount)
+			} else {
+				log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
+			}
 
+		} else {
+			log.Error("at restoreToken not foud record uid:%d", player.Id)
+		}
+	}
+	player.DelRooms(info.RoomId)
 	return
+}
+
+//离开房间还原
+func (m *UserModule) restoreToken(args []interface{}) {
+	player := m.a.UserData().(*user.User)
+	RoomId := args[0].(int)
+	record := player.GetRecord(RoomId)
+	if record != nil { //还原扣的钱
+		err := player.DelRecord(record.RoomId)
+		if err == nil {
+			player.AddCurrency(record.Amount)
+		} else {
+			log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
+		}
+
+	} else {
+		log.Error("at restoreToken not foud record uid:%d", player.Id)
+	}
 }
 
 /////////////////////////////// help 函数

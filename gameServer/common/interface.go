@@ -58,7 +58,7 @@ type UserManager interface {
 	Sit(*user.User, int) int
 	Standup(*user.User) bool
 	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User) bool
+	LeaveRoom(*user.User, int) bool
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool

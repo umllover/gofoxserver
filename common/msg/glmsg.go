@@ -21,4 +21,11 @@ type RoomInfo struct {
 ///通知大厅房间结束
 type RoomEndInfo struct {
 	RoomId int //房间id
+	Status int //0是没开始， 1是开始了
+}
+
+type UpdateRoomInfo struct {
+	RoomId int
+	OpName string
+	Data   map[string]interface{}
 }

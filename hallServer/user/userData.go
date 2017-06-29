@@ -18,14 +18,16 @@ type User struct {
 	*model.Userattr
 	*model.Usertoken
 	*model.Userextrainfo
-	Rooms map[int]*model.CreateRoomInfo
-	Id    int
+	Rooms   map[int]*model.CreateRoomInfo
+	Records map[int]*model.TokenRecord
+	Id      int
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
+	u.Records = make(map[int]*model.TokenRecord)
 	return u
 }
 
@@ -33,20 +35,21 @@ func (u *User) GetUid() int {
 	return u.Id
 }
 
-func (u *User) AddRooms(id int, r *model.CreateRoomInfo) {
+func (u *User) AddRooms(r *model.CreateRoomInfo) {
+	model.CreateRoomInfoOp.Insert(r)
 	u.Lock()
 	defer u.Unlock()
-	u.Rooms[id] = r
+	u.Rooms[r.RoomId] = r
 }
 
 func (u *User) DelRooms(id int) {
 	u.Lock()
-	defer u.Unlock()
 	_, ok := u.Rooms[id]
 	if ok {
 		delete(u.Rooms, id)
-		model.CreateRoomInfoOp.Delete(id)
 	}
+	u.Unlock()
+	model.CreateRoomInfoOp.Delete(id)
 }
 
 func (u *User) HasRoom(id int) bool {
@@ -90,4 +93,29 @@ func (u *User) AddCurrency(add int) bool {
 		return false
 	}
 	return true
+}
+
+//增加扣钱计入
+func (u *User) AddRecord(tr *model.TokenRecord) {
+	u.Lock()
+	u.Records[tr.RoomId] = tr
+	u.Unlock()
+	model.TokenRecordOp.Insert(tr)
+}
+
+//删除扣钱记录
+func (u *User) DelRecord(id int) error {
+	u.Lock()
+	_, ok := u.Records[id]
+	if ok {
+		delete(u.Records, id)
+	}
+	u.Unlock()
+	return model.TokenRecordOp.Delete(id)
+}
+
+func (u *User) GetRecord(id int) *model.TokenRecord {
+	u.RLock()
+	defer u.RUnlock()
+	return u.Records[id]
 }

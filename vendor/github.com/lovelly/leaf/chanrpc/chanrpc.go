@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -246,6 +248,7 @@ func (s *Server) CallN(id interface{}, args ...interface{}) ([]interface{}, erro
 }
 
 func (s *Server) Close() {
+	debug.PrintStack()
 	if s.CloseFlg {
 		log.Error(" double close Server chanAll")
 		return
