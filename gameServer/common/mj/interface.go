@@ -6,11 +6,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
-	"time"
-
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/module"
-	"github.com/lovelly/leaf/timer"
 )
 
 type DataManager interface {
@@ -53,41 +48,6 @@ type DataManager interface {
 	SetUserCard(charirID int, cards []int)
 }
 
-type BaseManager interface {
-	Destroy(int)
-	RoomRun(int)
-	GetSkeleton() *module.Skeleton
-	AfterFunc(d time.Duration, cb func()) *timer.Timer
-	GetChanRPC() *chanrpc.Server
-}
-
-type UserManager interface {
-	Sit(*user.User, int) int
-	Standup(*user.User) bool
-	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User, int) bool
-	SetUsetStatus(*user.User, int)
-	ReLogin(*user.User, int)
-	IsAllReady() bool
-	RoomDissume()
-	SendUserInfoToSelf(*user.User)
-	SendMsgAll(data interface{})
-	SendMsgAllNoSelf(selfid int, data interface{})
-	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
-	SendDataToHallUser(chiairID int, funcName string, data interface{})
-	SendMsgToHallServerAll(funcName string, data interface{})
-	SendCloseRoomToHall(data interface{})
-
-	GetCurPlayerCnt() int
-	GetMaxPlayerCnt() int
-	GetUserInfoByChairId(int) interface{}
-	GetUserByChairId(int) *user.User
-	GetUserByUid(userId int) (*user.User, int)
-	SetUsetTrustee(chairId int, isTruste bool)
-	IsTrustee(chairId int) bool
-	GetTrustees() []bool
-}
-
 type LogicManager interface {
 	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
 	GetCardCount(cbCardIndex []int) int
@@ -108,21 +68,6 @@ type LogicManager interface {
 
 	GetMagicIndex() int
 	SetMagicIndex(int)
-}
-
-type TimerManager interface {
-	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
-	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
-	StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func())
-	StopOfflineTimer(uid int)
-
-	GetTimeLimit() int
-	GetPlayCount() int
-	AddPlayCount()
-	GetMaxPayCnt() int
-	GetCreatrTime() int64
-	GetTimeOutCard() int
-	GetTimeOperateCard() int
 }
 
 ////////////////////////////////////////////
