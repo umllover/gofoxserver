@@ -13,15 +13,17 @@ import (
 
 	"mj/gameServer/common/mj"
 
+	"mj/gameServer/common/room_base"
+
 	"github.com/lovelly/leaf/log"
 )
 
 type Mj_base struct {
-	mj.BaseManager
+	room_base.BaseManager
+	UserMgr  room_base.UserManager
+	TimerMgr room_base.TimerManager
 	DataMgr  mj.DataManager
-	UserMgr  mj.UserManager
 	LogicMgr mj.LogicManager
-	TimerMgr mj.TimerManager
 
 	Temp   *base.GameServiceOption //模板
 	Status int
@@ -29,12 +31,11 @@ type Mj_base struct {
 
 //创建的配置文件
 type NewMjCtlConfig struct {
-	BaseMgr   mj.BaseManager
-	DataMgr   mj.DataManager
-	UserMgr   mj.UserManager
-	LogicMgr  mj.LogicManager
-	TimerMgr  mj.TimerManager
-	GetCardsF func() []int
+	BaseMgr  room_base.BaseManager
+	UserMgr  room_base.UserManager
+	TimerMgr room_base.TimerManager
+	DataMgr  mj.DataManager
+	LogicMgr mj.LogicManager
 }
 
 func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
