@@ -804,8 +804,8 @@ func (room *RoomData) StartDispatchCard(userMgr common.UserManager, gameLogic co
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
-		room.LeftCardCount -= 1
-		room.MinusHeadCount += 1
+		room.LeftCardCount --
+		room.MinusHeadCount ++
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
 			room.CardIndex[u.ChairId][i] = gameLogic.SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 		}

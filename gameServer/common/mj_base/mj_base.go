@@ -135,7 +135,6 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
-	room.AfertEnd(true)
 }
 
 //玩家准备
@@ -198,6 +197,7 @@ func (room *Mj_base) OffLineTimeOut(u *user.User) {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
 	} else {
 		if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
+			log.Debug("at OffLineTimeOut ======= ")
 			room.AfertEnd(true)
 		}
 	}

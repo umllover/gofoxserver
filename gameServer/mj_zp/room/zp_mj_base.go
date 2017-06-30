@@ -57,6 +57,9 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		return
 	}
 
+	//记录跟牌
+	room.DataMgr.RecordFollowCard(CardData)
+
 	u.UserLimit &= ^LimitChiHu
 	u.UserLimit &= ^LimitPeng
 	u.UserLimit &= ^LimitGang
