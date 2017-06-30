@@ -30,7 +30,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewNNTBEntry(info)
 	cfg := &PKBaseLogic.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  PKBaseLogic.NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
+		DataMgr:  PKBaseLogic.NewDataMgr(info.RoomId, u.Id, pk.IDX_TBNN, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
 		LogicMgr: PKBaseLogic.NewNNBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

@@ -1,16 +1,13 @@
-package pk_base
+package pk
 
 import (
 	"mj/common/utils"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
-
-
 )
 
 type DataManager interface {
-
 	InitRoom(UserCnt int)
 	GetRoomId() int
 	CanOperatorRoom(uid int) bool
@@ -30,34 +27,30 @@ type DataManager interface {
 
 	AddScoreTimes(u *user.User, scoreTimes int)
 	AddScore(u *user.User, score int)
-
-
 }
 
-
 type LogicManager interface {
-
 	RandCardList(cbCardBuffer, OriDataArray []int)
 
 	/*
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
-	GetCardCount(cbCardIndex []int) int
-	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
-	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
-	EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
-	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
-	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
-	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
-	GetUserCards(cbCardIndex []int) (cbCardData []int)
-	SwitchToCardData(cbCardIndex int) int
-	SwitchToCardIndex(cbCardData int) int
-	IsValidCard(card int) bool
+		AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
+		GetCardCount(cbCardIndex []int) int
+		RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
+		RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
+		EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
+		EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
+		GetUserActionRank(cbUserAction int) int
+		AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
+		AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
+		GetUserCards(cbCardIndex []int) (cbCardData []int)
+		SwitchToCardData(cbCardIndex int) int
+		SwitchToCardIndex(cbCardData int) int
+		IsValidCard(card int) bool
 
-	GetMagicIndex() int
-	SetMagicIndex(int)
+		GetMagicIndex() int
+		SetMagicIndex(int)
 
-	 */
+	*/
 }
 
 ////////////////////////////////////////////

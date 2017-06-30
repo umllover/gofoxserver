@@ -1,4 +1,4 @@
-package PKBaseLogic
+package pk_base
 
 import (
 	. "mj/common/cost"
@@ -14,23 +14,24 @@ import (
 
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk_base"
+	"mj/gameServer/common/pk"
 )
 
 //创建的配置文件
 type NewPKCtlConfig struct {
 	BaseMgr  common.BaseManager
-	DataMgr  pk_base.DataManager
+	DataMgr  pk.DataManager
 	UserMgr  common.UserManager
-	LogicMgr pk_base.LogicManager
+	LogicMgr pk.LogicManager
 	TimerMgr common.TimerManager
 }
 
 //消息入口文件
 type Entry_base struct {
 	common.BaseManager
-	DataMgr  pk_base.DataManager
+	DataMgr  pk.DataManager
 	UserMgr  common.UserManager
-	LogicMgr pk_base.LogicManager
+	LogicMgr pk.LogicManager
 	TimerMgr common.TimerManager
 
 	Temp   *base.GameServiceOption //模板

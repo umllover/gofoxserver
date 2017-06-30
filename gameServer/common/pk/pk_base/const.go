@@ -154,3 +154,9 @@ const (
 	CALL_SCORE_TIME = 10
 	ADD_SCORE_TIME  = 10
 )
+
+// 扑克通用逻辑
+const (
+	LOGIC_MASK_COLOR = 0xF0 //花色掩码
+	LOGIC_MASK_VALUE = 0x0F //数值掩码
+)

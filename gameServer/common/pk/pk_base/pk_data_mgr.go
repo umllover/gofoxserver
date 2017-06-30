@@ -1,4 +1,4 @@
-package PKBaseLogic
+package pk_base
 
 import (
 	"strconv"
@@ -15,9 +15,10 @@ import (
 
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
+	"mj/gameServer/common/pk"
 )
 
-func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *NN_PK_base) *RoomData {
+func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -79,7 +80,7 @@ type RoomData struct {
 	ScoreMap map[*user.User]int //记录用户加注信息
 
 	//历史积分
-	HistoryScores []*pk_base.HistoryScore //历史积分
+	HistoryScores []*pk.HistoryScore //历史积分
 
 	// 游戏状态
 	GameStatus     int
@@ -87,8 +88,8 @@ type RoomData struct {
 	AddScoreTimer  timer.Timer
 }
 
-func (room *RoomData) GetCfg() *pk_base.PK_CFG {
-	return pk_base.GetCfg(room.ConfigIdx)
+func (room *RoomData) GetCfg() *pk.PK_CFG {
+	return pk.GetCfg(room.ConfigIdx)
 }
 
 func (room *RoomData) CanOperatorRoom(uid int) bool {
@@ -225,11 +226,11 @@ func (room *RoomData) StartDispatchCard() {
 		userMgr.SetUsetStatus(u, cost.US_PLAYING)
 	})
 
-	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetTBNNCards())
+	gameLogic.RandCardList(room.RepertoryCard, pk.GetTBNNCards())
 
 	//分发扑克
 	// 两张公共牌
-	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount; i++ {
+	for i := 0; i < pk.GetCfg(pk.IDX_TBNN).PublicCardCount; i++ {
 		room.LeftCardCount -= 1
 		room.PublicCardData[i] = room.RepertoryCard[room.LeftCardCount]
 		log.Debug("public card %d", room.CardData[i])
@@ -244,7 +245,7 @@ func (room *RoomData) StartDispatchCard() {
 	// 再发每个用户4张牌
 	userMgr.ForEachUser(func(u *user.User) {
 		room.LeftCardCount -= 1
-		for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount-1; i++ {
+		for i := 0; i < pk.GetCfg(pk.IDX_TBNN).MaxCount-1; i++ {
 			room.CardData[u.ChairId][i] = room.RepertoryCard[room.LeftCardCount]
 		}
 	})
