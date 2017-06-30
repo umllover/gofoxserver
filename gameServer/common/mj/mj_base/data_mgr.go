@@ -1456,6 +1456,23 @@ func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem) bool {
 	return true
 }
 
+//花上开花
+func (room *RoomData) IsHuaKaiHua(pAnalyseItem *TagAnalyseItem) bool {
+	if room.CurrentUser != room.ProvideUser {
+		return false
+	}
+
+	if room.FlowerCnt[room.CurrentUser] == 0 {
+		return false
+	}
+
+	if room.SendStatus == BuHua_Send {
+		return true
+	}
+
+	return false
+}
+
 //海底捞针
 func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) bool {
 	if room.ProvideUser != room.CurrentUser {
@@ -1469,15 +1486,12 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) bool {
 
 //字牌刻字
 func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) bool {
-	var colorCount [2]int
+
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := v & MASK_COLOR
-		if cardColor == 3 || cardColor == 4 {
-			colorCount[cardColor/4] = 1
+		cardColor := v >> 4
+		if cardColor == 3 {
+			return true
 		}
-	}
-	if colorCount[0]+colorCount[1] > 0 {
-		return true
 	}
 	return false
 }
@@ -1511,8 +1525,8 @@ func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem) bool {
 	}
 
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := v & MASK_COLOR
-		if cardColor == 3 || cardColor == 4 {
+		cardColor := v >> 4
+		if cardColor == 3 {
 			return false
 		}
 	}
@@ -1533,7 +1547,7 @@ func (room *RoomData) IsDuiDuiHu(pAnalyseItem *TagAnalyseItem) bool {
 func (room *RoomData) IsXiaoSiXi(pAnalyseItem *TagAnalyseItem) bool {
 	var colorCount [4]int
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := v & MASK_COLOR
+		cardColor := v >> 4
 		if cardColor == 3 {
 			cardV := v & MASK_VALUE
 			if cardV > 4 {
@@ -1559,7 +1573,7 @@ func (room *RoomData) IsXiaoSiXi(pAnalyseItem *TagAnalyseItem) bool {
 func (room *RoomData) IsDaSiXi(pAnalyseItem *TagAnalyseItem) bool {
 	var colorCount [4]int
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := (v & MASK_COLOR) >> 4
+		cardColor := v >> 4
 		if cardColor == 3 {
 			cardV := v & MASK_VALUE
 			if cardV > 4 {
@@ -1579,7 +1593,7 @@ func (room *RoomData) IsDaSiXi(pAnalyseItem *TagAnalyseItem) bool {
 func (room *RoomData) IsXiaoSanYuan(pAnalyseItem *TagAnalyseItem) bool {
 	var colorCount [3]int
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := (v & MASK_COLOR) >> 4
+		cardColor := v >> 4
 		if cardColor == 3 {
 			cardV := (v & MASK_VALUE) - 5
 			if cardV < 0 {
@@ -1605,7 +1619,7 @@ func (room *RoomData) IsXiaoSanYuan(pAnalyseItem *TagAnalyseItem) bool {
 func (room *RoomData) IsDaSanYuan(pAnalyseItem *TagAnalyseItem) bool {
 	var colorCount [3]int
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor := (v & MASK_COLOR) >> 4
+		cardColor := v >> 4
 		if cardColor == 3 {
 			cardV := (v & MASK_VALUE) - 5
 			if cardV < 0 {
@@ -1623,11 +1637,11 @@ func (room *RoomData) IsDaSanYuan(pAnalyseItem *TagAnalyseItem) bool {
 
 //混一色
 func (room *RoomData) IsHunYiSe(pAnalyseItem *TagAnalyseItem) bool {
-	cardColor := (pAnalyseItem.CardEye & MASK_COLOR) >> 4
+	cardColor := pAnalyseItem.CardEye >> 4
 	var colorCount [4]int
 	colorCount[cardColor] = 1
 	for _, v := range pAnalyseItem.CenterCard {
-		cardColor = (v & MASK_COLOR) >> 4
+		cardColor = v >> 4
 		if colorCount[cardColor] == 0 {
 			colorCount[cardColor] = 1
 		}
@@ -1669,5 +1683,101 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, bQuanFan *bool) bo
 		return true
 	}
 
+	return false
+}
+
+//门清
+func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) bool {
+
+	for k, v := range pAnalyseItem.WeaveKind {
+		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG || v == WIK_GANG {
+			if pAnalyseItem.IsAnalyseGet[k] == false {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+//佰六
+func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem) bool {
+
+	if room.FlowerCnt[room.CurrentUser] > 0 {
+		return false
+	}
+
+	for k, v := range pAnalyseItem.WeaveKind {
+		if (v & (WIK_LEFT | WIK_RIGHT)) == 0 {
+			if pAnalyseItem.IsAnalyseGet[k] == false {
+				return false
+			}
+		}
+	}
+
+	return false
+}
+
+//门清佰六
+func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem) bool {
+	if room.IsMenQing(pAnalyseItem) && room.IsBaiLiu(pAnalyseItem) {
+		return true
+	}
+	return false
+}
+
+//胡尾张
+func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem, cbCurrentCard int) bool {
+	logic := room.MjBase.LogicMgr
+
+	if logic.GetCardCount(room.CardIndex[room.CurrentUser]) == 1 {
+		return false
+	}
+
+	if pAnalyseItem.CardEye == cbCurrentCard {
+		return true
+	}
+	return false
+}
+
+//截头
+func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem, cbCurrentCard int) bool {
+	cardValue := cbCurrentCard & MASK_VALUE
+	for k, v := range pAnalyseItem.WeaveKind {
+		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 || !pAnalyseItem.IsAnalyseGet[k] {
+			continue
+		} else {
+			//1-2 胡3
+			if cardValue == 3 && cbCurrentCard == pAnalyseItem.CardData[k][2] {
+				return true
+			}
+			//8-9 胡7
+			if cardValue == 7 && cbCurrentCard == pAnalyseItem.CardData[k][0] {
+				return true
+			}
+		}
+
+	}
+	return false
+}
+
+//空心
+func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem, cbCurrentCard int) bool {
+	for k, v := range pAnalyseItem.WeaveKind {
+		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 || !pAnalyseItem.IsAnalyseGet[k] {
+			continue
+		} else {
+			if cbCurrentCard == pAnalyseItem.CardData[k][1] {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+//单吊
+func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
+
+	//todo,单吊
 	return false
 }
