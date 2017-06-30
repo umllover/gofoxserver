@@ -12,6 +12,8 @@ import (
 
 	"mj/common/msg/mj_zp_msg"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -135,7 +137,6 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
-	room.AfertEnd(true)
 }
 
 //玩家准备
@@ -198,6 +199,7 @@ func (room *Mj_base) OffLineTimeOut(u *user.User) {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
 	} else {
 		if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
+			log.Debug("at OffLineTimeOut ======= ")
 			room.AfertEnd(true)
 		}
 	}
@@ -447,6 +449,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 func (room *Mj_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
+		debug.PrintStack()
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
 		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),

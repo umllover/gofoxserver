@@ -657,7 +657,6 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 
 	log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
-	bAroseAction = false
 	if bAroseAction {
 		//设置变量
 		room.ProvideUser = wCenterUser
