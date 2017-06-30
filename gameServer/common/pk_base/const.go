@@ -1,5 +1,5 @@
 package pk_base
-/*
+
 const (
 	MAX_INDEX = 42 //最大索引
 
@@ -21,14 +21,6 @@ const (
 	MASK_VALUE = 0x0F //数值掩码
 )
 
-//常量定义
-const (
-	MAX_WEAVE     = 4   //最大组合
-	room.MaxCount     = 14  //最大数目
-	MAX_REPERTORY = 112 //最大库存
-	MAX_HUA_INDEX = 0   //花牌索引
-	MAX_HUA_COUNT = 8   //花牌个数
-)
 
 //麻将限制行为
 const (
@@ -113,4 +105,4 @@ type TagKindItem struct {
 	WeaveKind  int   //组合类型
 	CenterCard int   //中心扑克
 	CardIndex  []int //扑克索引
-}*/
+}

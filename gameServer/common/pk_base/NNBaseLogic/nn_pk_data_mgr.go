@@ -36,17 +36,17 @@ const  (
 )
 
 
-func NewDataMgr(id, uid, OriCardIdx int, name string, temp *base.GameServiceOption, base *NN_PK_base) *RoomData {
+func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *NN_PK_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
-		r.Name = temp.GameName
+		r.Name = temp.RoomName
 	} else {
 		r.Name = name
 	}
 	r.CreateUser = uid
 	r.NNPkBase = base
-	r.OriCardIdx = OriCardIdx
+	r.ConfigIdx = ConfigIdx
 	return r
 }
 
@@ -56,7 +56,7 @@ type RoomData struct {
 	Name       			string //房间名字
 	CreateUser 			int    //创建房间的人
 	NNPkBase     			*NN_PK_base
-	OriCardIdx 			int
+	ConfigIdx 			int  //配置文件索引
 
 	IsGoldOrGameScore 	int                //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	Password          	string             // 密码
@@ -107,6 +107,11 @@ type RoomData struct {
 	CallScoreTimer				timer.Timer
 	AddScoreTimer				timer.Timer
 }
+
+func (room *RoomData) GetCfg() *pk_base.PK_CFG {
+	return pk_base.GetCfg(room.ConfigIdx)
+}
+
 
 
 func (room *RoomData) CanOperatorRoom(uid int) bool {
@@ -211,11 +216,11 @@ func (room *RoomData) AfterStartGame() {
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
 	room.CardData = make([][]int, UserCnt)
-	room.PublicCardData = make([]int, pk_base.PUBLIC_CARD_COUNT)
+	room.PublicCardData = make([]int, room.GetCfg().PublicCardCount)
 
 	room.CallScoreTimesMap = make(map[int]*user.User)
 	room.ScoreMap = make(map[*user.User]int)
-	room.RepertoryCard = make([]int, pk_base.MAX_REPERTORY)
+	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 
 	room.ExitScore = 0
 	room.DynamicScore = 0

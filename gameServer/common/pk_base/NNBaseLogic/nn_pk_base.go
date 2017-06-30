@@ -135,7 +135,7 @@ func (room *NN_PK_base) DissumeRoom(args []interface{}) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.LeaveRoom(u)
+		room.UserMgr.LeaveRoom(u, room.Status)
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
@@ -194,7 +194,7 @@ func (room *NN_PK_base) UserOffline(args []interface{}) {
 
 //离线超时踢出
 func (room *NN_PK_base) OffLineTimeOut(u *user.User) {
-	room.UserMgr.LeaveRoom(u)
+	room.UserMgr.LeaveRoom(u, room.Status)
 	if room.Status != RoomStatusReady {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
 	} else {

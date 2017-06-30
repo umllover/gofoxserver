@@ -9,7 +9,7 @@ import (
 
 	//"github.com/lovelly/leaf/util"
 	"github.com/lovelly/leaf/util"
-	"math"
+
 )
 
 
@@ -76,7 +76,6 @@ func (lg *NNBaseLogic)NNGetCardLogicValue( CardData int) int {
 		CardValue = 10
 	}
 	return CardValue
-	math.Abs()
 }
 
 

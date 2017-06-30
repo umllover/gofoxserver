@@ -4,8 +4,7 @@ import "github.com/lovelly/leaf/util"
 
 
 const (
-	IDX_NOMAL 	= 0 // 扑克 通用牌型
-	IDX_TBNN  	= 1 // 通比牛牛牌型
+	IDX_TBNN  	= 0 // 通比牛牛牌型
 )
 
 var cards = [][]int{
@@ -31,12 +30,33 @@ func getCardByIdx(idx int) []int {
 	return card
 }
 
-//获得通用牌型
-func GetNormalCards() []int {
-	return getCardByIdx(IDX_NOMAL)
-}
-
 // 通比牛牛牌型
 func GetTBNNCards() [] int  {
 	return  getCardByIdx(IDX_TBNN)
+}
+
+type PK_CFG struct {
+	MaxIdx       int //最多多少种牌
+	MaxWeave     int //最多多少种组合
+	MaxCount     int //最大手牌数目
+	MaxRepertory int //最多存放多少张牌
+	HuaIndex     int //花牌开始缩影
+	HuaCount     int //花牌数量
+	PublicCardCount int //
+}
+
+var cfg = []*PK_CFG{
+	IDX_TBNN: &PK_CFG{
+		MaxIdx:       42,
+		MaxWeave:     5,
+		MaxCount:     17,
+		MaxRepertory: 144,
+		HuaIndex:     8,
+		HuaCount:     8,
+	},
+}
+
+
+func GetCfg(idx int) *PK_CFG {
+	return cfg[idx]
 }
