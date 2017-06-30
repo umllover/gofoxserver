@@ -35,13 +35,13 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		retCode = NoFoudTemplate
 		return nil
 	}
-	r := pk_base.NewPKBase(info)
-	cfg := &pk_base.NewPKCtlConfig{
+	r := NNBaseLogic.NewNNPKBase(info)
+	cfg := &NNBaseLogic.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  pk_base.NewDataMgr(info.RoomId, u.Id, pk_base.IDX_NOMAL, temp.GameName, temp, r),
+		DataMgr:  NNBaseLogic.NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
 		LogicMgr: NNBaseLogic.NewNNBaseLogic(),
-		TimerMgr: room_base.NewRoomTimerMgr(),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	if r == nil {

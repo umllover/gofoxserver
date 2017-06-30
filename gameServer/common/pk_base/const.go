@@ -21,7 +21,6 @@ const (
 	MASK_VALUE = 0x0F //数值掩码
 )
 
-
 //麻将限制行为
 const (
 	LimitChiHu = 1      //禁止吃胡

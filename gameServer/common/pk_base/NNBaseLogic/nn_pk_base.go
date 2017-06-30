@@ -16,6 +16,15 @@ import (
 	"mj/gameServer/common/pk_base"
 )
 
+//创建的配置文件
+type NewPKCtlConfig struct {
+	BaseMgr  common.BaseManager
+	DataMgr  pk_base.DataManager
+	UserMgr  common.UserManager
+	LogicMgr pk_base.LogicManager
+	TimerMgr common.TimerManager
+}
+
 type NN_PK_base struct {
 	common.BaseManager
 	DataMgr  pk_base.DataManager
@@ -25,16 +34,6 @@ type NN_PK_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
-}
-
-//创建的配置文件
-type NewNNPKCtlConfig struct {
-	BaseMgr   common.BaseManager
-	DataMgr   pk_base.DataManager
-	UserMgr   common.UserManager
-	LogicMgr  pk_base.LogicManager
-	TimerMgr  common.TimerManager
-	GetCardsF func() []int
 }
 
 func NewNNPKBase(info *model.CreateRoomInfo) *NN_PK_base {
@@ -48,7 +47,7 @@ func NewNNPKBase(info *model.CreateRoomInfo) *NN_PK_base {
 	return pk
 }
 
-func (r *NN_PK_base) Init(cfg *NewNNPKCtlConfig) {
+func (r *NN_PK_base) Init(cfg *NewPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr
 	r.BaseManager = cfg.BaseMgr
@@ -265,19 +264,21 @@ func (room *NN_PK_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *NN_PK_base) AfertEnd(Forced bool) {
-	if Forced {
+	room.TimerMgr.AddPlayCount()
+	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
+		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
+		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: room.DataMgr.GetRoomId(),
+			Status: room.Status,
+		})
 		room.Destroy(room.DataMgr.GetRoomId())
+		room.UserMgr.RoomDissume()
 		return
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.SetUsetStatus(u, US_FREE)
 	})
-
-	room.TimerMgr.AddPlayCount()
-	if room.TimerMgr.GetPlayCount() >= room.Temp.PlayTurnCount {
-		room.Destroy(room.DataMgr.GetRoomId())
-	}
 }
 
 //计算税收 暂时未实现
