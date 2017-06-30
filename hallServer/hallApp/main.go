@@ -29,6 +29,7 @@ var reloadDB = flag.Bool("reload", false, "reload base db")
 var Test = flag.Bool("Test", false, "reload base db")
 
 func main() {
+	flag.Parse()
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)
@@ -61,7 +62,6 @@ func main() {
 }
 
 func Init() {
-	flag.Parse()
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
