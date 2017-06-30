@@ -144,7 +144,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	accountData, ok = model.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
-	if ok != nil || accountData != nil {
+	if accountData != nil {
 		log.Debug("errpr == %v", ok)
 		retcode = AlreadyExistsAccount
 		return
@@ -181,7 +181,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 		return
 	}
 	user.Agent = agent
-	AddUser(user.Id, user)
+	//AddUser(user.Id, user)
 	agent.SetUserData(user)
 	BuildClientMsg(retMsg, user, accInfo)
 }
