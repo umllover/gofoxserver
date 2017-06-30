@@ -50,7 +50,7 @@ type G2C_MJZP_ListenCard struct {
 	ListenUser  int     //听牌用户
 	IsListen    bool    //是否听牌
 	HuCardCount int     //胡几张牌
-	HuCardData  [42]int //胡牌数据
+	HuCardData  []int //胡牌数据
 }
 
 //操作提示

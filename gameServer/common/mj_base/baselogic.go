@@ -426,7 +426,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 			if cbCardIndex[i] == 2 {
 				//变量定义
-				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
+				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 				for i := range analyseItem.CardData {
 					analyseItem.CardData[i] = make([]int, 4)
 				}
@@ -455,6 +455,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 				tg.CardIndex[0] = i
 				tg.CardIndex[1] = i
 				tg.CardIndex[2] = i
+				tg.IsAnalyseGet = true
 				tg.WeaveKind = WIK_PENG
 				KindItem = append(KindItem, tg)
 				cbKindItemCount++
@@ -469,6 +470,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 						tg.CardIndex[0] = i
 						tg.CardIndex[1] = i + 1
 						tg.CardIndex[2] = i + 2
+						tg.IsAnalyseGet = true
 						tg.WeaveKind = WIK_LEFT
 						KindItem = append(KindItem, tg)
 						cbKindItemCount++
@@ -522,7 +524,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 				//组合类型
 				if cbCardEye != 0 {
 					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx)}
+					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
 						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 					}
@@ -535,6 +537,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 
 					//设置牌型
 					for i := 0; i < cbLessKindItem; i++ {
+						analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
 						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
 						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
 						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
