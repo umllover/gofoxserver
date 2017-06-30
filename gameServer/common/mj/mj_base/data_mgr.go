@@ -5,16 +5,14 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
-	"mj/gameServer/common"
+	"mj/common/msg/mj_zp_msg"
+	"mj/common/utils"
+	"mj/gameServer/common/mj"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
 	"time"
-
-	"mj/common/utils"
-	"mj/gameServer/conf"
-
-	"mj/common/msg/mj_zp_msg"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -553,7 +551,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		room.ProvideUser = INVALID_CHAIR
 		room.ProvideCard = 0
 
-		gcr := &common.TagGangCardResult{}
+		gcr := &mj.TagGangCardResult{}
 		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
 		if room.Ting[wTargetUser] == false {
@@ -756,7 +754,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 		//杠牌判断
 		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
-			GangCardResult := &common.TagGangCardResult{}
+			GangCardResult := &mj.TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
 		}
 	}
@@ -959,7 +957,7 @@ func (room *RoomData) StartDispatchCard() {
 
 	room.UserAction = make([]int, UserCnt)
 
-	gangCardResult := &common.TagGangCardResult{}
+	gangCardResult := &mj.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
 	//胡牌判断

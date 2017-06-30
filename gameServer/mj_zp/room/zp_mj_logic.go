@@ -2,7 +2,7 @@ package room
 
 import (
 	"mj/common/msg"
-	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/mj/mj_base"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
