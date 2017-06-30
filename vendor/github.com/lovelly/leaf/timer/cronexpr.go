@@ -160,7 +160,7 @@ func parseCronField(field string, min int, max int) (cronField uint64, err error
 
 		// cronField
 		if incr == 1 {
-			cronField |= ^(math.MaxUint64 << uint(end+1)) & (math.MaxUint64 << uint(start))
+			cronField &= ^(math.MaxUint64 << uint(end+1)) & (math.MaxUint64 << uint(start))
 		} else {
 			for i := start; i <= end; i += incr {
 				cronField |= 1 << uint(i)

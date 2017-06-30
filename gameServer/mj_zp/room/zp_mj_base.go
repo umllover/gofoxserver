@@ -60,9 +60,9 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	//记录跟牌
 	room.DataMgr.RecordFollowCard(CardData)
 
-	u.UserLimit |= ^LimitChiHu
-	u.UserLimit |= ^LimitPeng
-	u.UserLimit |= ^LimitGang
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
 
 	room.DataMgr.NotifySendCard(u, CardData, false)
 

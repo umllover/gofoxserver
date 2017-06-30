@@ -33,11 +33,12 @@ var TokenRecordOp = &tokenRecordOp{}
 var DefaultTokenRecord = &TokenRecord{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *tokenRecordOp) Get(room_id int) (*TokenRecord, bool) {
+func (op *tokenRecordOp) Get(room_id int, user_id int) (*TokenRecord, bool) {
 	obj := &TokenRecord{}
-	sql := "select * from token_record where room_id=? "
+	sql := "select * from token_record where room_id=? and user_id=? "
 	err := db.DB.Get(obj, sql,
 		room_id,
+		user_id,
 	)
 
 	if err != nil {
@@ -155,9 +156,8 @@ func (op *tokenRecordOp) Update(m *TokenRecord) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
-	sql := `update token_record set user_id=?,tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=?`
+	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=? and user_id=?`
 	_, err := ext.Exec(sql,
-		m.UserId,
 		m.TokenType,
 		m.Amount,
 		m.Status,
@@ -165,6 +165,7 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 		m.KindID,
 		m.ServerId,
 		m.RoomId,
+		m.UserId,
 	)
 
 	if err != nil {
@@ -176,14 +177,14 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMap(room_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, room_id, m)
+func (op *tokenRecordOp) UpdateWithMap(room_id int, user_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, room_id, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[string]interface{}) error {
+func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int, m map[string]interface{}) error {
 
-	sql := `update token_record set %s where 1=1 and room_id=? ;`
+	sql := `update token_record set %s where 1=1 and room_id=? and user_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -194,7 +195,7 @@ func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[string
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, room_id)
+	params = append(params, room_id, user_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -207,17 +208,19 @@ func (i *TokenRecord) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *tokenRecordOp) Delete(room_id int) error {
-	return op.DeleteTx(db.DB, room_id)
+func (op *tokenRecordOp) Delete(room_id int, user_id int) error {
+	return op.DeleteTx(db.DB, room_id, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int) error {
+func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int, user_id int) error {
 	sql := `delete from token_record where 1=1
         and room_id=?
+        and user_id=?
         `
 	_, err := ext.Exec(sql,
 		room_id,
+		user_id,
 	)
 	return err
 }

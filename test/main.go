@@ -4,9 +4,11 @@ import (
 	//"mj/test/Room"
 	//"time"
 	"fmt"
-	"regexp"
 )
 
+func tt() (int, int) {
+	return 1, 2
+}
 func main() {
 	//room := Room.NewRoom()
 	//room.RegistFuncs()
@@ -16,7 +18,12 @@ func main() {
 	////////////////////////
 	//time.AfterFunc(1000*time.Hour, func() {})
 	//Room.Wg.Wait()
-	re, _ := regexp.Compile(`(?:)^.* `)
-	src := re.ReplaceAllString("192.168.199.141:8080", "0.0.0.0")
-	fmt.Println(src)
+	tt := 0
+	foo := func() {
+		tt++
+	}
+
+	foo()
+	fmt.Println(tt)
+
 }

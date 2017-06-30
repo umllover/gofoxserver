@@ -16,6 +16,8 @@ import (
 
 	"mj/hallServer/center"
 
+	"mj/hallServer/user"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -62,6 +64,7 @@ func init() {
 	handleRpc("updateRoomInfo", UpdateRoom)
 
 	handleRpc("SvrverFaild", ServerFaild)
+	handleRpc("SendPlayerBrief", SendPlayerBrief)
 }
 
 ////// c2s
@@ -232,14 +235,14 @@ func UpdateRoom(args []interface{}) {
 	case "CurPayCnt":
 		room.CurPayCnt = info.Data["CurPayCnt"].(int)
 	case "AddPlayerId":
-		id := info.Data["UID"].(int)
-		room.PlayerIds[id] = struct{}{}
-		room.CurCnt = len(room.PlayerIds)
+		pinfo := info.Data["info"].(*msg.PlayerBrief)
+		room.Players[pinfo.UID] = pinfo
+		room.CurCnt = len(room.Players)
 	case "DelPlayerId":
 		id := info.Data["UID"].(int)
 		status := info.Data["Status"].(int)
-		delete(room.PlayerIds, id)
-		room.CurCnt = len(room.PlayerIds)
+		delete(room.Players, id)
+		room.CurCnt = len(room.Players)
 		if status == 0 {
 			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
 
@@ -378,4 +381,17 @@ func ServerFaild(args []interface{}) {
 			delete(roomList, roomId)
 		}
 	}
+}
+
+func SendPlayerBrief(args []interface{}) {
+	roomId := args[0].(int)
+	u := args[1].(*user.User)
+	retMsg := &msg.L2C_RoomPlayerBrief{}
+	r := roomList[roomId]
+	if r != nil {
+		for _, v := range r.Players {
+			retMsg.Players = append(retMsg.Players, v)
+		}
+	}
+	u.WriteMsg(retMsg)
 }

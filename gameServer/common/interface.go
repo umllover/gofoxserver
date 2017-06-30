@@ -48,6 +48,9 @@ type DataManager interface {
 	GetRoomId() int
 	GetProvideUser() int
 	IsActionDone() bool
+
+	//测试专用函数。 请勿用于生产
+	SetUserCard(charirID int, cards []int)
 }
 
 type BaseManager interface {
@@ -66,6 +69,7 @@ type UserManager interface {
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
+	RoomDissume()
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})

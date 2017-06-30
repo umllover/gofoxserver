@@ -226,6 +226,7 @@ func (lg *BaseLogic) GetUserActionRank(cbUserAction int) int {
 
 //碰牌判断
 func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int {
+	log.Debug("at EstimatePengCard  cnt:%v, card:%v, allcard:%v", cbCardIndex[lg.SwitchToIdx(cbCurrentCard)], cbCurrentCard, cbCardIndex)
 	if cbCardIndex[lg.SwitchToIdx(cbCurrentCard)] >= 2 {
 		return WIK_PENG
 	}
@@ -235,6 +236,7 @@ func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int 
 
 //杠牌判断
 func (lg *BaseLogic) EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int {
+	log.Debug("at EstimateGangCard  cnt:%v, card:%v, allcard:%v", cbCardIndex[lg.SwitchToIdx(cbCurrentCard)], cbCurrentCard, cbCardIndex)
 	if cbCardIndex[lg.SwitchToIdx(cbCurrentCard)] == 3 {
 		return WIK_GANG
 	}
