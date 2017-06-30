@@ -11,6 +11,9 @@ import (
 	"strconv"
 	"time"
 
+	"mj/common/utils"
+	"mj/gameServer/conf"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -141,6 +144,34 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
+}
+
+//注意这个函数仅供调试用
+func (room *RoomData) SetUserCard(charirID int, cards []int) {
+	log.Debug("begin SetUserCard", room.CardIndex[charirID])
+	gameLogic := room.MjBase.LogicMgr
+	//repalce := func(old, new int) {
+	//	for idx, v := range room.RepertoryCard {
+	//		if v == old {
+	//			room.RepertoryCard[idx] = new
+	//		}
+	//	}
+	//}
+
+	inc := 0
+	userCard := room.CardIndex[charirID]
+	for idx, cnt := range userCard {
+		for i := 0; i < cnt; i++ {
+			if inc >= len(cards) {
+				break
+			}
+			//repalce(cards[inc], gameLogic.SwitchToCardData(idx))
+			userCard[idx]--
+			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
+			inc++
+		}
+	}
+	log.Debug("end SetUserCard", room.CardIndex[charirID])
 }
 
 func (room *RoomData) SendStatusPlay(u *user.User) {
@@ -567,6 +598,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 //响应判断
 func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int) bool {
+	log.Debug("at EstimateUserRespond ================= ")
 	//变量定义
 	bAroseAction := false
 
@@ -577,19 +609,28 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 	//动作判断
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		//用户过滤
-		if wCenterUser == u.ChairId || room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+		if wCenterUser == u.ChairId {
+			log.Debug("at EstimateUserRespond ======== wCenterUser:%v", wCenterUser)
+			return
+		}
+
+		//托管了不响应
+		if room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+			log.Debug("at EstimateUserRespond ======== IsTrustee ChairId:%v", u.ChairId)
 			return
 		}
 
 		//出牌类型
 		if EstimatKind == EstimatKind_OutCard {
 			//吃碰判断
+			log.Debug(".UserLimit&LimitPen %v, %v", u.UserLimit, u.UserLimit&LimitPeng)
 			if u.UserLimit&LimitPeng == 0 {
 				//碰牌判断
 				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimatePengCard(room.CardIndex[u.ChairId], cbCenterCard)
 			}
 
 			//杠牌判断
+			log.Debug(".room.LeftCardCount > room.EndLeftCount %v, %v", room.LeftCardCount > room.EndLeftCount, u.UserLimit&LimitGang)
 			if room.LeftCardCount > room.EndLeftCount && u.UserLimit&LimitGang == 0 {
 				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateGangCard(room.CardIndex[u.ChairId], cbCenterCard)
 			}
@@ -614,6 +655,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		}
 	})
 
+	log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
 	if bAroseAction {
 		//设置变量
@@ -680,9 +722,9 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//清除禁止胡牌的牌
-	u.UserLimit |= ^LimitChiHu
-	u.UserLimit |= ^LimitPeng
-	u.UserLimit |= ^LimitGang
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
 
 	//设置变量
 	room.OutCardUser = INVALID_CHAIR
@@ -862,6 +904,15 @@ func (room *RoomData) StartDispatchCard() {
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
 
+	//替换测试代码
+	if conf.Test {
+		for _, v := range base.GameTestpaiCache.All() {
+			if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
+				cards := utils.GetStrIntList(v.Cards, ",")
+				room.SetUserCard(v.ChairId, cards)
+			}
+		}
+	}
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
@@ -972,7 +1023,7 @@ func (room *RoomData) NormalEnd() {
 	GameConclude.MaCount = make([]int, UserCnt)
 	GameConclude.MaData = make([]int, UserCnt)
 
-	for i, _ := range GameConclude.HandCardData {
+	for i := range GameConclude.HandCardData {
 		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
 	}
 
@@ -1077,10 +1128,12 @@ func (room *RoomData) DismissEnd() {
 	GameConclude.SendCardData = room.SendCardData
 
 	//用户扑克
-	for i := 0; i < UserCnt; i++ {
-		if len(room.CardIndex[i]) > 0 {
-			GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
-			GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
+	if len(room.CardIndex) > 0 { //没开始就结束情况下小于0
+		for i := 0; i < UserCnt; i++ {
+			if len(room.CardIndex[i]) > 0 {
+				GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
+				GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
+			}
 		}
 	}
 
@@ -1271,4 +1324,18 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 		}
 	}
 	return cardindex
+}
+
+//插花
+func (room *RoomData) GetChaHua(u *user.User, setCount int) {
+}
+
+//补花
+func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
+	return true
+}
+
+//用户听牌
+func (room *RoomData) OnUserListenCard(u *user.User, bListenCard bool) bool {
+	return true
 }

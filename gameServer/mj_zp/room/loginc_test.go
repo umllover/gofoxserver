@@ -17,6 +17,8 @@ import (
 
 	"os"
 
+	"encoding/json"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -35,6 +37,12 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+
+}
+
+func TestOutCard(t *testing.T) {
+	args := []interface{}{u1, 0x11}
+	room.OutCard(args)
 	Wg.Wait()
 }
 
@@ -101,6 +109,7 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
@@ -117,6 +126,24 @@ func init() {
 		ServiceId:    1,
 	}
 
+	//游戏配置
+	type gameCfg struct {
+		ZhuaHua    int
+		WithZiCard bool
+		ScoreType  int
+	}
+	setCfg := map[string]interface{}{
+		"ZhuaHua":    0,
+		"WithZiCard": true,
+		"ScoreType":  33,
+	}
+	myCfg, cfgOk := json.Marshal(setCfg)
+	if cfgOk != nil {
+		log.Error("测试错误，退出程序")
+		os.Exit(0)
+	}
+	info.OtherInfo = string(myCfg)
+
 	base := room_base.NewRoomBase()
 
 	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
@@ -125,7 +152,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r, info.OtherInfo)
+	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, "", temp, r, info.OtherInfo)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
@@ -134,7 +161,7 @@ func init() {
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
-		LogicMgr: NewBaseLogic(),
+		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
@@ -154,6 +181,7 @@ func init() {
 		userg.Users[i] = u
 		u.ChairId = i
 	}
+
 }
 
 func newTestUser(uid int) *user.User {
@@ -189,3 +217,10 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func InitLog() {
+	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
+	if err != nil {
+		panic(err)
+	}
+	log.Export(logger)
+}

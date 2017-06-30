@@ -8,13 +8,48 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
+func GetCardWordArray(index []int) bool {
+	CardWordArray := []string{
+		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
+		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
+		"东", "南", "西", "北", "中", "发", "白",
+		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
+	}
+
+	var data string
+	//var data2 []int
+	for k, v := range index {
+		if v > 0 {
+			for i := 0; i < v; i++ {
+				data = data + "," + CardWordArray[k]
+				//data2 = append(data2, k)
+			}
+		}
+	}
+	log.Debug("手牌：%s", data)
+	//log.Debug("手牌:%d", len(data2))
+	return true
+}
+
+//func GetCardWord(index int) string {
+//	CardWordArray := []string{
+//		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
+//		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+//		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
+//		"东", "南", "西", "北", "中", "发", "白",
+//		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
+//	}
+//	return CardWordArray[index]
+//}
+
 type ZP_Logic struct {
 	*mj_base.BaseLogic
 }
 
-func NewBaseLogic() *ZP_Logic {
+func NewBaseLogic(ConfIdx int) *ZP_Logic {
 	bl := new(ZP_Logic)
-	bl.BaseLogic = mj_base.NewBaseLogic()
+	bl.BaseLogic = mj_base.NewBaseLogic(ConfIdx)
 	bl.BaseLogic.CheckValid = IsValidCard
 	bl.BaseLogic.SwitchToCard = SwitchToCardData
 	bl.BaseLogic.SwitchToIdx = SwitchToCardIndex
@@ -96,33 +131,33 @@ func (lg *ZP_Logic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 }
 
 //分析扑克
-func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) {
+func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) { //todo , CTagAnalyseItemArray & TagAnalyseItemArray
 	cbWeaveCount := len(WeaveItem)
-	log.Debug("zpmj at AnalyseChiHuCard %v, %v , %v ,%v ", cbCardIndex, WeaveItem, cbWeaveCount, TagAnalyseItemArray)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
+	GetCardWordArray(cbCardIndex)
+
 	//效验数目
-	if (cbCardCount < 2) || (cbCardCount >lg.GetCfg().MaxCount) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("zpmj at AnalyseCard (cbCardCount < 2) || (cbCardCount >lg.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
 	//变量定义
 	cbKindItemCount := 0
-	KindItem := make([]*TagKindItem,lg.GetCfg().MaxCount-2)
+	KindItem := make([]*TagKindItem, 0)
 
 	//需求判断
 	cbLessKindItem := (cbCardCount - 2) / 3
-	log.Debug("cbLessKindItem ======= %v, %v ", cbCardCount, cbLessKindItem)
 	//单吊判断
 	if cbLessKindItem == 0 {
 		//牌眼判断
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 			if cbCardIndex[i] == 2 {
 				//变量定义
-				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxWeave)}
-				for i, _ := range analyseItem.CardData {
+				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
+				for i := range analyseItem.CardData {
 					analyseItem.CardData[i] = make([]int, 4)
 				}
 
@@ -142,10 +177,10 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 	}
 
 	if cbCardCount >= 3 {
-		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
+		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 {
-				tg := &TagKindItem{CardIndex:make([]int, 4)}
+				tg := &TagKindItem{CardIndex: make([]int, 4)}
 				tg.CenterCard = i
 				tg.CardIndex[0] = i
 				tg.CardIndex[1] = i
@@ -153,13 +188,14 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 				tg.WeaveKind = WIK_PENG
 				KindItem = append(KindItem, tg)
 				cbKindItemCount++
+				//log.Debug("同牌判断：%s", GetCardWord(i))
 			}
 
 			//连牌判断
 			if (i < (lg.GetCfg().MaxIdx - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
 				for j := 1; j <= cbCardIndex[i]; j++ {
 					if (cbCardIndex[i+1] >= j) && (cbCardIndex[i+2] >= j) {
-						tg := &TagKindItem{CardIndex:make([]int, 4)}
+						tg := &TagKindItem{CardIndex: make([]int, 4)}
 						tg.CenterCard = i
 						tg.CardIndex[0] = i
 						tg.CardIndex[1] = i + 1
@@ -167,6 +203,7 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 						tg.WeaveKind = WIK_LEFT
 						KindItem = append(KindItem, tg)
 						cbKindItemCount++
+						//log.Debug("连牌判断：%s %s %s", GetCardWord(i), GetCardWord(i+1), GetCardWord(i+2))
 					}
 				}
 			}
@@ -178,8 +215,7 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 		//变量定义
 		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 		cbIndex := []int{0, 1, 2, 3, 4}
-
-		pKindItem := make([]*TagKindItem, lg.GetCfg().MaxWeave)
+		pKindItem := make([]*TagKindItem, 5)
 
 		//开始组合
 		for {
@@ -194,7 +230,6 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
-				log.Debug("#############",i/3)
 				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
@@ -219,7 +254,7 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 				//组合类型
 				if cbCardEye != 0 {
 					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxWeave)}
+					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx)}
 					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
 						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 					}
@@ -232,10 +267,10 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 
 					//设置牌型
 					for i := 0; i < cbLessKindItem; i++ {
-						analyseItem.WeaveKind[i+cbWeaveCount] = pKindItem[i].WeaveKind
-						cbCenterCard := lg.SwitchToCard(pKindItem[i].CenterCard)
+						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
+						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
 						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
-						lg.GetWeaveCard(pKindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
+						lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
 					}
 
 					//设置牌眼
@@ -270,9 +305,8 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, T
 	return true, TagAnalyseItemArray
 }
 
-//吃牌分析
-func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int {
-	//todo ,特殊牌组
+//吃胡分析
+func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard, ChiHuRight, MaxCount int, b4HZHu bool) int {
 
 	//变量定义
 	cbChiHuKind := int(WIK_NULL)
@@ -293,12 +327,12 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	}
 
 	//分析扑克
-	_, TagAnalyseItemArray = lg.AnalyseCard(cbCardIndexTemp, WeaveItem, TagAnalyseItemArray)
+	_, TagAnalyseItemArray = lg.AnalyseCard(MaxCount, cbCardIndexTemp, WeaveItem, TagAnalyseItemArray)
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
 		log.Debug("len(TagAnalyseItemArray) > 0 ")
-		log.Debug("################")
+		log.Debug("#####有胡牌")
 		ChiHuRight |= CHR_PING_HU
 	}
 
@@ -311,7 +345,7 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 }
 
 //分析听牌
-func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
+func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
 
 	cbOutCount := 0
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
@@ -319,6 +353,24 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 
 	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
 	chr := 0
+
+	if cbOutCardData == nil || cbHuCardCount == nil || cbHuCardData == nil {
+		if (cbCardCount+1)%3 == 0 {
+			for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
+				if cbCardIndexTemp[i] == 0 {
+					continue
+				}
+				cbCardIndexTemp[i]--
+				for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
+					cbCurrentCard := lg.SwitchToCardData(j)
+					if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
+						return WIK_LISTEN
+					}
+				}
+			}
+		}
+		return cbCardCount
+	}
 
 	if (cbCardCount-2)%3 == 0 {
 		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
@@ -331,7 +383,7 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 			nCount := 0
 			for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
 				cbCurrentCard := lg.SwitchToCard(j)
-				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, false) {
+				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
 					if bAdd == false {
 						bAdd = true
 						cbOutCardData[cbOutCount] = lg.SwitchToCard(i)
@@ -354,7 +406,7 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 		cbCount := 0
 		for j := 0; j < lg.GetCfg().MaxIdx; j++ {
 			cbCurrentCard := lg.SwitchToCard(j)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, false) {
+			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
 				log.Debug("cbCount === %v", cbHuCardData)
 				if len(cbHuCardData[0]) < 1 {
 					cbHuCardData[0] = make([]int, lg.GetCfg().MaxIdx)

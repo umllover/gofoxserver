@@ -18,6 +18,7 @@ import (
 // +gen *
 type CreateRoomInfo struct {
 	UserId       int        `db:"user_id" json:"user_id"`               // 用户索引
+	RoomName     string     `db:"room_name" json:"room_name"`           //
 	KindId       int        `db:"kind_id" json:"kind_id"`               // 房间索引
 	ServiceId    int        `db:"service_id" json:"service_id"`         // 游戏标识
 	CreateTime   *time.Time `db:"create_time" json:"create_time"`       // 录入日期
@@ -122,9 +123,10 @@ func (op *createRoomInfoOp) Insert(m *CreateRoomInfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *createRoomInfoOp) InsertTx(ext sqlx.Ext, m *CreateRoomInfo) (int64, error) {
-	sql := "insert into create_room_info(user_id,kind_id,service_id,create_time,node_id,room_id,num,status,max_player_cnt,pay_type,other_info) values(?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,max_player_cnt,pay_type,other_info) values(?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
+		m.RoomName,
 		m.KindId,
 		m.ServiceId,
 		m.CreateTime,
@@ -161,9 +163,10 @@ func (op *createRoomInfoOp) Update(m *CreateRoomInfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *createRoomInfoOp) UpdateTx(ext sqlx.Ext, m *CreateRoomInfo) error {
-	sql := `update create_room_info set user_id=?,kind_id=?,service_id=?,create_time=?,node_id=?,num=?,status=?,max_player_cnt=?,pay_type=?,other_info=? where room_id=?`
+	sql := `update create_room_info set user_id=?,room_name=?,kind_id=?,service_id=?,create_time=?,node_id=?,num=?,status=?,max_player_cnt=?,pay_type=?,other_info=? where room_id=?`
 	_, err := ext.Exec(sql,
 		m.UserId,
+		m.RoomName,
 		m.KindId,
 		m.ServiceId,
 		m.CreateTime,

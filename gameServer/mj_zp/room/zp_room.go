@@ -37,7 +37,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 
 	r := NewMJBase(info)
 	zpBase := room_base.NewRoomBase()
-	zpData := NewDataMgr(info.RoomId, u.Id, mj_base.IDX_ZPMJ, temp.GameName, temp, r, info.OtherInfo)
+	zpData := NewDataMgr(info.RoomId, u.Id, mj_base.IDX_ZPMJ, "", temp, r, info.OtherInfo)
 	if zpData == nil {
 		return nil
 	}
@@ -45,7 +45,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		BaseMgr:  zpBase,
 		DataMgr:  zpData,
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NewBaseLogic(),
+		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)

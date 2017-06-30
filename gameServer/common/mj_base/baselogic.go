@@ -226,6 +226,7 @@ func (lg *BaseLogic) GetUserActionRank(cbUserAction int) int {
 
 //碰牌判断
 func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int {
+	log.Debug("at EstimatePengCard  cnt:%v, card:%v, allcard:%v", cbCardIndex[lg.SwitchToIdx(cbCurrentCard)], cbCurrentCard, cbCardIndex)
 	if cbCardIndex[lg.SwitchToIdx(cbCurrentCard)] >= 2 {
 		return WIK_PENG
 	}
@@ -235,6 +236,7 @@ func (lg *BaseLogic) EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int 
 
 //杠牌判断
 func (lg *BaseLogic) EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int {
+	log.Debug("at EstimateGangCard  cnt:%v, card:%v, allcard:%v", cbCardIndex[lg.SwitchToIdx(cbCurrentCard)], cbCurrentCard, cbCardIndex)
 	if cbCardIndex[lg.SwitchToIdx(cbCurrentCard)] == 3 {
 		return WIK_GANG
 	}
@@ -315,6 +317,30 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	}
 
 	return cbActionMask
+}
+
+func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int {
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+	cbHuCardData = make([]int, lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex)
+
+	chr := 0
+	count := 0
+	cardCount := lg.GetCardCount(cbCardIndexTemp)
+	if (cardCount-2)%3 != 0 {
+		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
+			CurrentCard := lg.SwitchToCardData(i)
+			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, CurrentCard, chr, MaxCount, false) {
+				cbHuCardData[count] = CurrentCard
+				count++
+			}
+		}
+	}
+	if count > 0 {
+		return count
+	}
+
+	return 0
 }
 
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
@@ -401,7 +427,7 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 			if cbCardIndex[i] == 2 {
 				//变量定义
 				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, 4), CenterCard: make([]int, 4), CardData: make([][]int, 4)}
-				for i, _ := range analyseItem.CardData {
+				for i := range analyseItem.CardData {
 					analyseItem.CardData[i] = make([]int, 4)
 				}
 
@@ -457,17 +483,22 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 		//变量定义
 		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 		cbIndex := []int{0, 1, 2, 3}
+		pKindItem := make([]*TagKindItem, 4)
 
 		//开始组合
 		for {
 			//设置变量
 			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+			for i := 0; i < cbLessKindItem; i++ {
+				pKindItem[i] = KindItem[cbIndex[i]]
+			}
+
 			//数量判断
 			bEnoughCard := true
 
 			for i := 0; i < cbLessKindItem*3; i++ {
 				//存在判断
-				cbCardIndex := KindItem[i/3].CardIndex[i%3]
+				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
 				if cbCardIndexTemp[cbCardIndex] == 0 {
 					bEnoughCard = false
 					break

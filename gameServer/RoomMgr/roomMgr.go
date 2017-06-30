@@ -48,6 +48,10 @@ func DelRoom(id int) {
 	delete(Rooms, id)
 }
 
+func UpdateRoomToHall(data interface{}) {
+	cluster.Broadcast(HallPrefix, "updateRoomInfo", data)
+}
+
 // 此函数有风险， 请注意 调用函数内不用mgrLock 锁， 此函数消耗也大， 请勿随意调用
 func ForEachRoom(cb func(r IRoom)) {
 	mgrLock.RLock()

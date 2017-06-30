@@ -5,18 +5,15 @@ import (
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/hallServer/common"
+	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
+	"mj/hallServer/idGenerate"
 	"mj/hallServer/user"
 	"reflect"
 	"time"
-
-	"mj/hallServer/common"
-
-	"mj/hallServer/conf"
-
-	"mj/hallServer/idGenerate"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -34,13 +31,16 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
 	m.ChanRPC.Register("GetUser", m.GetUser)
 	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
+	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
+	m.ChanRPC.Register("restoreToken", m.restoreToken)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
 	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
-
 	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
+	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
+	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 }
 
 //连接进来的通知
@@ -275,8 +275,8 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		record.Amount = feeTemp.TableFee
 		record.TokenType = SELF_PAY_TYPE
 		record.KindID = template.KindID
-		_, err := model.TokenRecordOp.Insert(record)
-		if err != nil {
+		record.ServerId = template.ServerID
+		if !u.AddRecord(record) {
 			retCode = ErrServerError
 			u.AddCurrency(feeTemp.TableFee)
 			return
@@ -293,7 +293,13 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
-	model.CreateRoomInfoOp.Insert(info)
+	if recvMsg.RoomName != "" {
+		info.RoomName = recvMsg.RoomName
+	} else {
+		info.RoomName = template.RoomName
+	}
+
+	u.AddRooms(info)
 
 	//回给客户端的消息
 	retMsg.TableID = rid
@@ -350,8 +356,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record.Amount = monrey
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
-		_, err := model.TokenRecordOp.Insert(record)
-		if err != nil {
+		if !u.AddRecord(record) {
 			retcode = ErrServerError
 			u.AddCurrency(monrey)
 			return
@@ -361,6 +366,27 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	retMsg.TableID = roomInfo.RoomID
 	retMsg.ServerIP = host
 	return
+}
+
+//获取自己创建的房间
+func (m *UserModule) GetCreatorRecord(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_ReqCreatorRoomRecord)
+	retMsg := &msg.L2C_CreatorRoomRecord{}
+	u := m.a.UserData().(*user.User)
+	retMsg.Records = u.GetRoomInfo()
+	u.WriteMsg(retMsg)
+}
+
+//获取某个房间内的玩家信息
+func (m *UserModule) GetRoomPlayerBreif(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ReqRoomPlayerBrief)
+	u := m.a.UserData().(*user.User)
+	r := u.GetRoom(recvMsg.RoomId)
+	if r == nil {
+		u.WriteMsg(&msg.L2C_RoomPlayerBrief{})
+	} else {
+		gameList.ChanRPC.Go("SendPlayerBrief", recvMsg.RoomId, u)
+	}
 }
 
 ///////
@@ -376,7 +402,6 @@ func loadUser(u *user.User) bool {
 
 	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
-		log.Debug("at loadUser not foud GamescorelockerOp by user  %d", u.Id)
 		glInfo = &model.Gamescorelocker{}
 	}
 	u.Gamescorelocker = glInfo
@@ -417,7 +442,33 @@ func loadUser(u *user.User) bool {
 		return false
 	}
 	for _, v := range rooms {
-		u.AddRooms(v.RoomId, v)
+		u.Rooms[v.RoomId] = v
+	}
+
+	tokenRecords, terr := model.TokenRecordOp.QueryByMap(map[string]interface{}{
+		"user_id": u.Id,
+	})
+	if terr != nil {
+		log.Error("at loadUser not foud CreateRoomInfoOp by user  %d", u.Id)
+		return false
+	}
+
+	//加载扣钱记录
+	now := time.Now().Unix()
+	for _, v := range tokenRecords {
+		temp, ok := base.GameServiceOptionCache.Get(v.KindID, v.ServerId)
+		if ok {
+			if v.CreatorTime.Unix()+int64(temp.TimeNotBeginGame) < now && v.Status == 0 { //没开始返回钱
+				if u.AddCurrency(v.Amount) {
+					model.TokenRecordOp.Delete(v.RoomId, v.UserId)
+				}
+			}
+
+			if v.CreatorTime.Unix()+86400 < now { // 一天了还没删除？？？ 在这里删除。安全处理
+				model.TokenRecordOp.Delete(v.RoomId, v.UserId)
+			}
+		}
+		u.Records[v.RoomId] = v
 	}
 	return true
 }
@@ -518,6 +569,46 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
 	retMsg.ServerIP = user.EnterIP
+}
+
+//房间结束了
+func (m *UserModule) RoomCloseInfo(args []interface{}) {
+	info := args[0].(*msg.RoomEndInfo)
+	player := m.a.UserData().(*user.User)
+	if info.Status == 0 { //没开始就结束
+		record := player.GetRecord(info.RoomId)
+		if record != nil { //还原扣的钱
+			err := player.DelRecord(record.RoomId)
+			if err == nil {
+				player.AddCurrency(record.Amount)
+			} else {
+				log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
+			}
+
+		} else {
+			log.Error("at restoreToken not foud record uid:%d", player.Id)
+		}
+	}
+	player.DelRooms(info.RoomId)
+	return
+}
+
+//离开房间还原
+func (m *UserModule) restoreToken(args []interface{}) {
+	player := m.a.UserData().(*user.User)
+	RoomId := args[0].(int)
+	record := player.GetRecord(RoomId)
+	if record != nil { //还原扣的钱
+		err := player.DelRecord(record.RoomId)
+		if err == nil {
+			player.AddCurrency(record.Amount)
+		} else {
+			log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
+		}
+
+	} else {
+		log.Error("at restoreToken not foud record uid:%d", player.Id)
+	}
 }
 
 /////////////////////////////// help 函数

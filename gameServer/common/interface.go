@@ -36,6 +36,9 @@ type DataManager interface {
 	GetTrusteeOutCard(wChairID int) int
 	CanOperatorRoom(uid int) bool
 	SendStatusReady(u *user.User)
+	GetChaHua(u *user.User, setCount int)
+	OnUserReplaceCard(u *user.User, CardData int) bool
+	OnUserListenCard(u *user.User, bListenCard bool) bool
 
 	GetResumeUser() int
 	GetGangStatus() int
@@ -44,6 +47,9 @@ type DataManager interface {
 	GetRoomId() int
 	GetProvideUser() int
 	IsActionDone() bool
+
+	//测试专用函数。 请勿用于生产
+	SetUserCard(charirID int, cards []int)
 }
 
 type BaseManager interface {
@@ -58,14 +64,18 @@ type UserManager interface {
 	Sit(*user.User, int) int
 	Standup(*user.User) bool
 	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User) bool
+	LeaveRoom(*user.User, int) bool
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
+	RoomDissume()
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
+	SendDataToHallUser(chiairID int, funcName string, data interface{})
+	SendMsgToHallServerAll(funcName string, data interface{})
+	SendCloseRoomToHall(data interface{})
 
 	GetCurPlayerCnt() int
 	GetMaxPlayerCnt() int
@@ -88,6 +98,7 @@ type LogicManager interface {
 	GetUserActionRank(cbUserAction int) int
 	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
+	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
 	GetUserCards(cbCardIndex []int) (cbCardData []int)
 	SwitchToCardData(cbCardIndex int) int

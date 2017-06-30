@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -39,7 +38,7 @@ func InitDB(cnf IDBCnf) {
 }
 
 func initSqlxDB(dbConfig, logHeader string, maxOpen, maxIdle int) *sqlx.DB {
-	fmt.Println(dbConfig, logHeader, maxOpen, maxIdle)
+	log.Debug(dbConfig, logHeader, maxOpen, maxIdle)
 	db := sqlx.MustConnect(driverName, dbConfig)
 	db.SetMaxOpenConns(maxOpen)
 	db.SetMaxIdleConns(maxIdle)

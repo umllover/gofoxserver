@@ -27,6 +27,7 @@ import (
 var version = 0
 
 var printVersion = flag.Bool("version", false, "print version")
+var Test = flag.Bool("Test", false, "reload base db")
 
 func main() {
 	if *printVersion {
@@ -66,5 +67,6 @@ func Init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	conf.Test = *Test
 	leaf.InitLog()
 }

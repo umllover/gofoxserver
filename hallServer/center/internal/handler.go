@@ -25,10 +25,9 @@ func init() {
 	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
 	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
 	handleRpc("SendMsgToUser", GoMsgToUser)
-	handleRpc("AsyncCallUser", AsyncCallUser)
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
 	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	handleRpc("SendMsgToHallUser", HanldeFromGameMsg)
+	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
 }
 
 //玩家在本服节点登录

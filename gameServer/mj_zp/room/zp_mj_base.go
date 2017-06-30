@@ -57,9 +57,9 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		return
 	}
 
-	u.UserLimit |= ^LimitChiHu
-	u.UserLimit |= ^LimitPeng
-	u.UserLimit |= ^LimitGang
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
 
 	room.DataMgr.NotifySendCard(u, CardData, false)
 

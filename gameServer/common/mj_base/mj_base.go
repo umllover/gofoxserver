@@ -10,6 +10,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
+	"mj/common/msg/mj_zp_msg"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -129,11 +131,11 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.LeaveRoom(u)
+		room.UserMgr.LeaveRoom(u, room.Status)
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
-	room.Destroy(room.DataMgr.GetRoomId())
+	room.AfertEnd(true)
 }
 
 //玩家准备
@@ -191,29 +193,30 @@ func (room *Mj_base) UserOffline(args []interface{}) {
 
 //离线超时踢出
 func (room *Mj_base) OffLineTimeOut(u *user.User) {
-	room.UserMgr.LeaveRoom(u)
+	room.UserMgr.LeaveRoom(u, room.Status)
 	if room.Status != RoomStatusReady {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
 	} else {
 		if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
-			room.Destroy(room.DataMgr.GetRoomId())
+			room.AfertEnd(true)
 		}
 	}
 }
 
 //获取房间基础信息
 func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
-	msg := &msg.RoomInfo{}
-	msg.ServerID = room.Temp.ServerID
-	msg.KindID = room.Temp.KindID
-	msg.NodeID = conf.Server.NodeId
-	msg.RoomID = room.DataMgr.GetRoomId()
-	msg.CurCnt = room.UserMgr.GetCurPlayerCnt()
-	msg.MaxCnt = room.UserMgr.GetMaxPlayerCnt()    //最多多人数
-	msg.PayCnt = room.TimerMgr.GetMaxPayCnt()      //可玩局数
-	msg.CurPayCnt = room.TimerMgr.GetPlayCount()   //已玩局数
-	msg.CreateTime = room.TimerMgr.GetCreatrTime() //创建时间
-	return msg
+	BirefInf := &msg.RoomInfo{}
+	BirefInf.ServerID = room.Temp.ServerID
+	BirefInf.KindID = room.Temp.KindID
+	BirefInf.NodeID = conf.Server.NodeId
+	BirefInf.RoomID = room.DataMgr.GetRoomId()
+	BirefInf.CurCnt = room.UserMgr.GetCurPlayerCnt()
+	BirefInf.MaxCnt = room.UserMgr.GetMaxPlayerCnt()    //最多多人数
+	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()      //可玩局数
+	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()   //已玩局数
+	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime() //创建时间
+	BirefInf.Players = make(map[int]*msg.PlayerBrief)
+	return BirefInf
 }
 
 //游戏配置
@@ -289,9 +292,9 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		return
 	}
 
-	u.UserLimit |= ^LimitChiHu
-	u.UserLimit |= ^LimitPeng
-	u.UserLimit |= ^LimitGang
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
 
 	room.DataMgr.NotifySendCard(u, CardData, false)
 
@@ -306,6 +309,27 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	}
 
 	return
+}
+
+//插花
+func (room *Mj_base) ChaHuaMsg(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_SetChaHua)
+	room.DataMgr.GetChaHua(u, getData.SetCount)
+}
+
+//补花
+func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
+	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
+}
+
+//用户听牌
+func (room *Mj_base) OnUserListenCardMsg(args []interface{}) {
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ListenCard)
+	room.DataMgr.OnUserListenCard(u, getData.ListenCard)
 }
 
 // 吃碰杠胡各种操作
@@ -415,25 +439,27 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		room.AfertEnd(true)
 	}
 
-	log.Error("at OnEventGameConclude error  ")
+	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
 	return
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Mj_base) AfertEnd(Forced bool) {
-	if Forced {
+	room.TimerMgr.AddPlayCount()
+	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
+		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
+		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: room.DataMgr.GetRoomId(),
+			Status: room.Status,
+		})
 		room.Destroy(room.DataMgr.GetRoomId())
+		room.UserMgr.RoomDissume()
 		return
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.SetUsetStatus(u, US_FREE)
 	})
-
-	room.TimerMgr.AddPlayCount()
-	if room.TimerMgr.GetPlayCount() >= room.Temp.PlayTurnCount {
-		room.Destroy(room.DataMgr.GetRoomId())
-	}
 }
 
 //托管
@@ -465,9 +491,9 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 				return false
 			}
 
-			u.UserLimit |= ^LimitChiHu
-			u.UserLimit |= ^LimitPeng
-			u.UserLimit |= ^LimitGang
+			u.UserLimit &= ^LimitChiHu
+			u.UserLimit &= ^LimitPeng
+			u.UserLimit &= ^LimitGang
 
 			room.DataMgr.NotifySendCard(u, card, false)
 
