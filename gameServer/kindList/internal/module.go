@@ -6,6 +6,7 @@ import (
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
+	"mj/gameServer/mj_zp"
 
 	"mj/gameServer/common/room_base"
 
@@ -19,6 +20,7 @@ var (
 	KModule  = new(Module)
 	Kinds    = map[int]room_base.Module{ // Register here
 		common.KIND_TYPE_HZMJ: hzmj.Module,
+		common.KIND_TYPE_ZPMJ: zpmj.Module,
 	}
 )
 
@@ -32,12 +34,12 @@ func (m *Module) OnInit() {
 }
 
 func (m *Module) OnDestroy() {
-	ClearLoocker()
+	Clears()
 }
 
 func LoadAllModule() {
 	for kind, m := range Kinds {
-		if HasKind(kind) {
+		if HasKind(kind) && m != nil {
 			AddMoudle(kind, m)
 		}
 	}
@@ -66,8 +68,19 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 	return mod, ok
 }
 
+func Clears() {
+	ClearLoocker()
+	ClearRoomId()
+}
+
 func ClearLoocker() {
 	model.GamescorelockerOp.DeleteByMap(map[string]interface{}{
 		"NodeID": conf.Server.NodeId,
+	})
+}
+
+func ClearRoomId() {
+	model.RoomIdOp.DeleteByMap(map[string]interface{}{
+		"node_id": conf.Server.NodeId,
 	})
 }

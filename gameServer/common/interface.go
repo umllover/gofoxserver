@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"mj/common/msg/mj_hz_msg"
-
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/timer"
@@ -26,7 +24,7 @@ type DataManager interface {
 	DispatchCardData(int, bool) int
 	HasOperator(ChairId, OperateCode int) bool
 	HasCard(ChairId, cardIdx int) bool
-	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard) (int, int)
+	CheckUserOperator(*user.User, int, int, []int) (int, int)
 	UserChiHu(wTargetUser, userCnt int)
 	WeaveCard(cbTargetAction, wTargetUser int)
 	RemoveCardByOP(wTargetUser, ChoOp int) bool
@@ -38,6 +36,10 @@ type DataManager interface {
 	GetTrusteeOutCard(wChairID int) int
 	CanOperatorRoom(uid int) bool
 	SendStatusReady(u *user.User)
+	GetChaHua(u *user.User, setCount int)
+	OnUserReplaceCard(u *user.User, CardData int) bool
+	OnUserListenCard(u *user.User, bListenCard bool) bool
+	RecordFollowCard(cbCenterCard int) bool
 
 	GetResumeUser() int
 	GetGangStatus() int
@@ -46,6 +48,9 @@ type DataManager interface {
 	GetRoomId() int
 	GetProvideUser() int
 	IsActionDone() bool
+
+	//测试专用函数。 请勿用于生产
+	SetUserCard(charirID int, cards []int)
 }
 
 type BaseManager interface {
@@ -60,15 +65,18 @@ type UserManager interface {
 	Sit(*user.User, int) int
 	Standup(*user.User) bool
 	ForEachUser(fn func(*user.User))
-	LeaveRoom(*user.User) bool
+	LeaveRoom(*user.User, int) bool
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
-	AddKickOutTimer(int, *timer.Timer)
+	RoomDissume()
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
+	SendDataToHallUser(chiairID int, funcName string, data interface{})
+	SendMsgToHallServerAll(funcName string, data interface{})
+	SendCloseRoomToHall(data interface{})
 
 	GetCurPlayerCnt() int
 	GetMaxPlayerCnt() int
@@ -81,15 +89,17 @@ type UserManager interface {
 }
 
 type LogicManager interface {
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
 	GetCardCount(cbCardIndex []int) int
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
 	EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
+	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
+	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
+	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
 	GetUserCards(cbCardIndex []int) (cbCardData []int)
 	SwitchToCardData(cbCardIndex int) int
@@ -103,8 +113,9 @@ type LogicManager interface {
 type TimerManager interface {
 	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
+	StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func())
+	StopOfflineTimer(uid int)
 
-	GetCountLimit() int
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()

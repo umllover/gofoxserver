@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -266,23 +265,6 @@ func calcCombImpl(total int) [][]int {
 		}
 	}
 	return combs
-}
-
-func SplitPlayerOnlyId(onlyId string) (serverId int, playerId int) {
-	ids := strings.Split(onlyId, "_")
-	if len(ids) != 2 {
-		log.Error("splitPlayerOnlyId failed: %v", onlyId)
-		return
-	}
-
-	serverId, _ = strconv.Atoi(ids[0])
-	playerId, _ = strconv.Atoi(ids[1])
-	return
-}
-
-//逻辑服务器ID_玩家ID
-func BuildPlayerOnlyId(logicId int, playerId int) string {
-	return fmt.Sprintf("%v_%v", logicId, playerId)
 }
 
 func IntSliceDelete(s []int, index int) []int {

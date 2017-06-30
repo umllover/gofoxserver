@@ -36,6 +36,7 @@ type User struct {
 	InsureScore  int64  // 银行金币
 	MemberOrder  int8   // 会员标识
 	HallNodeName string //大厅服务器节点名字
+	IconID       int    //头像id
 	mu           sync.RWMutex
 }
 

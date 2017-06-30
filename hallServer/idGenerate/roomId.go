@@ -3,7 +3,7 @@ package idGenerate
 import (
 	"mj/common/utils"
 
-	"mj/gameServer/db/model"
+	"mj/hallServer/db/model"
 	"sync"
 )
 
@@ -12,7 +12,7 @@ var (
 	idLock sync.Mutex
 )
 
-func GetRoomId(uid int) (int, bool) {
+func GenerateRoomId(nodeId int) (int, bool) {
 	idLock.Lock()
 	defer idLock.Unlock()
 	for i := 0; i < 100; i++ {
@@ -23,7 +23,7 @@ func GetRoomId(uid int) (int, bool) {
 		if _, ok := ids[r]; ok {
 			continue
 		}
-		rid := &model.RoomId{Id: r, UserId: uid}
+		rid := &model.RoomId{Id: r, NodeId: nodeId}
 		_, err := model.RoomIdOp.Insert(rid)
 		if err == nil {
 			ids[r] = rid

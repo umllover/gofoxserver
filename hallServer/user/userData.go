@@ -1,6 +1,7 @@
 package user
 
 import (
+	"mj/common/msg"
 	"mj/hallServer/db/model"
 	"sync"
 
@@ -18,14 +19,16 @@ type User struct {
 	*model.Userattr
 	*model.Usertoken
 	*model.Userextrainfo
-	Rooms map[int]*model.CreateRoomInfo
-	Id    int
+	Rooms   map[int]*model.CreateRoomInfo
+	Records map[int]*model.TokenRecord
+	Id      int
 	sync.RWMutex
 }
 
 func NewUser(UserId int) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
+	u.Records = make(map[int]*model.TokenRecord)
 	return u
 }
 
@@ -33,27 +36,42 @@ func (u *User) GetUid() int {
 	return u.Id
 }
 
-func (u *User) AddRooms(id int, r *model.CreateRoomInfo) {
+func (u *User) AddRooms(r *model.CreateRoomInfo) {
+	model.CreateRoomInfoOp.Insert(r)
 	u.Lock()
 	defer u.Unlock()
-	u.Rooms[id] = r
+	u.Rooms[r.RoomId] = r
 }
 
 func (u *User) DelRooms(id int) {
 	u.Lock()
-	defer u.Unlock()
 	_, ok := u.Rooms[id]
 	if ok {
 		delete(u.Rooms, id)
-		model.CreateRoomInfoOp.Delete(id)
 	}
+	u.Unlock()
+	model.CreateRoomInfoOp.Delete(id)
 }
 
-func (u *User) HasRoom(id int) bool {
+func (u *User) GetRoom(id int) *model.CreateRoomInfo {
 	u.RLock()
 	defer u.RUnlock()
-	_, ok := u.Rooms[id]
-	return ok
+	return u.Rooms[id]
+}
+
+func (u *User) GetRoomInfo() []*msg.CreatorRoomInfo {
+	u.RLock()
+	defer u.RUnlock()
+	info := make([]*msg.CreatorRoomInfo, 0)
+	for _, v := range u.Rooms {
+		RoomInfo := &msg.CreatorRoomInfo{}
+		RoomInfo.Status = v.Status
+		RoomInfo.CreatorTime = v.CreateTime.Unix()
+		RoomInfo.RoomName = v.RoomName
+		RoomInfo.RoomID = v.RoomId
+		info = append(info, RoomInfo)
+	}
+	return info
 }
 
 func (u *User) GetRoomCnt() int {
@@ -90,4 +108,34 @@ func (u *User) AddCurrency(add int) bool {
 		return false
 	}
 	return true
+}
+
+//增加扣钱计入
+func (u *User) AddRecord(tr *model.TokenRecord) bool {
+	u.Lock()
+	u.Records[tr.RoomId] = tr
+	u.Unlock()
+	_, err := model.TokenRecordOp.Insert(tr)
+	if err != nil {
+		log.Debug("ad TokenRecordOp error :%s", err.Error())
+		return false
+	}
+	return true
+}
+
+//删除扣钱记录
+func (u *User) DelRecord(id int) error {
+	u.Lock()
+	r, ok := u.Records[id]
+	if ok {
+		delete(u.Records, id)
+	}
+	u.Unlock()
+	return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
+}
+
+func (u *User) GetRecord(id int) *model.TokenRecord {
+	u.RLock()
+	defer u.RUnlock()
+	return u.Records[id]
 }

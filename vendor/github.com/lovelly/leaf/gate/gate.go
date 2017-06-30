@@ -183,6 +183,7 @@ func (a *agent) Run() {
 			userId = user.GetUid()
 		}
 
+
 		log.Debug("IN msg =: %s, userId:%v", string(data), userId)
 		if a.chanRPC == nil {
 			err = handleMsgData([]interface{}{data})

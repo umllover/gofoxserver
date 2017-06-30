@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"math/rand"
 	"reflect"
 	"time"
 
@@ -26,59 +25,61 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
-	//StartHorseRaceLamp()	// 启动跑马灯协程
+
 }
 
 // 接收到消息，存表
-func ReciveMsg(beginTime int, endTime int, interval int, context string) {
+func ReciveGMMsg(sendTimes int, interval int, context string) {
 
 	var raceMsginfo model.RaceMsgInfo
 	raceMsginfo.Context = context
-	raceMsginfo.EndTime = endTime
-	raceMsginfo.StartTime = beginTime
+	raceMsginfo.SendTimes = sendTimes
 	raceMsginfo.IntervalTime = interval
 
-	log.Debug("准备插入数据库")
-	lastId, rerror := model.RaceMsgInfoOp.Insert(&raceMsginfo)
-	if rerror != nil {
-		log.Debug("插入失败")
+	SendMsgToAll(context)
+	raceMsginfo.SendTimes--
+	if raceMsginfo.SendTimes > 0 {
+		go SendMsgTimer(raceMsginfo)
+		log.Debug("GM消息准备插入数据库")
+		lastId, rerror := model.RaceMsgInfoOp.Insert(&raceMsginfo)
+		if rerror != nil {
+			log.Error("GM消息插入数据库失败")
+			return
+		}
+		log.Debug("GM消息插入数据库结果:", lastId)
 	}
-	log.Debug("插入数据库结果:", lastId)
 }
 
-// 启动跑马灯
-func StartHorseRaceLamp() {
+// 服务端启动，从数据库读取GM未发送完成的消息数据
+func GetGMMsgFromDB() {
 	// 先从数据库里取所有数据
 	allMsg, err := model.RaceMsgInfoOp.SelectAll()
 	if err != nil {
-		log.Error("race_msg_info查找所有数据失败,error=%i", err)
+		log.Error("从race_msg_info表读取所有数据失败,error=%i", err)
 		return
 	}
 
-	var msgInfo []*model.RaceMsgInfo // 存储符合条件的数据
-
-	// 先删除过期数据
-	nowTime := time.Now().Unix()
 	for _, value := range allMsg {
-		if value.EndTime <= int(nowTime) {
-			model.RaceMsgInfoOp.Delete(value.MsgID)
-			continue
-		}
+		go SendMsgTimer(*value)
+	}
+}
 
-		if value.StartTime > int(nowTime) {
-			continue
+// 发数据
+func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
+	f := func() {
+		SendMsgToAll(raceMsginfo1.Context)
+		raceMsginfo1.SendTimes--
+		if raceMsginfo1.SendTimes > 0 {
+			SendMsgTimer(raceMsginfo1)
+			model.RaceMsgInfoOp.Update(&raceMsginfo1)
+		} else {
+			log.Debug("msg为%v的消息发完了", raceMsginfo1.MsgID)
+			// 删除数据库
+			model.RaceMsgInfoOp.Delete(raceMsginfo1.MsgID)
 		}
-
-		msgInfo = append(msgInfo, value)
 	}
 
-	msgCount := len(msgInfo)
-	if msgCount > 0 {
-		r := rand.New(rand.NewSource(time.Now().UnixNano()))
-		index := r.Intn(msgCount)
-
-		SendMsgToAll(msgInfo[index].Context)
-	}
+	time.AfterFunc(time.Duration(raceMsginfo1.IntervalTime)*time.Second, f)
 }
 
 //发送消息给所有人
@@ -88,9 +89,4 @@ func SendMsgToAll(data interface{}) {
 	userHandle.UserMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(data)
 	})
-}
-
-//发送消息给某人
-func sendMsgToUser(args []interface{}) {
-
 }

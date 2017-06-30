@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -16,12 +17,14 @@ import (
 
 // +gen *
 type TokenRecord struct {
+	RoomId      int        `db:"room_id" json:"room_id"`           //
 	UserId      int        `db:"user_id" json:"user_id"`           //
 	TokenType   int        `db:"tokenType" json:"tokenType"`       //
 	Amount      int        `db:"amount" json:"amount"`             //
 	Status      int        `db:"status" json:"status"`             //
 	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` //
 	KindID      int        `db:"KindID" json:"KindID"`             //
+	ServerId    int        `db:"ServerId" json:"ServerId"`         //
 }
 
 type tokenRecordOp struct{}
@@ -30,10 +33,11 @@ var TokenRecordOp = &tokenRecordOp{}
 var DefaultTokenRecord = &TokenRecord{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *tokenRecordOp) Get(user_id int) (*TokenRecord, bool) {
+func (op *tokenRecordOp) Get(room_id int, user_id int) (*TokenRecord, bool) {
 	obj := &TokenRecord{}
-	sql := "select * from token_record where user_id=? "
+	sql := "select * from token_record where room_id=? and user_id=? "
 	err := db.DB.Get(obj, sql,
+		room_id,
 		user_id,
 	)
 
@@ -96,7 +100,7 @@ func (op *tokenRecordOp) GetByMap(m map[string]interface{}) (*TokenRecord, error
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, nil
+	return nil, errors.New("no row in result")
 }
 
 /*
@@ -116,14 +120,16 @@ func (op *tokenRecordOp) Insert(m *TokenRecord) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
-	sql := "insert into token_record(user_id,tokenType,amount,status,creator_time,KindID) values(?,?,?,?,?,?)"
+	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
+		m.RoomId,
 		m.UserId,
 		m.TokenType,
 		m.Amount,
 		m.Status,
 		m.CreatorTime,
 		m.KindID,
+		m.ServerId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -150,13 +156,15 @@ func (op *tokenRecordOp) Update(m *TokenRecord) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
-	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=? where user_id=?`
+	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=? and user_id=?`
 	_, err := ext.Exec(sql,
 		m.TokenType,
 		m.Amount,
 		m.Status,
 		m.CreatorTime,
 		m.KindID,
+		m.ServerId,
+		m.RoomId,
 		m.UserId,
 	)
 
@@ -169,14 +177,14 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMap(user_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, user_id, m)
+func (op *tokenRecordOp) UpdateWithMap(room_id int, user_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, room_id, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, m map[string]interface{}) error {
+func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int, m map[string]interface{}) error {
 
-	sql := `update token_record set %s where 1=1 and user_id=? ;`
+	sql := `update token_record set %s where 1=1 and room_id=? and user_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -187,7 +195,7 @@ func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, m map[string
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, user_id)
+	params = append(params, room_id, user_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -200,16 +208,18 @@ func (i *TokenRecord) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *tokenRecordOp) Delete(user_id int) error {
-	return op.DeleteTx(db.DB, user_id)
+func (op *tokenRecordOp) Delete(room_id int, user_id int) error {
+	return op.DeleteTx(db.DB, room_id, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, user_id int) error {
+func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int, user_id int) error {
 	sql := `delete from token_record where 1=1
+        and room_id=?
         and user_id=?
         `
 	_, err := ext.Exec(sql,
+		room_id,
 		user_id,
 	)
 	return err

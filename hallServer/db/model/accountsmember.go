@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -94,7 +95,7 @@ func (op *accountsmemberOp) GetByMap(m map[string]interface{}) (*Accountsmember,
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, nil
+	return nil, errors.New("no row in result")
 }
 
 /*

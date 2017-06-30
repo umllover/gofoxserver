@@ -3,6 +3,8 @@ package internal
 import (
 	"mj/common/base"
 
+	"strings"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
@@ -26,13 +28,11 @@ func (m *Module) OnInit() {
 
 	wn := Config.GetWatchSvrName()
 	if wn != "" {
-		WatchServices(wn)
+		list := strings.Split(wn, ",")
+		for _, v := range list {
+			WatchServices(v)
+		}
 	}
-
-	//wf := Config.GetWatchFaildSvrName()
-	//if wf != ""{
-	//	WatchAllFaild(wf)
-	//}
 }
 
 func (m *Module) OnDestroy() {

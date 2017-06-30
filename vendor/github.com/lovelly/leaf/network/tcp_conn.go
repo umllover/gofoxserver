@@ -1,19 +1,21 @@
 package network
 
 import (
-	"github.com/lovelly/leaf/log"
 	"net"
 	"sync"
+	"time"
+
+	"github.com/lovelly/leaf/log"
 )
 
 type ConnSet map[net.Conn]struct{}
 
 type TCPConn struct {
 	sync.Mutex
-	conn      	net.Conn
-	writeChan 	chan []byte
-	closeFlag 	bool
-	msgParser 	*MsgParser
+	conn      net.Conn
+	writeChan chan []byte
+	closeFlag bool
+	msgParser *MsgParser
 }
 
 func newTCPConn(conn net.Conn, pendingWriteNum int, msgParser *MsgParser) *TCPConn {
@@ -40,6 +42,7 @@ func newTCPConn(conn net.Conn, pendingWriteNum int, msgParser *MsgParser) *TCPCo
 		tcpConn.Unlock()
 	}()
 
+	tcpConn.conn.SetReadDeadline(time.Time{}) // todo  可能存在问题
 	return tcpConn
 }
 

@@ -2,7 +2,7 @@ package common
 
 import (
 	"mj/common/utils"
-	"mj/gameServer/db/model/base"
+	"mj/hallServer/db/model/base"
 	"strconv"
 )
 

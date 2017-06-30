@@ -1,7 +1,6 @@
 package mj_base
 
 const (
-	MAX_INDEX = 42 //最大索引
 
 	//动作标志
 	WIK_NULL     = 0x00 //没有类型
@@ -19,15 +18,6 @@ const (
 const (
 	MASK_COLOR = 0xF0 //花色掩码
 	MASK_VALUE = 0x0F //数值掩码
-)
-
-//常量定义
-const (
-	MAX_WEAVE     = 4   //最大组合
-	MAX_COUNT     = 14  //最大数目
-	MAX_REPERTORY = 112 //最大库存
-	MAX_HUA_INDEX = 0   //花牌索引
-	MAX_HUA_COUNT = 8   //花牌个数
 )
 
 //麻将限制行为
@@ -101,16 +91,18 @@ type HistoryScore struct {
 
 //分析子项
 type TagAnalyseItem struct {
-	CardEye    int     //牌眼扑克
-	bMagicEye  bool    //牌眼是否是王霸
-	WeaveKind  []int   //组合类型
-	CenterCard []int   //中心扑克
-	CardData   [][]int //实际扑克
+	CardEye      int     //牌眼扑克
+	bMagicEye    bool    //牌眼是否是王霸
+	WeaveKind    []int   //组合类型
+	IsAnalyseGet []bool  //非打出组合
+	CenterCard   []int   //中心扑克
+	CardData     [][]int //实际扑克
 }
 
 //类型子项
 type TagKindItem struct {
-	WeaveKind  int   //组合类型
-	CenterCard int   //中心扑克
-	CardIndex  []int //扑克索引
+	WeaveKind    int   //组合类型
+	IsAnalyseGet bool  //非打出组合
+	CenterCard   int   //中心扑克
+	CardIndex    []int //扑克索引
 }

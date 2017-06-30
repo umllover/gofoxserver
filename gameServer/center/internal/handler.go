@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
 	"mj/common/cost"
 	"mj/gameServer/conf"
+
+	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -15,12 +16,11 @@ func handleRpc(id interface{}, f interface{}) {
 }
 
 func init() {
-	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
-	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
-	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
-	handleRpc("SendMsgToUser", GoMsgToUser)
-	handleRpc("AsyncCallUser", AsyncCallUser)
+	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)         //暂时无效
+	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)         //暂时无效
+	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)   //暂时无效
+	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout) //暂时无效
+	handleRpc("SendMsgToUser", GoMsgToUser)                   //暂时无效
 }
 
 //玩家在本服节点登录
@@ -29,7 +29,7 @@ func SelfNodeAddPlayer(args []interface{}) {
 	uid := args[0].(int)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
-	cluster.Broadcast(cost.GamePrefix,"NotifyOtherNodeLogin", uid, conf.ServerName())
+	cluster.Broadcast(cost.GamePrefix, "NotifyOtherNodeLogin", uid, conf.ServerName())
 }
 
 //本服玩家登出
@@ -37,12 +37,11 @@ func SelfNodeDelPlayer(args []interface{}) {
 	log.Debug("at SelfNodeDelPlayer %v", args)
 	uid := args[0].(int)
 	delete(Users, uid)
-	cluster.Broadcast(cost.GamePrefix,"NotifyOtherNodelogout", uid)
+	cluster.Broadcast(cost.GamePrefix, "NotifyOtherNodelogout", uid)
 }
 
-
 //玩家在别的节点登录了
-func NotifyOtherNodeLogin(args []interface{}){
+func NotifyOtherNodeLogin(args []interface{}) {
 	log.Debug("at NotifyOtherNodeLogin %v", args)
 	uid := args[0].(int)
 	ServerName := args[1].(string)
@@ -50,16 +49,16 @@ func NotifyOtherNodeLogin(args []interface{}){
 }
 
 //玩家在别的节点登出了
-func NotifyOtherNodelogout(args []interface{}){
+func NotifyOtherNodelogout(args []interface{}) {
 	log.Debug("at NotifyOtherNodelogout %v", args)
 	uid := args[0].(int)
 	delete(OtherUsers, uid)
 }
 
 //发消息给别的玩家
-func GoMsgToUser(args []interface{})  {
+func GoMsgToUser(args []interface{}) {
 	uid := args[0].(int)
-	FuncName :=  args[1].(string)
+	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
 		ch.Go(FuncName, args[2:]...)
@@ -75,9 +74,4 @@ func GoMsgToUser(args []interface{})  {
 	if ok1 {
 		cluster.Go(ServerName, "SendMsgToUser", args...)
 	}
-}
-
-//异步回调消息给别的玩家
-func AsyncCallUser (args []interface{})  {
-
 }

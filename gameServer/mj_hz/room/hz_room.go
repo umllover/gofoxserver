@@ -1,8 +1,6 @@
 package room
 
 import (
-	. "mj/common/cost"
-	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/common/mj_base"
@@ -11,40 +9,35 @@ import (
 
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/db/model/base"
+
+	"github.com/lovelly/leaf/log"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
-
 	u := args[1].(*user.User)
-	retCode := 0
-	defer func() {
-		if retCode != 0 {
-			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		}
-	}()
 
 	if info.KindId != common.KIND_TYPE_HZMJ {
-		retCode = ErrParamError
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
 		return nil
 	}
 
 	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
-		retCode = NoFoudTemplate
+		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, u.Id)
 		return nil
 	}
 	r := mj_base.NewMJBase(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, temp.GameName, temp, r),
+		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: mj_base.NewBaseLogic(),
-		TimerMgr: room_base.NewRoomTimerMgr(),
+		LogicMgr: mj_base.NewBaseLogic(mj_base.IDX_HZMJ),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	if r == nil {
-		retCode = Errunlawful
+		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
 		return nil
 	}
 

@@ -19,26 +19,29 @@ const (
 
 //房间错误码 100 ~ 200
 const (
-	RoomFull           = 101 //房间满了，不能再创建
-	NotFoudGameType    = 102 //玩家不存在
-	ErrParamError      = 103 //参数错误
-	NoFoudTemplate     = 104 //配置没找到
-	ConfigError        = 105 //配置错误
-	NotEnoughFee       = 106 //代币不足
-	RandRoomIdError    = 107 //生成房间id失败
-	MaxSoucrce         = 108 // 低分太高
-	ChairHasUser       = 109 //位置有玩家， 不能坐下
-	GameIsStart        = 110 //游戏已经开始， 不能加入
-	ErrNotOwner        = 111 // 不是房主 没权限操作
-	ErrNoSitdowm       = 112 //请先坐下在操作
-	ErrGameIsStart     = 113 //游戏已开始，不能离开房间
-	ErrCreateRoomFaild = 114 //创建聊天室失败
-	NotOwner           = 115 //不是房主
-	Errunlawful        = 116 //非法操作
-	ErrMaxRoomCnt      = 117 //房间超限， 不能再创建了
-	ErrServerError     = 118 //服务器内部错误
-	ErrNotFoudServer   = 119 //没有找到可以服务的server
-	ErrNoFoudRoom      = 120 //房间没有找到
+	RoomFull                = 101 //房间满了，不能再创建
+	NotFoudGameType         = 102 //玩家不存在
+	ErrParamError           = 103 //参数错误
+	NoFoudTemplate          = 104 //配置没找到
+	ConfigError             = 105 //配置错误
+	NotEnoughFee            = 106 //代币不足
+	RandRoomIdError         = 107 //生成房间id失败
+	MaxSoucrce              = 108 // 低分太高
+	ChairHasUser            = 109 //位置有玩家， 不能坐下
+	GameIsStart             = 110 //游戏已经开始， 不能加入
+	ErrNotOwner             = 111 // 不是房主 没权限操作
+	ErrNoSitdowm            = 112 //请先坐下在操作
+	ErrGameIsStart          = 113 //游戏已开始，不能离开房间
+	ErrCreateRoomFaild      = 114 //创建聊天室失败
+	NotOwner                = 115 //不是房主
+	Errunlawful             = 116 //非法操作
+	ErrMaxRoomCnt           = 117 //房间超限， 不能再创建了
+	ErrServerError          = 118 //服务器内部错误
+	ErrNotFoudServer        = 119 //没有找到可以服务的server
+	ErrNoFoudRoom           = 120 //房间没有找到
+	ErrNotFoundCreateRecord = 121 //没有找到房间记录
+	ErrDoubleCreaterRoom    = 122 //重复创建房间
+	ErrCreaterError         = 123 //创建错误
 )
 
 //红中麻将错误码
@@ -113,6 +116,7 @@ const (
 //积分修改类型
 const (
 	HZMJ_CHANGE_SOURCE = 1
+	ZPMJ_CHANGE_SOURCE = 2
 )
 
 //自己支付
