@@ -23,11 +23,6 @@ func getCardByIdx(idx int) []int {
 	return card
 }
 
-// 通比牛牛牌型
-func GetTBNNCards() [] int  {
-	return  getCardByIdx(IDX_TBNN)
-}
-
 type PK_CFG struct {
 	/*MaxIdx       int //最多多少种牌
 	MaxWeave     int //最多多少种组合

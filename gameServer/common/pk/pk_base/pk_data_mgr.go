@@ -7,7 +7,6 @@ import (
 	"mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
-	"mj/gameServer/common/pk_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
@@ -15,7 +14,6 @@ import (
 
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
-	"mj/gameServer/common/pk"
 )
 
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
@@ -37,7 +35,7 @@ type RoomData struct {
 	id         int
 	Name       string //房间名字
 	CreateUser int    //创建房间的人
-	NNPkBase   *NN_PK_base
+	NNPkBase   *Entry_base
 	ConfigIdx  int //配置文件索引
 
 	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
@@ -80,7 +78,7 @@ type RoomData struct {
 	ScoreMap map[*user.User]int //记录用户加注信息
 
 	//历史积分
-	HistoryScores []*pk.HistoryScore //历史积分
+	HistoryScores []*HistoryScore //历史积分
 
 	// 游戏状态
 	GameStatus     int
@@ -88,8 +86,8 @@ type RoomData struct {
 	AddScoreTimer  timer.Timer
 }
 
-func (room *RoomData) GetCfg() *pk.PK_CFG {
-	return pk.GetCfg(room.ConfigIdx)
+func (room *RoomData) GetCfg() *PK_CFG {
+	return GetCfg(room.ConfigIdx)
 }
 
 func (room *RoomData) CanOperatorRoom(uid int) bool {
@@ -226,11 +224,11 @@ func (room *RoomData) StartDispatchCard() {
 		userMgr.SetUsetStatus(u, cost.US_PLAYING)
 	})
 
-	gameLogic.RandCardList(room.RepertoryCard, pk.GetTBNNCards())
+	gameLogic.RandCardList(room.RepertoryCard, getCardByIdx(room.ConfigIdx))
 
 	//分发扑克
 	// 两张公共牌
-	for i := 0; i < pk.GetCfg(pk.IDX_TBNN).PublicCardCount; i++ {
+	for i := 0; i < room.GetCfg().PublicCardCount; i++ {
 		room.LeftCardCount -= 1
 		room.PublicCardData[i] = room.RepertoryCard[room.LeftCardCount]
 		log.Debug("public card %d", room.CardData[i])
@@ -245,7 +243,7 @@ func (room *RoomData) StartDispatchCard() {
 	// 再发每个用户4张牌
 	userMgr.ForEachUser(func(u *user.User) {
 		room.LeftCardCount -= 1
-		for i := 0; i < pk.GetCfg(pk.IDX_TBNN).MaxCount-1; i++ {
+		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
 			room.CardData[u.ChairId][i] = room.RepertoryCard[room.LeftCardCount]
 		}
 	})

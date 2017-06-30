@@ -3,7 +3,6 @@ package pk_base
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/user"
 
@@ -13,26 +12,27 @@ import (
 	"github.com/lovelly/leaf/log"
 
 	"mj/common/msg/nn_tb_msg"
-	"mj/gameServer/common/pk_base"
 	"mj/gameServer/common/pk"
+	"mj/gameServer/common/room_base"
 )
 
 //创建的配置文件
 type NewPKCtlConfig struct {
-	BaseMgr  common.BaseManager
+	BaseMgr  room_base.BaseManager
+	TimerMgr room_base.TimerManager
+	UserMgr  room_base.UserManager
 	DataMgr  pk.DataManager
-	UserMgr  common.UserManager
 	LogicMgr pk.LogicManager
-	TimerMgr common.TimerManager
 }
 
 //消息入口文件
 type Entry_base struct {
-	common.BaseManager
+	room_base.BaseManager
+	UserMgr  room_base.UserManager
+	TimerMgr room_base.TimerManager
+
 	DataMgr  pk.DataManager
-	UserMgr  common.UserManager
 	LogicMgr pk.LogicManager
-	TimerMgr common.TimerManager
 
 	Temp   *base.GameServiceOption //模板
 	Status int

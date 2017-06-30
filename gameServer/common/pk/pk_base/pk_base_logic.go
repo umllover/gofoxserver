@@ -1,13 +1,10 @@
 package pk_base
 
-//import "mj/gameServer/common/pk_base"
 import (
 	"github.com/lovelly/leaf/log"
 
 	//"github.com/lovelly/leaf/util"
 	"github.com/lovelly/leaf/util"
-
-	"mj/gameServer/common/pk"
 )
 
 type NNBaseLogic struct {
@@ -19,7 +16,7 @@ type NNBaseLogic struct {
 	SwitchToCard  func(int) int*/
 }
 
-func NewNNBaseLogic() *NNBaseLogic {
+func NewBaseLogic() *NNBaseLogic {
 	bl := new(NNBaseLogic)
 	/*bl.CheckValid = IsValidCard
 	bl.SwitchToIdx = SwitchToCardIndex
@@ -31,7 +28,7 @@ func NewNNBaseLogic() *NNBaseLogic {
 func (lg *NNBaseLogic) NNGetCardLogicValue(CardData int) int {
 	//扑克属性
 	//CardColor = GetCardColor(CardData)
-	CardValue := pk.GetCardValue(CardData)
+	CardValue := lg.GetCardValue(CardData)
 
 	//转换数值
 	//return (CardValue>10)?(10):CardValue
@@ -42,7 +39,64 @@ func (lg *NNBaseLogic) NNGetCardLogicValue(CardData int) int {
 }
 
 func (lg *NNBaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
-	pk.RandCardList(cbCardBuffer, OriDataArray)
+
+	//混乱准备
+	cbBufferCount := int(len(cbCardBuffer))
+	cbCardDataTemp := make([]int, cbBufferCount)
+	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
+
+	//混乱扑克
+	var cbRandCount int
+	var cbPosition int
+	for {
+		if cbRandCount >= cbBufferCount {
+			break
+		}
+		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
+		cbRandCount++
+		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
+	}
+
+	return
+}
+
+//排列扑克
+func (lg *NNBaseLogic) SortCardList(cardData []int, cardCount int) {
+	var logicValue []int
+	for i := 0; i < cardCount; i++ {
+		logicValue[i] = lg.GetCardValue(cardData[i])
+	}
+	sorted := true
+	last := cardCount - 1
+	for {
+		sorted = true
+		for i := 0; i < last; i++ {
+			if (logicValue[i] < logicValue[i+1]) || (logicValue[i] == logicValue[i+1] && (cardData[i] < cardData[i+1])) {
+				tempData := cardData[i]
+				cardData[i] = cardData[i+1]
+				cardData[i+1] = tempData
+				tempData = logicValue[i]
+				logicValue[i] = logicValue[i+1]
+				logicValue[i+1] = tempData
+				sorted = false
+			}
+		}
+		last--
+		if sorted == true {
+			break
+		}
+	}
+}
+
+//获取数值
+func (lg *NNBaseLogic) GetCardValue(CardData int) int {
+	return CardData & LOGIC_MASK_VALUE
+}
+
+//获取花色
+func (lg *NNBaseLogic) GetCardColor(CardData int) int {
+	return CardData & LOGIC_MASK_COLOR
 }
 
 //获取牛牛牌型
@@ -69,9 +123,9 @@ func (lg *NNBaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 	TenCount := 0
 
 	for i := 0; i < CardCount; i++ {
-		if pk.GetCardValue(CardData[i]) > 10 && CardData[i] != 0x4E && CardData[i] != 0x4F {
+		if lg.GetCardValue(CardData[i]) > 10 && CardData[i] != 0x4E && CardData[i] != 0x4F {
 			KingCount++
-		} else if pk.GetCardValue(CardData[i]) == 10 {
+		} else if lg.GetCardValue(CardData[i]) == 10 {
 			TenCount++
 		}
 	}
@@ -145,7 +199,7 @@ func (lg *NNBaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	for i := 0; i < NN_MAX_COUNT; i++ {
 		if cardData[i] == 0x4E || cardData[i] == 0x4F {
 			kingCount++
-		} else if pk.GetCardValue(cardData[i]) == 10 {
+		} else if lg.GetCardValue(cardData[i]) == 10 {
 			tenCount++
 		}
 	}
@@ -363,56 +417,18 @@ func (lg *NNBaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount 
 	var nextTemp []int
 	util.DeepCopy(firstTemp, firstData)
 	util.DeepCopy(nextTemp, nextData)
-	pk.SortCardList(firstTemp, cardCount)
-	pk.SortCardList(nextTemp, cardCount)
+	lg.SortCardList(firstTemp, cardCount)
+	lg.SortCardList(nextTemp, cardCount)
 	//比较数值
-	nextMaxValue := pk.GetCardValue(nextTemp[0])
-	firstMaxValue := pk.GetCardValue(firstTemp[0])
+	nextMaxValue := lg.GetCardValue(nextTemp[0])
+	firstMaxValue := lg.GetCardValue(firstTemp[0])
 	if nextMaxValue != firstMaxValue {
 		return (firstMaxValue > nextMaxValue)
 	}
 	//比较颜色
-	return (pk.GetCardColor(firstTemp[0]) > pk.GetCardColor(nextTemp[0]))
+	return (lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0]))
 
 	return false
-}
-
-//获取数值
-func GetCardValue(CardData int) int {
-	return CardData & LOGIC_MASK_VALUE
-}
-
-//获取花色
-func GetCardColor(CardData int) int {
-	return CardData & LOGIC_MASK_COLOR
-}
-
-//排列扑克
-func SortCardList(cardData []int, cardCount int) {
-	var logicValue []int
-	for i := 0; i < cardCount; i++ {
-		logicValue[i] = GetCardValue(cardData[i])
-	}
-	sorted := true
-	last := cardCount - 1
-	for {
-		sorted = true
-		for i := 0; i < last; i++ {
-			if (logicValue[i] < logicValue[i+1]) || (logicValue[i] == logicValue[i+1] && (cardData[i] < cardData[i+1])) {
-				tempData := cardData[i]
-				cardData[i] = cardData[i+1]
-				cardData[i+1] = tempData
-				tempData = logicValue[i]
-				logicValue[i] = logicValue[i+1]
-				logicValue[i+1] = tempData
-				sorted = false
-			}
-		}
-		last--
-		if sorted == true {
-			break
-		}
-	}
 }
 
 /*
@@ -436,26 +452,3 @@ func  RandCardList(cardBuffer []int, cardBufferCount int)  {
 
 }
 */
-
-//混乱扑克
-func RandCardList(cbCardBuffer, OriDataArray []int) {
-	//混乱准备
-	cbBufferCount := int(len(cbCardBuffer))
-	cbCardDataTemp := make([]int, cbBufferCount)
-	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
-
-	//混乱扑克
-	var cbRandCount int
-	var cbPosition int
-	for {
-		if cbRandCount >= cbBufferCount {
-			break
-		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
-		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
-		cbRandCount++
-		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
-	}
-
-	return
-}

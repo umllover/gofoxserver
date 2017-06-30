@@ -1,10 +1,6 @@
 package room
 
-import (
-	"mj/gameServer/common/pk_base/NNBaseLogic"
-)
-
-func RegisterHandler(r *BaseLogic.NN_PK_base) {
+func RegisterHandler(r *NNTB_Entry) {
 	r.GetChanRPC().Register("Sitdown", r.Sitdown)
 	r.GetChanRPC().Register("UserStandup", r.UserStandup)
 	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
@@ -14,12 +10,10 @@ func RegisterHandler(r *BaseLogic.NN_PK_base) {
 	r.GetChanRPC().Register("userOffline", r.UserOffline)
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
 
-
 	r.GetChanRPC().Register("CallScore", r.CallScore)
 	r.GetChanRPC().Register("AddScore", r.AddScore)
 	/*r.GetChanRPC().Register("CallBanker", r.CallBanker)
 	r.GetChanRPC().Register("OxCard", r.OxCard)
 	r.GetChanRPC().Register("Qiang", r.Qiang)*/
-
 
 }

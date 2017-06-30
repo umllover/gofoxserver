@@ -1,11 +1,9 @@
 package room
 
 import (
-	. "mj/common/cost"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
-	"mj/gameServer/common/pk_base"
-	"mj/gameServer/common/pk_base/PKBaseLogic"
+	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
@@ -28,11 +26,11 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	r := NewNNTBEntry(info)
-	cfg := &PKBaseLogic.NewPKCtlConfig{
+	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  PKBaseLogic.NewDataMgr(info.RoomId, u.Id, pk.IDX_TBNN, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: PKBaseLogic.NewNNBaseLogic(),
+		LogicMgr: pk_base.NewBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
