@@ -15,10 +15,12 @@ type DataManager interface {
 	GetRoomId() int
 	CanOperatorRoom(uid int) bool
 
+	// 游戏开始
 	BeforeStartGame(UserCnt int)
 	StartGameing()
 	AfterStartGame()
 
+	// 游戏结束
 	NormalEnd()
 	DismissEnd()
 

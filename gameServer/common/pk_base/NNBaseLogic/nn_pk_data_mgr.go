@@ -257,7 +257,7 @@ func (room *RoomData) StartDispatchCard() {
 
 	//分发扑克
 	// 两张公共牌
-	for i:=0;i<pk_base.PUBLIC_CARD_COUNT;i++ {
+	for i:=0;i<pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount;i++ {
 		room.LeftCardCount -=1
 		room.PublicCardData[i] = room.RepertoryCard[room.LeftCardCount]
 		log.Debug("public card %d", room.CardData[i])
@@ -272,7 +272,7 @@ func (room *RoomData) StartDispatchCard() {
 	// 再发每个用户4张牌
 	userMgr.ForEachUser(func(u *user.User) {
 		room.LeftCardCount -= 1
-		for i := 0; i < pk_base.MAX_COUNT-1; i++ {
+		for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount-1; i++ {
 			room.CardData[u.ChairId][i] = room.RepertoryCard[room.LeftCardCount]
 		}
 	})

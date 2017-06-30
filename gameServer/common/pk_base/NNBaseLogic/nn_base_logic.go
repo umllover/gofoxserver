@@ -271,7 +271,11 @@ func  (lg *NNBaseLogic)NNIsIntValue(cardData []int, cardCount int) bool  {
 // 牛牛比牌
 func (lg *NNBaseLogic)NNCompareCard(firstData []int, nextData []int, cardCount int, firstOX bool, nextOX bool) bool  {
 	if firstOX != nextOX {
-		return (int(firstOX)>int(nextOX))
+		if firstOX {
+			return true
+		} else {
+			return  false
+		}
 	}
 	if lg.NNGetCardType(firstData, cardCount) == OX_FIVEKING && lg.NNGetCardType(nextData, cardCount) != OX_FIVEKING {
 		return true
