@@ -98,6 +98,7 @@ type LogicManager interface {
 	GetUserActionRank(cbUserAction int) int
 	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
+	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
 	GetUserCards(cbCardIndex []int) (cbCardData []int)
 	SwitchToCardData(cbCardIndex int) int

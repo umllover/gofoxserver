@@ -319,14 +319,14 @@ func (room *Mj_base) ChaHuaMsg(args []interface{}) {
 }
 
 //补花
-func (room *Mj_base) OnUserReplaceCard(args []interface{}) {
+func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
 	u := args[0].(*user.User)
 	getData := args[1].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
 	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
 }
 
 //用户听牌
-func (room *Mj_base) OnUserListenCard(args []interface{}) {
+func (room *Mj_base) OnUserListenCardMsg(args []interface{}) {
 	u := args[0].(*user.User)
 	getData := args[1].(*mj_zp_msg.C2G_MJZP_ListenCard)
 	room.DataMgr.OnUserListenCard(u, getData.ListenCard)
