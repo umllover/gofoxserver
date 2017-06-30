@@ -12,8 +12,6 @@ import (
 
 	"mj/common/msg/mj_zp_msg"
 
-	"runtime/debug"
-
 	"github.com/lovelly/leaf/log"
 )
 
@@ -449,7 +447,6 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 func (room *Mj_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
-		debug.PrintStack()
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
 		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),
