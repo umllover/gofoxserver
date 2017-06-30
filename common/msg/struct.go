@@ -37,7 +37,6 @@ type TagGameServer struct {
 	TableCount  int   `json:"wTableCount"`    //桌子数目
 }
 
-
 //用户状态信息
 type UserStu struct {
 	TableID    int // 桌子索引
@@ -63,4 +62,12 @@ type TagScoreInfo struct {
 	Revenue  int //游戏税收
 	SubMonry int //扣除代币
 	IsWin    int
+}
+
+//自己创建的房间的信息
+type CreatorRoomInfo struct {
+	CreatorTime int64  //创建时间
+	RoomID      int    //房号
+	RoomName    string //房间名称
+	Status      int    //状态
 }

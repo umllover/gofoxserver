@@ -673,9 +673,9 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, userMgr common.UserMana
 	}
 
 	//清除禁止胡牌的牌
-	u.UserLimit |= ^LimitChiHu
-	u.UserLimit |= ^LimitPeng
-	u.UserLimit |= ^LimitGang
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
 
 	//设置变量
 	room.OutCardUser = INVALID_CHAIR

@@ -30,7 +30,7 @@ type IDBCnf interface {
 func InitDB(cnf IDBCnf) {
 	once.Do(func() {
 		BaseDB = initSqlxDB(cnf.GetBaseDSN(), "[BASE_DB] -> ", cnf.GetBaseDBMaxOpen(), cnf.GetBaseDBMaxIdle())
-		DB = initSqlxDB(cnf.GetUserDSN(), "[USER DB] -> ", cnf.GetUserDBMaxOpen(), cnf.GetUserDBMaxIdle())
+		DB = initSqlxDB(cnf.GetUserDSN(), "[USER_DB] -> ", cnf.GetUserDBMaxOpen(), cnf.GetUserDBMaxIdle())
 		StatsDB = initSqlxDB(cnf.GetStatsDSN(), "[STATS_DB] ->", cnf.GetStatsDBMaxOpen(), cnf.GetStatsDBMaxIdle())
 		log.Debug("Init DB success.")
 	})

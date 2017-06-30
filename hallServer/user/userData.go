@@ -1,6 +1,7 @@
 package user
 
 import (
+	"mj/common/msg"
 	"mj/hallServer/db/model"
 	"sync"
 
@@ -52,11 +53,25 @@ func (u *User) DelRooms(id int) {
 	model.CreateRoomInfoOp.Delete(id)
 }
 
-func (u *User) HasRoom(id int) bool {
+func (u *User) GetRoom(id int) *model.CreateRoomInfo {
 	u.RLock()
 	defer u.RUnlock()
-	_, ok := u.Rooms[id]
-	return ok
+	return u.Rooms[id]
+}
+
+func (u *User) GetRoomInfo() []*msg.CreatorRoomInfo {
+	u.RLock()
+	defer u.RUnlock()
+	info := make([]*msg.CreatorRoomInfo, 0)
+	for _, v := range u.Rooms {
+		RoomInfo := &msg.CreatorRoomInfo{}
+		RoomInfo.Status = v.Status
+		RoomInfo.CreatorTime = v.CreateTime.Unix()
+		RoomInfo.RoomName = v.RoomName
+		RoomInfo.RoomID = v.RoomId
+		info = append(info, RoomInfo)
+	}
+	return info
 }
 
 func (u *User) GetRoomCnt() int {
@@ -96,22 +111,27 @@ func (u *User) AddCurrency(add int) bool {
 }
 
 //增加扣钱计入
-func (u *User) AddRecord(tr *model.TokenRecord) {
+func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	u.Lock()
 	u.Records[tr.RoomId] = tr
 	u.Unlock()
-	model.TokenRecordOp.Insert(tr)
+	_, err := model.TokenRecordOp.Insert(tr)
+	if err != nil {
+		log.Debug("ad TokenRecordOp error :%s", err.Error())
+		return false
+	}
+	return true
 }
 
 //删除扣钱记录
 func (u *User) DelRecord(id int) error {
 	u.Lock()
-	_, ok := u.Records[id]
+	r, ok := u.Records[id]
 	if ok {
 		delete(u.Records, id)
 	}
 	u.Unlock()
-	return model.TokenRecordOp.Delete(id)
+	return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
 }
 
 func (u *User) GetRecord(id int) *model.TokenRecord {

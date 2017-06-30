@@ -11,6 +11,8 @@ import (
 	"net"
 	"testing"
 
+	"fmt"
+
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -27,10 +29,18 @@ var (
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+	room.DataMgr.SetUserCard(0, []int{
+		0x1, 0x1, 0x1,
+		0x2, 0x2, 0x2,
+		0x3, 0x3, 0x3,
+		0x4, 0x4,
+		0x5, 0x5,
+	})
 }
 
 func TestOutCard(t *testing.T) {
-
+	ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
+	fmt.Println("at EstimateUserRespond ret :", ret)
 	room.OutCard([]interface{}{u1, 1})
 }
 

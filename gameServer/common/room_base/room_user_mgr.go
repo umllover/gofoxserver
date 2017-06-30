@@ -134,7 +134,12 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 		RoomId: r.id,
 		OpName: "AddPlayerId",
 		Data: map[string]interface{}{
-			"UID": u.Id,
+			"info": &msg.PlayerBrief{
+				UID:     u.Id,
+				Name:    u.NickName,
+				HeadUrl: u.HeadImgUrl,
+				Icon:    u.IconID,
+			},
 		},
 	})
 	return true
@@ -150,7 +155,9 @@ func (r *RoomUserMgr) GetChairId() int {
 }
 
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
+	log.Debug("at LeaveRoom uid:%d", u.Id)
 	if len(r.Users) <= u.ChairId {
+		log.Error("at LeaveRoom u.chairId max .... ")
 		return false
 	}
 	err := model.GamescorelockerOp.Delete(u.Id)
@@ -170,7 +177,7 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 			"UID":    u.Id,
 		},
 	})
-	log.Debug("%v user leave room,  left %v count", u.Id, r.PlayerCount)
+	log.Debug("%v user leave room,  left %v count", u.Id, r.GetCurPlayerCnt())
 	return true
 }
 
@@ -371,6 +378,11 @@ func (room *RoomUserMgr) RoomDissume() {
 	for _, u := range room.Users {
 		if u != nil {
 			u.ChanRPC().Go("LeaveRoom")
+
+			err := model.GamescorelockerOp.Delete(u.Id)
+			if err != nil {
+				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
+			}
 		}
 	}
 }
