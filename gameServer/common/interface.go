@@ -39,6 +39,7 @@ type DataManager interface {
 	GetChaHua(u *user.User, setCount int)
 	OnUserReplaceCard(u *user.User, CardData int) bool
 	OnUserListenCard(u *user.User, bListenCard bool) bool
+	RecordFollowCard(cbCenterCard int) bool
 
 	GetResumeUser() int
 	GetGangStatus() int

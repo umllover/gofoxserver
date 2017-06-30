@@ -91,16 +91,18 @@ type HistoryScore struct {
 
 //分析子项
 type TagAnalyseItem struct {
-	CardEye    int     //牌眼扑克
-	bMagicEye  bool    //牌眼是否是王霸
-	WeaveKind  []int   //组合类型
-	CenterCard []int   //中心扑克
-	CardData   [][]int //实际扑克
+	CardEye      int     //牌眼扑克
+	bMagicEye    bool    //牌眼是否是王霸
+	WeaveKind    []int   //组合类型
+	IsAnalyseGet []bool  //非打出组合
+	CenterCard   []int   //中心扑克
+	CardData     [][]int //实际扑克
 }
 
 //类型子项
 type TagKindItem struct {
-	WeaveKind  int   //组合类型
-	CenterCard int   //中心扑克
-	CardIndex  []int //扑克索引
+	WeaveKind    int   //组合类型
+	IsAnalyseGet bool  //非打出组合
+	CenterCard   int   //中心扑克
+	CardIndex    []int //扑克索引
 }
