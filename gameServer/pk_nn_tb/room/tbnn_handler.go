@@ -4,7 +4,7 @@ import (
 	"mj/gameServer/common/pk_base/NNBaseLogic"
 )
 
-func RegisterHandler(r *NNBaseLogic.NN_PK_base) {
+func RegisterHandler(r *BaseLogic.NN_PK_base) {
 	r.GetChanRPC().Register("Sitdown", r.Sitdown)
 	r.GetChanRPC().Register("UserStandup", r.UserStandup)
 	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)

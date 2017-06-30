@@ -1,4 +1,4 @@
-package ddz
+package pk_ddz
 
 import (
 	"mj/gameServer/ddz/internal"

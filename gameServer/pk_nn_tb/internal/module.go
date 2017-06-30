@@ -3,7 +3,7 @@ package internal
 import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/base"
-	"mj/gameServer/nn_tb/room"
+	"mj/gameServer/pk_nn_tb/room"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/module"

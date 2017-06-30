@@ -105,3 +105,52 @@ type TagKindItem struct {
 	CenterCard int   //中心扑克
 	CardIndex  []int //扑克索引
 }
+
+// 牛牛类通用逻辑
+const (
+	OX_VALUE0     = 0   //混合牌型
+	OX_THREE_SAME = 105 //小牛牛――5张牌都小于5（含5），并且5张牌相加不大于10
+	OX_FOUR_SAME  = 104 ////炸弹――5张牌中有4张一样的牌。
+	OX_FOURKING   = 102 //天王牌型四花
+	OX_FIVEKING   = 103 //天王牌型五花
+)
+
+const (
+	NN_GAME_PLAYER = 4 //游戏人数
+	NN_MAX_COUNT   = 5 //最大数目
+)
+
+//分析结构
+type AnalyseResult struct {
+	FourCount        int   //四张数目
+	ThreeCount       int   //三张数目
+	DoubleCount      int   //两张数目
+	SignedCount      int   //单张数目
+	FourLogicVolue   []int //四张列表
+	ThreeLogicVolue  []int //三张列表
+	DoubleLogicVolue []int //两张列表
+	SignedLogicVolue []int //单张列表
+	FourCardData     []int //四张列表
+	ThreeCardData    []int //三张列表
+	DoubleCardData   []int //两张列表
+	SignedCardData   []int //单张数目
+
+}
+
+// 游戏状态
+const (
+	GAME_NULL = 1000 // 空
+	//PLAYER_ENTER_ROOM  	= 1001 // 玩家进入房间
+	GAME_START       = 1002 // 游戏开始
+	CALL_SCORE_TIMES = 1003 // 抢庄
+	ADD_SCORE        = 1004 // 加注
+	SEND_LAST_CARD   = 1005 // 发最后一张牌
+	OPEN_CARD        = 1006 // 亮牌
+	// 结算
+)
+
+// 定时器 -- for test
+const (
+	CALL_SCORE_TIME = 10
+	ADD_SCORE_TIME  = 10
+)

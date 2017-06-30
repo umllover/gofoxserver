@@ -10,8 +10,9 @@ import (
 
 	"mj/gameServer/common/room_base"
 
+	"mj/gameServer/pk_nn_tb"
+
 	"github.com/lovelly/leaf/module"
-	"mj/gameServer/nn_tb"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 	Kinds    = map[int]room_base.Module{ // Register here
 		common.KIND_TYPE_HZMJ: hzmj.Module,
 		common.KIND_TYPE_ZPMJ: zpmj.Module,
-		common.KIND_TYPE_TBNN: nn_tb.Module,
+		common.KIND_TYPE_TBNN: pk_nn_tb.Module,
 	}
 )
 

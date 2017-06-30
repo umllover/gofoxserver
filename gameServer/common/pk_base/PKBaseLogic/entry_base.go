@@ -1,4 +1,4 @@
-package NNBaseLogic
+package PKBaseLogic
 
 import (
 	. "mj/common/cost"
@@ -25,7 +25,8 @@ type NewPKCtlConfig struct {
 	TimerMgr common.TimerManager
 }
 
-type NN_PK_base struct {
+//消息入口文件
+type Entry_base struct {
 	common.BaseManager
 	DataMgr  pk_base.DataManager
 	UserMgr  common.UserManager
@@ -36,18 +37,18 @@ type NN_PK_base struct {
 	Status int
 }
 
-func NewNNPKBase(info *model.CreateRoomInfo) *NN_PK_base {
+func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok1 {
 		return nil
 	}
 
-	pk := new(NN_PK_base)
+	pk := new(Entry_base)
 	pk.Temp = Temp
 	return pk
 }
 
-func (r *NN_PK_base) Init(cfg *NewPKCtlConfig) {
+func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr
 	r.BaseManager = cfg.BaseMgr
@@ -56,12 +57,12 @@ func (r *NN_PK_base) Init(cfg *NewPKCtlConfig) {
 	r.RoomRun(r.DataMgr.GetRoomId())
 }
 
-func (r *NN_PK_base) GetRoomId() int {
+func (r *Entry_base) GetRoomId() int {
 	return r.DataMgr.GetRoomId()
 }
 
 //坐下
-func (r *NN_PK_base) Sitdown(args []interface{}) {
+func (r *Entry_base) Sitdown(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
 	u := args[1].(*user.User)
 
@@ -82,7 +83,7 @@ func (r *NN_PK_base) Sitdown(args []interface{}) {
 }
 
 //起立
-func (r *NN_PK_base) UserStandup(args []interface{}) {
+func (r *Entry_base) UserStandup(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2G_UserStandup{})
 	u := args[1].(*user.User)
 	retcode := 0
@@ -101,7 +102,7 @@ func (r *NN_PK_base) UserStandup(args []interface{}) {
 }
 
 //获取对方信息
-func (room *NN_PK_base) GetUserChairInfo(args []interface{}) {
+func (room *Entry_base) GetUserChairInfo(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
 	u := args[1].(*user.User)
 	info := room.UserMgr.GetUserInfoByChairId(recvMsg.ChairID).(*msg.G2C_UserEnter)
@@ -113,7 +114,7 @@ func (room *NN_PK_base) GetUserChairInfo(args []interface{}) {
 }
 
 //解散房间
-func (room *NN_PK_base) DissumeRoom(args []interface{}) {
+func (room *Entry_base) DissumeRoom(args []interface{}) {
 	u := args[0].(*user.User)
 	retcode := 0
 	defer func() {
@@ -136,7 +137,7 @@ func (room *NN_PK_base) DissumeRoom(args []interface{}) {
 }
 
 //玩家准备
-func (room *NN_PK_base) UserReady(args []interface{}) {
+func (room *Entry_base) UserReady(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2G_UserReady)
 	u := args[1].(*user.User)
 	if u.Status == US_READY {
@@ -156,7 +157,7 @@ func (room *NN_PK_base) UserReady(args []interface{}) {
 }
 
 //玩家重登
-func (room *NN_PK_base) UserReLogin(args []interface{}) {
+func (room *Entry_base) UserReLogin(args []interface{}) {
 	u := args[0].(*user.User)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
@@ -167,7 +168,7 @@ func (room *NN_PK_base) UserReLogin(args []interface{}) {
 }
 
 //玩家离线
-func (room *NN_PK_base) UserOffline(args []interface{}) {
+func (room *Entry_base) UserOffline(args []interface{}) {
 	u := args[0].(*user.User)
 	log.Debug("at UserOffline .... uid:%d", u.Id)
 	if u.Status == US_READY {
@@ -182,7 +183,7 @@ func (room *NN_PK_base) UserOffline(args []interface{}) {
 }
 
 //离线超时踢出
-func (room *NN_PK_base) OffLineTimeOut(u *user.User) {
+func (room *Entry_base) OffLineTimeOut(u *user.User) {
 	room.UserMgr.LeaveRoom(u, room.Status)
 	if room.Status != RoomStatusReady {
 		room.OnEventGameConclude(0, nil, GER_DISMISS)
@@ -194,7 +195,7 @@ func (room *NN_PK_base) OffLineTimeOut(u *user.User) {
 }
 
 //获取房间基础信息
-func (room *NN_PK_base) GetBirefInfo() *msg.RoomInfo {
+func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	msg := &msg.RoomInfo{}
 	msg.ServerID = room.Temp.ServerID
 	msg.KindID = room.Temp.KindID
@@ -209,7 +210,7 @@ func (room *NN_PK_base) GetBirefInfo() *msg.RoomInfo {
 }
 
 //游戏配置
-func (room *NN_PK_base) SetGameOption(args []interface{}) {
+func (room *Entry_base) SetGameOption(args []interface{}) {
 	u := args[1].(*user.User)
 	retcode := 0
 	defer func() {
@@ -244,7 +245,7 @@ func (room *NN_PK_base) SetGameOption(args []interface{}) {
 }
 
 //游戏结束
-func (room *NN_PK_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
@@ -263,7 +264,7 @@ func (room *NN_PK_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *NN_PK_base) AfertEnd(Forced bool) {
+func (room *Entry_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
@@ -282,7 +283,7 @@ func (room *NN_PK_base) AfertEnd(Forced bool) {
 }
 
 //计算税收 暂时未实现
-func (room *NN_PK_base) CalculateRevenue(ChairId, lScore int) int {
+func (room *Entry_base) CalculateRevenue(ChairId, lScore int) int {
 	//效验参数
 
 	UserCnt := room.UserMgr.GetMaxPlayerCnt()
@@ -294,7 +295,7 @@ func (room *NN_PK_base) CalculateRevenue(ChairId, lScore int) int {
 }
 
 //叫分(倍数)
-func (room *NN_PK_base) CallScore(args []interface{}) {
+func (room *Entry_base) CallScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
 	u := args[1].(*user.User)
 
@@ -303,7 +304,7 @@ func (room *NN_PK_base) CallScore(args []interface{}) {
 }
 
 //加注
-func (r *NN_PK_base) AddScore(args []interface{}) {
+func (r *Entry_base) AddScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
 	u := args[1].(*user.User)
 

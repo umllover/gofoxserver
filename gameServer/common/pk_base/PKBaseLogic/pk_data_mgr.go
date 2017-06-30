@@ -1,4 +1,4 @@
-package NNBaseLogic
+package PKBaseLogic
 
 import (
 	"strconv"
@@ -15,24 +15,6 @@ import (
 
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
-)
-
-// 游戏状态
-const (
-	GAME_NULL = 1000 // 空
-	//PLAYER_ENTER_ROOM  	= 1001 // 玩家进入房间
-	GAME_START       = 1002 // 游戏开始
-	CALL_SCORE_TIMES = 1003 // 抢庄
-	ADD_SCORE        = 1004 // 加注
-	SEND_LAST_CARD   = 1005 // 发最后一张牌
-	OPEN_CARD        = 1006 // 亮牌
-	// 结算
-)
-
-// 定时器 -- for test
-const (
-	CALL_SCORE_TIME = 10
-	ADD_SCORE_TIME  = 10
 )
 
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *NN_PK_base) *RoomData {

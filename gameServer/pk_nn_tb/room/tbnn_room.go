@@ -2,50 +2,42 @@ package room
 
 import (
 	. "mj/common/cost"
-	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/common/pk_base"
-	"mj/gameServer/common/pk_base/NNBaseLogic"
+	"mj/gameServer/common/pk_base/PKBaseLogic"
+	"mj/gameServer/common/room_base"
 	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/gameServer/common/room_base"
-	"mj/gameServer/db/model/base"
+	"github.com/lovelly/leaf/log"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
-
 	u := args[1].(*user.User)
-	retCode := 0
-	defer func() {
-		if retCode != 0 {
-			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		}
-	}()
-
-	if info.KindId != common.KIND_TYPE_TBNN {
-		retCode = ErrParamError
+	if info.KindId != common.KIND_TYPE_HZMJ {
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
 		return nil
 	}
 
 	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
-		retCode = NoFoudTemplate
+		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, u.Id)
 		return nil
 	}
-	r := NNBaseLogic.NewNNPKBase(info)
-	cfg := &NNBaseLogic.NewPKCtlConfig{
+	r := NewNNTBEntry(info)
+	cfg := &PKBaseLogic.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NNBaseLogic.NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
+		DataMgr:  PKBaseLogic.NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NNBaseLogic.NewNNBaseLogic(),
+		LogicMgr: PKBaseLogic.NewNNBaseLogic(),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	if r == nil {
-		retCode = Errunlawful
+		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
 		return nil
 	}
 

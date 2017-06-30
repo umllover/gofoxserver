@@ -1,11 +1,10 @@
-package nn_tb
+package pk_nn_tb
 
 import (
-	"mj/gameServer/nn_tb/internal"
+	"mj/gameServer/pk_nn_tb/internal"
 )
 
 var (
 	Module  = new(internal.Module)
 	ChanRPC = internal.ChanRPC
 )
-
