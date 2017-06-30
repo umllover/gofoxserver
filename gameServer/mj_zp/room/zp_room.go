@@ -5,7 +5,7 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
-	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 

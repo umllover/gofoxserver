@@ -1,4 +1,4 @@
-package common
+package mj
 
 import (
 	"mj/common/msg"

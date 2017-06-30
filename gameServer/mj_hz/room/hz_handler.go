@@ -1,7 +1,7 @@
 package room
 
 import (
-"mj/gameServer/common/mj_base"
+"mj/gameServer/common/mj/mj_base"
 )
 
 func RegisterHandler(r *mj_base.Mj_base) {

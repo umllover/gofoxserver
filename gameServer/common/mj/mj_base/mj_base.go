@@ -4,7 +4,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
-	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
@@ -12,15 +11,17 @@ import (
 
 	"mj/common/msg/mj_zp_msg"
 
+	"mj/gameServer/common/mj"
+
 	"github.com/lovelly/leaf/log"
 )
 
 type Mj_base struct {
-	common.BaseManager
-	DataMgr  common.DataManager
-	UserMgr  common.UserManager
-	LogicMgr common.LogicManager
-	TimerMgr common.TimerManager
+	mj.BaseManager
+	DataMgr  mj.DataManager
+	UserMgr  mj.UserManager
+	LogicMgr mj.LogicManager
+	TimerMgr mj.TimerManager
 
 	Temp   *base.GameServiceOption //模板
 	Status int
@@ -28,11 +29,11 @@ type Mj_base struct {
 
 //创建的配置文件
 type NewMjCtlConfig struct {
-	BaseMgr   common.BaseManager
-	DataMgr   common.DataManager
-	UserMgr   common.UserManager
-	LogicMgr  common.LogicManager
-	TimerMgr  common.TimerManager
+	BaseMgr   mj.BaseManager
+	DataMgr   mj.DataManager
+	UserMgr   mj.UserManager
+	LogicMgr  mj.LogicManager
+	TimerMgr  mj.TimerManager
 	GetCardsF func() []int
 }
 

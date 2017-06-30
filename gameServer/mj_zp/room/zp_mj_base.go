@@ -2,7 +2,7 @@ package room
 
 import (
 	. "mj/common/cost"
-	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 

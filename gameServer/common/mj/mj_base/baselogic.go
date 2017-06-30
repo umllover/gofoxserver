@@ -2,10 +2,9 @@ package mj_base
 
 import (
 	"mj/common/msg"
-	"mj/gameServer/common"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"mj/gameServer/common/mj"
 )
 
 func IsValidCard(cbCardData int) bool {
@@ -287,7 +286,7 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	return cbChiHuKind
 }
 
-func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *common.TagGangCardResult) int {
+func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *mj.TagGangCardResult) int {
 
 	//设置变量
 	cbActionMask := WIK_NULL

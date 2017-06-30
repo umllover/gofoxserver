@@ -5,7 +5,7 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/common"
-	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
