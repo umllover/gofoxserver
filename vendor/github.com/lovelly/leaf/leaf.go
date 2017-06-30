@@ -1,13 +1,14 @@
 package leaf
 
 import (
+	"os"
+	"os/signal"
+
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/console"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"os"
-	"os/signal"
 )
 
 var (
@@ -15,16 +16,6 @@ var (
 )
 
 func Run(mods ...module.Module) {
-	// logger
-	if conf.LogLevel != "" {
-			logger, err := log.New(conf.LogLevel, conf.LogPath, conf.LogFlag)
-		if err != nil {
-			panic(err)
-		}
-		log.Export(logger)
-		defer logger.Close()
-	}
-
 	log.Release("Leaf %v starting up", version)
 
 	// module
@@ -51,4 +42,15 @@ func Run(mods ...module.Module) {
 	console.Destroy()
 	cluster.Destroy()
 	module.Destroy()
+	log.Close()
+}
+
+func InitLog() {
+	if conf.LogLevel != "" {
+		logger, err := log.New(conf.LogLevel, conf.LogPath, conf.LogFlag)
+		if err != nil {
+			panic(err)
+		}
+		log.Export(logger)
+	}
 }

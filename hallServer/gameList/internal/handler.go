@@ -1,15 +1,22 @@
 package internal
 
 import (
+	"fmt"
+	"math"
+	"mj/common/cost"
 	"mj/common/msg"
-	"reflect"
-
-	//"math"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
+	"mj/hallServer/db/model"
+	"mj/hallServer/idGenerate"
+	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 
-	"mj/common/cost"
+	"mj/hallServer/center"
+
+	"mj/hallServer/user"
 
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
@@ -17,11 +24,11 @@ import (
 )
 
 var (
-	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
-	TypeInfo     = make(map[int]map[int]struct{}) //key is nodeID key2 i
-	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
-	roomKindList = make(map[int]map[int]int)      //key1 is kind Id key2 incId
+	gameLists    = make(map[int]*ServerInfo)   //k1 NodeID,
+	roomList     = make(map[int]*msg.RoomInfo) // key1 is roomId
+	roomKindList = make(map[int]map[int]int)   //key1 is kind Id key2 incId
 	KindListInc  = 0
+	Test         = false
 )
 
 type ServerInfo struct {
@@ -55,6 +62,9 @@ func init() {
 	handleRpc("notifyNewRoom", NotifyNewRoom)
 	handleRpc("notifyDelRoom", NotifyDelRoom)
 	handleRpc("updateRoomInfo", UpdateRoom)
+
+	handleRpc("SvrverFaild", ServerFaild)
+	handleRpc("SendPlayerBrief", SendPlayerBrief)
 }
 
 ////// c2s
@@ -170,8 +180,15 @@ func updateGameInfo(args []interface{}) {
 }
 
 func NotifyNewRoom(args []interface{}) {
-	log.Debug("at NotifyNewRoom === %v", args)
+	for _, v := range args {
+		log.Debug("at NotifyNewRoom === %v", v)
+	}
+
 	recvMsg := args[0].(*msg.RoomInfo)
+	addRoom(recvMsg)
+}
+
+func addRoom(recvMsg *msg.RoomInfo) {
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -179,9 +196,9 @@ func NotifyNewRoom(args []interface{}) {
 		roomKindList[recvMsg.KindID] = m
 	}
 
-	/*if KindListInc >= math.MaxInt {
+	if int32(KindListInc) >= math.MaxInt32 {
 		KindListInc = 0
-	}*/
+	}
 	KindListInc++
 	recvMsg.Idx = KindListInc
 	m[KindListInc] = recvMsg.RoomID
@@ -189,35 +206,49 @@ func NotifyNewRoom(args []interface{}) {
 
 func NotifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
-	kindId := args[0].(int)
-	roomId := args[1].(int)
+	roomId := args[0].(int)
+	delRoom(roomId)
+}
+
+func delRoom(roomId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
-	m, ok := roomKindList[kindId]
+	idGenerate.DelRoomId(roomId)
+	model.CreateRoomInfoOp.Delete(roomId)
+	m, ok := roomKindList[ri.KindID]
 	if ok && ri != nil {
 		delete(m, ri.Idx)
 	} else {
-		log.Error("at NotifyDelRoom not foud kind id %v", kindId)
+		log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
 	}
 }
 
 func UpdateRoom(args []interface{}) {
-	info := args[0].(map[string]interface{})
-	roomID := info["RoomID"].(int)
-	room, ok := roomList[roomID]
+	info := args[0].(*msg.UpdateRoomInfo)
+	room, ok := roomList[info.RoomId]
 	if !ok {
-		log.Debug("at  UpdateRoom not foud kindid:%d", roomID)
+		log.Debug("at  UpdateRoom not foud kindid:%d", info.RoomId)
 		return
 	}
 
-	for k, v := range info {
-		switch k {
-		case "CurCnt":
-			room.CurCnt = v.(int)
-		case "CurPayCnt":
-			room.CurPayCnt = v.(int)
+	switch info.OpName {
+	case "CurPayCnt":
+		room.CurPayCnt = info.Data["CurPayCnt"].(int)
+	case "AddPlayerId":
+		pinfo := info.Data["info"].(*msg.PlayerBrief)
+		room.Players[pinfo.UID] = pinfo
+		room.CurCnt = len(room.Players)
+	case "DelPlayerId":
+		id := info.Data["UID"].(int)
+		status := info.Data["Status"].(int)
+		delete(room.Players, id)
+		room.CurCnt = len(room.Players)
+		if status == 0 {
+			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
+
 		}
 	}
+
 }
 
 func getRoomInfo(tableId int) *msg.RoomInfo {
@@ -229,20 +260,39 @@ func NewServerAgent(args []interface{}) {
 	log.Debug("at NewServerAgent :%s", serverName)
 	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
 		if err != nil {
-			log.Debug("GetKindList error:%s", err.Error())
+			log.Error("GetKindList error:%s", err.Error())
 			return
 		}
 
 		ret := data.([]*msg.TagGameServer)
 
 		for _, v := range ret {
-			if conf.Server.TestNode {
+			if Test {
 				if v.NodeID != conf.Server.NodeId {
 					continue
 				}
 			}
 			addGameList(v)
-			log.Debug("data %v", v)
+			log.Debug("add sverInfo %v", v)
+		}
+	})
+
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetRooms", func(data interface{}, err error) {
+		if err != nil {
+			log.Error("GetKindList error:%s", err.Error())
+			return
+		}
+
+		ret := data.([]*msg.RoomInfo)
+
+		for _, v := range ret {
+			if Test {
+				if v.NodeID != conf.Server.NodeId {
+					continue
+				}
+			}
+			addRoom(v)
+			log.Debug("add room %v", v)
 		}
 	})
 }
@@ -268,8 +318,7 @@ func addGameList(v *msg.TagGameServer) {
 	gminfo.list[v.KindID] = v
 }
 
-func GetSvrByKind(kindId int) string {
-	minNub := 0
+func GetSvrByKind(kindId int) (string, int) {
 	var minv *ServerInfo
 	for _, v := range gameLists {
 		if _, ok := v.list[kindId]; !ok {
@@ -277,19 +326,72 @@ func GetSvrByKind(kindId int) string {
 		}
 
 		if minv == nil {
-			minNub = v.wight
 			minv = v
 		}
 
-		if v.wight < minNub {
-			minNub = v.wight
+		if v.wight < minv.wight {
 			minv = v
 		}
+
+		if Test {
+			fmt.Println(v.list[kindId].NodeID, conf.Server.NodeId)
+			if v.list[kindId].NodeID == conf.Server.NodeId {
+				minv = v
+				break
+			}
+		}
+
 	}
 
-	if minv == nil || len(minv.list) < 0 {
-		return ""
+	if minv == nil || len(minv.list) < 1 {
+		return "", 0
 	}
 	minv.wight++
-	return minv.list[0].ServerAddr
+	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort), minv.list[kindId].NodeID
+}
+
+func GetSvrByNodeID(nodeid int) string {
+	for _, v := range gameLists {
+		for _, v1 := range v.list {
+			if v1.NodeID != nodeid {
+				break
+			}
+			return v1.ServerAddr + ":" + strconv.Itoa(v1.ServerPort)
+		}
+	}
+	return ""
+}
+
+func ServerFaild(args []interface{}) {
+	svrId := args[0].(string)
+	list := strings.Split(svrId, "_")
+	if len(list) < 2 {
+		log.Error("at ServerFaild param error ")
+		return
+	}
+
+	id, err := strconv.Atoi(list[1])
+	if err != nil {
+		log.Error("at ServerFaild param error : %s", err.Error())
+		return
+	}
+
+	for roomId, v := range roomList {
+		if v.NodeID == id {
+			delete(roomList, roomId)
+		}
+	}
+}
+
+func SendPlayerBrief(args []interface{}) {
+	roomId := args[0].(int)
+	u := args[1].(*user.User)
+	retMsg := &msg.L2C_RoomPlayerBrief{}
+	r := roomList[roomId]
+	if r != nil {
+		for _, v := range r.Players {
+			retMsg.Players = append(retMsg.Players, v)
+		}
+	}
+	u.WriteMsg(retMsg)
 }

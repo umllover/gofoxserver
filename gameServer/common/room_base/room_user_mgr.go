@@ -4,15 +4,14 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/Chat"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/hallServer/idGenerate"
-
+	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/timer"
 )
 
 func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -26,18 +25,17 @@ func NewRoomUserMgr(roomId, UserCnt int, Temp *base.GameServiceOption) *RoomUser
 }
 
 type RoomUserMgr struct {
-	id          int                  //唯一id 房间id
-	Kind        int                  //模板表第一类型
-	ServerId    int                  //模板表第二类型 注意 非房间id
-	EendTime    int64                //结束时间
-	UserCnt     int                  //可以容纳的用户数量
-	PlayerCount int                  //当前用户人数
-	JoinCount   int                  //房主设置的游戏人数
-	Users       []*user.User         /// index is chairId
-	Onlookers   map[int]*user.User   /// 旁观的玩家
-	ChatRoomId  int                  //聊天房间id
-	KickOut     map[int]*timer.Timer //即将被踢出的超时定时器
-	Trustee     []bool               //是否托管 index 就是椅子id
+	id          int                //唯一id 房间id
+	Kind        int                //模板表第一类型
+	ServerId    int                //模板表第二类型 注意 非房间id
+	EendTime    int64              //结束时间
+	UserCnt     int                //可以容纳的用户数量
+	PlayerCount int                //当前用户人数
+	JoinCount   int                //房主设置的游戏人数
+	Users       []*user.User       /// index is chairId
+	Onlookers   map[int]*user.User /// 旁观的玩家
+	ChatRoomId  int                //聊天房间id
+	Trustee     []bool             //是否托管 index 就是椅子id
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
@@ -122,6 +120,8 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	locak.KindID = u.KindID
 	locak.ServerID = u.ServerID
 	locak.NodeID = conf.Server.NodeId
+	locak.EnterIP = conf.Server.WSAddr
+
 	_, err := model.GamescorelockerOp.Insert(locak)
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
@@ -129,6 +129,19 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: r.id,
+		OpName: "AddPlayerId",
+		Data: map[string]interface{}{
+			"info": &msg.PlayerBrief{
+				UID:     u.Id,
+				Name:    u.NickName,
+				HeadUrl: u.HeadImgUrl,
+				Icon:    u.IconID,
+			},
+		},
+	})
 	return true
 }
 
@@ -141,21 +154,30 @@ func (r *RoomUserMgr) GetChairId() int {
 	return -1
 }
 
-func (r *RoomUserMgr) LeaveRoom(u *user.User) bool {
+func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
+	log.Debug("at LeaveRoom uid:%d", u.Id)
 	if len(r.Users) <= u.ChairId {
+		log.Error("at LeaveRoom u.chairId max .... ")
 		return false
 	}
 	err := model.GamescorelockerOp.Delete(u.Id)
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
-
-	log.Debug("%v user leave room,  left %v count", u.ChairId, r.PlayerCount)
-
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: r.id,
+		OpName: "DelPlayerId",
+		Data: map[string]interface{}{
+			"Status": status,
+			"UID":    u.Id,
+		},
+	})
+	log.Debug("%v user leave room,  left %v count", u.Id, r.GetCurPlayerCnt())
 	return true
 }
 
@@ -249,18 +271,18 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 	if oldUser != nil {
 		return ChairHasUser
 	}
-	//if room.ChatRoomId == 0 {
-	//	id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
-	//	if err != nil {
-	//		log.Error("create Chat Room faild")
-	//		return ErrCreateRoomFaild
-	//	}
-	//	room.ChatRoomId = id.(int)
-	//}
+	if room.ChatRoomId == 0 {
+		id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
+		if err != nil {
+			log.Error("create Chat Room faild")
+			return ErrCreateRoomFaild
+		}
+		room.ChatRoomId = id.(int)
+	}
 
 	_, chairId := room.GetUserByUid(u.Id)
 	if chairId > 0 {
-		room.LeaveRoom(u)
+		room.LeaveRoom(u, 1)
 	}
 
 	room.EnterRoom(ChairID, u)
@@ -325,7 +347,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
 	room.SetUsetStatus(u, US_FREE)
-	room.LeaveRoom(u)
+	room.LeaveRoom(u, 1)
 	return true
 }
 
@@ -356,10 +378,13 @@ func (room *RoomUserMgr) RoomDissume() {
 	for _, u := range room.Users {
 		if u != nil {
 			u.ChanRPC().Go("LeaveRoom")
+
+			err := model.GamescorelockerOp.Delete(u.Id)
+			if err != nil {
+				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
+			}
 		}
 	}
-
-	idGenerate.DelRoomId(room.id)
 }
 
 func (room *RoomUserMgr) IsAllReady() bool {
@@ -372,21 +397,11 @@ func (room *RoomUserMgr) IsAllReady() bool {
 }
 
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
-	tm, ok := room.KickOut[u.Id]
-	if ok {
-		tm.Stop()
-		delete(room.KickOut, u.Id)
-	}
-
 	if Status == RoomStatusStarting {
 		room.SetUsetStatus(u, US_PLAYING)
 	} else {
 		room.SetUsetStatus(u, US_SIT)
 	}
-}
-
-func (room *RoomUserMgr) AddKickOutTimer(uid int, t *timer.Timer) {
-	room.KickOut[uid] = t
 }
 
 func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
@@ -413,4 +428,26 @@ func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
 			HeaderUrl:   eachuser.HeadImgUrl,  //头像
 		})
 	})
+}
+
+func (room *RoomUserMgr) SendDataToHallUser(chiairID int, funcName string, data interface{}) {
+	u := room.GetUserByChairId(chiairID)
+	if u == nil {
+		return
+	}
+
+	cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+}
+
+func (room *RoomUserMgr) SendMsgToHallServerAll(funcName string, data interface{}) {
+	for _, u := range room.Users {
+		if u == nil {
+			continue
+		}
+		cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+	}
+}
+
+func (room *RoomUserMgr) SendCloseRoomToHall(data interface{}) {
+	room.SendMsgToHallServerAll("RoomCloseInfo", data)
 }

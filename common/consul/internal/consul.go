@@ -19,7 +19,6 @@ type Rgconfig interface {
 	GetNodeID() int
 	GetSvrName() string
 	GetWatchSvrName() string
-	GetWatchFaildSvrName() string
 	GetRegistSelf() bool
 	GetCheckAddress() string
 }

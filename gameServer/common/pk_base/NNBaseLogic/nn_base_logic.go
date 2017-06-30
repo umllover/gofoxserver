@@ -7,6 +7,7 @@ import (
 
 	"github.com/lovelly/leaf/log"
 
+	"math"
 )
 
 
@@ -54,6 +55,7 @@ func NNGetCardLogicValue( CardData int) int {
 		CardValue = 10
 	}
 	return CardValue
+	math.Abs()
 }
 
 

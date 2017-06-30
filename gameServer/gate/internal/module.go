@@ -5,6 +5,8 @@ import (
 	"mj/gameServer/conf"
 	"mj/gameServer/userHandle"
 
+	"strings"
+
 	"github.com/lovelly/leaf/gate"
 )
 
@@ -13,11 +15,16 @@ type Module struct {
 }
 
 func (m *Module) OnInit() {
+	list := strings.Split(conf.Server.WSAddr, ":")
+	var listenAddr string
+	if len(list) > 1 {
+		listenAddr = "0.0.0.0:" + list[1]
+	}
 	m.Gate = &gate.Gate{
 		MaxConnNum:         conf.Server.MaxConnNum,
 		PendingWriteNum:    conf.PendingWriteNum,
 		MaxMsgLen:          conf.MaxMsgLen,
-		WSAddr:             conf.Server.WSAddr,
+		WSAddr:             listenAddr,
 		HTTPTimeout:        conf.HTTPTimeout,
 		CertFile:           conf.Server.CertFile,
 		KeyFile:            conf.Server.KeyFile,

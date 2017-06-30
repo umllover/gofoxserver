@@ -3,9 +3,14 @@ package room_base
 import (
 	"sync"
 
+	"time"
+
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"github.com/lovelly/leaf/timer"
 )
 
 //房间管理类
@@ -31,11 +36,16 @@ func NewRoomBase() *RoomBase {
 	skeleton.Init()
 	r.Skeleton = skeleton
 	r.ChanRPC = skeleton.ChanRPCServer
+	r.CloseSig = make(chan bool, 1)
 	return r
 }
 
 func (r *RoomBase) GetSkeleton() *module.Skeleton {
 	return r.Skeleton
+}
+
+func (r *RoomBase) AfterFunc(d time.Duration, cb func()) *timer.Timer {
+	return r.Skeleton.AfterFunc(d, cb)
 }
 
 func (r *RoomBase) RoomRun(id int) {
@@ -53,13 +63,14 @@ func (r *RoomBase) RoomRun(id int) {
 }
 
 func (r *RoomBase) Destroy(id int) {
+	log.Debug(" begin Destroy ok %d", id)
 	defer func() {
 		if r := recover(); r != nil {
 			log.Recover(r)
 		}
 	}()
+	RoomMgr.DelRoom(id)
 	r.CloseSig <- true
-	log.Debug("room Room Destroy ok %d", id)
 }
 
 func (r *RoomBase) GetChanRPC() *chanrpc.Server {

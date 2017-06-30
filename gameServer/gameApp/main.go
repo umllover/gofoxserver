@@ -27,25 +27,14 @@ import (
 var version = 0
 
 var printVersion = flag.Bool("version", false, "print version")
+var Test = flag.Bool("Test", false, "reload base db")
 
 func main() {
-	flag.Parse()
 	if *printVersion {
 		fmt.Println(" version: ", version)
 		os.Exit(0)
 	}
-	conf.Init()
-	lconf.LogLevel = conf.Server.LogLevel
-	lconf.LogPath = conf.Server.LogPath
-	lconf.LogFlag = conf.LogFlag
-	lconf.ServerName = conf.ServerName()
-	lconf.ConsolePort = conf.Server.ConsolePort
-	lconf.ProfilePath = conf.Server.ProfilePath
-	lconf.ListenAddr = conf.Server.ListenAddr
-	lconf.ConnAddrs = conf.Server.ConnAddrs
-	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
-
+	Init()
 	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
@@ -63,4 +52,21 @@ func main() {
 	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, kindList.GetModules()...)
 	leaf.Run(modules...)
+}
+
+func Init() {
+	flag.Parse()
+	conf.Init()
+	lconf.LogLevel = conf.Server.LogLevel
+	lconf.LogPath = conf.Server.LogPath
+	lconf.LogFlag = conf.LogFlag
+	lconf.ConsolePort = conf.Server.ConsolePort
+	lconf.ProfilePath = conf.Server.ProfilePath
+	lconf.ListenAddr = conf.Server.ListenAddr
+	lconf.ServerName = conf.ServerName()
+	lconf.ConnAddrs = conf.Server.ConnAddrs
+	lconf.PendingWriteNum = conf.Server.PendingWriteNum
+	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	conf.Test = *Test
+	leaf.InitLog()
 }

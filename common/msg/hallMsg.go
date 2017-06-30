@@ -43,8 +43,8 @@ type C2L_CreateTable struct {
 	Password            string                 //密码设置
 	Kind                int                    //游戏类型
 	ServerId            int                    //子类型
-	RoomID              int                    //房间id
 	PayType             int                    //1是自己付钱， 2是AA
+	RoomName            string                 //房间名字
 	OtherInfo           map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
 }
 
@@ -68,6 +68,15 @@ type C2L_GetRoomList struct {
 //请求匹配一个房间
 type C2L_QuickMatch struct {
 	KindID int //要匹配的游戏类型
+}
+
+//请求查看开放记录
+type C2L_ReqCreatorRoomRecord struct {
+}
+
+//请求查看房间玩家简要信息
+type C2L_ReqRoomPlayerBrief struct {
+	RoomId int
 }
 
 /////////// l 2 c /////////////////////////
@@ -106,10 +115,11 @@ type L2C_LogonSuccess struct {
 	PayMbVipUpgrade int `json:"dwPayMbVipUpgrade"` //手机VIP升级，所需充值数（vip最高级时该值为0）
 
 	//约战房相关
-	RoomCard     int `json:"lRoomCard"`      //用户房卡
-	LockServerID int `json:"dwLockServerID"` //锁定房间
-	KindID       int `json:"dwKindID"`       //游戏类型
-	HallNodeID   int `json:"HallNodeID"`
+	RoomCard     int    `json:"lRoomCard"`      //用户房卡
+	LockServerID int    `json:"dwLockServerID"` //锁定房间
+	KindID       int    `json:"dwKindID"`       //游戏类型
+	HallNodeID   int    `json:"HallNodeID"`
+	ServerIP     string `json:"ServerIP"`
 }
 
 //房间列表
@@ -142,7 +152,8 @@ type L2C_GetRoomList struct {
 
 //查询房间的结果
 type L2C_SearchResult struct {
-	TableID int //桌子 I D 返回0 是没匹配到
+	TableID  int //桌子 I D 返回0 是没匹配到
+	ServerIP string
 }
 
 // 创建房间失败消息
@@ -159,4 +170,14 @@ type L2C_CreateTableSucess struct {
 	Beans          int    //游戏豆
 	RoomCard       int    //房卡数量
 	ServerIP       string //去哪个逻辑服玩
+}
+
+//返回开房记录
+type L2C_CreatorRoomRecord struct {
+	Records []*CreatorRoomInfo //创建的房间的简要信息
+}
+
+//请求房间内玩家简要信息的返回值
+type L2C_RoomPlayerBrief struct {
+	Players []*PlayerBrief //房间内玩家的简要信息
 }

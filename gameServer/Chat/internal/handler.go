@@ -25,6 +25,7 @@ func init() {
 	handleRpc("delRoomMember", delRoomMember)
 
 	handlerC2S(&msg.C2G_GameChart_ToAll{}, SendChatMsgToAll)
+
 }
 
 //发送给房间所有人

@@ -24,6 +24,11 @@ func init() {
 	Processor.Register(&C2L_GetRoomList{})
 	Processor.Register(&C2L_QuickMatch{})
 
+	Processor.Register(&C2L_ReqCreatorRoomRecord{})
+	Processor.Register(&C2L_ReqRoomPlayerBrief{})
+	Processor.Register(&L2C_CreatorRoomRecord{})
+	Processor.Register(&L2C_RoomPlayerBrief{})
+
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
@@ -54,6 +59,8 @@ func init() {
 	Processor.Register(&C2G_HostlDissumeRoom{})
 	Processor.Register(&G2C_CancelTable{})
 	Processor.Register(&G2C_PersonalTableEnd{})
+	Processor.Register(&C2G_LoadRoom{})
+	Processor.Register(&G2C_LoadRoomOk{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

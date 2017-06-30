@@ -100,7 +100,7 @@ func (server *HTTPServer) Serve(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *HTTPServer) Start() {
-	log.Debug(" start HTTPServer at ", server.Addr)
+	log.Debug(" start HTTPServer at %v ", server.Addr)
 	ln, err := net.Listen("tcp", server.Addr)
 	if err != nil {
 		log.Fatal("lister error %v", err)
