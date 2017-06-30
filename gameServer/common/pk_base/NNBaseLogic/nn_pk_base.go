@@ -1,35 +1,30 @@
 package NNBaseLogic
 
 import (
-
-	"mj/common/msg"
 	. "mj/common/cost"
-	"mj/gameServer/user"
+	"mj/common/msg"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
+	"mj/gameServer/user"
 
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"time"
+
 	"github.com/lovelly/leaf/log"
 
-	"mj/gameServer/common/pk_base"
 	"mj/common/msg/nn_tb_msg"
+	"mj/gameServer/common/pk_base"
 )
-
-
-
 
 type NN_PK_base struct {
 	common.BaseManager
-	DataMgr  					pk_base.DataManager
-	UserMgr  					common.UserManager
-	LogicMgr 					pk_base.LogicManager
-	TimerMgr 					common.TimerManager
+	DataMgr  pk_base.DataManager
+	UserMgr  common.UserManager
+	LogicMgr pk_base.LogicManager
+	TimerMgr common.TimerManager
 
-	Temp   						*base.GameServiceOption //模板
-	Status 						int
-
+	Temp   *base.GameServiceOption //模板
+	Status int
 }
 
 //创建的配置文件
@@ -106,7 +101,6 @@ func (r *NN_PK_base) UserStandup(args []interface{}) {
 	r.UserMgr.Standup(u)
 }
 
-
 //获取对方信息
 func (room *NN_PK_base) GetUserChairInfo(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
@@ -176,20 +170,16 @@ func (room *NN_PK_base) UserReLogin(args []interface{}) {
 //玩家离线
 func (room *NN_PK_base) UserOffline(args []interface{}) {
 	u := args[0].(*user.User)
+	log.Debug("at UserOffline .... uid:%d", u.Id)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
 		return
 	}
 
 	room.UserMgr.SetUsetStatus(u, US_OFFLINE)
-	if room.Temp.TimeOffLineCount != 0 {
-		t := room.GetSkeleton().AfterFunc(time.Duration(room.Temp.TimeOffLineCount)*time.Second, func() {
-			room.OffLineTimeOut(u)
-		})
-		room.UserMgr.AddKickOutTimer(u.Id, t)
-	} else {
+	room.TimerMgr.StartKickoutTimer(room.GetSkeleton(), u.Id, func() {
 		room.OffLineTimeOut(u)
-	}
+	})
 }
 
 //离线超时踢出
@@ -254,7 +244,6 @@ func (room *NN_PK_base) SetGameOption(args []interface{}) {
 	}
 }
 
-
 //游戏结束
 func (room *NN_PK_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
@@ -291,37 +280,17 @@ func (room *NN_PK_base) AfertEnd(Forced bool) {
 	}
 }
 
-
-//计算税收 //可以移植到base
+//计算税收 暂时未实现
 func (room *NN_PK_base) CalculateRevenue(ChairId, lScore int) int {
 	//效验参数
 
 	UserCnt := room.UserMgr.GetMaxPlayerCnt()
-	template := room.Temp
 	if ChairId >= UserCnt {
 		return 0
 	}
 
-	//计算税收
-	if (template.RevenueRatio > 0 || template.PersonalRoomTax > 0) && (lScore >= pk_base.REVENUE_BENCHMARK) {
-		//获取用户
-		u := room.UserMgr.GetUserByChairId(ChairId)
-		if u == nil {
-			log.Error("at CalculateRevenue not foud user user.ChairId:%d", u.ChairId)
-			return 0
-		}
-
-		//计算税收
-		lRevenue := lScore * template.RevenueRatio / pk_base.REVENUE_DENOMINATOR
-
-		if (template.ServerType & GAME_GENRE_PERSONAL) != 0 {
-			lRevenue = lScore * (template.RevenueRatio + template.PersonalRoomTax) / pk_base.REVENUE_DENOMINATOR
-		}
-		return lRevenue
-	}
 	return 0
 }
-
 
 //叫分(倍数)
 func (room *NN_PK_base) CallScore(args []interface{}) {
@@ -333,11 +302,10 @@ func (room *NN_PK_base) CallScore(args []interface{}) {
 }
 
 //加注
-func (r *NN_PK_base)AddScore(args []interface{})  {
+func (r *NN_PK_base) AddScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
 	u := args[1].(*user.User)
 
 	r.DataMgr.AddScore(u, recvMsg.Score)
 	return
 }
-
