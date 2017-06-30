@@ -25,45 +25,37 @@ type DataManager interface {
 	SendPersonalTableTip(*user.User)
 	SendStatusPlay(u *user.User)
 	SendStatusReady(u *user.User)
-/*
-BeforeStartGame(UserCnt int)
-	StartGameing()
-	AfterStartGame()
-	SendPersonalTableTip(*user.User)
-	SendStatusPlay(u *user.User)
-	NotifySendCard(u *user.User, cbCardData int, bSysOut bool)
-	EstimateUserRespond(int, int, int) bool
-	DispatchCardData(int, bool) int
-	HasOperator(ChairId, OperateCode int) bool
-	HasCard(ChairId, cardIdx int) bool
-	CheckUserOperator(*user.User, int, *mj_hz_msg.C2G_HZMJ_OperateCard) (int, int)
-	UserChiHu(wTargetUser, userCnt int)
-	WeaveCard(cbTargetAction, wTargetUser int)
-	RemoveCardByOP(wTargetUser, ChoOp int) bool
-	CallOperateResult(wTargetUser, cbTargetAction int)
-	ZiMo(u *user.User)
-	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int
-	NormalEnd()
-	DismissEnd()
-	GetTrusteeOutCard(wChairID int) int
-	CanOperatorRoom(uid int) bool
-	SendStatusReady(u *user.User)
 
-	GetResumeUser() int
-	GetGangStatus() int
-	GetUserCardIndex(ChairId int) []int
-	GetCurrentUser() int //当前出牌用户
-	GetRoomId() int
-	GetProvideUser() int
-	IsActionDone() bool
+	AddScoreTimes(u *user.User, scoreTimes int)
+	AddScore(u *user.User, score int)
 
- */
 
 }
 
 
 type LogicManager interface {
 
+	RandCardList(cbCardBuffer, OriDataArray []int)
+
+	/*
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
+	GetCardCount(cbCardIndex []int) int
+	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
+	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
+	EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
+	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
+	GetUserActionRank(cbUserAction int) int
+	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
+	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
+	GetUserCards(cbCardIndex []int) (cbCardData []int)
+	SwitchToCardData(cbCardIndex int) int
+	SwitchToCardIndex(cbCardData int) int
+	IsValidCard(card int) bool
+
+	GetMagicIndex() int
+	SetMagicIndex(int)
+
+	 */
 }
 
 ////////////////////////////////////////////

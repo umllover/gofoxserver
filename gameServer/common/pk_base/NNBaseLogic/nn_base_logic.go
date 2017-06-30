@@ -63,7 +63,6 @@ func NewNNBaseLogic() *NNBaseLogic {
 }
 
 
-
 //获取牛牛牌值
 func (lg *NNBaseLogic)NNGetCardLogicValue( CardData int) int {
 	//扑克属性
@@ -80,6 +79,9 @@ func (lg *NNBaseLogic)NNGetCardLogicValue( CardData int) int {
 
 
 
+func (lg *NNBaseLogic)RandCardList(cbCardBuffer, OriDataArray []int) {
+	pk_base.RandCardList(cbCardBuffer, OriDataArray)
+}
 
 //获取牛牛牌型
 func (lg *NNBaseLogic)NNGetCardType(CardData []int, CardCount int) int {

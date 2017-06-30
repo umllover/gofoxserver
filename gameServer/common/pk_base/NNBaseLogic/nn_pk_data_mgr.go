@@ -13,7 +13,28 @@ import (
 
 	"github.com/lovelly/leaf/log"
 
+	"github.com/lovelly/leaf/util"
+	"github.com/lovelly/leaf/timer"
 )
+
+// 游戏状态
+const  (
+	GAME_NULL			= 1000 // 空
+	//PLAYER_ENTER_ROOM  	= 1001 // 玩家进入房间
+	GAME_START			= 1002 // 游戏开始
+	CALL_SCORE_TIMES	= 1003 // 抢庄
+	ADD_SCORE			= 1004 // 加注
+	SEND_LAST_CARD		= 1005 // 发最后一张牌
+	OPEN_CARD			= 1006 // 亮牌
+	// 结算
+)
+
+// 定时器 -- for test
+const  (
+	CALL_SCORE_TIME		= 10
+	ADD_SCORE_TIME		= 10
+)
+
 
 func NewDataMgr(id, uid, OriCardIdx int, name string, temp *base.GameServiceOption, base *NN_PK_base) *RoomData {
 	r := new(RoomData)
@@ -41,12 +62,17 @@ type RoomData struct {
 	Password          	string             // 密码
 
 	//游戏变量
-	CardData			[][]int	//用户扑克
-	HandCardData		[][]int	//桌面扑克
+	CardData       [][]int //用户扑克
+	PublicCardData []int   //公共牌 两张
+	RepertoryCard  []int   //库存扑克
+	LeftCardCount  int     //库存剩余扑克数量
+	//HandCardData		[][]int	//桌面扑克
 	//Banker				int		//庄家
 	Count_All			int 	//是不是全部都点了 全点了直接动画
 	Qiang				[]bool	//1抢 0不抢
 	CellScore			int			//底分
+	ScoreTimes			int			//倍数
+	CallScoreTimesMap	map[int]*user.User //记录叫分信息
 	PlayCount			int			//游戏局数
 	PlayerCount			int		//指定游戏人数，2-4
 
@@ -69,11 +95,17 @@ type RoomData struct {
 	BuckleServiceCharge	[]bool			//收服务费
 
 	//下注信息
-	TurnMaxScore		[]int64			//最大下注
-	MaxScoreTimes		int				//最大倍数
+	//TurnMaxScore		[]int64			//最大下注
+	//MaxScoreTimes		int				//最大倍数
+	ScoreMap			map[*user.User]int 	//记录用户加注信息
 
 	//历史积分
 	HistoryScores     []*pk_base.HistoryScore    //历史积分
+
+	// 游戏状态
+	GameStatus					int
+	CallScoreTimer				timer.Timer
+	AddScoreTimer				timer.Timer
 }
 
 
@@ -152,13 +184,15 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 }
 
 //派发扑克
+/*
 func (room *RoomData) DispatchCardData(wCurrentUser int) int {
 
 	return 0
-}
+}*/
 
 func (room *RoomData) BeforeStartGame(UserCnt int) {
 	room.InitRoom(UserCnt)
+
 }
 
 func (room *RoomData) StartGameing() {
@@ -177,7 +211,11 @@ func (room *RoomData) AfterStartGame() {
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
 	room.CardData = make([][]int, UserCnt)
-	room.HandCardData = make([][]int, UserCnt)
+	room.PublicCardData = make([]int, pk_base.PUBLIC_CARD_COUNT)
+
+	room.CallScoreTimesMap = make(map[int]*user.User)
+	room.ScoreMap = make(map[*user.User]int)
+	room.RepertoryCard = make([]int, pk_base.MAX_REPERTORY)
 
 	room.ExitScore = 0
 	room.DynamicScore = 0
@@ -185,7 +223,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.FisrtCallUser = cost.INVALID_CHAIR
 	room.CurrentUser = cost.INVALID_CHAIR
 
-	room.MaxScoreTimes = 0
+	//room.MaxScoreTimes = 0
 	room.Count_All = 0
 	room.Qiang = make([]bool, UserCnt)
 	room.IsOpenCard = make([]bool, UserCnt)
@@ -197,108 +235,51 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	for i:=0;i<UserCnt;i++ {
 		room.OxCard[i] = 0xFF
 	}
-	room.TurnMaxScore = make([]int64, UserCnt)
 
 }
 
 func (room *RoomData) StartDispatchCard() {
-	log.Debug("begin start game tbnn")
-	/*
+	log.Debug("start dispatch card")
+
 	userMgr := room.NNPkBase.UserMgr
 	gameLogic := room.NNPkBase.LogicMgr
 
 	userMgr.ForEachUser(func(u *user.User) {
-		userMgr.SetUsetStatus(u, US_PLAYING)
+		userMgr.SetUsetStatus(u, cost.US_PLAYING)
 	})
 
-	var minSice int
-	UserCnt := userMgr.GetMaxPlayerCnt()
-	room.SiceCount, minSice = room.GetSice()
-
-	gameLogic.RandCardList(room.RepertoryCard, getCardByIdx(room.OriCardIdx))
-
-	//红中可以当财神
-	gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(0x35))
+	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetTBNNCards())
 
 	//分发扑克
+	// 两张公共牌
+	for i:=0;i<pk_base.PUBLIC_CARD_COUNT;i++ {
+		room.LeftCardCount -=1
+		room.PublicCardData[i] = room.RepertoryCard[room.LeftCardCount]
+		log.Debug("public card %d", room.CardData[i])
+	}
+
+	PublicCardData := &nn_tb_msg.G2C_TBNN_PublicCard{}
+	util.DeepCopy(&PublicCardData.PublicCardData, &room.PublicCardData)
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(PublicCardData)
+	})
+
+	// 再发每个用户4张牌
 	userMgr.ForEachUser(func(u *user.User) {
 		room.LeftCardCount -= 1
-		room.MinusHeadCount += 1
-		for i := 0; i < MAX_COUNT-1; i++ {
-			room.CardIndex[u.ChairId][i] = gameLogic.SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
+		for i := 0; i < pk_base.MAX_COUNT-1; i++ {
+			room.CardData[u.ChairId][i] = room.RepertoryCard[room.LeftCardCount]
 		}
 	})
 
-	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
-	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
-		if OwnerUser != nil {
-			room.BankerUser = OwnerUser.ChairId
-		} else {
-			log.Error("get bamkerUser error at StartGame")
-		}
-	}
+	userIndex := 0
+	userMgr.ForEachUser(func(u *user.User) {
+		UserCardData := &nn_tb_msg.G2C_TBNN_SendCard{}
+		util.DeepCopy(&UserCardData.CardData, &room.CardData[userIndex])
+		u.WriteMsg(UserCardData)
+		userIndex++
+	})
 
-	if room.BankerUser == INVALID_CHAIR {
-		room.BankerUser = util.RandInterval(0, UserCnt-1)
-	}
-
-	if room.BankerUser >= UserCnt {
-		log.Error(" room.BankerUser >=UserCnt %d,  %d", room.BankerUser, UserCnt)
-	}
-
-	room.MinusHeadCount++
-	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
-	room.LeftCardCount--
-
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-	room.ProvideCard = room.SendCardData
-	room.ProvideUser = room.BankerUser
-	room.CurrentUser = room.BankerUser
-
-	//堆立信息
-	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
-	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
-	TakeCount := MAX_REPERTORY - room.LeftCardCount
-	for i := 0; i < UserCnt; i++ {
-		//计算数目
-		var ValidCount int
-		if i == 0 {
-			ValidCount = HEAP_FULL_COUNT - room.HeapCardInfo[TakeChairID][1] - (minSice)*2
-		} else {
-			ValidCount = HEAP_FULL_COUNT - room.HeapCardInfo[TakeChairID][1]
-		}
-
-		RemoveCount := int(math.Min(float64(ValidCount), float64(TakeCount)))
-
-		//提取扑克
-		TakeCount -= RemoveCount
-		if i == 0 {
-			room.HeapCardInfo[TakeChairID][1] += RemoveCount
-		} else {
-			room.HeapCardInfo[TakeChairID][0] += RemoveCount
-		}
-
-		//完成判断
-		if TakeCount == 0 {
-			room.HeapHead = TakeChairID
-			room.HeapTail = (room.BankerUser + SiceCount - 1) % UserCnt
-			break
-		}
-		//切换索引
-		TakeChairID = (TakeChairID + UserCnt - 1) % UserCnt
-	}
-
-	room.UserAction = make([]int, UserCnt)
-
-	gangCardResult := &common.TagGangCardResult{}
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
-
-	//胡牌判断
-	chr := 0
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, true)
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-*/
 	return
 }
 
@@ -459,4 +440,34 @@ func (room *RoomData) DismissEnd() {
 	*/
 }
 
+// 设置底分
+func  (room *RoomData) SetCellScore(cellScore int)  {
+	room.CellScore = cellScore
+}
 
+// 设置倍数
+func (r *RoomData) SetScoreTimes(scoreTimes int)  {
+	r.ScoreTimes = scoreTimes
+}
+
+// 用户加倍
+func (r *RoomData) AddScoreTimes(u *user.User, scoreTimes int)  {
+	log.Debug("add score times userChairId:%d, scoretimes:%d", u.ChairId, scoreTimes)
+	r.CallScoreTimesMap[scoreTimes] = u
+	maxScoreTimes := 0
+	for s,_ := range r.CallScoreTimesMap {
+		if s>maxScoreTimes {
+			maxScoreTimes = s
+		}
+	}
+	r.BankerUser = r.CallScoreTimesMap[maxScoreTimes].ChairId
+	if len(r.CallScoreTimesMap) == r.PlayerCount {//全叫过直接发最后一张牌
+		log.Debug("nn last one card")
+	}
+}
+
+// 用户加注
+func (r *RoomData)AddScore(u *user.User, score int)  {
+	log.Debug("add score userChairId:%d, score:%d", u.ChairId, score)
+	r.ScoreMap[u] += score
+}

@@ -6,9 +6,8 @@ import (
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util" */
-	"time"
 	//"fmt"
-	"math/rand"
+	"github.com/lovelly/leaf/util"
 )
 
 // 扑克通用逻辑
@@ -55,6 +54,7 @@ func  SortCardList(cardData []int, cardCount int)  {
 	}
 }
 
+/*
 //混乱扑克
 func  RandCardList(cardBuffer []int, cardBufferCount int)  {
 	cardData := GetNormalCards()
@@ -62,12 +62,7 @@ func  RandCardList(cardBuffer []int, cardBufferCount int)  {
 	position := 0
 
 	for {
-		/*
-				//获取随机值，用于解决随机值重复问题  added by hty
-		int r1=(int)(rand()+time(NULL)+GetTickCount());
-		srand(r1);
-		int r=r1+(r1<<3)+(r1>>3)+rand();
-			 */
+
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		r := random.Int()
 		position = r % (len(cardData) - randCount)
@@ -79,5 +74,28 @@ func  RandCardList(cardBuffer []int, cardBufferCount int)  {
 	}
 
 }
+*/
 
+//混乱扑克
+func RandCardList(cbCardBuffer, OriDataArray []int) {
+	//混乱准备
+	cbBufferCount := int(len(cbCardBuffer))
+	cbCardDataTemp := make([]int, cbBufferCount)
+	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
+
+	//混乱扑克
+	var cbRandCount int
+	var cbPosition int
+	for {
+		if cbRandCount >= cbBufferCount {
+			break
+		}
+		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
+		cbRandCount++
+		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
+	}
+
+	return
+}
 

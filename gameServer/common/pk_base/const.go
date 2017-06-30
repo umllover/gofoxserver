@@ -12,6 +12,15 @@ const (
 	REVENUE_DENOMINATOR = 1000 //税收分母
 	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
 )
+//常量定义
+const (
+	/*MAX_WEAVE     = 4   //最大组合
+	MAX_HUA_INDEX = 0   //花牌索引
+	MAX_HUA_COUNT = 8   //花牌个数*/
+	MAX_COUNT     = 5  //最大数目
+	MAX_REPERTORY = 54 //最大库存
+	PUBLIC_CARD_COUNT = 2 //公共牌数
+)
 
 
 /*
@@ -36,14 +45,6 @@ const (
 	MASK_VALUE = 0x0F //数值掩码
 )
 
-//常量定义
-const (
-	MAX_WEAVE     = 4   //最大组合
-	MAX_COUNT     = 14  //最大数目
-	MAX_REPERTORY = 112 //最大库存
-	MAX_HUA_INDEX = 0   //花牌索引
-	MAX_HUA_COUNT = 8   //花牌个数
-)
 
 //麻将限制行为
 const (

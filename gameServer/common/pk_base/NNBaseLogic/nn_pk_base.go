@@ -14,21 +14,26 @@ import (
 	"github.com/lovelly/leaf/log"
 
 	"mj/gameServer/common/pk_base"
+	"mj/common/msg/nn_tb_msg"
 )
+
+
+
 
 type NN_PK_base struct {
 	common.BaseManager
-	DataMgr  pk_base.DataManager
-	UserMgr  common.UserManager
-	LogicMgr pk_base.LogicManager
-	TimerMgr common.TimerManager
+	DataMgr  					pk_base.DataManager
+	UserMgr  					common.UserManager
+	LogicMgr 					pk_base.LogicManager
+	TimerMgr 					common.TimerManager
 
-	Temp   *base.GameServiceOption //模板
-	Status int
+	Temp   						*base.GameServiceOption //模板
+	Status 						int
+
 }
 
 //创建的配置文件
-type NewPKCtlConfig struct {
+type NewNNPKCtlConfig struct {
 	BaseMgr   common.BaseManager
 	DataMgr   pk_base.DataManager
 	UserMgr   common.UserManager
@@ -45,11 +50,10 @@ func NewNNPKBase(info *model.CreateRoomInfo) *NN_PK_base {
 
 	pk := new(NN_PK_base)
 	pk.Temp = Temp
-
 	return pk
 }
 
-func (r *NN_PK_base) Init(cfg *NewPKCtlConfig) {
+func (r *NN_PK_base) Init(cfg *NewNNPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr
 	r.BaseManager = cfg.BaseMgr
@@ -151,11 +155,10 @@ func (room *NN_PK_base) UserReady(args []interface{}) {
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
+		//派发初始扑克
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
-		//派发初始扑克
-		room.Status = RoomStatusStarting
 	}
 }
 
@@ -320,4 +323,21 @@ func (room *NN_PK_base) CalculateRevenue(ChairId, lScore int) int {
 }
 
 
+//叫分(倍数)
+func (room *NN_PK_base) CallScore(args []interface{}) {
+	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
+	u := args[1].(*user.User)
+
+	room.DataMgr.AddScoreTimes(u, recvMsg.CallScore)
+	return
+}
+
+//加注
+func (r *NN_PK_base)AddScore(args []interface{})  {
+	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
+	u := args[1].(*user.User)
+
+	r.DataMgr.AddScore(u, recvMsg.Score)
+	return
+}
 
