@@ -657,6 +657,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 
 	log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
+	bAroseAction = false
 	if bAroseAction {
 		//设置变量
 		room.ProvideUser = wCenterUser
@@ -845,6 +846,8 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
 	room.HistoryScores = make([]*HistoryScore, UserCnt)
+	room.MinusLastCount = 0
+	room.MinusHeadCount = 0
 }
 
 func (room *RoomData) GetSice() (int, int) {
@@ -875,8 +878,8 @@ func (room *RoomData) StartDispatchCard() {
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
-			room.LeftCardCount -= 1
-			room.MinusHeadCount += 1
+			room.LeftCardCount--
+			room.MinusHeadCount++
 			cardIdx := gameLogic.SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 			room.CardIndex[u.ChairId][cardIdx]++
 		}
