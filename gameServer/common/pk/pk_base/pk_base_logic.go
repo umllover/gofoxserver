@@ -19,17 +19,6 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 	return GetCfg(lg.ConfigIdx)
 }
 
-//获取牛牛牌值
-func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
-	//扑克属性
-
-	CardValue := lg.GetCardValue(CardData)
-	//转换数值
-	if CardValue > 10 {
-		CardValue = 10
-	}
-	return CardValue
-}
 
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
@@ -118,7 +107,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 	////炸弹牌型
 	//SameCount := 0
 
-	var Temp [lg.GetCfg().MaxCount]int
+	Temp := make([]int, lg.GetCfg().MaxCount)
 	Sum := 0
 	for i := 0; i < CardCount; i++ {
 		Temp[i] = lg.NNGetCardLogicValue(CardData[i])
@@ -194,11 +183,11 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	if cardCount != lg.GetCfg().MaxCount {
 		return false
 	}
-	var temp [lg.GetCfg().MaxCount]int
-	//var tempData[lg.GetCfg().MaxCount]int
+
+	temp := make([]int, lg.GetCfg().MaxCount)
 	sum := 0
 	for i := 0; i < lg.GetCfg().MaxCount; i++ {
-		temp[i] = lg.GetCardLogicValue(cardData[i])
+		temp[i] = lg.NNGetCardLogicValue(cardData[i])
 		sum += temp[i]
 	}
 	//王的数量
@@ -214,7 +203,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	var niuTemp [30][lg.GetCfg().MaxCount]int
+	niuTemp := make([][]int, 30,lg.GetCfg().MaxCount)
 	var isKingPai [30]bool
 
 	niuCount := 0
@@ -282,7 +271,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 func (lg *BaseLogic) NNIsIntValue(cardData []int, cardCount int) bool {
 	sum := 0
 	for i := 0; i < cardCount; i++ {
-		sum += lg.GetCardLogicValue(cardData[i])
+		sum += lg.NNGetCardLogicValue(cardData[i])
 	}
 	if !(sum > 0) {
 		return false
@@ -311,8 +300,8 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		firstType := 0
 		nextType := 0
 
-		value := lg.GetCardLogicValue(nextData[3])
-		value += lg.GetCardLogicValue(nextData[4])
+		value := lg.NNGetCardLogicValue(nextData[3])
+		value += lg.NNGetCardLogicValue(nextData[4])
 
 		firstKing := false
 		nextKing := false
@@ -325,7 +314,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				left := 0
 				value = 0
 				for i := 3; i < 5; i++ {
-					value += lg.GetCardLogicValue(nextData[i])
+					value += lg.NNGetCardLogicValue(nextData[i])
 				}
 				left = value % 10
 				if left > 0 {
@@ -347,7 +336,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			value = 0
 			left := 0
 			for i := 0; i < 3; i++ {
-				value += lg.GetCardLogicValue(nextData[i])
+				value += lg.NNGetCardLogicValue(nextData[i])
 			}
 			left = value % 10
 			if left > 10 {
@@ -355,14 +344,14 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			}
 		}
 		value = 0
-		value = lg.GetCardLogicValue(firstData[3])
-		value += lg.GetCardLogicValue(firstData[4])
+		value = lg.NNGetCardLogicValue(firstData[3])
+		value += lg.NNGetCardLogicValue(firstData[4])
 		if value > 10 {
 			if firstData[3] == 0x4E || firstData[4] == 0x4F || firstData[4] == 0x4E || firstData[3] == 0x4F {
 				left := 0
 				value = 0
 				for i := 3; i < 5; i++ {
-					value += lg.GetCardLogicValue(firstData[i])
+					value += lg.NNGetCardLogicValue(firstData[i])
 				}
 				left = value % 10
 				if left > 0 {
@@ -384,7 +373,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			value = 0
 			left := 0
 			for i := 0; i < 3; i++ {
-				value += lg.GetCardLogicValue(firstData[i])
+				value += lg.NNGetCardLogicValue(firstData[i])
 			}
 			left = value % 10
 			if left > 0 {

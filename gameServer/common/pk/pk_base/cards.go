@@ -28,6 +28,8 @@ type PK_CFG struct {
 	PublicCardCount int //
 	MaxCount        int //最大手牌数目
 	MaxRepertory    int //最多存放多少张牌
+	CallScoreTime	int //叫分时间
+	AddScoreTime	int //加注时间
 }
 
 var cfg = []*PK_CFG{
@@ -35,6 +37,8 @@ var cfg = []*PK_CFG{
 		PublicCardCount: 2,
 		MaxCount:        5,
 		MaxRepertory:    52,
+		CallScoreTime:   10,
+		AddScoreTime:    10,
 	},
 }
 
