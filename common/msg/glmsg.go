@@ -21,7 +21,9 @@ type RoomInfo struct {
 	CurPayCnt  int                  //已玩局数
 	CreateTime int64                //创建时间
 	Idx        int                  //服务器标识用的字段
-	Players  map[int]*PlayerBrief //玩家id
+	IsPublic   bool                 //是否公开匹配
+	Players    map[int]*PlayerBrief //玩家id
+	MachPlayer map[int]struct{}
 }
 
 ///通知大厅房间结束

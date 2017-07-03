@@ -217,7 +217,7 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()      //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()   //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime() //创建时间
-	BirefInf.Players = make(map[int]*msg.PlayerBrief)
+	BirefInf.IsPublic = true                            //todo
 	return BirefInf
 }
 

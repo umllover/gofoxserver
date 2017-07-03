@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	. "mj/common/cost"
 
+	"os"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -51,6 +53,8 @@ func ServerName() string {
 }
 
 func init() {
+	w, _ := os.Getwd()
+	fmt.Println("1111111111 ", w)
 	data, err := ioutil.ReadFile("./hallServer.json")
 	if err != nil {
 		log.Fatal("%v", err)

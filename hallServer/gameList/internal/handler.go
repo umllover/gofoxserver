@@ -10,12 +10,10 @@ import (
 	"mj/hallServer/db/model"
 	"mj/hallServer/idGenerate"
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 
 	"mj/hallServer/center"
-
 	"mj/hallServer/user"
 
 	"github.com/lovelly/leaf/cluster"
@@ -51,7 +49,6 @@ func handlerC2S(m interface{}, h interface{}) {
 func init() {
 	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 	handlerC2S(&msg.C2L_GetRoomList{}, GetRoomList)
-	handlerC2S(&msg.C2L_QuickMatch{}, QuickMatch)
 
 	handleRpc("sendGameList", sendGameList)
 	handleRpc("updateGameInfo", updateGameInfo)
@@ -65,6 +62,8 @@ func init() {
 
 	handleRpc("SvrverFaild", ServerFaild)
 	handleRpc("SendPlayerBrief", SendPlayerBrief)
+
+	handleRpc("GetMatchRooms", GetMatchRooms)
 }
 
 ////// c2s
@@ -116,51 +115,6 @@ func GetRoomList(args []interface{}) {
 	}
 }
 
-func QuickMatch(args []interface{}) {
-	recvMsg := args[0].(*msg.C2L_QuickMatch)
-	retMsg := msg.L2C_SearchResult{}
-	agent := args[1].(gate.Agent)
-	defer func() {
-		agent.WriteMsg(retMsg)
-	}()
-
-	m, ok := roomKindList[recvMsg.KindID]
-	if !ok {
-		log.Debug("not found KindID:%v", recvMsg.KindID)
-		return
-	}
-
-	maxLen := len(m)
-	if maxLen < 2 {
-		for _, id := range m {
-			v := roomList[id]
-			retMsg.TableID = v.RoomID
-			return
-		}
-	}
-
-	arr := make([]*msg.RoomInfo, maxLen)
-	i := 0
-	for _, roomid := range m {
-		arr[i] = roomList[roomid]
-	}
-
-	sort.Slice(arr, func(i, j int) bool {
-		if arr[i].CreateTime < arr[j].CreateTime {
-			return true
-		}
-
-		if arr[i].CurCnt < arr[j].CurCnt {
-			return true
-		}
-		return false
-	})
-
-	v := arr[0]
-	retMsg.TableID = v.RoomID
-	return
-}
-
 //////////////////// rpc
 func sendGameList(args []interface{}) {
 	agent := args[0].(gate.Agent)
@@ -184,8 +138,10 @@ func NotifyNewRoom(args []interface{}) {
 		log.Debug("at NotifyNewRoom === %v", v)
 	}
 
-	recvMsg := args[0].(*msg.RoomInfo)
-	addRoom(recvMsg)
+	roomInfo := args[0].(*msg.RoomInfo)
+	roomInfo.Players = make(map[int]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int]struct{})
+	addRoom(roomInfo)
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
@@ -394,4 +350,18 @@ func SendPlayerBrief(args []interface{}) {
 		}
 	}
 	u.WriteMsg(retMsg)
+}
+
+func GetMatchRooms(args []interface{}) (interface{}, error) {
+	ret := make(map[int][]*msg.RoomInfo)
+	for _, v := range roomList {
+		if !v.IsPublic {
+			continue
+		}
+		if v.MaxCnt >= len(v.MachPlayer) {
+			continue
+		}
+		ret[v.KindID] = append(ret[v.KindID], v)
+	}
+	return ret, nil
 }

@@ -33,7 +33,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
 	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
 	m.ChanRPC.Register("restoreToken", m.restoreToken)
-
+	m.ChanRPC.Register("matchResult", m.matchResult)
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
 	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
@@ -612,6 +612,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	} else {
 		log.Error("at restoreToken not foud record uid:%d", player.Id)
 	}
+}
+
+func (m *UserModule) matchResult(args []interface{}) {
+	ret := args[0].(bool)
+	retMsg := msg.L2C_SearchResult{}
+	u := m.a.UserData().(*user.User)
+	if ret {
+		r := args[1].(*msg.RoomInfo)
+		retMsg.TableID = r.RoomID
+	}
+	u.WriteMsg(retMsg)
 }
 
 /////////////////////////////// help 函数

@@ -17,6 +17,8 @@ import (
 	"mj/hallServer/userHandle"
 	"os"
 
+	"mj/hallServer/match_room"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -58,6 +60,7 @@ func main() {
 		userHandle.UserMgr,
 		gameList.Module,
 		raceMsg.Module,
+		match_room.Module,
 	)
 }
 

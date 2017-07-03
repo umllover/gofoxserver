@@ -3,17 +3,15 @@ package pk_base
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/conf"
-	"mj/gameServer/user"
-
-	"mj/gameServer/db/model"
-	"mj/gameServer/db/model/base"
-
-	"github.com/lovelly/leaf/log"
-
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk"
 	"mj/gameServer/common/room_base"
+	"mj/gameServer/conf"
+	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/base"
+	"mj/gameServer/user"
+
+	"github.com/lovelly/leaf/log"
 )
 
 //创建的配置文件
@@ -259,7 +257,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
 	}
-
 	log.Error("at OnEventGameConclude error  ")
 	return
 }

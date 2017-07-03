@@ -5,6 +5,7 @@ const (
 	KIND_TYPE_XSMJ = 390
 	KIND_TYPE_ZPMJ = 391
 	KIND_TYPE_TBNN = 28
+	KIND_TYPE_DDZ  = 29
 )
 
 //踢出玩家原因
