@@ -95,14 +95,14 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 //获取牛牛牌型
 func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 
-	if CardCount != NN_MAX_COUNT {
+	if CardCount != lg.GetCfg().MaxCount {
 		return 0
 	}
 
 	////炸弹牌型
 	//SameCount := 0
 
-	var Temp [NN_MAX_COUNT]int
+	var Temp [lg.GetCfg().MaxCount]int
 	Sum := 0
 	for i := 0; i < CardCount; i++ {
 		Temp[i] = lg.GetCardLogicValue(CardData[i])
@@ -123,7 +123,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		}
 	}
 
-	if KingCount == NN_MAX_COUNT {
+	if KingCount == lg.GetCfg().MaxCount {
 		return OX_FIVEKING //五花――5张牌都是10以上（不含10）的牌。。
 	}
 
@@ -147,10 +147,10 @@ func (lg *BaseLogic) NNGetTimes(cardData []int, cardCount int, niu int) int {
 	if niu != 1 {
 		return 1
 	}
-	if cardCount != NN_MAX_COUNT {
+	if cardCount != lg.GetCfg().MaxCount {
 		return 0
 	}
-	times := lg.NNGetCardType(cardData, NN_MAX_COUNT)
+	times := lg.NNGetCardType(cardData, lg.GetCfg().MaxCount)
 	log.Debug("times %d", times)
 
 	/*if(bTimes<7)return 1;
@@ -175,13 +175,13 @@ func (lg *BaseLogic) NNGetTimes(cardData []int, cardCount int, niu int) int {
 
 // 获取牛牛
 func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
-	if cardCount != NN_MAX_COUNT {
+	if cardCount != lg.GetCfg().MaxCount {
 		return false
 	}
-	var temp [NN_MAX_COUNT]int
-	//var tempData[NN_MAX_COUNT]int
+	var temp [lg.GetCfg().MaxCount]int
+	//var tempData[lg.GetCfg().MaxCount]int
 	sum := 0
-	for i := 0; i < NN_MAX_COUNT; i++ {
+	for i := 0; i < lg.GetCfg().MaxCount; i++ {
 		temp[i] = lg.GetCardLogicValue(cardData[i])
 		sum += temp[i]
 	}
@@ -189,7 +189,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	kingCount := 0
 	tenCount := 0
 
-	for i := 0; i < NN_MAX_COUNT; i++ {
+	for i := 0; i < lg.GetCfg().MaxCount; i++ {
 		if cardData[i] == 0x4E || cardData[i] == 0x4F {
 			kingCount++
 		} else if lg.GetCardValue(cardData[i]) == 10 {
@@ -198,7 +198,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	var niuTemp [30][NN_MAX_COUNT]int
+	var niuTemp [30][lg.GetCfg().MaxCount]int
 	var isKingPai [30]bool
 
 	niuCount := 0
