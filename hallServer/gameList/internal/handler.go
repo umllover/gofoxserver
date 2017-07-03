@@ -194,15 +194,16 @@ func UpdateRoom(args []interface{}) {
 		pinfo := info.Data["info"].(*msg.PlayerBrief)
 		room.Players[pinfo.UID] = pinfo
 		room.CurCnt = len(room.Players)
+		center.SendMsgToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
 		id := info.Data["UID"].(int)
 		status := info.Data["Status"].(int)
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
-		if status == 0 {
+		if status == 0 { //返回钱
 			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
-
 		}
+		center.SendMsgToThisNodeUser(id, "LeaveRoom", info.RoomId)
 	}
 
 }

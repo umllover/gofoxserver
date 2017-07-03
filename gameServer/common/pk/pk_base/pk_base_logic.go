@@ -95,14 +95,14 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 //获取牛牛牌型
 func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 
-	if CardCount != NN_MAX_COUNT {
+	if CardCount != lg.GetCfg().MaxCount {
 		return 0
 	}
 
 	////炸弹牌型
 	//SameCount := 0
 
-	var Temp [NN_MAX_COUNT]int
+	Temp := make([]int, lg.GetCfg().MaxCount)
 	Sum := 0
 	for i := 0; i < CardCount; i++ {
 		Temp[i] = lg.GetCardLogicValue(CardData[i])
@@ -123,7 +123,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		}
 	}
 
-	if KingCount == NN_MAX_COUNT {
+	if KingCount == lg.GetCfg().MaxCount {
 		return OX_FIVEKING //五花――5张牌都是10以上（不含10）的牌。。
 	}
 
@@ -136,7 +136,6 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		} else {
 			Value -= 10 //2.3
 		}
-
 	}
 
 	return Value //OX_VALUE0
@@ -147,10 +146,10 @@ func (lg *BaseLogic) NNGetTimes(cardData []int, cardCount int, niu int) int {
 	if niu != 1 {
 		return 1
 	}
-	if cardCount != NN_MAX_COUNT {
+	if cardCount != lg.GetCfg().MaxCount {
 		return 0
 	}
-	times := lg.NNGetCardType(cardData, NN_MAX_COUNT)
+	times := lg.NNGetCardType(cardData, lg.GetCfg().MaxCount)
 	log.Debug("times %d", times)
 
 	/*if(bTimes<7)return 1;
@@ -175,13 +174,13 @@ func (lg *BaseLogic) NNGetTimes(cardData []int, cardCount int, niu int) int {
 
 // 获取牛牛
 func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
-	if cardCount != NN_MAX_COUNT {
+	if cardCount != lg.GetCfg().MaxCount {
 		return false
 	}
-	var temp [NN_MAX_COUNT]int
-	//var tempData[NN_MAX_COUNT]int
+	temp := make([]int, lg.GetCfg().MaxCount)
+	//var tempData[lg.GetCfg().MaxCount]int
 	sum := 0
-	for i := 0; i < NN_MAX_COUNT; i++ {
+	for i := 0; i < lg.GetCfg().MaxCount; i++ {
 		temp[i] = lg.GetCardLogicValue(cardData[i])
 		sum += temp[i]
 	}
@@ -189,7 +188,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	kingCount := 0
 	tenCount := 0
 
-	for i := 0; i < NN_MAX_COUNT; i++ {
+	for i := 0; i < lg.GetCfg().MaxCount; i++ {
 		if cardData[i] == 0x4E || cardData[i] == 0x4F {
 			kingCount++
 		} else if lg.GetCardValue(cardData[i]) == 10 {
@@ -198,7 +197,10 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	var niuTemp [30][NN_MAX_COUNT]int
+	niuTemp := make([][]int, 30)
+	for i, _ := range niuTemp {
+		niuTemp[i] = make([]int, lg.GetCfg().MaxCount)
+	}
 	var isKingPai [30]bool
 
 	niuCount := 0
@@ -392,7 +394,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				}
 			}
 			if firstKingPoint != nextKingPoint {
-				return (firstKingPoint > nextKingPoint)
+				return firstKingPoint > nextKingPoint
 			}
 			if firstKing || firstDa {
 				return true
@@ -402,7 +404,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		}
 		//点数判断
 		if firstType != nextType {
-			return (firstType > nextType)
+			return firstType > nextType
 		}
 	}
 	//排序大小
@@ -416,10 +418,10 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 	nextMaxValue := lg.GetCardValue(nextTemp[0])
 	firstMaxValue := lg.GetCardValue(firstTemp[0])
 	if nextMaxValue != firstMaxValue {
-		return (firstMaxValue > nextMaxValue)
+		return firstMaxValue > nextMaxValue
 	}
 	//比较颜色
-	return (lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0]))
+	return lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0])
 
 	return false
 }
