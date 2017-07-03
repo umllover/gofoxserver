@@ -139,3 +139,19 @@ func (u *User) GetRecord(id int) *model.TokenRecord {
 	defer u.RUnlock()
 	return u.Records[id]
 }
+
+func (u *User) DelGameLockInfo() {
+	u.KindID = 0
+	u.ServerID = 0
+	u.EnterIP = ""
+	u.GameNodeID = 0
+	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"GameNodeID": "",
+		"EnterIP":    "",
+		"KindID":     0,
+		"ServerID":   0,
+	})
+	if err != nil {
+		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
+	}
+}

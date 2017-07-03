@@ -271,7 +271,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 func (lg *BaseLogic) NNIsIntValue(cardData []int, cardCount int) bool {
 	sum := 0
 	for i := 0; i < cardCount; i++ {
-		sum += lg.NNGetCardLogicValue(cardData[i])
+		sum += lg.GetCardLogicValue(cardData[i])
 	}
 	if !(sum > 0) {
 		return false
@@ -300,8 +300,8 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		firstType := 0
 		nextType := 0
 
-		value := lg.NNGetCardLogicValue(nextData[3])
-		value += lg.NNGetCardLogicValue(nextData[4])
+		value := lg.GetCardLogicValue(nextData[3])
+		value += lg.GetCardLogicValue(nextData[4])
 
 		firstKing := false
 		nextKing := false
@@ -314,7 +314,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				left := 0
 				value = 0
 				for i := 3; i < 5; i++ {
-					value += lg.NNGetCardLogicValue(nextData[i])
+					value += lg.GetCardLogicValue(nextData[i])
 				}
 				left = value % 10
 				if left > 0 {
@@ -336,7 +336,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			value = 0
 			left := 0
 			for i := 0; i < 3; i++ {
-				value += lg.NNGetCardLogicValue(nextData[i])
+				value += lg.GetCardLogicValue(nextData[i])
 			}
 			left = value % 10
 			if left > 10 {

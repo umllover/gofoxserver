@@ -115,14 +115,11 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 		return false
 	}
 
-	locak := &model.Gamescorelocker{}
-	locak.UserID = u.Id
-	locak.KindID = u.KindID
-	locak.ServerID = u.ServerID
-	locak.NodeID = conf.Server.NodeId
-	locak.EnterIP = conf.Server.WSAddr
+	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"GameNodeID": conf.Server.NodeId,
+		"EnterIP":    conf.Server.WSAddr,
+	})
 
-	_, err := model.GamescorelockerOp.Insert(locak)
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
@@ -160,10 +157,7 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 		log.Error("at LeaveRoom u.chairId max .... ")
 		return false
 	}
-	err := model.GamescorelockerOp.Delete(u.Id)
-	if err != nil {
-		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
-	}
+
 
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
@@ -378,11 +372,6 @@ func (room *RoomUserMgr) RoomDissume() {
 	for _, u := range room.Users {
 		if u != nil {
 			u.ChanRPC().Go("LeaveRoom")
-
-			err := model.GamescorelockerOp.Delete(u.Id)
-			if err != nil {
-				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
-			}
 		}
 	}
 }
