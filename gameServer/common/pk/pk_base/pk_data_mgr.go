@@ -25,7 +25,7 @@ func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOptio
 		r.Name = name
 	}
 	r.CreateUser = uid
-	r.NNPkBase = base
+	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
 	return r
 }
@@ -35,7 +35,7 @@ type RoomData struct {
 	id         int
 	Name       string //房间名字
 	CreateUser int    //创建房间的人
-	NNPkBase   *Entry_base
+	PkBase   *Entry_base
 	ConfigIdx  int //配置文件索引
 
 	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
@@ -82,8 +82,8 @@ type RoomData struct {
 
 	// 游戏状态
 	GameStatus     int
-	CallScoreTimer timer.Timer
-	AddScoreTimer  timer.Timer
+	CallScoreTimer *timer.Timer
+	AddScoreTimer  *timer.Timer
 }
 
 func (room *RoomData) GetCfg() *PK_CFG {
@@ -108,10 +108,10 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                                 //桌主 I D
-		DrawCountLimit:    room.NNPkBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
-		DrawTimeLimit:     room.NNPkBase.TimerMgr.GetTimeLimit(),                           //时间限制
-		PlayCount:         room.NNPkBase.TimerMgr.GetPlayCount(),                           //已玩局数
-		PlayTime:          int(room.NNPkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
+		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
+		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制
+		PlayCount:         room.PkBase.TimerMgr.GetPlayCount(),                           //已玩局数
+		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.CellScore,                                                  //游戏底分
 		IniScore:          0,                                                               //room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.id),                                           //房间编号
@@ -124,15 +124,15 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
 
 	StatusFree.CellScore = room.CellScore                                    //基础积分
-	StatusFree.TimeOutCard = room.NNPkBase.TimerMgr.GetTimeOutCard()         //出牌时间
-	StatusFree.TimeOperateCard = room.NNPkBase.TimerMgr.GetTimeOperateCard() //操作时间
-	StatusFree.TimeStartGame = room.NNPkBase.TimerMgr.GetCreatrTime()        //开始时间
+	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
+	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
+	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetCreatrTime()        //开始时间
 	for _, v := range room.HistoryScores {
 		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
 		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
 	}
-	StatusFree.PlayerCount = room.NNPkBase.TimerMgr.GetPlayCount() //玩家人数
-	StatusFree.CountLimit = room.NNPkBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.PlayerCount = room.PkBase.TimerMgr.GetPlayCount() //玩家人数
+	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	StatusFree.GameRoomName = room.Name
 
 	u.WriteMsg(StatusFree)
@@ -141,7 +141,7 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 func (room *RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay := &nn_tb_msg.G2C_TBNN_StatusPlay{}
 
-	UserCnt := room.NNPkBase.UserMgr.GetMaxPlayerCnt()
+	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
 	//游戏变量
 	StatusPlay.BankerUser = room.BankerUser
 	StatusPlay.CellScore = room.CellScore
@@ -177,7 +177,16 @@ func (room *RoomData) StartGameing() {
 	room.StartDispatchCard()
 }
 
+
 func (room *RoomData) AfterStartGame() {
+	room.CallScoreTimer = room.PkBase.AfterFunc(5 * time.Hour, func() {
+
+	})
+
+
+
+	room.CallScoreTimer.Stop()
+	
 	//检查自摸
 	//room.CheckZiMo()
 	//通知客户端开始了
@@ -217,8 +226,8 @@ func (room *RoomData) InitRoom(UserCnt int) {
 func (room *RoomData) StartDispatchCard() {
 	log.Debug("start dispatch card")
 
-	userMgr := room.NNPkBase.UserMgr
-	gameLogic := room.NNPkBase.LogicMgr
+	userMgr := room.PkBase.UserMgr
+	gameLogic := room.PkBase.LogicMgr
 
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, cost.US_PLAYING)

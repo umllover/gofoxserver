@@ -603,7 +603,7 @@ func (room *ZP_RoomData) NormalEnd() {
 }
 
 //进行抓花
-func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
+func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []int) {
 	count := room.ZhuaHuaCnt
 	if count == 0 {
 		return nil
@@ -623,8 +623,8 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
 	for i := 0; i < count; i++ {
 		room.LeftCardCount--
 		cardData := room.RepertoryCard[room.LeftCardCount]
-		cardColor := cardData & MASK_COLOR
-		cardValue := cardData & MASK_VALUE
+		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
+		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
 		if cardColor == 3 {
 			//东南西北
 			if cardValue < 5 {

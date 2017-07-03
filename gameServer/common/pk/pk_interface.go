@@ -31,6 +31,10 @@ type DataManager interface {
 
 type LogicManager interface {
 	RandCardList(cbCardBuffer, OriDataArray []int)
+	SortCardList(cardData []int, cardCount int)
+	GetCardValue(CardData int) int
+	GetCardColor(CardData int) int
+
 
 	/*
 		AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int

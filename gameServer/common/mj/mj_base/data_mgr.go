@@ -1787,3 +1787,8 @@ func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
 	//todo,单吊
 	return false
 }
+
+func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+	log.Error("at base OnZhuaHua")
+	return
+}

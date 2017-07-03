@@ -19,17 +19,6 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 	return GetCfg(lg.ConfigIdx)
 }
 
-//获取牛牛牌值
-func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
-	//扑克属性
-
-	CardValue := lg.GetCardValue(CardData)
-	//转换数值
-	if CardValue > 10 {
-		CardValue = 10
-	}
-	return CardValue
-}
 
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
@@ -92,6 +81,22 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
+
+
+//获取牛牛牌值
+func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
+	//扑克属性
+	//CardColor = GetCardColor(CardData)
+	CardValue := lg.GetCardValue(CardData)
+
+	//转换数值
+	//return (CardValue>10)?(10):CardValue
+	if CardValue > 10 {
+		CardValue = 10
+	}
+	return CardValue
+}
+
 //获取牛牛牌型
 func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 
@@ -136,6 +141,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		} else {
 			Value -= 10 //2.3
 		}
+
 	}
 
 	return Value //OX_VALUE0
@@ -177,8 +183,8 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	if cardCount != lg.GetCfg().MaxCount {
 		return false
 	}
+
 	temp := make([]int, lg.GetCfg().MaxCount)
-	//var tempData[lg.GetCfg().MaxCount]int
 	sum := 0
 	for i := 0; i < lg.GetCfg().MaxCount; i++ {
 		temp[i] = lg.GetCardLogicValue(cardData[i])
@@ -197,10 +203,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	niuTemp := make([][]int, 30)
-	for i, _ := range niuTemp {
-		niuTemp[i] = make([]int, lg.GetCfg().MaxCount)
-	}
+	niuTemp := make([][]int, 30,lg.GetCfg().MaxCount)
 	var isKingPai [30]bool
 
 	niuCount := 0
@@ -394,7 +397,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				}
 			}
 			if firstKingPoint != nextKingPoint {
-				return firstKingPoint > nextKingPoint
+				return (firstKingPoint > nextKingPoint)
 			}
 			if firstKing || firstDa {
 				return true
@@ -404,7 +407,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		}
 		//点数判断
 		if firstType != nextType {
-			return firstType > nextType
+			return (firstType > nextType)
 		}
 	}
 	//排序大小
@@ -418,32 +421,10 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 	nextMaxValue := lg.GetCardValue(nextTemp[0])
 	firstMaxValue := lg.GetCardValue(firstTemp[0])
 	if nextMaxValue != firstMaxValue {
-		return firstMaxValue > nextMaxValue
+		return (firstMaxValue > nextMaxValue)
 	}
 	//比较颜色
-	return lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0])
+	return (lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0]))
 
 	return false
 }
-
-/*
-//混乱扑克
-func  RandCardList(cardBuffer []int, cardBufferCount int)  {
-	cardData := GetNormalCards()
-	randCount := 0
-	position := 0
-
-	for {
-
-		random := rand.New(rand.NewSource(time.Now().UnixNano()))
-		r := random.Int()
-		position = r % (len(cardData) - randCount)
-		cardBuffer[randCount] = cardData[position]
-		cardData[position] = cardData[len(cardData)-randCount]
-		if (randCount >= cardBufferCount) {
-			break
-		}
-	}
-
-}
-*/
