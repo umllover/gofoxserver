@@ -54,21 +54,37 @@ const (
 	//胡牌定义
 	CHR_PING_HU         = 0x00000001 //平胡
 	CHR_PENG_PENG       = 0x00000002 //碰碰胡
-	CHR_DAN_DIAN_QI_DUI = 0x00000004 //单点七对
-	CHR_MA_QI_DUI       = 0x00000008 //麻七对
-	CHR_MA_QI_WANG      = 0x00000010 //麻七王
-	CHR_MA_QI_WZW       = 0x00000020 //麻七王中王
+	CHR_SAN_AN_KE       = 0x00000004 //三暗刻
+	CHR_SI_AN_KE        = 0x00000008 //四暗刻
+	CHR_WU_AN_KE        = 0x00000010 //五暗刻
+	CHR_DAN_DIAO        = 0x00000020 //单吊
 	CHR_SHI_SAN_LAN     = 0x00000040 //十三烂
 	CHR_QX_SHI_SAN_LAN  = 0x00000080 //七星十三烂
 	CHR_TIAN_HU         = 0x00000100 //天胡
 	CHR_DI_HU           = 0x00000200 //地胡
 	CHR_QI_SHOU_LISTEN  = 0x00000400 //起首听
-
-	CHR_GANG_SHANG_HUA = 0x00800000 //杠上花
-	CHR_GANG_SHANG_PAO = 0x01000000 //杠上炮
-	CHR_QIANG_GANG_HU  = 0x02000000 //抢杠胡
-	CHR_CHI_HU         = 0x04000000 //放炮
-	CHR_ZI_MO          = 0x08000000 //自摸
+	CHR_HUA_SHANG_HUA   = 0x00000800 //花上开花
+	CHR_HAI_DI_LAO_ZHEN = 0x00001000 //海底捞针
+	CHR_ZI_KE_PAI       = 0x00002000 //字牌刻字
+	CHR_HUA_GANG        = 0x00004000 //花杠
+	CHR_WU_HUA_ZI       = 0x00008000 //无花字
+	CHR_XIAO_SI_XI      = 0x00010000 //小四喜
+	CHR_DA_SI_XI        = 0x00020000 //大四喜
+	CHR_XIAO_SAN_YUAN   = 0x00040000 //小三元
+	CHR_DA_SAN_YUAN     = 0x00080000 //大三元
+	CHR_HUN_YI_SE       = 0x00100000 //混一色
+	CHR_QING_YI_SE      = 0x00200000 //清一色
+	CHR_HUA_YI_SE       = 0x00400000 //花一色
+	CHR_BAI_LIU         = 0x00800000 //佰六
+	CHR_GANG_SHANG_HUA  = 0x00800000 //杠上花
+	CHR_GANG_SHANG_PAO  = 0x01000000 //杠上炮
+	CHR_QIANG_GANG_HU   = 0x02000000 //抢杠胡
+	CHR_CHI_HU          = 0x04000000 //放炮
+	CHR_ZI_MO           = 0x08000000 //自摸
+	CHR_QING_BAI_LIU    = 0x10000000 ////门清佰六
+	CHR_WEI_ZHANG       = 0x20000000 //胡尾张
+	CHR_JIE_TOU         = 0x40000000 //截头
+	CHR_KONG_XIN        = 0x80000000 // 空心
 )
 
 const (
