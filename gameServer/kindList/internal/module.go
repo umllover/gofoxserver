@@ -72,15 +72,9 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 }
 
 func Clears() {
-	ClearLoocker()
 	ClearRoomId()
 }
 
-func ClearLoocker() {
-	model.GamescorelockerOp.DeleteByMap(map[string]interface{}{
-		"NodeID": conf.Server.NodeId,
-	})
-}
 
 func ClearRoomId() {
 	model.RoomIdOp.DeleteByMap(map[string]interface{}{

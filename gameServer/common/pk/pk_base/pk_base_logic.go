@@ -102,7 +102,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 	////炸弹牌型
 	//SameCount := 0
 
-	var Temp [lg.GetCfg().MaxCount]int
+	Temp := make([]int, lg.GetCfg().MaxCount)
 	Sum := 0
 	for i := 0; i < CardCount; i++ {
 		Temp[i] = lg.GetCardLogicValue(CardData[i])
@@ -177,7 +177,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	if cardCount != lg.GetCfg().MaxCount {
 		return false
 	}
-	var temp [lg.GetCfg().MaxCount]int
+	temp := make([]int, lg.GetCfg().MaxCount)
 	//var tempData[lg.GetCfg().MaxCount]int
 	sum := 0
 	for i := 0; i < lg.GetCfg().MaxCount; i++ {
@@ -197,7 +197,10 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	var niuTemp [30][lg.GetCfg().MaxCount]int
+	niuTemp := make([][]int, 30)
+	for i, _ := range niuTemp {
+		niuTemp[i] = make([]int, lg.GetCfg().MaxCount)
+	}
 	var isKingPai [30]bool
 
 	niuCount := 0

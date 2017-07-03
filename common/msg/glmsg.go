@@ -23,6 +23,7 @@ type RoomInfo struct {
 	Idx        int                  //服务器标识用的字段
 	IsPublic   bool                 //是否公开匹配
 	Players    map[int]*PlayerBrief //玩家id
+	SvrHost    string               //哪个ip上的房间
 	MachPlayer map[int]struct{}
 }
 
