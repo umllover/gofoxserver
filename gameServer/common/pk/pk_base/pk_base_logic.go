@@ -136,7 +136,6 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		} else {
 			Value -= 10 //2.3
 		}
-
 	}
 
 	return Value //OX_VALUE0
@@ -392,7 +391,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				}
 			}
 			if firstKingPoint != nextKingPoint {
-				return (firstKingPoint > nextKingPoint)
+				return firstKingPoint > nextKingPoint
 			}
 			if firstKing || firstDa {
 				return true
@@ -402,7 +401,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		}
 		//点数判断
 		if firstType != nextType {
-			return (firstType > nextType)
+			return firstType > nextType
 		}
 	}
 	//排序大小
@@ -416,10 +415,10 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 	nextMaxValue := lg.GetCardValue(nextTemp[0])
 	firstMaxValue := lg.GetCardValue(firstTemp[0])
 	if nextMaxValue != firstMaxValue {
-		return (firstMaxValue > nextMaxValue)
+		return firstMaxValue > nextMaxValue
 	}
 	//比较颜色
-	return (lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0]))
+	return lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0])
 
 	return false
 }
