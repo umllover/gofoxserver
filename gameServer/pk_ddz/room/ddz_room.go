@@ -1,14 +1,13 @@
 package room
 
 import (
-	"auth_server/db/model"
-	"auth_server/db/model/base"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
-	"mj/gameServer/common/room_base"
-	"mj/gameServer/user"
-
 	"mj/gameServer/common/pk/pk_base"
+	"mj/gameServer/common/room_base"
+	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/base"
+	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -29,9 +28,9 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewDDZEntry(info)
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_DDZ, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NewDDZLogic(),
+		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)

@@ -4,9 +4,9 @@ import (
 	"mj/gameServer/common/pk/pk_base"
 )
 
-func NewDDZLogic() *ddz_logic {
+func NewDDZLogic(ConfigIdx int) *ddz_logic {
 	l := new(ddz_logic)
-	l.BaseLogic = pk_base.NewBaseLogic()
+	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	return l
 }
 
