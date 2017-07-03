@@ -27,12 +27,12 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, u.Id)
 		return nil
 	}
-	r := mj_base.NewMJBase(info)
+	r := NewHZEntry(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  mj_base.NewDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r),
+		DataMgr:  NewHZDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: mj_base.NewBaseLogic(mj_base.IDX_HZMJ),
+		LogicMgr: NewHZlogic(mj_base.IDX_HZMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)

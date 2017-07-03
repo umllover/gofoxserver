@@ -69,6 +69,10 @@ type C2G_HZMJ_OperateCard struct {
 	OperateCard []int
 }
 
+//请求扎码
+type C2G_HZMJ_ZhaMa struct {
+}
+
 //// s to c
 //用户出牌
 type G2C_HZMJ_OutCard struct {
