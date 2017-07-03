@@ -6,6 +6,9 @@ import (
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
+	"mj/common/msg/mj_zp_msg"
+
+	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -166,4 +169,14 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
+}
+
+//抓花
+func (room *ZP_base) ZhaMa(args []interface{}) {
+	//recvMsg := args[0].(*mj_zp_msg.C2G_HZMJ_ZhaMa)
+	retMsg := &mj_zp_msg.G2C_ZPMJ_ZhuaHua{}
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+	retMsg.ZhongHua, retMsg.BuZhong = room.DataMgr.OnZhuaHua(u.ChairId)
+	u.WriteMsg(retMsg)
 }

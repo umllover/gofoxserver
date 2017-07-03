@@ -22,7 +22,6 @@ const (
 	MASK_VALUE = 0x0F //数值掩码
 )
 
-
 //麻将限制行为
 const (
 	LimitChiHu = 1      //禁止吃胡
@@ -87,18 +86,10 @@ const (
 	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
 )
 
-//分析子项
-type TagAnalyseItem struct {
-	CardEye    int     //牌眼扑克
-	bMagicEye  bool    //牌眼是否是王霸
-	WeaveKind  []int   //组合类型
-	CenterCard []int   //中心扑克
-	CardData   [][]int //实际扑克
-}
-
 //类型子项
 type TagKindItem struct {
-	WeaveKind  int   //组合类型
-	CenterCard int   //中心扑克
-	CardIndex  []int //扑克索引
+	WeaveKind    int   //组合类型
+	IsAnalyseGet bool  //非打出组合
+	CenterCard   int   //中心扑克
+	CardIndex    []int //扑克索引
 }

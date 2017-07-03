@@ -1,4 +1,4 @@
-package mj
+package mj_base
 
 //游戏房间
 type tagGameServer struct {

@@ -109,3 +109,9 @@ type G2C_HZMJ_Trustee struct { //用户托管
 	Trustee bool //是否托管
 	ChairID int  //托管用户
 }
+
+//抓花
+type G2C_HZMJ_ZhuaHua struct {
+	ZhongHua []int
+	BuZhong  []int
+}

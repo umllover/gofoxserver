@@ -4,6 +4,9 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model"
+	"mj/gameServer/user"
+
+	"github.com/lovelly/leaf/gate"
 )
 
 func NewHZEntry(info *model.CreateRoomInfo) *hz_entry {
@@ -17,6 +20,10 @@ type hz_entry struct {
 }
 
 func (e *hz_entry) ZhaMa(args []interface{}) {
-	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_ZhaMa)
-	e.DataMgr.OnZhuaHua()
+	//recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_ZhaMa)
+	retMsg := &mj_hz_msg.G2C_HZMJ_ZhuaHua{}
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+	retMsg.ZhongHua, retMsg.BuZhong = e.DataMgr.OnZhuaHua(u.ChairId)
+	u.WriteMsg(retMsg)
 }

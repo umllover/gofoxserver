@@ -7,7 +7,6 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
-	"mj/gameServer/common/mj"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -369,7 +368,7 @@ func (room *RoomData) UserChiHu(wTargetUser, userCnt int) {
 
 		//胡牌判断
 		pWeaveItem := room.WeaveItemArray[wChiHuUser]
-		chihuKind := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
+		chihuKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
 		room.ChiHuKind[wChiHuUser] = chihuKind
 		//插入扑克
 		if room.ChiHuKind[wChiHuUser] != WIK_NULL {
@@ -512,7 +511,7 @@ func (room *RoomData) ZiMo(u *user.User) {
 		log.Error("not foud card at Operater")
 		return
 	}
-	kind := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
+	kind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
 	room.ChiHuKind[u.ChairId] = int(kind)
 	//结束信息
 
@@ -551,7 +550,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		room.ProvideUser = INVALID_CHAIR
 		room.ProvideCard = 0
 
-		gcr := &mj.TagGangCardResult{}
+		gcr := &TagGangCardResult{}
 		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
 		if room.Ting[wTargetUser] == false {
@@ -645,7 +644,8 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 				if u.UserLimit|LimitChiHu == 0 {
 					//吃胡判断
 					chr := 0
-					room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					room.UserAction[u.ChairId] |= huKind
 				}
 			}
 		}
@@ -747,14 +747,15 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		chr := 0
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
 		log.Debug("befer %v ", room.UserAction[wCurrentUser])
-		room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
+		huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
 			room.SendCardData, chr, room.GetCfg().MaxCount, false)
+		room.UserAction[wCurrentUser] |= huKind
 		log.Debug("afert %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
 		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
-			GangCardResult := &mj.TagGangCardResult{}
+			GangCardResult := &TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
 		}
 	}
@@ -957,13 +958,14 @@ func (room *RoomData) StartDispatchCard() {
 
 	room.UserAction = make([]int, UserCnt)
 
-	gangCardResult := &mj.TagGangCardResult{}
+	gangCardResult := &TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	huKind, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	room.UserAction[room.BankerUser] |= huKind
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	return
@@ -1780,4 +1782,9 @@ func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
 
 	//todo,单吊
 	return false
+}
+
+func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+	log.Error("at base OnZhuaHua")
+	return
 }

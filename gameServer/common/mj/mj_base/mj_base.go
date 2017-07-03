@@ -4,16 +4,12 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
+	"mj/common/msg/mj_zp_msg"
+	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-
-	"mj/common/msg/mj_zp_msg"
-
-	"mj/gameServer/common/mj"
-
-	"mj/gameServer/common/room_base"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -22,8 +18,8 @@ type Mj_base struct {
 	room_base.BaseManager
 	UserMgr  room_base.UserManager
 	TimerMgr room_base.TimerManager
-	DataMgr  mj.DataManager
-	LogicMgr mj.LogicManager
+	DataMgr  DataManager
+	LogicMgr LogicManager
 
 	Temp   *base.GameServiceOption //模板
 	Status int
@@ -34,8 +30,8 @@ type NewMjCtlConfig struct {
 	BaseMgr  room_base.BaseManager
 	UserMgr  room_base.UserManager
 	TimerMgr room_base.TimerManager
-	DataMgr  mj.DataManager
-	LogicMgr mj.LogicManager
+	DataMgr  DataManager
+	LogicMgr LogicManager
 }
 
 func NewMJBase(info *model.CreateRoomInfo) *Mj_base {

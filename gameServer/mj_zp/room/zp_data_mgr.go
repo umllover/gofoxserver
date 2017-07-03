@@ -4,7 +4,6 @@ import (
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/common"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -299,13 +298,14 @@ func (room *ZP_RoomData) InitBankerAction() {
 	GetCardWordArray(room.CardIndex[room.BankerUser])
 
 	log.Debug("---------------------------------------------------")
-	gangCardResult := &common.TagGangCardResult{}
+	gangCardResult := &mj_base.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	huKind, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	room.UserAction[room.BankerUser] |= huKind
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	if room.UserAction[room.BankerUser] != 0 {
@@ -343,8 +343,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
-			room.LeftCardCount --
-			room.MinusHeadCount ++
+			room.LeftCardCount--
+			room.MinusHeadCount++
 			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 			room.CardIndex[u.ChairId][setIndex]++
 		}
@@ -453,7 +453,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				}
 				if u.UserLimit&LimitChiHu == 0 {
 					chr := 0
-					if room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false) == WIK_CHI_HU {
+					huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					if huKind == WIK_CHI_HU {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
 					}
 				}
@@ -468,7 +469,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				if u.UserLimit|LimitChiHu == 0 {
 					//吃胡判断
 					chr := 0
-					room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					room.UserAction[u.ChairId] |= huKind
 				}
 			}
 		}
@@ -599,7 +601,7 @@ func (room *ZP_RoomData) NormalEnd() {
 }
 
 //进行抓花
-func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
+func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []int) {
 	count := room.ZhuaHuaCnt
 	if count == 0 {
 		return nil
@@ -619,8 +621,8 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
 	for i := 0; i < count; i++ {
 		room.LeftCardCount--
 		cardData := room.RepertoryCard[room.LeftCardCount]
-		cardColor := cardData & MASK_COLOR
-		cardValue := cardData & MASK_VALUE
+		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
+		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
 		if cardColor == 3 {
 			//东南西北
 			if cardValue < 5 {
