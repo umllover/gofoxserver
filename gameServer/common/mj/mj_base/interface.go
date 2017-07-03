@@ -1,4 +1,4 @@
-package mj
+package mj_base
 
 import (
 	"mj/common/msg"
@@ -57,7 +57,7 @@ type LogicManager interface {
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) int
+	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) (int, []*TagAnalyseItem)
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
 	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
