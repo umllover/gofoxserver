@@ -157,7 +157,13 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 		log.Error("at LeaveRoom u.chairId max .... ")
 		return false
 	}
-
+	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"GameNodeID": 0,
+		"EnterIP":    "",
+	})
+	if err != nil {
+		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
+	}
 
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
@@ -372,6 +378,14 @@ func (room *RoomUserMgr) RoomDissume() {
 	for _, u := range room.Users {
 		if u != nil {
 			u.ChanRPC().Go("LeaveRoom")
+
+			err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
+				"GameNodeID": 0,
+				"EnterIP":    "",
+			})
+			if err != nil {
+				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
+			}
 		}
 	}
 }
