@@ -2,36 +2,29 @@ package pk_base
 
 import (
 	"github.com/lovelly/leaf/log"
-
-	//"github.com/lovelly/leaf/util"
 	"github.com/lovelly/leaf/util"
 )
 
 type BaseLogic struct {
-	/*CardDataArray []int //扑克数据
-	MagicIndex    int   //钻牌索引
-	ReplaceCard   int   //替换金牌的牌
-	SwitchToIdx   func(int) int
-	CheckValid    func(int) bool
-	SwitchToCard  func(int) int*/
+	ConfigIdx int //配置索引
 }
 
-func NewBaseLogic() *BaseLogic {
+func NewBaseLogic(ConfigIdx int) *BaseLogic {
 	bl := new(BaseLogic)
-	/*bl.CheckValid = IsValidCard
-	bl.SwitchToIdx = SwitchToCardIndex
-	bl.SwitchToCard = SwitchToCardData*/
+	bl.ConfigIdx = ConfigIdx
 	return bl
+}
+
+func (lg *BaseLogic) GetCfg() *PK_CFG {
+	return GetCfg(lg.ConfigIdx)
 }
 
 //获取牛牛牌值
 func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
 	//扑克属性
-	//CardColor = GetCardColor(CardData)
-	CardValue := lg.GetCardValue(CardData)
 
+	CardValue := lg.GetCardValue(CardData)
 	//转换数值
-	//return (CardValue>10)?(10):CardValue
 	if CardValue > 10 {
 		CardValue = 10
 	}
