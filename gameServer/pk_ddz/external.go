@@ -1,7 +1,7 @@
 package pk_ddz
 
 import (
-	"mj/gameServer/ddz/internal"
+	"mj/gameServer/pk_ddz/internal"
 )
 
 var (

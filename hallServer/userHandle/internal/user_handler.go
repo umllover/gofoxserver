@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -36,6 +35,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("matchResult", m.matchResult)
 	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
 	m.ChanRPC.Register("JoinRoom", m.joinRoom)
+	m.ChanRPC.Register("Recharge", m.Recharge)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
@@ -675,12 +675,22 @@ func (m *UserModule) joinRoom(args []interface{}) {
 	u.EnterIP = room.SvrHost
 }
 
-/////////////////////////////// help 函数
+func (m *UserModule) Recharge(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	orders := GetOrders(u.Id)
+	for _, v := range orders {
+		goods, ok := base.GoodsCache.Get(v.GoodsID)
+		if !ok {
+			log.Error("at Recharge error")
+			continue
+		}
 
-func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
-	u, ok := m.a.UserData().(*user.User)
-	if !ok {
-		return nil, errors.New("not foud user Data at GetUser")
+		if UpdateOrderStats(v.OnLineID) {
+			u.AddCurrency(goods.Diamond)
+		}
 	}
-	return u, nil
+}
+
+func (m *UserModule) GetGoodsInfo(){
+
 }

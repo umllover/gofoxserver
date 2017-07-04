@@ -15,14 +15,16 @@ func LoadBaseData() {
 	GameServiceOptionCache.LoadAll()
 	GameTestpaiCache.LoadAll()
 	GlobalVarCache.LoadAll()
+	GoodsCache.LoadAll()
 	PersonalTableFeeCache.LoadAll()
 	RefreshInTimeCache.LoadAll()
 	ServerListCache.LoadAll()
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
 	db.BaseDataCaches["GameTestpai"] = GameTestpaiCache
 	db.BaseDataCaches["GlobalVar"] = GlobalVarCache
+	db.BaseDataCaches["Goods"] = GoodsCache
 	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
 	db.BaseDataCaches["ServerList"] = ServerListCache
-	log.Debug("loadBaseData %v, %v %v", 6, time.Now().UnixNano()-start, "ns")
+	log.Debug("loadBaseData %v, %v %v", 7, time.Now().UnixNano()-start, "ns")
 }

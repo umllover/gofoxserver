@@ -24,9 +24,7 @@ func init() {
 	// ----------c2s------------
 	msg.Processor.Register(&C2G_TBNN_CallScore{})
 	msg.Processor.Register(&C2G_TBNN_AddScore{})
-	msg.Processor.Register(&C2G_TBNN_CallBanker{})
-	msg.Processor.Register(&C2G_TBNN_OxCard{})
-	msg.Processor.Register(&C2G_TBNN_QIANG{})
+	msg.Processor.Register(&C2G_TBNN_OpenCard{})
 }
 
 // ------------ s2c ----------------
@@ -104,9 +102,8 @@ type G2C_TBNN_StatusPlay struct {
 }
 
 type G2C_TBNN_CallBanker struct {
-	Qiang_Start				bool		//开始抢
 	CallBanker				int			//叫庄用户
-	FirstTimes				bool		//首次叫庄
+	ScoreTimes				int			//倍数
 }
 
 //游戏开始
@@ -120,8 +117,7 @@ type G2C_TBNN_GameStart struct {
 
 //用户下注
 type G2C_TBNN_AddScore struct {
-	AddScoreUser			int				//加注用户
-	AddScoreCount			int64			//加注数目
+	AddScoreCount			int				//加注数目
 }
 
 //游戏结束
@@ -149,6 +145,11 @@ type G2C_TBNN_PublicCard struct {
 	PublicCardData			[]int			//公共牌
 }
 
+// 最后一张牌
+type G2C_TBNN_LastCard struct {
+	LastCard 				int 		// 最后一张牌
+}
+
 //用户退出
 type G2C_TBNN_PlayerExit struct {
 	PlayerID				int			//退出用户
@@ -156,9 +157,8 @@ type G2C_TBNN_PlayerExit struct {
 
 //用户摊牌
 type G2C_TBNN_Open_Card struct {
-	PlayerID				int			//摊牌用户
-	Open					int			//摊牌标志
-	CardData				[][]int				//牌数据
+	ChairID					int			//摊牌用户
+	CardData				[]int				//牌数据
 }
 
 
@@ -169,6 +169,7 @@ type C2G_TBNN_CallScore struct {
 	CallScore				int 		//叫分数目
 }
 
+/*
 type C2G_TBNN_QIANG	 struct {
 	Qiang 					bool			//1 qiang    0 bu
 }
@@ -176,6 +177,7 @@ type C2G_TBNN_QIANG	 struct {
 type C2G_TBNN_CallBanker	struct {
 	Banker					bool		//做庄标志
 }
+*/
 
 //用户加注
 type C2G_TBNN_AddScore	struct {
@@ -183,8 +185,7 @@ type C2G_TBNN_AddScore	struct {
 }
 
 //用户摊牌
-type C2G_TBNN_OxCard struct {
-	OX						bool		//通比牛牛标志
+type C2G_TBNN_OpenCard struct {
 	CardData				[]int					//用户扑克
 }
 

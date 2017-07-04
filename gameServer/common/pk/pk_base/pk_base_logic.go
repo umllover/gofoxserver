@@ -19,7 +19,6 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 	return GetCfg(lg.ConfigIdx)
 }
 
-
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 	//混乱准备
@@ -80,8 +79,6 @@ func (lg *BaseLogic) GetCardValue(CardData int) int {
 func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
-
-
 
 //获取牛牛牌值
 func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
@@ -203,7 +200,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	niuTemp := make([][]int, 30,lg.GetCfg().MaxCount)
+	niuTemp := make([][]int, 30, lg.GetCfg().MaxCount)
 	var isKingPai [30]bool
 
 	niuCount := 0

@@ -13,6 +13,7 @@ import (
 	"mj/gameServer/pk_nn_tb"
 
 	"github.com/lovelly/leaf/module"
+	"mj/gameServer/pk_ddz"
 )
 
 var (
@@ -24,6 +25,7 @@ var (
 		common.KIND_TYPE_HZMJ: hzmj.Module,
 		common.KIND_TYPE_ZPMJ: zpmj.Module,
 		common.KIND_TYPE_TBNN: pk_nn_tb.Module,
+		common.KIND_TYPE_DDZ:	pk_ddz.Module,
 	}
 )
 

@@ -25,22 +25,27 @@ var Server struct {
 	ConsolePort int
 	ProfilePath string
 
-	BaseDbHost      string
-	BaseDbPort      int
-	BaseDbName      string
-	BaseDbUsername  string
-	BaseDbPassword  string
-	UserDbHost      string
-	UserDbPort      int
-	UserDbName      string
-	UserDbUsername  string
-	UserDbPassword  string
-	StatsDbHost     string
-	StatsDbPort     int
-	StatsDbName     string
-	StatsDbUsername string
-	StatsDbPassword string
-	ConsulAddr      string
+	AccountDbHost     string
+	AccountDbPort     int
+	AccountDbName     string
+	AccountDbUsername string
+	AccountDbPassword string
+	BaseDbHost        string
+	BaseDbPort        int
+	BaseDbName        string
+	BaseDbUsername    string
+	BaseDbPassword    string
+	UserDbHost        string
+	UserDbPort        int
+	UserDbName        string
+	UserDbUsername    string
+	UserDbPassword    string
+	StatsDbHost       string
+	StatsDbPort       int
+	StatsDbName       string
+	StatsDbUsername   string
+	StatsDbPassword   string
+	ConsulAddr        string
 
 	ConnAddrs       map[string]string
 	PendingWriteNum int
@@ -72,6 +77,12 @@ const (
 )
 
 type DBConfig struct{}
+
+func (c *DBConfig) GetAccoutDSN() string {
+	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
+		Server.AccountDbUsername, Server.AccountDbPassword, Server.AccountDbHost, Server.AccountDbPort, Server.AccountDbName, "parseTime=true&interpolateParams=true")
+	return s
+}
 
 func (c *DBConfig) GetBaseDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
@@ -117,6 +128,14 @@ func (c *DBConfig) GetStatsDBMaxIdle() int {
 
 func (c *DBConfig) GetStatsDBWorkers() int {
 	return default_stat_log_workers
+}
+
+func (c *DBConfig) GetAccountDBMaxIdle() int {
+	return default_db_max_idle
+}
+
+func (c *DBConfig) GetAccountDBMaxOpen() int {
+	return default_db_max_open
 }
 
 //consul config
