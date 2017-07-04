@@ -15,6 +15,7 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_ListenCard{})
 	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 	msg.Processor.Register(&G2C_ZPMJ_ZhuaHua{})
+	msg.Processor.Register(&C2G_MJZP_AllChaHua{})
 
 }
 
@@ -25,6 +26,11 @@ type G2C_MJZP_GetChaHua struct {
 //设置插花
 type C2G_MJZP_SetChaHua struct {
 	SetCount int //设置插花数量
+}
+
+//超时插花
+type C2G_MJZP_AllChaHua struct {
+	ChaHuaCnt [4]int
 }
 
 //补花
@@ -47,9 +53,9 @@ type C2G_MJZP_ListenCard struct {
 
 //听牌
 type G2C_MJZP_ListenCard struct {
-	ListenUser  int     //听牌用户
-	IsListen    bool    //是否听牌
-	HuCardCount int     //胡几张牌
+	ListenUser  int   //听牌用户
+	IsListen    bool  //是否听牌
+	HuCardCount int   //胡几张牌
 	HuCardData  []int //胡牌数据
 }
 

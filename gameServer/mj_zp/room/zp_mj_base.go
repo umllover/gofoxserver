@@ -53,6 +53,11 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		retcode = NotValidCard
 	}
 
+	//todo,吃啥打啥
+	//if  {
+	//
+	//}
+
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
 		log.Error("zpmj at OnUserOutCard not have card ")

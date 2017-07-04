@@ -118,6 +118,17 @@ func (room *ZP_RoomData) StartGameing() {
 		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
 		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
 		log.Debug("超时插花")
+		sendData := &mj_zp_msg.C2G_MJZP_AllChaHua{}
+		for i := 0; i < 4; i++ {
+			v, ok := room.ChaHuaMap[i]
+			if !ok {
+				room.ChaHuaMap[i] = 0
+				sendData.ChaHuaCnt[i] = 0
+			} else {
+				sendData.ChaHuaCnt[i] = v
+			}
+		}
+		room.MjBase.UserMgr.SendMsgAll(sendData)
 		//洗牌
 		room.StartDispatchCard()
 		//向客户端发牌
@@ -150,6 +161,8 @@ func (room *ZP_RoomData) AfterStartGame() {
 func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	room.ChaHuaMap[u.ChairId] = setCount
 	if len(room.ChaHuaMap) == 4 {
+		room.ChaHuaTime.Stop()
+
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -603,10 +616,10 @@ func (room *ZP_RoomData) NormalEnd() {
 }
 
 //进行抓花
-func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []int) {
+func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	count := room.ZhuaHuaCnt
 	if count == 0 {
-		return nil
+		return
 	}
 
 	//抓花规则
@@ -619,7 +632,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []i
 		getInedx = index[int(v)]
 	}
 
-	sendData := &mj_zp_msg.G2C_ZPMJ_ZhuaHua{}
+	//sendData := &mj_zp_msg.G2C_ZPMJ_ZhuaHua{}
 	for i := 0; i < count; i++ {
 		room.LeftCardCount--
 		cardData := room.RepertoryCard[room.LeftCardCount]
@@ -629,26 +642,30 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []i
 			//东南西北
 			if cardValue < 5 {
 				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-					sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+					CardData = append(CardData, cardData)
+					//sendData.ZhongHua = append(sendData.ZhongHua, cardData)
 					room.ZhuaHuaScore++
 				}
 			} else {
 				//中发白
 				temp := cardValue - 4
 				if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
-					sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+					CardData = append(CardData, cardData)
+					//sendData.ZhongHua = append(sendData.ZhongHua, cardData)
 					room.ZhuaHuaScore++
 				}
 			}
 		} else if cardColor >= 0 && cardColor <= 2 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-				sendData.ZhongHua = append(sendData.ZhongHua, cardData)
+				CardData = append(CardData, cardData)
+				//sendData.ZhongHua = append(sendData.ZhongHua, cardData)
 				room.ZhuaHuaScore++
 			}
 		}
-		sendData.BuZhong = append(sendData.BuZhong, cardData)
+		BuZhong = append(BuZhong, cardData)
+		//sendData.BuZhong = append(sendData.BuZhong, cardData)
 	}
-	return getData
+	return
 }
 
 //记录分饼
