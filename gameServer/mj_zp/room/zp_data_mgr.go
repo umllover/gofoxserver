@@ -4,7 +4,6 @@ import (
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/gameServer/common"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -30,8 +29,10 @@ type ZP_RoomData struct {
 	FlowerCnt    [4]int      //补花数
 	ChaHuaMap    map[int]int //插花数
 
-	ZhuaHuaScore    int   //插花得分
-	FollowCardScore []int //跟牌得分
+	HuKindType      []int       //胡牌类型
+	HuKindScore     map[int]int //特殊胡牌分
+	ZhuaHuaScore    int         //插花得分
+	FollowCardScore []int       //跟牌得分
 }
 
 func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
@@ -299,13 +300,14 @@ func (room *ZP_RoomData) InitBankerAction() {
 	GetCardWordArray(room.CardIndex[room.BankerUser])
 
 	log.Debug("---------------------------------------------------")
-	gangCardResult := &common.TagGangCardResult{}
+	gangCardResult := &mj_base.TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
 	//胡牌判断
 	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	huKind, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
+	room.UserAction[room.BankerUser] |= huKind
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	if room.UserAction[room.BankerUser] != 0 {
@@ -343,8 +345,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
-			room.LeftCardCount --
-			room.MinusHeadCount ++
+			room.LeftCardCount--
+			room.MinusHeadCount++
 			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 			room.CardIndex[u.ChairId][setIndex]++
 		}
@@ -453,7 +455,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				}
 				if u.UserLimit&LimitChiHu == 0 {
 					chr := 0
-					if room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false) == WIK_CHI_HU {
+					huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					if huKind == WIK_CHI_HU {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
 					}
 				}
@@ -468,7 +471,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				if u.UserLimit|LimitChiHu == 0 {
 					//吃胡判断
 					chr := 0
-					room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+					room.UserAction[u.ChairId] |= huKind
 				}
 			}
 		}
@@ -599,7 +603,7 @@ func (room *ZP_RoomData) NormalEnd() {
 }
 
 //进行抓花
-func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
+func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (gCardData []int, BuZhong []int) {
 	count := room.ZhuaHuaCnt
 	if count == 0 {
 		return nil
@@ -619,8 +623,8 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (getData []int) {
 	for i := 0; i < count; i++ {
 		room.LeftCardCount--
 		cardData := room.RepertoryCard[room.LeftCardCount]
-		cardColor := cardData & MASK_COLOR
-		cardValue := cardData & MASK_VALUE
+		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
+		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
 		if cardColor == 3 {
 			//东南西北
 			if cardValue < 5 {
@@ -742,4 +746,251 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 
 	//走到这里一定是所有人都响应完了
 	return cbTargetAction, wTargetUser
+}
+
+func (room *ZP_RoomData) ZiMo(u *user.User) {
+	//普通胡牌
+	pWeaveItem := room.WeaveItemArray[u.ChairId]
+	if !room.MjBase.LogicMgr.RemoveCard(room.CardIndex[u.ChairId], room.SendCardData) {
+		log.Error("not foud card at Operater")
+		return
+	}
+	kind, TagAnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
+	room.ChiHuKind[u.ChairId] = int(kind)
+	room.ProvideCard = room.SendCardData
+
+	//特殊胡牌算分
+	room.SpecialCardKind(TagAnalyseItem)
+	room.SpecialCardScore()
+	return
+}
+
+func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
+	//结束信息
+	wChiHuUser := room.BankerUser
+	for i := 0; i < userCnt; i++ {
+		wChiHuUser = (room.BankerUser + i) % userCnt
+		//过虑判断
+		if (room.PerformAction[wChiHuUser] & WIK_CHI_HU) == 0 { //一跑多响
+			continue
+		}
+
+		//胡牌判断
+		pWeaveItem := room.WeaveItemArray[wChiHuUser]
+		chihuKind, TagAnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
+		room.ChiHuKind[wChiHuUser] = chihuKind
+
+		//特殊胡牌算分
+		room.SpecialCardKind(TagAnalyseItem)
+		room.SpecialCardScore()
+
+		//插入扑克
+		if room.ChiHuKind[wChiHuUser] != WIK_NULL {
+			wTargetUser = wChiHuUser
+		}
+	}
+}
+
+//特殊胡牌类型及算分
+func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseItem) {
+	for _, v := range TagAnalyseItem {
+		kind := 0
+
+		kind = room.IsBaiLiu(v) //佰六
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_BL] = 6
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsDaSanYuan(v) //大三元
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_DSY] = 12
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsXiaoSanYuan(v) //小三元
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_XSY] = 6
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsHunYiSe(v) //混一色
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_CYS] = 6
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsQingYiSe(v, nil) //清一色
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_QYS] = 24
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsHuaYiSe(v) //花一色
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_HYS] = 12
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsGangKaiHua(v) //杠上开花
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_GSKH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsHuaKaiHua(v) //花上开花
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_HSKH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsMenQing(v) //门清
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_MQQ] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsMenQingBaiLiu(v) //门清佰六
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_MQBL] = 0
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsHuWeiZhang(v) //尾单吊
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_WDD] = 6
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsJieTou(v) //截头
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_DD] = 1
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsDuiDuiHu(v) //对对胡
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_DDH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsTianHu(v) //天胡
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_TH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsDiHu(v) //地胡
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_DH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsKeZi(v) //字牌刻字
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_ZPKZ] = 1
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsHaiDiLaoYue(v) //海底捞针
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_HDLZ] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsWuHuaZi(v) //无花字
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_HDLZ] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsAnKe(v) //暗刻
+		if kind > 0 {
+			room.HuKindScore[IDX_SUB_SCORE_SANAK+kind/8] = 3 * (kind / 4) //2,8,16
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		//todo,单吊
+	}
+}
+
+//特殊胡牌分
+func (room *ZP_RoomData) SpecialCardScore() {
+	if room.ScoreType == GAME_TYPE_33 {
+		return
+	}
+
+	if room.ScoreType == GAME_TYPE_48 {
+		for k := range room.HuKindScore {
+			switch k {
+			case IDX_SUB_SCORE_ZPKZ:
+				room.HuKindScore[k] = 1
+			case IDX_SUB_SCORE_HDLZ:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_GSKH:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_HSKH:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_QYS:
+				room.HuKindScore[k] = 32
+			case IDX_SUB_SCORE_HYS:
+				room.HuKindScore[k] = 16
+			case IDX_SUB_SCORE_CYS:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DSY:
+				room.HuKindScore[k] = 16
+			case IDX_SUB_SCORE_XSY:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DDH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_MQQ:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_BL:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_DH:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_TH:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_DD:
+				room.HuKindScore[k] = 1
+			case IDX_SUB_SCORE_WDD:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_MQBL:
+				room.HuKindScore[k] = 12
+			case IDX_SUB_SCORE_SANAK:
+				room.HuKindScore[k] = 4
+			case IDX_SUB_SCORE_SIAK:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_WUAK:
+				room.HuKindScore[k] = 16
+			}
+		}
+
+	} else if room.ScoreType == GAME_TYPE_88 {
+		for k := range room.HuKindScore {
+			switch k {
+			case IDX_SUB_SCORE_ZPKZ:
+				room.HuKindScore[k] = 1
+			case IDX_SUB_SCORE_HDLZ:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_GSKH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_HSKH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_QYS:
+				room.HuKindScore[k] = 32
+			case IDX_SUB_SCORE_HYS:
+				room.HuKindScore[k] = 16
+			case IDX_SUB_SCORE_CYS:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DSY:
+				room.HuKindScore[k] = 16
+			case IDX_SUB_SCORE_XSY:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DDH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_MQQ:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_BL:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_TH:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_DD:
+				room.HuKindScore[k] = 0
+			case IDX_SUB_SCORE_WDD:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_MQBL:
+				room.HuKindScore[k] = 12
+			case IDX_SUB_SCORE_SANAK:
+				room.HuKindScore[k] = 8
+			case IDX_SUB_SCORE_SIAK:
+				room.HuKindScore[k] = 16
+			case IDX_SUB_SCORE_WUAK:
+				room.HuKindScore[k] = 32
+			}
+		}
+	}
 }

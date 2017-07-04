@@ -19,7 +19,6 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 	return GetCfg(lg.ConfigIdx)
 }
 
-
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 	//混乱准备
@@ -81,10 +80,8 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
-
-
 //获取牛牛牌值
-func (lg *BaseLogic) NNGetCardLogicValue(CardData int) int {
+func (lg *BaseLogic) GetCardLogicValue(CardData int) int {
 	//扑克属性
 	//CardColor = GetCardColor(CardData)
 	CardValue := lg.GetCardValue(CardData)
@@ -110,7 +107,7 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 	Temp := make([]int, lg.GetCfg().MaxCount)
 	Sum := 0
 	for i := 0; i < CardCount; i++ {
-		Temp[i] = lg.NNGetCardLogicValue(CardData[i])
+		Temp[i] = lg.GetCardLogicValue(CardData[i])
 		log.Debug("%d", Temp[i])
 		Sum += Temp[i]
 	}
@@ -132,8 +129,8 @@ func (lg *BaseLogic) NNGetCardType(CardData []int, CardCount int) int {
 		return OX_FIVEKING //五花――5张牌都是10以上（不含10）的牌。。
 	}
 
-	Value := lg.NNGetCardLogicValue(CardData[3])
-	Value += lg.NNGetCardLogicValue(CardData[4])
+	Value := lg.GetCardLogicValue(CardData[3])
+	Value += lg.GetCardLogicValue(CardData[4])
 
 	if Value > 10 {
 		if CardData[3] == 0x4E || CardData[4] == 0x4F || CardData[4] == 0x4E || CardData[3] == 0x4F {
@@ -187,7 +184,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	temp := make([]int, lg.GetCfg().MaxCount)
 	sum := 0
 	for i := 0; i < lg.GetCfg().MaxCount; i++ {
-		temp[i] = lg.NNGetCardLogicValue(cardData[i])
+		temp[i] = lg.GetCardLogicValue(cardData[i])
 		sum += temp[i]
 	}
 	//王的数量
@@ -203,7 +200,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	niuTemp := make([][]int, 30,lg.GetCfg().MaxCount)
+	niuTemp := make([][]int, 30, lg.GetCfg().MaxCount)
 	var isKingPai [30]bool
 
 	niuCount := 0
@@ -271,7 +268,7 @@ func (lg *BaseLogic) NNGetOxCard(cardData []int, cardCount int) bool {
 func (lg *BaseLogic) NNIsIntValue(cardData []int, cardCount int) bool {
 	sum := 0
 	for i := 0; i < cardCount; i++ {
-		sum += lg.NNGetCardLogicValue(cardData[i])
+		sum += lg.GetCardLogicValue(cardData[i])
 	}
 	if !(sum > 0) {
 		return false
@@ -300,8 +297,8 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 		firstType := 0
 		nextType := 0
 
-		value := lg.NNGetCardLogicValue(nextData[3])
-		value += lg.NNGetCardLogicValue(nextData[4])
+		value := lg.GetCardLogicValue(nextData[3])
+		value += lg.GetCardLogicValue(nextData[4])
 
 		firstKing := false
 		nextKing := false
@@ -314,7 +311,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 				left := 0
 				value = 0
 				for i := 3; i < 5; i++ {
-					value += lg.NNGetCardLogicValue(nextData[i])
+					value += lg.GetCardLogicValue(nextData[i])
 				}
 				left = value % 10
 				if left > 0 {
@@ -336,7 +333,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			value = 0
 			left := 0
 			for i := 0; i < 3; i++ {
-				value += lg.NNGetCardLogicValue(nextData[i])
+				value += lg.GetCardLogicValue(nextData[i])
 			}
 			left = value % 10
 			if left > 10 {
@@ -344,14 +341,14 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			}
 		}
 		value = 0
-		value = lg.NNGetCardLogicValue(firstData[3])
-		value += lg.NNGetCardLogicValue(firstData[4])
+		value = lg.GetCardLogicValue(firstData[3])
+		value += lg.GetCardLogicValue(firstData[4])
 		if value > 10 {
 			if firstData[3] == 0x4E || firstData[4] == 0x4F || firstData[4] == 0x4E || firstData[3] == 0x4F {
 				left := 0
 				value = 0
 				for i := 3; i < 5; i++ {
-					value += lg.NNGetCardLogicValue(firstData[i])
+					value += lg.GetCardLogicValue(firstData[i])
 				}
 				left = value % 10
 				if left > 0 {
@@ -373,7 +370,7 @@ func (lg *BaseLogic) NNCompareCard(firstData []int, nextData []int, cardCount in
 			value = 0
 			left := 0
 			for i := 0; i < 3; i++ {
-				value += lg.NNGetCardLogicValue(firstData[i])
+				value += lg.GetCardLogicValue(firstData[i])
 			}
 			left = value % 10
 			if left > 0 {

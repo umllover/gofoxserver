@@ -54,6 +54,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 
 //连接关闭的同喜
 func (m *UserModule) CloseAgent(args []interface{}) error {
+
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
 	u, ok := agent.UserData().(*user.User)
@@ -601,7 +602,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.RoomCard
+	retMsg.RoomCard = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
@@ -627,7 +628,6 @@ func (m *UserModule) RoomCloseInfo(args []interface{}) {
 		}
 	}
 	player.DelRooms(info.RoomId)
-	player.DelGameLockInfo()
 	return
 }
 
@@ -649,31 +649,8 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-func (m *UserModule) matchResult(args []interface{}) {
-	ret := args[0].(bool)
-	retMsg := msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
-	if ret {
-		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-	}
-	u.WriteMsg(retMsg)
-}
+func (m *UserModule) RechargeNum() {
 
-func (m *UserModule) leaveRoom(args []interface{}) {
-	u := m.a.UserData().(*user.User)
-	log.Debug("at hall server leaveRoom uid:%v", u.Id)
-	u.DelGameLockInfo()
-}
-
-func (m *UserModule) joinRoom(args []interface{}) {
-	room := args[0].(*msg.RoomInfo)
-	u := m.a.UserData().(*user.User)
-	log.Debug("at hall server joinRoom uid:%v", u.Id)
-	u.KindID = room.KindID
-	u.ServerID = room.ServerID
-	u.GameNodeID = room.NodeID
-	u.EnterIP = room.SvrHost
 }
 
 /////////////////////////////// help 函数

@@ -16,12 +16,66 @@ const (
 	WIK_CHI      = 0X100 //吃牌类型
 )
 
+//游戏积分制
+const (
+	GAME_TYPE_33 = 33
+	GAME_TYPE_48 = 48
+	GAME_TYPE_88 = 88
+)
+
+//积分类型
+const (
+	IDX_SUB_SCORE_JC = 0 //基础分(底分1台)
+	//桌面分
+	IDX_SUB_SCORE_LZ   = 1 //连庄
+	IDX_SUB_SCORE_HUA  = 2 //花字
+	IDX_SUB_SCORE_AG   = 3 //暗杠
+	IDX_SUB_SCORE_AK   = 4 //暗刻
+	IDX_SUB_SCORE_ZG   = 5 //字牌杠
+	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
+	//胡牌+分
+	IDX_SUB_SCORE_HP   = 7  //鸡胡/平胡(普通点炮胡牌+0台)
+	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
+	IDX_SUB_SCORE_HDLZ = 9  //海底捞针(算自摸，不能额外加自摸分)
+	IDX_SUB_SCORE_GSKH = 10 //杠上开花(算自摸，不能额外加自摸分)
+	IDX_SUB_SCORE_HSKH = 11 //花上开花(算自摸，不能额外加自摸分)
+	//额外+分
+	IDX_SUB_SCORE_QYS = 12 //清一色
+	IDX_SUB_SCORE_HYS = 13 //花一色
+	IDX_SUB_SCORE_CYS = 14 //混一色
+	IDX_SUB_SCORE_DSY = 15 //大三元
+	IDX_SUB_SCORE_XSY = 16 //小三元
+	IDX_SUB_SCORE_DSX = 17 //大四喜
+	IDX_SUB_SCORE_XSX = 18 //小四喜
+	IDX_SUB_SCORE_WHZ = 19 //无花字
+	IDX_SUB_SCORE_DDH = 20 //对对胡
+	IDX_SUB_SCORE_MQQ = 21 //门前清
+	IDX_SUB_SCORE_BL  = 22 //佰六
+
+	IDX_SUB_SCORE_QGH = 23 //抢杠胡
+	IDX_SUB_SCORE_DH  = 24 //地胡
+	IDX_SUB_SCORE_TH  = 25 //天胡
+
+	IDX_SUB_SCORE_DD  = 26 //单吊
+	IDX_SUB_SCORE_WDD = 27 //尾单吊
+
+	IDX_SUB_SCORE_KX    = 28 //空心
+	IDX_SUB_SCORE_JT    = 29 //截头
+	IDX_SUB_SCORE_ZDP   = 30 //庄家点炮
+	IDX_SUB_SCORE_MQBL  = 31 //门清佰六
+	IDX_SUB_SCORE_SANAK = 32 //三暗刻
+	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
+	IDX_SUB_SCORE_WUAK  = 34 //五暗刻
+
+	COUNT_SUB_KIND_SCORE = 31 //分数子项个数
+
+)
+
 //逻辑掩码
 const (
 	MASK_COLOR = 0xF0 //花色掩码
 	MASK_VALUE = 0x0F //数值掩码
 )
-
 
 //麻将限制行为
 const (
@@ -87,18 +141,10 @@ const (
 	PERSONAL_ROOM_CHAIR = 8    //私人房间座子上椅子的最大数目
 )
 
-//分析子项
-type TagAnalyseItem struct {
-	CardEye    int     //牌眼扑克
-	bMagicEye  bool    //牌眼是否是王霸
-	WeaveKind  []int   //组合类型
-	CenterCard []int   //中心扑克
-	CardData   [][]int //实际扑克
-}
-
 //类型子项
 type TagKindItem struct {
-	WeaveKind  int   //组合类型
-	CenterCard int   //中心扑克
-	CardIndex  []int //扑克索引
+	WeaveKind    int   //组合类型
+	IsAnalyseGet bool  //非打出组合
+	CenterCard   int   //中心扑克
+	CardIndex    []int //扑克索引
 }

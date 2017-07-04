@@ -79,15 +79,18 @@ func GoMsgToUser(args []interface{}) {
 	}
 }
 
-func SendMsgToSelfNotdeUser(args []interface{}) {
+func SendMsgToSelfNotdeUser(args []interface{})  {
 	uid := args[0].(int)
 	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
 		ch.Go(FuncName, args[2:]...)
 		return
+	}else {
+
 	}
 	log.Debug("at SendMsgToSelfNotdeUser player not in node")
+	return
 }
 
 //处理来自游戏服的消息

@@ -69,6 +69,10 @@ type C2G_HZMJ_OperateCard struct {
 	OperateCard []int
 }
 
+//请求扎码
+type C2G_HZMJ_ZhaMa struct {
+}
+
 //// s to c
 //用户出牌
 type G2C_HZMJ_OutCard struct {
@@ -104,4 +108,10 @@ type G2C_HZMJ_OperateResult struct {
 type G2C_HZMJ_Trustee struct { //用户托管
 	Trustee bool //是否托管
 	ChairID int  //托管用户
+}
+
+//抓花
+type G2C_HZMJ_ZhuaHua struct {
+	ZhongHua []int
+	BuZhong  []int
 }
