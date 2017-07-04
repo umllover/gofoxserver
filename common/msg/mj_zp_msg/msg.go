@@ -16,6 +16,8 @@ func init() {
 	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 	msg.Processor.Register(&G2C_ZPMJ_ZhuaHua{})
 	msg.Processor.Register(&C2G_MJZP_AllChaHua{})
+	msg.Processor.Register(&G2C_ZPMG_GameStart{})
+	msg.Processor.Register(&C2G_MJZP_Trustee{})
 
 }
 
@@ -104,4 +106,21 @@ type G2C_ZPMJ_GameConclude struct {
 type G2C_ZPMJ_ZhuaHua struct {
 	ZhongHua []int
 	BuZhong  []int
+}
+
+//发送扑克
+type G2C_ZPMG_GameStart struct {
+	BankerUser   int     //当前庄家
+	ReplaceUser  int     //补花用户
+	SiceCount    int     //骰子点数
+	HeapHead     int     //牌堆头部
+	HeapTail     int     //牌堆尾部
+	HeapCardInfo [][]int //堆立信息
+	UserAction   int     //用户动作
+	CardData     []int   //麻将列表
+}
+
+//托管
+type C2G_MJZP_Trustee struct {
+	Trustee int //1：托管 0：取消托管
 }

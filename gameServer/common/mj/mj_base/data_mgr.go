@@ -1001,12 +1001,11 @@ func (room *RoomData) CheckZiMo() {
 func (room *RoomData) SendGameStart() {
 
 	//构造变量
-	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
+	GameStart := &mj_zp_msg.G2C_ZPMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
-	GameStart.MagicIndex = room.MjBase.LogicMgr.GetMagicIndex()
 	GameStart.HeapCardInfo = room.HeapCardInfo
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
@@ -1021,7 +1020,7 @@ func (room *RoomData) SendGameStart() {
 func (room *RoomData) NormalEnd() {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
