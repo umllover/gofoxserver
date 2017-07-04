@@ -649,30 +649,8 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-func (m *UserModule) matchResult(args []interface{}) {
-	ret := args[0].(bool)
-	retMsg := msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
-	if ret {
-		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-	}
-	u.WriteMsg(retMsg)
-}
+func (m *UserModule) RechargeNum() {
 
-func (m *UserModule) leaveRoom(args []interface{}) {
-	u := m.a.UserData().(*user.User)
-	log.Debug("at hall server leaveRoom uid:%v", u.Id)
-}
-
-func (m *UserModule) joinRoom(args []interface{}) {
-	room := args[0].(*msg.RoomInfo)
-	u := m.a.UserData().(*user.User)
-	log.Debug("at hall server joinRoom uid:%v", u.Id)
-	u.KindID = room.KindID
-	u.ServerID = room.ServerID
-	u.GameNodeID = room.NodeID
-	u.EnterIP = room.SvrHost
 }
 
 /////////////////////////////// help 函数
