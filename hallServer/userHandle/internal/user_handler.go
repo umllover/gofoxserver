@@ -35,6 +35,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("matchResult", m.matchResult)
 	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
 	m.ChanRPC.Register("JoinRoom", m.joinRoom)
+	m.ChanRPC.Register("Recharge", m.Recharge)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
@@ -657,4 +658,39 @@ func (m *UserModule) matchResult(args []interface{}) {
 		retMsg.TableID = r.RoomID
 	}
 	u.WriteMsg(retMsg)
+}
+
+func (m *UserModule) leaveRoom(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server leaveRoom uid:%v", u.Id)
+}
+
+func (m *UserModule) joinRoom(args []interface{}) {
+	room := args[0].(*msg.RoomInfo)
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server joinRoom uid:%v", u.Id)
+	u.KindID = room.KindID
+	u.ServerID = room.ServerID
+	u.GameNodeID = room.NodeID
+	u.EnterIP = room.SvrHost
+}
+
+func (m *UserModule) Recharge(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	orders := GetOrders(u.Id)
+	for _, v := range orders {
+		goods, ok := base.GoodsCache.Get(v.GoodsID)
+		if !ok {
+			log.Error("at Recharge error")
+			continue
+		}
+
+		if UpdateOrderStats(v.OnLineID) {
+			u.AddCurrency(goods.Diamond)
+		}
+	}
+}
+
+func (m *UserModule) GetGoodsInfo(){
+
 }

@@ -4,7 +4,7 @@ import (
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model"
-	"os/user"
+	"mj/gameServer/user"
 )
 
 func NewDDZEntry(info *model.CreateRoomInfo) *DDZ_Entry {

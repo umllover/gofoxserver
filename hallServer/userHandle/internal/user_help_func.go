@@ -22,9 +22,9 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 	return u, nil
 }
 
-func GetOrder(uid int) []*Order {
+func GetOrders(uid int) []*Order {
 	obj := make([]*Order, 0)
-	err := db.AccountDB.Select(&obj, "select OnLineID,PayAmount, UserID, GoodsID, OrderStatus FROM `order` where UserID=?", uid)
+	err := db.AccountDB.Select(&obj, "select OnLineID,PayAmount, UserID, GoodsID, OrderStatus FROM `order` where UserID=? and OrderStatus = 1", uid)
 	if err != nil {
 		return nil
 	}
@@ -33,4 +33,12 @@ func GetOrder(uid int) []*Order {
 		return nil
 	}
 	return obj
+}
+
+func UpdateOrderStats(OnLineID int) bool {
+	_, err := db.AccountDB.Exec(`UPDATE onlineorder SET OrderStatus=2 WHERE OnLineID = ?;`, OnLineID)
+	if err != nil {
+		return false
+	}
+	return true
 }
