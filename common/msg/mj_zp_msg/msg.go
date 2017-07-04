@@ -1,6 +1,8 @@
 package mj_zp_msg
 
-import "mj/common/msg"
+import (
+	"mj/common/msg"
+)
 
 func init() {
 	msg.Processor.Register(&C2G_MJZP_SetChaHua{})
@@ -22,6 +24,7 @@ func init() {
 	msg.Processor.Register(&G2C_ZPMJ_OutCard{})
 	msg.Processor.Register(&G2C_ZPMJ_OperateResult{})
 	msg.Processor.Register(&G2C_ZPMJ_SendCard{})
+	msg.Processor.Register(&G2C_ZPMJ_StatusPlay{})
 
 }
 
@@ -158,4 +161,71 @@ type G2C_ZPMJ_SendCard struct {
 type G2C_ZPMJ_Trustee struct { //用户托管
 	Trustee bool //是否托管
 	ChairID int  //托管用户
+}
+
+//游戏状态 游戏已经开始了发送的结构
+type G2C_ZPMJ_StatusPlay struct {
+	//时间信息
+	TimeOutCard     int   //出牌时间
+	TimeOperateCard int   //叫分时间
+	CreateTime      int64 //开始时间
+
+	//游戏变量
+	CellScore   int   //单元积分
+	BankerUser  int   //庄家用户
+	CurrentUser int   //当前用户
+	MagicIndex  int   //财神索引
+	ZhuaHuaCnt  []int //抓花数
+	BuHuaCnt    []int //补花数
+
+	//规则
+	PlayerCount int //玩家人数
+	MaCount     int //码数
+
+	//状态变量
+	ActionCard    int    //动作扑克
+	ActionMask    int    //动作掩码
+	LeftCardCount int    //剩余数目
+	Trustee       []bool //是否托管 index 就是椅子id
+	Ting          []bool //是否听牌  index chairId
+
+	//出牌信息
+	OutCardUser  int     //出牌用户
+	OutCardData  int     //出牌扑克
+	DiscardCount []int   //丢弃数目
+	DiscardCard  [][]int //丢弃记录
+
+	//扑克数据
+	CardCount    []int //扑克数目
+	CardData     []int //扑克列表 room.GetCfg().MaxCount
+	SendCardData int   //发送扑克
+
+	//组合扑克
+	WeaveItemCount []int              //组合数目
+	WeaveItemArray [][]*msg.WeaveItem //组合扑克 [GAME_PLAYER][MAX_WEAVE]
+
+	//堆立信息
+	HeapHead     int     //堆立头部
+	HeapTail     int     //堆立尾部
+	HeapCardInfo [][]int //堆牌信息
+
+	HuCardCount   []int
+	HuCardData    [][]int
+	OutCardCount  int
+	OutCardDataEx []int
+	//历史积分
+	TurnScore    []int //积分信息
+	CollectScore []int //积分信息
+}
+
+//听牌
+type G2C_ZPMJ_HuData struct {
+	//出哪几张能听
+	OutCardCount int
+	OutCardData  []int
+	//听后能胡哪几张牌
+	HuCardCount []int
+	HuCardData  [][]int
+	//胡牌剩余数
+	HuCardRemainingCount [][]int
 }
