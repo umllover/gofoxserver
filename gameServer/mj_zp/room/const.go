@@ -26,13 +26,13 @@ const (
 	IDX_SUB_SCORE_JC = 0 //基础分(底分1台)
 	//桌面分
 	IDX_SUB_SCORE_LZ   = 1 //连庄
-	IDX_SUB_SCORE_HUA  = 2 //花字
+	IDX_SUB_SCORE_HUA  = 2 //花牌
 	IDX_SUB_SCORE_AG   = 3 //暗杠
-	IDX_SUB_SCORE_AK   = 4 //暗刻
+	IDX_SUB_SCORE_AK   = 4 //
 	IDX_SUB_SCORE_ZG   = 5 //字牌杠
 	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
 	//胡牌+分
-	IDX_SUB_SCORE_HP   = 7  //鸡胡/平胡(普通点炮胡牌+0台)
+	IDX_SUB_SCORE_HP   = 7  //平胡
 	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
 	IDX_SUB_SCORE_HDLZ = 9  //海底捞针(算自摸，不能额外加自摸分)
 	IDX_SUB_SCORE_GSKH = 10 //杠上开花(算自摸，不能额外加自摸分)
@@ -65,7 +65,7 @@ const (
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
 	IDX_SUB_SCORE_WUAK  = 34 //五暗刻
 
-	COUNT_SUB_KIND_SCORE = 31 //分数子项个数
+	COUNT_KIND_SCORE = 35 //分数子项个数
 
 )
 

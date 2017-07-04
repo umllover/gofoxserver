@@ -27,12 +27,16 @@ type ZP_RoomData struct {
 	FollowCard   []int       //跟牌
 	IsFollowCard bool        //是否跟牌
 	FlowerCnt    [4]int      //补花数
+	LianZhuang   int         //连庄次数
 	ChaHuaMap    map[int]int //插花数
+	HuKindType   []int       //胡牌类型
+	ByHuUser     int         //被胡玩家
 
-	HuKindType      []int       //胡牌类型
-	HuKindScore     map[int]int //特殊胡牌分
-	ZhuaHuaScore    int         //插花得分
-	FollowCardScore []int       //跟牌得分
+	HuKindScore     [COUNT_KIND_SCORE]int    //特殊胡牌分
+	ZhuaHuaScore    int                      //插花得分
+	FollowCardScore []int                    //跟牌得分
+	TypeScroe       [4][COUNT_KIND_SCORE]int //类型得分
+	SumScore        [4]int                   //游戏总分
 }
 
 func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
@@ -488,6 +492,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 					room.UserAction[u.ChairId] |= huKind
 				}
 			}
+			//抢杠胡特殊分
+			room.HuKindScore[IDX_SUB_SCORE_QGH] = 3
 		}
 
 		//结果判断
@@ -644,7 +650,6 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
 					CardData = append(CardData, cardData)
 					//sendData.ZhongHua = append(sendData.ZhongHua, cardData)
-					room.ZhuaHuaScore++
 				}
 			} else {
 				//中发白
@@ -652,9 +657,9 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 				if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
 					CardData = append(CardData, cardData)
 					//sendData.ZhongHua = append(sendData.ZhongHua, cardData)
-					room.ZhuaHuaScore++
 				}
 			}
+			room.ZhuaHuaScore++
 		} else if cardColor >= 0 && cardColor <= 2 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
 				CardData = append(CardData, cardData)
@@ -715,6 +720,8 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	u.UserLimit = 0
 	//放弃操作
 	if OperateCode == WIK_NULL {
+		//抢杠胡分
+		room.HuKindScore[IDX_SUB_SCORE_QGH] = 0
 		////禁止这轮吃胡
 		if room.HasOperator(u.ChairId, WIK_CHI_HU) {
 			u.UserLimit |= LimitChiHu
@@ -810,204 +817,302 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 
 //特殊胡牌类型及算分
 func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseItem) {
+	winScore := room.HuKindScore
 	for _, v := range TagAnalyseItem {
 		kind := 0
 
-		kind = room.IsBaiLiu(v) //佰六
-		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_BL] = 6
-			room.HuKindType = append(room.HuKindType, kind)
-		}
 		kind = room.IsDaSanYuan(v) //大三元
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_DSY] = 12
+			winScore[IDX_SUB_SCORE_DSY] = 12
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsXiaoSanYuan(v) //小三元
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_XSY] = 6
+			winScore[IDX_SUB_SCORE_XSY] = 6
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsHunYiSe(v) //混一色
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_CYS] = 6
+			winScore[IDX_SUB_SCORE_CYS] = 6
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsQingYiSe(v, nil) //清一色
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_QYS] = 24
+			winScore[IDX_SUB_SCORE_QYS] = 24
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsHuaYiSe(v) //花一色
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_HYS] = 12
+			winScore[IDX_SUB_SCORE_HYS] = 12
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsGangKaiHua(v) //杠上开花
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_GSKH] = 3
+			winScore[IDX_SUB_SCORE_GSKH] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsHuaKaiHua(v) //花上开花
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_HSKH] = 3
+			winScore[IDX_SUB_SCORE_HSKH] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsBaiLiu(v) //佰六
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_BL] = 6
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsMenQing(v) //门清
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_MQQ] = 3
+			winScore[IDX_SUB_SCORE_MQQ] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsMenQingBaiLiu(v) //门清佰六
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_MQBL] = 0
+			winScore[IDX_SUB_SCORE_BL] = 0
+			winScore[IDX_SUB_SCORE_MQQ] = 0
+			winScore[IDX_SUB_SCORE_MQBL] = 9
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsHuWeiZhang(v) //尾单吊
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_WDD] = 6
+			winScore[IDX_SUB_SCORE_WDD] = 6
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsJieTou(v) //截头
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_DD] = 1
+			winScore[IDX_SUB_SCORE_JT] = 1
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsKongXin(v) //空心
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_KX] = 1
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsDuiDuiHu(v) //对对胡
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_DDH] = 3
+			winScore[IDX_SUB_SCORE_DDH] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsTianHu(v) //天胡
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_TH] = 3
+			winScore[IDX_SUB_SCORE_TH] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsDiHu(v) //地胡
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_DH] = 3
+			winScore[IDX_SUB_SCORE_DH] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsKeZi(v) //字牌刻字
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_ZPKZ] = 1
+			winScore[IDX_SUB_SCORE_ZPKZ] = 1
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsHaiDiLaoYue(v) //海底捞针
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_HDLZ] = 3
+			winScore[IDX_SUB_SCORE_HDLZ] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsWuHuaZi(v) //无花字
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_HDLZ] = 3
+			winScore[IDX_SUB_SCORE_HDLZ] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 		}
 		kind = room.IsAnKe(v) //暗刻
 		if kind > 0 {
-			room.HuKindScore[IDX_SUB_SCORE_SANAK+kind/8] = 3 * (kind / 4) //2,8,16
+			winScore[IDX_SUB_SCORE_SANAK+kind/8] = 3 * (kind / 4) //2,8,16
 			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsDaSiXi(v) //大四喜
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_DSX] = 24
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsXiaoSiXi(v) //小四喜
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_XSX] = 12
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		kind = room.IsWuHuaZi(v) //无花字
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_WHZ] = 3
+			room.HuKindType = append(room.HuKindType, kind)
+		}
+		//自摸
+		kind = room.IsZiMo()
+		if kind > 0 {
+			if winScore[IDX_SUB_SCORE_HDLZ] == 0 && winScore[IDX_SUB_SCORE_GSKH] == 0 && winScore[IDX_SUB_SCORE_HSKH] == 0 {
+				winScore[IDX_SUB_SCORE_ZM] = 2
+				room.HuKindType = append(room.HuKindType, kind)
+			}
 		}
 		//todo,单吊
 	}
 }
 
-//特殊胡牌分
+//特殊胡牌算分规则
 func (room *ZP_RoomData) SpecialCardScore() {
+	winScore := room.HuKindScore
 	if room.ScoreType == GAME_TYPE_33 {
+		winScore[IDX_SUB_SCORE_JT] = 0
+		winScore[IDX_SUB_SCORE_KX] = 0
 		return
 	}
 
 	if room.ScoreType == GAME_TYPE_48 {
-		for k := range room.HuKindScore {
+		for k, v := range winScore {
+			if v <= 0 {
+				continue
+			}
+
 			switch k {
 			case IDX_SUB_SCORE_ZPKZ:
-				room.HuKindScore[k] = 1
+				winScore[k] = 1
 			case IDX_SUB_SCORE_HDLZ:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_GSKH:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_HSKH:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_QYS:
-				room.HuKindScore[k] = 32
+				winScore[k] = 32
 			case IDX_SUB_SCORE_HYS:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
 			case IDX_SUB_SCORE_CYS:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DSY:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
 			case IDX_SUB_SCORE_XSY:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DDH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_MQQ:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_BL:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_DH:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_TH:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_DD:
-				room.HuKindScore[k] = 1
+				winScore[k] = 1
 			case IDX_SUB_SCORE_WDD:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_MQBL:
-				room.HuKindScore[k] = 12
+				winScore[k] = 12
 			case IDX_SUB_SCORE_SANAK:
-				room.HuKindScore[k] = 4
+				winScore[k] = 4
 			case IDX_SUB_SCORE_SIAK:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_WUAK:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
+			case IDX_SUB_SCORE_ZM:
+				winScore[k] = 1
+			case IDX_SUB_SCORE_QGH:
+				winScore[k] = 4
 			}
 		}
 
 	} else if room.ScoreType == GAME_TYPE_88 {
-		for k := range room.HuKindScore {
+		for k, v := range winScore {
+			if v <= 0 {
+				continue
+			}
+
 			switch k {
 			case IDX_SUB_SCORE_ZPKZ:
-				room.HuKindScore[k] = 1
+				winScore[k] = 1
 			case IDX_SUB_SCORE_HDLZ:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_GSKH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_HSKH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_QYS:
-				room.HuKindScore[k] = 32
+				winScore[k] = 32
 			case IDX_SUB_SCORE_HYS:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
 			case IDX_SUB_SCORE_CYS:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DSY:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
 			case IDX_SUB_SCORE_XSY:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DDH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_MQQ:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_BL:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_TH:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_DD:
-				room.HuKindScore[k] = 0
+				winScore[k] = 0
 			case IDX_SUB_SCORE_WDD:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_MQBL:
-				room.HuKindScore[k] = 12
+				winScore[k] = 12
 			case IDX_SUB_SCORE_SANAK:
-				room.HuKindScore[k] = 8
+				winScore[k] = 8
 			case IDX_SUB_SCORE_SIAK:
-				room.HuKindScore[k] = 16
+				winScore[k] = 16
 			case IDX_SUB_SCORE_WUAK:
-				room.HuKindScore[k] = 32
+				winScore[k] = 32
+			case IDX_SUB_SCORE_JT:
+				winScore[k] = 0
+			case IDX_SUB_SCORE_KX:
+				winScore[k] = 0
+			case IDX_SUB_SCORE_ZM:
+				winScore[k] = 1
+			case IDX_SUB_SCORE_QGH:
+				winScore[k] = 8
 			}
+		}
+	}
+}
+
+//总得分计算
+func (room *ZP_RoomData) SumGameScore() {
+	for i := 0; i < 4; i++ {
+		playerScore := room.HuKindScore
+
+		//todo,暗杠
+
+		if i == room.CurrentUser {
+			continue
+		}
+
+		//基础分
+		playerScore[IDX_SUB_SCORE_JC] = 1
+		//补花得分
+		if room.FlowerCnt[i] > 1 {
+			if room.FlowerCnt[i] < 8 {
+				playerScore[IDX_SUB_SCORE_HUA] = room.FlowerCnt[i]
+			} else { //八张花牌
+				playerScore[IDX_SUB_SCORE_HUA] = 16
+			}
+			room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
+		}
+		//连庄
+		if i == room.BankerUser {
+			room.SumScore[room.ProvideUser] -= room.LianZhuang
+		} else if room.ProvideUser == room.BankerUser {
+			room.SumScore[room.ProvideUser] += room.LianZhuang
+			room.SumScore[room.BankerUser] -= room.LianZhuang
+		}
+		//抓花
+		room.SumScore[i] += room.ZhuaHuaScore
+		//胡牌类型分+加分项分总和
+		for j := IDX_SUB_SCORE_HP; j < COUNT_KIND_SCORE; j++ {
+			room.SumScore[i] += playerScore[j]
+		}
+		//插花分
+		if room.CurrentUser == room.ProvideUser {
+			room.SumScore[i] += room.ChaHuaMap[0] + room.ChaHuaMap[1] + room.ChaHuaMap[2] + room.ChaHuaMap[3]
+		} else {
+			room.SumScore[i] += room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 		}
 	}
 }

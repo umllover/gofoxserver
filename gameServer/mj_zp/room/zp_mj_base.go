@@ -65,6 +65,9 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		return
 	}
 
+	//记录出牌数
+	room.DataMgr.RecordOutCarCnt()
+
 	//记录跟牌
 	room.DataMgr.RecordFollowCard(CardData)
 
