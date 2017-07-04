@@ -2,18 +2,16 @@ package internal
 
 import (
 	"errors"
-	"mj/hallServer/user"
 	"mj/hallServer/db"
+	"mj/hallServer/user"
 )
 
 type Order struct {
-	Orderid  int `db:"id"`        //
-	PlayerId int `db:"player_id"` // 玩家id
-	ServerId int `db:"server_id"` // 服务器id
-	Price    int `db:"price"`     // 价格
-	Uid      int `db:"user_id"`   // uid
-	StoneId  int `db:"stone_id"`  // 物品id
-	Status   int `db:"status"`    //状态
+	OnLineID    int `db:"OnLineID"`    //
+	PayAmount   int `db:"PayAmount"`   // 价格
+	UserID      int `db:"UserID"`      // uid
+	GoodsID     int `db:"GoodsID"`     // 物品id
+	OrderStatus int `db:"OrderStatus"` //状态
 }
 
 func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
@@ -24,9 +22,9 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 	return u, nil
 }
 
-func GetOrder(orderid int) *Order {
+func GetOrder(uid int) []*Order {
 	obj := make([]*Order, 0)
-	err := db.AccountDB.Select(&obj, "select id,player_id, server_id, price, user_id, stone_id, status FROM `order` where id=?", orderid)
+	err := db.AccountDB.Select(&obj, "select OnLineID,PayAmount, UserID, GoodsID, OrderStatus FROM `order` where UserID=?", uid)
 	if err != nil {
 		return nil
 	}
@@ -34,5 +32,5 @@ func GetOrder(orderid int) *Order {
 	if len(obj) < 1 {
 		return nil
 	}
-	return obj[0]
+	return obj
 }

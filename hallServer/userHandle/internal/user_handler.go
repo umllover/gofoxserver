@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -649,16 +648,13 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-func (m *UserModule) RechargeNum() {
-
-}
-
-/////////////////////////////// help 函数
-
-func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
-	u, ok := m.a.UserData().(*user.User)
-	if !ok {
-		return nil, errors.New("not foud user Data at GetUser")
+func (m *UserModule) matchResult(args []interface{}) {
+	ret := args[0].(bool)
+	retMsg := msg.L2C_SearchResult{}
+	u := m.a.UserData().(*user.User)
+	if ret {
+		r := args[1].(*msg.RoomInfo)
+		retMsg.TableID = r.RoomID
 	}
-	return u, nil
+	u.WriteMsg(retMsg)
 }
