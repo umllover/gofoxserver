@@ -18,6 +18,10 @@ func init() {
 	msg.Processor.Register(&C2G_MJZP_AllChaHua{})
 	msg.Processor.Register(&G2C_ZPMG_GameStart{})
 	msg.Processor.Register(&C2G_MJZP_Trustee{})
+	msg.Processor.Register(&G2C_ZPMJ_Trustee{})
+	msg.Processor.Register(&G2C_ZPMJ_OutCard{})
+	msg.Processor.Register(&G2C_ZPMJ_OperateResult{})
+	msg.Processor.Register(&G2C_ZPMJ_SendCard{})
 
 }
 
@@ -123,4 +127,35 @@ type G2C_ZPMG_GameStart struct {
 //托管
 type C2G_MJZP_Trustee struct {
 	Trustee int //1：托管 0：取消托管
+}
+
+//用户出牌
+type G2C_ZPMJ_OutCard struct {
+	OutCardUser int  //出牌用户
+	OutCardData int  //出牌扑克
+	SysOut      bool //托管系统出牌
+}
+
+//操作命令
+type G2C_ZPMJ_OperateResult struct {
+	OperateUser int    //操作用户
+	ActionMask  int    //动作掩码
+	ProvideUser int    //供应用户
+	OperateCode int    //操作代码
+	OperateCard [3]int //操作扑克
+}
+
+//发送扑克
+type G2C_ZPMJ_SendCard struct {
+	CardData     int  //扑克数据
+	ActionMask   int  //动作掩码
+	CurrentUser  int  //当前用户
+	SendCardUser int  //发牌用户
+	ReplaceUser  int  //补牌用户
+	Tail         bool //末尾发牌
+}
+
+type G2C_ZPMJ_Trustee struct { //用户托管
+	Trustee bool //是否托管
+	ChairID int  //托管用户
 }

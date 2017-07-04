@@ -1116,3 +1116,325 @@ func (room *ZP_RoomData) SumGameScore() {
 		}
 	}
 }
+
+func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bool) {
+	//设置变量
+	room.SendStatus = OutCard_Send
+	room.SendCardData = 0
+	room.UserAction[u.ChairId] = WIK_NULL
+
+	//出牌记录
+	room.OutCardUser = u.ChairId
+	room.OutCardData = cbCardData
+
+	//构造数据
+	OutCard := &mj_zp_msg.G2C_ZPMJ_OutCard{}
+	OutCard.OutCardUser = u.ChairId
+	OutCard.OutCardData = cbCardData
+	OutCard.SysOut = bSysOut
+
+	//发送消息
+	room.MjBase.UserMgr.SendMsgAll(OutCard)
+	room.ProvideUser = u.ChairId
+	room.ProvideCard = cbCardData
+
+	//用户切换
+	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
+}
+
+func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
+	room.SendStatus = Gang_Send
+	//变量定义
+	var cbWeave *msg.WeaveItem
+	cbCardIndex := room.MjBase.LogicMgr.SwitchToCardIndex(cbOperateCard[0])
+	wProvideUser := u.ChairId
+	cbGangKind := WIK_MING_GANG
+	//杠牌处理
+	if room.CardIndex[u.ChairId][cbCardIndex] == 1 {
+		//寻找组合
+		for _, v := range room.WeaveItemArray[u.ChairId] {
+			if (v.CenterCard == cbOperateCard[0]) && (v.WeaveKind == WIK_PENG) {
+				cbWeave = v
+				break
+			}
+		}
+
+		//没找到明杠
+		if cbWeave == nil {
+			return 0
+		}
+		cbGangKind = WIK_MING_GANG
+
+		//组合扑克
+		cbWeave.Param = WIK_MING_GANG
+		cbWeave.WeaveKind = cbOperateCode
+		cbWeave.CenterCard = cbOperateCard[0]
+		cbWeave.CardData[3] = cbOperateCard[0]
+
+		//杠牌得分
+		wProvideUser = cbWeave.ProvideUser
+	} else {
+		//扑克效验
+
+		if room.CardIndex[u.ChairId][cbCardIndex] != 4 {
+			return 0
+		}
+
+		Wrave := &msg.WeaveItem{}
+		Wrave.Param = mj_base.WIK_AN_GANG
+		Wrave.ProvideUser = u.ChairId
+		Wrave.WeaveKind = cbOperateCode
+		Wrave.CenterCard = cbOperateCard[0]
+		for j := 0; j < 4; j++ {
+			Wrave.CardData[j] = cbOperateCard[0]
+		}
+		room.WeaveItemArray[u.ChairId] = append(room.WeaveItemArray[u.ChairId], Wrave)
+	}
+
+	//删除扑克
+	room.CardIndex[u.ChairId][cbCardIndex] = 0
+	room.GangStatus = cbGangKind
+	room.ProvideGangUser = wProvideUser
+	room.GangCard[u.ChairId] = true
+	room.GangCount[u.ChairId]++
+
+	//构造结果
+	OperateResult := &mj_zp_msg.G2C_ZPMJ_OperateResult{}
+	OperateResult.OperateUser = u.ChairId
+	OperateResult.ProvideUser = wProvideUser
+	OperateResult.OperateCode = cbOperateCode
+	OperateResult.OperateCard[0] = cbOperateCard[0]
+
+	//发送消息
+	room.MjBase.UserMgr.SendMsgAll(OperateResult)
+
+	return cbGangKind
+}
+
+func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
+	//构造结果
+	OperateResult := &mj_zp_msg.G2C_ZPMJ_OperateResult{}
+	OperateResult.OperateUser = wTargetUser
+	OperateResult.OperateCode = cbTargetAction
+	if room.ProvideUser == INVALID_CHAIR {
+		OperateResult.ProvideUser = wTargetUser
+	} else {
+		OperateResult.ProvideUser = room.ProvideUser
+	}
+
+	cbTargetCard := room.OperateCard[wTargetUser][0]
+	OperateResult.OperateCard[0] = cbTargetCard
+	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
+		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
+	} else if cbTargetAction&WIK_PENG != 0 {
+		OperateResult.OperateCard[1] = cbTargetCard
+		OperateResult.OperateCard[2] = cbTargetCard
+	}
+
+	//用户状态
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.IsResponse = make([]bool, UserCnt)
+	room.UserAction = make([]int, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
+
+	//如果非杠牌
+	if cbTargetAction != WIK_GANG {
+		room.ProvideUser = INVALID_CHAIR
+		room.ProvideCard = 0
+
+		gcr := &mj_base.TagGangCardResult{}
+		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
+
+		if room.Ting[wTargetUser] == false {
+			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+			HuData.OutCardCount = cbCount
+			if cbCount > 0 {
+				room.UserAction[wTargetUser] |= WIK_LISTEN
+				for i := 0; i < room.GetCfg().MaxCount; i++ {
+					if HuData.HuCardCount[i] > 0 {
+						for j := 0; j < HuData.HuCardCount[i]; j++ {
+							HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j])
+						}
+					} else {
+						break
+					}
+				}
+				u := room.MjBase.UserMgr.GetUserByChairId(wTargetUser)
+				u.WriteMsg(HuData)
+			}
+		}
+		OperateResult.ActionMask |= room.UserAction[wTargetUser]
+	}
+
+	//发送消息
+	room.MjBase.UserMgr.SendMsgAll(OperateResult)
+
+	//设置用户
+	room.CurrentUser = wTargetUser
+
+	//杠牌处理
+	if cbTargetAction == WIK_GANG {
+		room.GangStatus = mj_base.WIK_FANG_GANG
+		if room.ProvideUser == INVALID_CHAIR {
+			room.ProvideGangUser = wTargetUser
+		} else {
+			room.ProvideGangUser = room.ProvideUser
+		}
+		room.GangCard[wTargetUser] = true
+		room.GangCount[wTargetUser]++
+
+	}
+	return
+}
+
+//派发扑克
+func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
+	//状态效验
+	if room.SendStatus == Not_Send {
+		log.Error("at DispatchCardData f room.SendStatus == Not_Send")
+		return -1
+	}
+
+	//丢弃扑克
+	if (room.OutCardUser != INVALID_CHAIR) && (room.OutCardData != 0) {
+		if len(room.DiscardCard[room.OutCardUser]) < 1 {
+			room.DiscardCard[room.OutCardUser] = make([]int, 60)
+		}
+
+		room.DiscardCard[room.OutCardUser] = append(room.DiscardCard[room.OutCardUser], room.OutCardData)
+	}
+
+	//荒庄结束
+	if room.LeftCardCount <= room.EndLeftCount {
+		room.ProvideUser = INVALID_CHAIR
+		return 1
+	}
+
+	//发送扑克
+	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+	room.SendCardData = room.ProvideCard
+	room.LastCatchCardUser = wCurrentUser
+	//清除禁止胡牌的牌
+
+	u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
+	if u == nil {
+		log.Error("at DispatchCardData not foud user ")
+	}
+
+	//清除禁止胡牌的牌
+	u.UserLimit &= ^LimitChiHu
+	u.UserLimit &= ^LimitPeng
+	u.UserLimit &= ^LimitGang
+
+	//设置变量
+	room.OutCardUser = INVALID_CHAIR
+	room.OutCardData = 0
+	room.CurrentUser = wCurrentUser
+	room.ProvideUser = wCurrentUser
+	room.GangOutCard = false
+
+	if bTail { //从尾部取牌，说明玩家杠牌了,计算分数
+		room.CallGangScore()
+	}
+
+	//加牌
+	room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.ProvideCard)]++
+	//room.UserCatchCardCount[wCurrentUser]++;
+
+	if !room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
+		//胡牌判断
+		chr := 0
+		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
+		log.Debug("befer %v ", room.UserAction[wCurrentUser])
+		huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
+			room.SendCardData, chr, room.GetCfg().MaxCount, false)
+		room.UserAction[wCurrentUser] |= huKind
+		log.Debug("afert %v ", room.UserAction[wCurrentUser])
+		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
+
+		//杠牌判断
+		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
+			GangCardResult := &mj_base.TagGangCardResult{}
+			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
+		}
+	}
+
+	log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
+	//听牌判断
+	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	if room.Ting[wCurrentUser] == false {
+		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+		HuData.OutCardCount = int(cbCount)
+		if cbCount > 0 {
+			room.UserAction[wCurrentUser] |= WIK_LISTEN
+
+			for i := 0; i < room.GetCfg().MaxCount; i++ {
+				if HuData.HuCardCount[i] > 0 {
+					for j := 0; j < HuData.HuCardCount[i]; j++ {
+						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j]))
+					}
+				} else {
+					break
+				}
+			}
+
+			u.WriteMsg(HuData)
+		}
+	}
+
+	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
+	//构造数据
+	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCard.SendCardUser = wCurrentUser
+	SendCard.CurrentUser = wCurrentUser
+	SendCard.Tail = bTail
+	SendCard.ActionMask = room.UserAction[wCurrentUser]
+	SendCard.CardData = room.ProvideCard
+	//发送数据
+	u.WriteMsg(SendCard)
+	SendCard.CardData = 0
+	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
+
+	room.UserActionDone = false
+	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
+		room.UserActionDone = true
+	}
+	return 0
+}
+
+//解散接触
+func (room *ZP_RoomData) DismissEnd() {
+	//变量定义
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
+	GameConclude.ChiHuKind = make([]int, UserCnt)
+	GameConclude.CardCount = make([]int, UserCnt)
+	GameConclude.HandCardData = make([][]int, UserCnt)
+	GameConclude.GameScore = make([]int, UserCnt)
+	GameConclude.GangScore = make([]int, UserCnt)
+	GameConclude.Revenue = make([]int, UserCnt)
+	GameConclude.ChiHuRight = make([]int, UserCnt)
+	GameConclude.MaCount = make([]int, UserCnt)
+	GameConclude.MaData = make([]int, UserCnt)
+	for i, _ := range GameConclude.HandCardData {
+		GameConclude.HandCardData[i] = make([]int, room.GetCfg().MaxCount)
+	}
+
+	room.BankerUser = INVALID_CHAIR
+
+	GameConclude.SendCardData = room.SendCardData
+
+	//用户扑克
+	if len(room.CardIndex) > 0 { //没开始就结束情况下小于0
+		for i := 0; i < UserCnt; i++ {
+			if len(room.CardIndex[i]) > 0 {
+				GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
+				GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
+			}
+		}
+	}
+
+	//发送信息
+	room.MjBase.UserMgr.SendMsgAll(GameConclude)
+}
