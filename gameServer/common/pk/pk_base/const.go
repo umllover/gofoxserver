@@ -146,13 +146,14 @@ const (
 	ADD_SCORE        = 1004 // 加注
 	SEND_LAST_CARD   = 1005 // 发最后一张牌
 	OPEN_CARD        = 1006 // 亮牌
-	// 结算
+	CAL_SCORE		= 1007// 结算
 )
 
 // 定时器 -- for test
 const (
 	CALL_SCORE_TIME = 10
 	ADD_SCORE_TIME  = 10
+	OPEN_CARD_TIME	= 30
 )
 
 // 扑克通用逻辑

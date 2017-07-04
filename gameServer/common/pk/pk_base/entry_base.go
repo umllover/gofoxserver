@@ -297,7 +297,7 @@ func (room *Entry_base) CallScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
 	u := args[1].(*user.User)
 
-	room.DataMgr.AddScoreTimes(u, recvMsg.CallScore)
+	room.DataMgr.CallScore(u, recvMsg.CallScore)
 	return
 }
 
@@ -309,3 +309,13 @@ func (r *Entry_base) AddScore(args []interface{}) {
 	r.DataMgr.AddScore(u, recvMsg.Score)
 	return
 }
+
+// 亮牌
+func (r *Entry_base) OpenCard(args []interface{})  {
+	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
+	u := args[1].(*user.User)
+
+	r.DataMgr.OpenCard(u, recvMsg.CardData)
+	return
+}
+

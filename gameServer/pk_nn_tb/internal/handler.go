@@ -24,9 +24,9 @@ func init() {
 	// c 2 s
 	handlerC2S(&nn_tb_msg.C2G_TBNN_CallScore{}, TBNNCallScore)
 	handlerC2S(&nn_tb_msg.C2G_TBNN_AddScore{}, TBNNAddScore)
-	handlerC2S(&nn_tb_msg.C2G_TBNN_CallBanker{}, TBNNCallBanker)
-	handlerC2S(&nn_tb_msg.C2G_TBNN_OxCard{}, TBNNOxCard)
-	handlerC2S(&nn_tb_msg.C2G_TBNN_QIANG{}, TBNNQiang)
+	//handlerC2S(&nn_tb_msg.C2G_TBNN_CallBanker{}, TBNNCallBanker)
+	handlerC2S(&nn_tb_msg.C2G_TBNN_OpenCard{}, TBNNOpenCard)
+	//handlerC2S(&nn_tb_msg.C2G_TBNN_QIANG{}, TBNNQiang)
 }
 
 
@@ -50,6 +50,7 @@ func TBNNAddScore(args []interface{}) {
 	}
 
 }
+/*
 func TBNNCallBanker(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
@@ -59,19 +60,21 @@ func TBNNCallBanker(args []interface{}) {
 		r.GetChanRPC().Go("CallBanker", args[0], user)
 	}
 
-}
+}*/
 
-func TBNNOxCard(args []interface{}) {
+func TBNNOpenCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OxCard", args[0], user)
+		r.GetChanRPC().Go("OpenCard", args[0], user)
 	}
 
 }
 
+
+/*
 func TBNNQiang(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
@@ -81,6 +84,6 @@ func TBNNQiang(args []interface{}) {
 		r.GetChanRPC().Go("Qiang", args[0], user)
 	}
 }
-
+*/
 
 
