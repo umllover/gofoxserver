@@ -24,9 +24,9 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 	return u, nil
 }
 
-func (r *RechargeServices) GetOrder(orderid int) *Order {
+func GetOrder(orderid int) *Order {
 	obj := make([]*Order, 0)
-	err := db.Acc.Select(&obj, "select id,player_id, server_id, price, user_id, stone_id, status FROM `order` where id=?", orderid)
+	err := db.AccountDB.Select(&obj, "select id,player_id, server_id, price, user_id, stone_id, status FROM `order` where id=?", orderid)
 	if err != nil {
 		return nil
 	}
