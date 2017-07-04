@@ -25,8 +25,10 @@ type DataManager interface {
 	SendStatusPlay(u *user.User)
 	SendStatusReady(u *user.User)
 
-	AddScoreTimes(u *user.User, scoreTimes int)
+	// 叫分 加注 亮牌
+	CallScore(u *user.User, scoreTimes int)
 	AddScore(u *user.User, score int)
+	OpenCard(u *user.User, cardData []int)
 }
 
 type LogicManager interface {
