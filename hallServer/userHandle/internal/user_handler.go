@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -614,12 +613,8 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-/////////////////////////////// help 函数
+func (m *UserModule) RechargeNum() {
 
-func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
-	u, ok := m.a.UserData().(*user.User)
-	if !ok {
-		return nil, errors.New("not foud user Data at GetUser")
-	}
-	return u, nil
 }
+
+/////////////////////////////// help 函数

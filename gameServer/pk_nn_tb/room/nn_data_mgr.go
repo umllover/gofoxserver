@@ -14,3 +14,4 @@ func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOptio
 type nntb_data_mgr struct {
 	*pk_base.RoomData
 }
+
