@@ -16,9 +16,9 @@ import (
 
 // +gen *
 type UserDayTimes struct {
-	UserId  int    `db:"user_id" json:"user_id"`   //
-	KeyName string `db:"key_name" json:"key_name"` //
-	V       int64  `db:"v" json:"v"`               //
+	UserId int   `db:"user_id" json:"user_id"` //
+	KeyId  int   `db:"key_id" json:"key_id"`   //
+	V      int64 `db:"v" json:"v"`             //
 }
 
 type userDayTimesOp struct{}
@@ -27,12 +27,12 @@ var UserDayTimesOp = &userDayTimesOp{}
 var DefaultUserDayTimes = &UserDayTimes{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userDayTimesOp) Get(user_id int, key_name string) (*UserDayTimes, bool) {
+func (op *userDayTimesOp) Get(user_id int, key_id int) (*UserDayTimes, bool) {
 	obj := &UserDayTimes{}
-	sql := "select * from user_day_times where user_id=? and key_name=? "
+	sql := "select * from user_day_times where user_id=? and key_id=? "
 	err := db.DB.Get(obj, sql,
 		user_id,
-		key_name,
+		key_id,
 	)
 
 	if err != nil {
@@ -114,10 +114,10 @@ func (op *userDayTimesOp) Insert(m *UserDayTimes) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userDayTimesOp) InsertTx(ext sqlx.Ext, m *UserDayTimes) (int64, error) {
-	sql := "insert into user_day_times(user_id,key_name,v) values(?,?,?)"
+	sql := "insert into user_day_times(user_id,key_id,v) values(?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
-		m.KeyName,
+		m.KeyId,
 		m.V,
 	)
 	if err != nil {
@@ -145,11 +145,11 @@ func (op *userDayTimesOp) Update(m *UserDayTimes) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userDayTimesOp) UpdateTx(ext sqlx.Ext, m *UserDayTimes) error {
-	sql := `update user_day_times set v=? where user_id=? and key_name=?`
+	sql := `update user_day_times set v=? where user_id=? and key_id=?`
 	_, err := ext.Exec(sql,
 		m.V,
 		m.UserId,
-		m.KeyName,
+		m.KeyId,
 	)
 
 	if err != nil {
@@ -161,14 +161,14 @@ func (op *userDayTimesOp) UpdateTx(ext sqlx.Ext, m *UserDayTimes) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userDayTimesOp) UpdateWithMap(user_id int, key_name string, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, user_id, key_name, m)
+func (op *userDayTimesOp) UpdateWithMap(user_id int, key_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, user_id, key_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userDayTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_name string, m map[string]interface{}) error {
+func (op *userDayTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m map[string]interface{}) error {
 
-	sql := `update user_day_times set %s where 1=1 and user_id=? and key_name=? ;`
+	sql := `update user_day_times set %s where 1=1 and user_id=? and key_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -179,7 +179,7 @@ func (op *userDayTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_name st
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, user_id, key_name)
+	params = append(params, user_id, key_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -192,19 +192,19 @@ func (i *UserDayTimes) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userDayTimesOp) Delete(user_id int, key_name string) error {
-	return op.DeleteTx(db.DB, user_id, key_name)
+func (op *userDayTimesOp) Delete(user_id int, key_id int) error {
+	return op.DeleteTx(db.DB, user_id, key_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userDayTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_name string) error {
+func (op *userDayTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
 	sql := `delete from user_day_times where 1=1
         and user_id=?
-        and key_name=?
+        and key_id=?
         `
 	_, err := ext.Exec(sql,
 		user_id,
-		key_name,
+		key_id,
 	)
 	return err
 }

@@ -80,13 +80,7 @@ type C2L_ReqRoomPlayerBrief struct {
 }
 
 type C2L_DrawSahreAward struct {
-	ModuleID     int
-	PlazaVersion int
-	DeviceType   int
-	LogonPass    string
-	Accounts     string
-	MachineID    string
-	MobilePhone  string
+	DrawId int //领取奖励的key
 }
 
 /////////// l 2 c /////////////////////////
@@ -190,4 +184,18 @@ type L2C_CreatorRoomRecord struct {
 //请求房间内玩家简要信息的返回值
 type L2C_RoomPlayerBrief struct {
 	Players []*PlayerBrief //房间内玩家的简要信息
+}
+
+//下发给呵护短的领取奖励信息
+type L2C_ActivityInfo struct {
+	DayTimes  map[int]int64 //每日次数信息
+	Times     map[int]int64 //永久次数信息
+	WeekTimes map[int]int64 //周次数信息
+}
+
+//领取奖励结果
+type L2C_DrawSahreAwardResult struct {
+	DrawId  int //领取奖励的key
+	Times   int //已经领取的次数
+	RetCode int //领取成功还是失败的结果
 }

@@ -19,11 +19,12 @@ type User struct {
 	*model.Userattr
 	*model.Usertoken
 	*model.Userextrainfo
-	Rooms    map[int]*model.CreateRoomInfo
-	Records  map[int]*model.TokenRecord
-	DayTimes map[string]int64 //每日次数
-	Times    map[string]int64 //永久次数
-	Id       int
+	Rooms     map[int]*model.CreateRoomInfo
+	Records   map[int]*model.TokenRecord
+	Times     map[int]int64 //永久次数
+	DayTimes  map[int]int64 //每日次数
+	WeekTimes map[int]int64 //周次数
+	Id        int
 	sync.RWMutex
 }
 

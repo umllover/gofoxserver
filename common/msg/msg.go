@@ -30,7 +30,7 @@ func init() {
 	Processor.Register(&L2C_RoomPlayerBrief{})
 
 	Processor.Register(&C2L_DrawSahreAward{})
-
+	Processor.Register(&L2C_ActivityInfo{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})

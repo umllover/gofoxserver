@@ -9,7 +9,7 @@ import (
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
-	"mj/hallServer/idGenerate"
+	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
 	"reflect"
 	"time"
@@ -204,6 +204,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	BuildClientMsg(retMsg, player, accInfo)
 }
 
+//获取个人信息
 func (m *UserModule) GetUserIndividual(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	player, ok := agent.UserData().(*user.User)
@@ -218,13 +219,14 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 		LostCount:   player.LostCount, //输数
 		DrawCount:   player.DrawCount, //平数
 		Medal:       player.UserMedal,
-		RoomCard:    player.RoomCard,    //房卡
+		RoomCard:    player.Currency,    //房卡
 		MemberOrder: player.MemberOrder, //会员等级
 		Score:       player.Score,
 		HeadImgUrl:  player.HeadImgUrl,
 	}
 
 	player.WriteMsg(retmsg)
+	m.sendActivityInfo(player)
 }
 
 func (m *UserModule) UserOffline() {
@@ -275,7 +277,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		}
 	}
 
-	rid, iok := idGenerate.GenerateRoomId(nodeId)
+	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
 		return
@@ -690,8 +692,4 @@ func (m *UserModule) Recharge(args []interface{}) {
 			u.AddCurrency(goods.Diamond)
 		}
 	}
-}
-
-func (m *UserModule) GetGoodsInfo() {
-
 }

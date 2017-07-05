@@ -19,12 +19,15 @@ const (
 	RechargeStatusOk      = 2 //订单完成
 )
 
-//每日次数索引
+//活动次数类型
 const (
-	dayShareTimes = "dayShareTime"
+	ActivityTypeForever = 1 //永久类型
+	ActivityTypeDay     = 2 //天类型
+	ActivityTypeWeek    = 3 //周类型
 )
 
-//永久次数索引
+//次数索引
 const (
-	shareTimes = "shareTime"
+	dayShareTimes = 1
+	shareTimes    = 2
 )
