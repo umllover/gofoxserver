@@ -19,6 +19,8 @@ import (
 
 	"mj/hallServer/match_room"
 
+	"mj/hallServer/times_mgr"
+
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -61,6 +63,7 @@ func main() {
 		gameList.Module,
 		raceMsg.Module,
 		match_room.Module,
+		times_mgr.Module,
 	)
 }
 

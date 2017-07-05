@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -10,7 +9,7 @@ import (
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/gameList"
-	"mj/hallServer/idGenerate"
+	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
 	"reflect"
 	"time"
@@ -36,6 +35,7 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("matchResult", m.matchResult)
 	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
 	m.ChanRPC.Register("JoinRoom", m.joinRoom)
+	m.ChanRPC.Register("Recharge", m.Recharge)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
@@ -44,6 +44,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
 	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
 	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
+	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
 }
 
 //连接进来的通知
@@ -118,7 +119,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	player.Agent = agent
 	AddUser(player.Id, player)
 	agent.SetUserData(player)
-
+	player.LoadTimes()
 	player.HallNodeID = conf.Server.NodeId
 	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
 		"HallNodeID": conf.Server.NodeId,
@@ -203,6 +204,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	BuildClientMsg(retMsg, player, accInfo)
 }
 
+//获取个人信息
 func (m *UserModule) GetUserIndividual(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	player, ok := agent.UserData().(*user.User)
@@ -217,13 +219,14 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 		LostCount:   player.LostCount, //输数
 		DrawCount:   player.DrawCount, //平数
 		Medal:       player.UserMedal,
-		RoomCard:    player.RoomCard,    //房卡
+		RoomCard:    player.Currency,    //房卡
 		MemberOrder: player.MemberOrder, //会员等级
 		Score:       player.Score,
 		HeadImgUrl:  player.HeadImgUrl,
 	}
 
 	player.WriteMsg(retmsg)
+	player.SendActivityInfo()
 }
 
 func (m *UserModule) UserOffline() {
@@ -274,7 +277,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		}
 	}
 
-	rid, iok := idGenerate.GenerateRoomId(nodeId)
+	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
 		return
@@ -649,16 +652,44 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-func (m *UserModule) RechargeNum() {
-
+func (m *UserModule) matchResult(args []interface{}) {
+	ret := args[0].(bool)
+	retMsg := msg.L2C_SearchResult{}
+	u := m.a.UserData().(*user.User)
+	if ret {
+		r := args[1].(*msg.RoomInfo)
+		retMsg.TableID = r.RoomID
+	}
+	u.WriteMsg(retMsg)
 }
 
-/////////////////////////////// help 函数
+func (m *UserModule) leaveRoom(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server leaveRoom uid:%v", u.Id)
+}
 
-func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
-	u, ok := m.a.UserData().(*user.User)
-	if !ok {
-		return nil, errors.New("not foud user Data at GetUser")
+func (m *UserModule) joinRoom(args []interface{}) {
+	room := args[0].(*msg.RoomInfo)
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server joinRoom uid:%v", u.Id)
+	u.KindID = room.KindID
+	u.ServerID = room.ServerID
+	u.GameNodeID = room.NodeID
+	u.EnterIP = room.SvrHost
+}
+
+func (m *UserModule) Recharge(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	orders := GetOrders(u.Id)
+	for _, v := range orders {
+		goods, ok := base.GoodsCache.Get(v.GoodsID)
+		if !ok {
+			log.Error("at Recharge error")
+			continue
+		}
+
+		if UpdateOrderStats(v.OnLineID) {
+			u.AddCurrency(goods.Diamond)
+		}
 	}
-	return u, nil
 }

@@ -34,6 +34,7 @@ type PK_CFG struct {
 	MaxRepertory    int //最多存放多少张牌
 	CallScoreTime	int //叫分时间
 	AddScoreTime	int //加注时间
+
 }
 
 var cfg = []*PK_CFG{

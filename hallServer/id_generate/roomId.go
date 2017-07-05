@@ -1,4 +1,4 @@
-package idGenerate
+package id_generate
 
 import (
 	"mj/common/utils"

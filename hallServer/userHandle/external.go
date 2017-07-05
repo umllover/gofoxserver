@@ -19,3 +19,7 @@ func NewUserHandle(a gate.Agent) gate.UserHandler {
 func GetUser(uid int) *user.User {
 	return internal.GetUser(uid)
 }
+
+func ForEachUser(f func(u *user.User)) {
+	UserMgr.ForEachUser(f)
+}

@@ -49,6 +49,7 @@ type RoomData struct {
 	ResumeUser        int    //还原用户
 	ProvideUser       int    //供应用户
 	LeftCardCount     int    //剩下拍的数量
+	OutCardCount      int    //出牌数目
 	EndLeftCount      int    //荒庄牌数
 	LastCatchCardUser int    //最后一个摸牌的用户
 	MinusHeadCount    int    //头部空缺
@@ -850,6 +851,8 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.HistoryScores = make([]*HistoryScore, UserCnt)
 	room.MinusLastCount = 0
 	room.MinusHeadCount = 0
+	room.OutCardCount = 0
+
 }
 
 func (room *RoomData) GetSice() (int, int) {
@@ -998,12 +1001,11 @@ func (room *RoomData) CheckZiMo() {
 func (room *RoomData) SendGameStart() {
 
 	//构造变量
-	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
+	GameStart := &mj_zp_msg.G2C_ZPMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
-	GameStart.MagicIndex = room.MjBase.LogicMgr.GetMagicIndex()
 	GameStart.HeapCardInfo = room.HeapCardInfo
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
@@ -1018,7 +1020,7 @@ func (room *RoomData) SendGameStart() {
 func (room *RoomData) NormalEnd() {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
@@ -1380,7 +1382,13 @@ func (room *RoomData) RecordFollowCard(cbCenterCard int) bool {
 	return true
 }
 
-//////////////////////////////////////////////////
+//记录出牌数
+func (room *RoomData) RecordOutCarCnt() int {
+	room.OutCardCount++
+	return room.OutCardCount
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //胡牌算分类型
 
 //地胡
@@ -1400,17 +1408,11 @@ func (room *RoomData) IsDiHu(pAnalyseItem *TagAnalyseItem) int {
 		}
 	}
 
-	var sumFlowerCount int
-	for _, v := range room.FlowerCnt {
-		sumFlowerCount += v
+	if room.OutCardCount > 0 && room.OutCardCount <= 4 {
+		return CHR_DI_HU
 	}
 
-	sumUserCard := 4*room.GetCfg().MaxCount - 3
-	if room.LeftCardCount != room.GetCfg().MaxRepertory-sumUserCard-sumFlowerCount-1 {
-		return 0
-	}
-
-	return CHR_DI_HU
+	return 0
 }
 
 //天胡
@@ -1431,13 +1433,7 @@ func (room *RoomData) IsTianHu(pAnalyseItem *TagAnalyseItem) int {
 		}
 	}
 
-	var sumFlowerCount int
-	for _, v := range room.FlowerCnt {
-		sumFlowerCount += v
-	}
-
-	sumUserCard := 4*room.GetCfg().MaxCount - 3
-	if room.LeftCardCount != room.GetCfg().MaxRepertory-sumUserCard-sumFlowerCount {
+	if room.OutCardCount != 0 {
 		return 0
 	}
 
@@ -1787,6 +1783,31 @@ func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
 	//todo,单吊
 	return false
 }
+
+//自摸
+func (room *RoomData) IsZiMo() int {
+	if room.OutCardCount == 0 {
+		return 0
+	}
+	if room.CurrentUser == room.ProvideUser {
+		return CHR_ZI_MO
+	}
+	return 0
+}
+
+//平胡
+func (room *RoomData) IsPingHu() int {
+	if room.OutCardCount == 0 {
+		return 0
+	}
+	if room.CurrentUser != room.ProvideUser {
+		return CHR_PING_HU
+	}
+	return 0
+}
+
+//胡牌算分类型
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")

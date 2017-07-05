@@ -25,9 +25,6 @@ type Gamescoreinfo struct {
 	LostCount        int        `db:"LostCount" json:"LostCount"`               // 输局数目
 	DrawCount        int        `db:"DrawCount" json:"DrawCount"`               // 和局数目
 	FleeCount        int        `db:"FleeCount" json:"FleeCount"`               // 逃局数目
-	UserRight        int        `db:"UserRight" json:"UserRight"`               // 用户权限
-	MasterRight      int        `db:"MasterRight" json:"MasterRight"`           // 管理权限
-	MasterOrder      int8       `db:"MasterOrder" json:"MasterOrder"`           // 管理等级
 	AllLogonTimes    int        `db:"AllLogonTimes" json:"AllLogonTimes"`       // 总登陆次数
 	PlayTimeCount    int        `db:"PlayTimeCount" json:"PlayTimeCount"`       // 游戏时间
 	OnLineTimeCount  int        `db:"OnLineTimeCount" json:"OnLineTimeCount"`   // 在线时间
@@ -130,7 +127,7 @@ func (op *gamescoreinfoOp) Insert(m *Gamescoreinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *gamescoreinfoOp) InsertTx(ext sqlx.Ext, m *Gamescoreinfo) (int64, error) {
-	sql := "insert into gamescoreinfo(UserID,Score,Revenue,InsureScore,WinCount,LostCount,DrawCount,FleeCount,UserRight,MasterRight,MasterOrder,AllLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMachine,RegisterIP,RegisterMachine) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into gamescoreinfo(UserID,Score,Revenue,InsureScore,WinCount,LostCount,DrawCount,FleeCount,AllLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMachine,RegisterIP,RegisterMachine) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.Score,
@@ -140,9 +137,6 @@ func (op *gamescoreinfoOp) InsertTx(ext sqlx.Ext, m *Gamescoreinfo) (int64, erro
 		m.LostCount,
 		m.DrawCount,
 		m.FleeCount,
-		m.UserRight,
-		m.MasterRight,
-		m.MasterOrder,
 		m.AllLogonTimes,
 		m.PlayTimeCount,
 		m.OnLineTimeCount,
@@ -177,7 +171,7 @@ func (op *gamescoreinfoOp) Update(m *Gamescoreinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *gamescoreinfoOp) UpdateTx(ext sqlx.Ext, m *Gamescoreinfo) error {
-	sql := `update gamescoreinfo set Score=?,Revenue=?,InsureScore=?,WinCount=?,LostCount=?,DrawCount=?,FleeCount=?,UserRight=?,MasterRight=?,MasterOrder=?,AllLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMachine=?,RegisterIP=?,RegisterMachine=? where UserID=?`
+	sql := `update gamescoreinfo set Score=?,Revenue=?,InsureScore=?,WinCount=?,LostCount=?,DrawCount=?,FleeCount=?,AllLogonTimes=?,PlayTimeCount=?,OnLineTimeCount=?,LastLogonIP=?,LastLogonDate=?,LastLogonMachine=?,RegisterIP=?,RegisterMachine=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.Score,
 		m.Revenue,
@@ -186,9 +180,6 @@ func (op *gamescoreinfoOp) UpdateTx(ext sqlx.Ext, m *Gamescoreinfo) error {
 		m.LostCount,
 		m.DrawCount,
 		m.FleeCount,
-		m.UserRight,
-		m.MasterRight,
-		m.MasterOrder,
 		m.AllLogonTimes,
 		m.PlayTimeCount,
 		m.OnLineTimeCount,

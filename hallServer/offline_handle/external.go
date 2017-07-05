@@ -1,4 +1,4 @@
-package OfflineHandle
+package offline_handle
 
 import (
 	"mj/hallServer/OfflineHandle/internal"
