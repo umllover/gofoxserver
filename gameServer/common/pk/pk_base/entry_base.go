@@ -54,6 +54,11 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
+
+	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
+		r.OnEventGameConclude(0, nil, GER_DISMISS)
+	})
+
 }
 
 func (r *Entry_base) GetRoomId() int {
@@ -152,6 +157,11 @@ func (room *Entry_base) UserReady(args []interface{}) {
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
+
+		room.Status = RoomStatusStarting
+		room.TimerMgr.StartPlayingTimer(room.GetSkeleton(), func() {
+			room.OnEventGameConclude(0, nil, GER_DISMISS)
+		})
 	}
 }
 
@@ -315,7 +325,7 @@ func (r *Entry_base) OpenCard(args []interface{})  {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
 	u := args[1].(*user.User)
 
-	r.DataMgr.OpenCard(u, recvMsg.CardData)
+	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
 	return
 }
 

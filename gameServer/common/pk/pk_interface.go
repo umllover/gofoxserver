@@ -28,7 +28,7 @@ type DataManager interface {
 	// 叫分 加注 亮牌
 	CallScore(u *user.User, scoreTimes int)
 	AddScore(u *user.User, score int)
-	OpenCard(u *user.User, cardData []int)
+	OpenCard(u *user.User, cardType int, cardData []int)
 }
 
 type LogicManager interface {
@@ -37,26 +37,8 @@ type LogicManager interface {
 	GetCardValue(CardData int) int
 	GetCardColor(CardData int) int
 
+	CompareCard(firstCardData []int, lastCardData []int) bool
 
-	/*
-		AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
-		GetCardCount(cbCardIndex []int) int
-		RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
-		RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
-		EstimatePengCard(cbCardIndex []int, cbCurrentCard int) int
-		EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
-		GetUserActionRank(cbUserAction int) int
-		AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, b4HZHu bool) int
-		AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
-		GetUserCards(cbCardIndex []int) (cbCardData []int)
-		SwitchToCardData(cbCardIndex int) int
-		SwitchToCardIndex(cbCardData int) int
-		IsValidCard(card int) bool
-
-		GetMagicIndex() int
-		SetMagicIndex(int)
-
-	*/
 }
 
 ////////////////////////////////////////////

@@ -20,6 +20,7 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_PublicCard{})
 	msg.Processor.Register(&G2C_TBNN_PlayerExit{})
 	msg.Processor.Register(&G2C_TBNN_Open_Card{})
+	msg.Processor.Register(&G2C_TBNN_CalScore{})
 
 	// ----------c2s------------
 	msg.Processor.Register(&C2G_TBNN_CallScore{})
@@ -130,6 +131,12 @@ type G2C_TBNN_GameEnd	struct {
 	MMcbCardData			[][]int     	//用户扑克
 }
 
+// 比牌结果
+type G2C_TBNN_CalScore struct {
+	GameScore 			int 	//得分
+	CardData  			[]int 	//手牌
+}
+
 //发牌数据包
 type G2C_TBNN_SendCard struct {
 	CardData				[]int     	//用户扑克
@@ -158,6 +165,7 @@ type G2C_TBNN_PlayerExit struct {
 //用户摊牌
 type G2C_TBNN_Open_Card struct {
 	ChairID					int			//摊牌用户
+	CardType				int 		//牌型
 	CardData				[]int				//牌数据
 }
 
@@ -186,6 +194,7 @@ type C2G_TBNN_AddScore	struct {
 
 //用户摊牌
 type C2G_TBNN_OpenCard struct {
+	CardType				int 					//牌型
 	CardData				[]int					//用户扑克
 }
 
