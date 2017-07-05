@@ -2,9 +2,9 @@ package mj_base
 
 import (
 	"mj/common/msg"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
-	"mj/gameServer/common/mj"
 )
 
 func IsValidCard(cbCardData int) bool {
@@ -246,8 +246,8 @@ func (lg *BaseLogic) EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int 
 func (lg *BaseLogic) GetCardColor(cbCardData int) int { return cbCardData & MASK_COLOR }
 func (lg *BaseLogic) GetCardValue(cbCardData int) int { return cbCardData & MASK_VALUE }
 
-//吃胡分析
-func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard, ChiHuRight, MaxCount int, b4HZHu bool) int {
+//吃胡分析)
+func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard, ChiHuRight, MaxCount int, b4HZHu bool) (int, []*TagAnalyseItem) {
 	//变量定义
 	cbChiHuKind := int(WIK_NULL)
 	TagAnalyseItemArray := make([]*TagAnalyseItem, 0) //
@@ -258,7 +258,7 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 
 	//cbCurrentCard一定不为0			!!!!!!!!!
 	if cbCurrentCard == 0 {
-		return WIK_NULL
+		return WIK_NULL, nil
 	}
 
 	//插入扑克
@@ -267,7 +267,7 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	}
 
 	if b4HZHu && cbCardIndexTemp[31] == 4 { //四个红中直接胡牌
-		return WIK_CHI_HU
+		return WIK_CHI_HU, nil
 	}
 	//分析扑克
 	_, TagAnalyseItemArray = lg.AnalyseCard(MaxCount, cbCardIndexTemp, WeaveItem, TagAnalyseItemArray)
@@ -283,10 +283,10 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 		cbChiHuKind = WIK_CHI_HU
 	}
 
-	return cbChiHuKind
+	return cbChiHuKind, TagAnalyseItemArray
 }
 
-func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *mj.TagGangCardResult) int {
+func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *TagGangCardResult) int {
 
 	//设置变量
 	cbActionMask := WIK_NULL
@@ -329,7 +329,8 @@ func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cb
 	if (cardCount-2)%3 != 0 {
 		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
 			CurrentCard := lg.SwitchToCardData(i)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, CurrentCard, chr, MaxCount, false) {
+			kind, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, CurrentCard, chr, MaxCount, false)
+			if WIK_CHI_HU == kind {
 				cbHuCardData[count] = CurrentCard
 				count++
 			}
@@ -362,7 +363,8 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 			nCount := 0
 			for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
 				cbCurrentCard := lg.SwitchToCard(j)
-				if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
+				huKind, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false)
+				if WIK_CHI_HU == huKind {
 					if bAdd == false {
 						bAdd = true
 						cbOutCardData[cbOutCount] = lg.SwitchToCard(i)
@@ -385,7 +387,8 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		cbCount := 0
 		for j := 0; j < lg.GetCfg().MaxIdx; j++ {
 			cbCurrentCard := lg.SwitchToCard(j)
-			if WIK_CHI_HU == lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false) {
+			huKind, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard, chr, MaxCount, false)
+			if WIK_CHI_HU == huKind {
 				log.Debug("cbCount === %v", cbHuCardData)
 				if len(cbHuCardData[0]) < 1 {
 					cbHuCardData[0] = make([]int, lg.GetCfg().MaxIdx)

@@ -3,9 +3,9 @@
 	"LogPath": "",
 	"RoomModuleCount": 4,
 	
-	"WSAddr": "192.168.1.81:20002",
-    "HttpAddr":"192.168.1.81:40002",
-    "ListenAddr": "192.168.1.81:32001",
+	"WSAddr": "192.168.1.141:20002",
+    "HttpAddr":"192.168.1.141:40002",
+    "ListenAddr": "192.168.1.141:32002",
 	"MaxConnNum": 20000,
 	
     "BaseDbHost":"192.168.1.33",

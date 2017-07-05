@@ -14,8 +14,10 @@ var once = &sync.Once{}
 var BaseDB *sqlx.DB
 var DB *sqlx.DB
 var StatsDB *sqlx.DB
+var AccountDB *sqlx.DB
 
 type IDBCnf interface {
+	GetAccoutDSN() string
 	GetBaseDSN() string
 	GetUserDSN() string
 	GetStatsDSN() string
@@ -25,6 +27,8 @@ type IDBCnf interface {
 	GetUserDBMaxIdle() int
 	GetStatsDBMaxOpen() int
 	GetStatsDBMaxIdle() int
+	GetAccountDBMaxOpen() int
+	GetAccountDBMaxIdle() int
 }
 
 func InitDB(cnf IDBCnf) {
@@ -32,6 +36,7 @@ func InitDB(cnf IDBCnf) {
 		BaseDB = initSqlxDB(cnf.GetBaseDSN(), "[BASE_DB] -> ", cnf.GetBaseDBMaxOpen(), cnf.GetBaseDBMaxIdle())
 		DB = initSqlxDB(cnf.GetUserDSN(), "[USER DB] -> ", cnf.GetUserDBMaxOpen(), cnf.GetUserDBMaxIdle())
 		StatsDB = initSqlxDB(cnf.GetStatsDSN(), "[STATS_DB] ->", cnf.GetStatsDBMaxOpen(), cnf.GetStatsDBMaxIdle())
+		AccountDB = initSqlxDB(cnf.GetAccoutDSN(), "[STATS_DB] ->", cnf.GetAccountDBMaxOpen(), cnf.GetAccountDBMaxIdle())
 		UpdateDB()
 		log.Debug("Init DB success.")
 	})
