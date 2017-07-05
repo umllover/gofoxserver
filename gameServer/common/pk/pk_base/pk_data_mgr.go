@@ -241,7 +241,7 @@ func (room *RoomData) StartDispatchCard() {
 		userMgr.SetUsetStatus(u, cost.US_PLAYING)
 	})
 
-	gameLogic.RandCardList(room.RepertoryCard, getCardByIdx(room.ConfigIdx))
+	gameLogic.RandCardList(room.RepertoryCard, GetCardByIdx(room.ConfigIdx))
 
 	//分发扑克
 	// 两张公共牌

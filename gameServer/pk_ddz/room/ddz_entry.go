@@ -30,7 +30,10 @@ func (room *DDZ_Entry) CallScore(args []interface{}) {
 
 // 用户出牌
 func (room *DDZ_Entry) OutCard(args []interface{}) {
+	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_OutCard)
+	u := args[1].(*user.User)
 
+	room.DataMgr.OpenCard(u, recvMsg.CardData)
 }
 
 // 托管
@@ -50,6 +53,11 @@ func (room *DDZ_Entry) OnEventGameSceneStatusCall(args []interface{}) {
 
 // 游戏状态
 func (room *DDZ_Entry) OnEventGameSceneStatusPlaying(args []interface{}) {
+
+}
+
+// 明牌
+func (r *DDZ_Entry) ShowCard(args []interface{}) {
 
 }
 
