@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"mj/hallServer/db"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -16,9 +17,10 @@ import (
 
 // +gen *
 type UserDayTimes struct {
-	UserId int   `db:"user_id" json:"user_id"` //
-	KeyId  int   `db:"key_id" json:"key_id"`   //
-	V      int64 `db:"v" json:"v"`             //
+	UserId     int        `db:"user_id" json:"user_id"`         //
+	KeyId      int        `db:"key_id" json:"key_id"`           //
+	V          int64      `db:"v" json:"v"`                     //
+	CreateTime *time.Time `db:"create_time" json:"create_time"` //
 }
 
 type userDayTimesOp struct{}
@@ -114,11 +116,12 @@ func (op *userDayTimesOp) Insert(m *UserDayTimes) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userDayTimesOp) InsertTx(ext sqlx.Ext, m *UserDayTimes) (int64, error) {
-	sql := "insert into user_day_times(user_id,key_id,v) values(?,?,?)"
+	sql := "insert into user_day_times(user_id,key_id,v,create_time) values(?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
 		m.KeyId,
 		m.V,
+		m.CreateTime,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -145,9 +148,10 @@ func (op *userDayTimesOp) Update(m *UserDayTimes) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userDayTimesOp) UpdateTx(ext sqlx.Ext, m *UserDayTimes) error {
-	sql := `update user_day_times set v=? where user_id=? and key_id=?`
+	sql := `update user_day_times set v=?,create_time=? where user_id=? and key_id=?`
 	_, err := ext.Exec(sql,
 		m.V,
+		m.CreateTime,
 		m.UserId,
 		m.KeyId,
 	)

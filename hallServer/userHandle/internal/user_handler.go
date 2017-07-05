@@ -119,7 +119,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	player.Agent = agent
 	AddUser(player.Id, player)
 	agent.SetUserData(player)
-
+	player.LoadTimes()
 	player.HallNodeID = conf.Server.NodeId
 	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
 		"HallNodeID": conf.Server.NodeId,

@@ -6,5 +6,5 @@ import (
 
 var (
 	ChanRPC = internal.ChanRPC
-	Module  = internal.DefaultMachModule
+	Module  = new(internal.TimesModule)
 )

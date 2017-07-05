@@ -12,26 +12,26 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//user_times
+//user_week_times
 //
 
 // +gen *
-type UserTimes struct {
+type UserWeekTimes struct {
 	UserId     int        `db:"user_id" json:"user_id"`         //
 	KeyId      int        `db:"key_id" json:"key_id"`           //
 	V          int64      `db:"v" json:"v"`                     //
 	CreateTime *time.Time `db:"create_time" json:"create_time"` //
 }
 
-type userTimesOp struct{}
+type userWeekTimesOp struct{}
 
-var UserTimesOp = &userTimesOp{}
-var DefaultUserTimes = &UserTimes{}
+var UserWeekTimesOp = &userWeekTimesOp{}
+var DefaultUserWeekTimes = &UserWeekTimes{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userTimesOp) Get(user_id int, key_id int) (*UserTimes, bool) {
-	obj := &UserTimes{}
-	sql := "select * from user_times where user_id=? and key_id=? "
+func (op *userWeekTimesOp) Get(user_id int, key_id int) (*UserWeekTimes, bool) {
+	obj := &UserWeekTimes{}
+	sql := "select * from user_week_times where user_id=? and key_id=? "
 	err := db.DB.Get(obj, sql,
 		user_id,
 		key_id,
@@ -43,9 +43,9 @@ func (op *userTimesOp) Get(user_id int, key_id int) (*UserTimes, bool) {
 	}
 	return obj, true
 }
-func (op *userTimesOp) SelectAll() ([]*UserTimes, error) {
-	objList := []*UserTimes{}
-	sql := "select * from user_times "
+func (op *userWeekTimesOp) SelectAll() ([]*UserWeekTimes, error) {
+	objList := []*UserWeekTimes{}
+	sql := "select * from user_week_times "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -54,11 +54,11 @@ func (op *userTimesOp) SelectAll() ([]*UserTimes, error) {
 	return objList, nil
 }
 
-func (op *userTimesOp) QueryByMap(m map[string]interface{}) ([]*UserTimes, error) {
-	result := []*UserTimes{}
+func (op *userWeekTimesOp) QueryByMap(m map[string]interface{}) ([]*UserWeekTimes, error) {
+	result := []*UserWeekTimes{}
 	var params []interface{}
 
-	sql := "select * from user_times where 1=1 "
+	sql := "select * from user_week_times where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -71,11 +71,11 @@ func (op *userTimesOp) QueryByMap(m map[string]interface{}) ([]*UserTimes, error
 	return result, nil
 }
 
-func (op *userTimesOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*UserTimes, error) {
-	result := []*UserTimes{}
+func (op *userWeekTimesOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*UserWeekTimes, error) {
+	result := []*UserWeekTimes{}
 	var params []interface{}
 
-	sql := "select * from user_times where 1=1 "
+	sql := "select * from user_week_times where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s? ", k)
 		params = append(params, v)
@@ -88,7 +88,7 @@ func (op *userTimesOp) QueryByMapQueryByMapComparison(m map[string]interface{}) 
 	return result, nil
 }
 
-func (op *userTimesOp) GetByMap(m map[string]interface{}) (*UserTimes, error) {
+func (op *userWeekTimesOp) GetByMap(m map[string]interface{}) (*UserWeekTimes, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (op *userTimesOp) GetByMap(m map[string]interface{}) (*UserTimes, error) {
 }
 
 /*
-func (i *UserTimes) Insert() error {
+func (i *UserWeekTimes) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -110,13 +110,13 @@ func (i *UserTimes) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *userTimesOp) Insert(m *UserTimes) (int64, error) {
+func (op *userWeekTimesOp) Insert(m *UserWeekTimes) (int64, error) {
 	return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *userTimesOp) InsertTx(ext sqlx.Ext, m *UserTimes) (int64, error) {
-	sql := "insert into user_times(user_id,key_id,v,create_time) values(?,?,?,?)"
+func (op *userWeekTimesOp) InsertTx(ext sqlx.Ext, m *UserWeekTimes) (int64, error) {
+	sql := "insert into user_week_times(user_id,key_id,v,create_time) values(?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
 		m.KeyId,
@@ -132,7 +132,7 @@ func (op *userTimesOp) InsertTx(ext sqlx.Ext, m *UserTimes) (int64, error) {
 }
 
 /*
-func (i *UserTimes) Update()  error {
+func (i *UserWeekTimes) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -142,13 +142,13 @@ func (i *UserTimes) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *userTimesOp) Update(m *UserTimes) error {
+func (op *userWeekTimesOp) Update(m *UserWeekTimes) error {
 	return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *userTimesOp) UpdateTx(ext sqlx.Ext, m *UserTimes) error {
-	sql := `update user_times set v=?,create_time=? where user_id=? and key_id=?`
+func (op *userWeekTimesOp) UpdateTx(ext sqlx.Ext, m *UserWeekTimes) error {
+	sql := `update user_week_times set v=?,create_time=? where user_id=? and key_id=?`
 	_, err := ext.Exec(sql,
 		m.V,
 		m.CreateTime,
@@ -165,14 +165,14 @@ func (op *userTimesOp) UpdateTx(ext sqlx.Ext, m *UserTimes) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userTimesOp) UpdateWithMap(user_id int, key_id int, m map[string]interface{}) error {
+func (op *userWeekTimesOp) UpdateWithMap(user_id int, key_id int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, user_id, key_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m map[string]interface{}) error {
+func (op *userWeekTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m map[string]interface{}) error {
 
-	sql := `update user_times set %s where 1=1 and user_id=? and key_id=? ;`
+	sql := `update user_week_times set %s where 1=1 and user_id=? and key_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -189,20 +189,20 @@ func (op *userTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m 
 }
 
 /*
-func (i *UserTimes) Delete() error{
+func (i *UserWeekTimes) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *userTimesOp) Delete(user_id int, key_id int) error {
+func (op *userWeekTimesOp) Delete(user_id int, key_id int) error {
 	return op.DeleteTx(db.DB, user_id, key_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
-	sql := `delete from user_times where 1=1
+func (op *userWeekTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
+	sql := `delete from user_week_times where 1=1
         and user_id=?
         and key_id=?
         `
@@ -214,10 +214,10 @@ func (op *userTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
 }
 
 // 返回符合查询条件的记录数
-func (op *userTimesOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *userWeekTimesOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from user_times where 1=1 `
+	sql := `select count(*) from user_week_times where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -231,13 +231,13 @@ func (op *userTimesOp) CountByMap(m map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (op *userTimesOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *userWeekTimesOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *userTimesOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *userWeekTimesOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from user_times where 1=1 "
+	sql := "delete from user_week_times where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
