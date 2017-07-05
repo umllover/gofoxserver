@@ -79,6 +79,16 @@ type C2L_ReqRoomPlayerBrief struct {
 	RoomId int
 }
 
+type C2L_DrawSahreAward struct {
+	ModuleID     int
+	PlazaVersion int
+	DeviceType   int
+	LogonPass    string
+	Accounts     string
+	MachineID    string
+	MobilePhone  string
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {

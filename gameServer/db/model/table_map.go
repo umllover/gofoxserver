@@ -14,6 +14,8 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(RoomRecord{}, "room_record").SetKeys(false,"RoomId")
 	   db.DBMap.AddTableWithName(TokenRecord{}, "token_record").SetKeys(false,"RoomId","UserId")
+	   db.DBMap.AddTableWithName(UserDayTimes{}, "user_day_times").SetKeys(false,"UserId","KeyName")
+	   db.DBMap.AddTableWithName(UserTimes{}, "user_times").SetKeys(false,"UserId","KeyName")
 	   db.DBMap.AddTableWithName(Userattr{}, "userattr").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Userextrainfo{}, "userextrainfo").SetKeys(false,"UserId")
 	   db.DBMap.AddTableWithName(Usertoken{}, "usertoken").SetKeys(false,"UserID")
