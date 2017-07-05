@@ -28,8 +28,8 @@ const (
 	IDX_SUB_SCORE_LZ   = 1 //连庄
 	IDX_SUB_SCORE_HUA  = 2 //花牌
 	IDX_SUB_SCORE_AG   = 3 //暗杠
-	IDX_SUB_SCORE_AK   = 4 //
-	IDX_SUB_SCORE_ZG   = 5 //字牌杠
+	IDX_SUB_SCORE_AK   = 4 //***
+	IDX_SUB_SCORE_ZG   = 5 //***
 	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
 	//胡牌+分
 	IDX_SUB_SCORE_HP   = 7  //平胡
@@ -59,7 +59,7 @@ const (
 
 	IDX_SUB_SCORE_KX    = 28 //空心
 	IDX_SUB_SCORE_JT    = 29 //截头
-	IDX_SUB_SCORE_ZDP   = 30 //庄家点炮
+	IDX_SUB_SCORE_ZDP   = 30 //***
 	IDX_SUB_SCORE_MQBL  = 31 //门清佰六
 	IDX_SUB_SCORE_SANAK = 32 //三暗刻
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
