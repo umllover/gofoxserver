@@ -192,7 +192,7 @@ type L2C_RoomPlayerBrief struct {
 	Players []*PlayerBrief //房间内玩家的简要信息
 }
 
-//下发给呵护短的领取奖励信息
+//登录时下发已领取过的奖励信息
 type L2C_ActivityInfo struct {
 	DayTimes  map[int]int64 //每日次数信息
 	Times     map[int]int64 //永久次数信息
@@ -206,6 +206,7 @@ type L2C_DrawSahreAwardResult struct {
 	RetCode int //领取成功还是失败的结果
 }
 
+//设置推荐人结果
 type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
 }
