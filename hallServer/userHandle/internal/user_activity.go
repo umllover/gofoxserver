@@ -36,12 +36,3 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 	}
 
 }
-
-//发送活动次数信息
-func (m *UserModule) sendActivityInfo(player *user.User) {
-	retMsg := &msg.L2C_ActivityInfo{}
-	retMsg.DayTimes = player.GetDayTimrsAll()
-	retMsg.Times = player.GetTimrsAll()
-	retMsg.WeekTimes = player.GetWeekTimesAll()
-	player.WriteMsg(retMsg)
-}

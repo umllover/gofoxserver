@@ -226,7 +226,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 	}
 
 	player.WriteMsg(retmsg)
-	m.sendActivityInfo(player)
+	player.SendActivityInfo()
 }
 
 func (m *UserModule) UserOffline() {

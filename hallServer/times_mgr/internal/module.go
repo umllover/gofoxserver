@@ -29,7 +29,7 @@ type TimesModule struct {
 
 func (m *TimesModule) OnInit() {
 	m.Skeleton = skeleton
-	corn, err := timer.NewCronExpr("0 0 12 * * -")
+	corn, err := timer.NewCronExpr("0 0 12 * * *")
 	if err != nil {
 		log.Fatal("at TimesModule OnInit NewCronExpr error:%s", err.Error())
 	}
@@ -48,7 +48,7 @@ func (m *TimesModule) OnDestroy() {
 
 func (m *TimesModule) ClearDayTimes() {
 	defer func() {
-		corn, _ := timer.NewCronExpr("0 0 12 * * -")
+		corn, _ := timer.NewCronExpr("0 0 12 * * *")
 		m.Skeleton.CronFunc(corn, m.ClearDayTimes)
 	}()
 	userHandle.ForEachUser(func(u *user.User) {

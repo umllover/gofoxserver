@@ -3,10 +3,10 @@ package user
 import (
 	"fmt"
 	"math"
+	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/db"
 	"mj/hallServer/db/model"
-
 	"time"
 
 	"github.com/lovelly/leaf/log"
@@ -199,6 +199,15 @@ func (u *User) ClearWeekTimes() {
 	u.WeekTimes = make(map[int]int64)
 	u.Unlock()
 	ClearTimes(week_time_table, u.Id)
+}
+
+//发送活动次数信息
+func (u *User) SendActivityInfo() {
+	retMsg := &msg.L2C_ActivityInfo{}
+	retMsg.DayTimes = u.GetDayTimrsAll()
+	retMsg.Times = u.GetTimrsAll()
+	retMsg.WeekTimes = u.GetWeekTimesAll()
+	u.WriteMsg(retMsg)
 }
 
 func updateTimes(table_name string, uid int, k int, v int64) bool {
