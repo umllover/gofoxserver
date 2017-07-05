@@ -956,8 +956,16 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseIte
 				room.HuKindType = append(room.HuKindType, kind)
 			}
 		}
-		//todo,单吊
-		//room.TingCnt
+	}
+	//单吊
+	if room.TingCnt[room.CurrentUser] == 1 {
+		if room.CurrentUser == room.ProvideUser {
+			winScore[IDX_SUB_SCORE_DDPH] = 1
+			room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDPH)
+		} else {
+			winScore[IDX_SUB_SCORE_DDZM] = 1
+			room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDZM)
+		}
 	}
 }
 
@@ -967,6 +975,7 @@ func (room *ZP_RoomData) SpecialCardScore() {
 	if room.ScoreType == GAME_TYPE_33 {
 		winScore[IDX_SUB_SCORE_JT] = 0
 		winScore[IDX_SUB_SCORE_KX] = 0
+		winScore[IDX_SUB_SCORE_DDPH] = 0
 		return
 	}
 
@@ -1005,7 +1014,7 @@ func (room *ZP_RoomData) SpecialCardScore() {
 				winScore[k] = 4
 			case IDX_SUB_SCORE_TH:
 				winScore[k] = 4
-			case IDX_SUB_SCORE_DD:
+			case IDX_SUB_SCORE_DDPH:
 				winScore[k] = 1
 			case IDX_SUB_SCORE_WDD:
 				winScore[k] = 8
@@ -1059,7 +1068,7 @@ func (room *ZP_RoomData) SpecialCardScore() {
 				winScore[k] = 8
 			case IDX_SUB_SCORE_TH:
 				winScore[k] = 8
-			case IDX_SUB_SCORE_DD:
+			case IDX_SUB_SCORE_DDPH:
 				winScore[k] = 0
 			case IDX_SUB_SCORE_WDD:
 				winScore[k] = 8
@@ -1108,8 +1117,11 @@ func (room *ZP_RoomData) SumGameScore() {
 		}
 		//连庄
 		if i == room.BankerUser {
+			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
 			room.SumScore[room.ProvideUser] -= room.LianZhuang
+			room.SumScore[room.BankerUser] += room.LianZhuang
 		} else if room.ProvideUser == room.BankerUser {
+			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
 			room.SumScore[room.ProvideUser] += room.LianZhuang
 			room.SumScore[room.BankerUser] -= room.LianZhuang
 		}
