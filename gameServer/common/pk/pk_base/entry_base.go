@@ -311,11 +311,10 @@ func (r *Entry_base) AddScore(args []interface{}) {
 }
 
 // 亮牌
-func (r *Entry_base) OpenCard(args []interface{})  {
+func (r *Entry_base) OpenCard(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
 	u := args[1].(*user.User)
 
 	r.DataMgr.OpenCard(u, recvMsg.CardData)
 	return
 }
-

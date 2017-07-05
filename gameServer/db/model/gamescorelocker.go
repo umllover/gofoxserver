@@ -75,23 +75,6 @@ func (op *gamescorelockerOp) QueryByMap(m map[string]interface{}) ([]*Gamescorel
 	return result, nil
 }
 
-func (op *gamescorelockerOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Gamescorelocker, error) {
-	result := []*Gamescorelocker{}
-	var params []interface{}
-
-	sql := "select * from gamescorelocker where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *gamescorelockerOp) GetByMap(m map[string]interface{}) (*Gamescorelocker, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

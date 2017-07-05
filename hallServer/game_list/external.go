@@ -1,7 +1,7 @@
-package gameList
+package game_list
 
 import (
-	"mj/hallServer/gameList/internal"
+	"mj/hallServer/game_list/internal"
 
 	"github.com/lovelly/leaf/cluster"
 )

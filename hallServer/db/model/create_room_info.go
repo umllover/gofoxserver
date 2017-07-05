@@ -78,23 +78,6 @@ func (op *createRoomInfoOp) QueryByMap(m map[string]interface{}) ([]*CreateRoomI
 	return result, nil
 }
 
-func (op *createRoomInfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*CreateRoomInfo, error) {
-	result := []*CreateRoomInfo{}
-	var params []interface{}
-
-	sql := "select * from create_room_info where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *createRoomInfoOp) GetByMap(m map[string]interface{}) (*CreateRoomInfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
