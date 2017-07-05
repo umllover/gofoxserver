@@ -34,5 +34,4 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 	case 1:
 		player.AddCurrency(template.Amount)
 	}
-
 }

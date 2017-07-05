@@ -68,23 +68,6 @@ func (op *usertokenOp) QueryByMap(m map[string]interface{}) ([]*Usertoken, error
 	return result, nil
 }
 
-func (op *usertokenOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Usertoken, error) {
-	result := []*Usertoken{}
-	var params []interface{}
-
-	sql := "select * from usertoken where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *usertokenOp) GetByMap(m map[string]interface{}) (*Usertoken, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

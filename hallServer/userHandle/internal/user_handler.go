@@ -45,6 +45,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
 	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
+	handlerC2S(m, &msg.C2L_SetElect{}, m.SetElect)
 }
 
 //连接进来的通知

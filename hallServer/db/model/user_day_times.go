@@ -71,23 +71,6 @@ func (op *userDayTimesOp) QueryByMap(m map[string]interface{}) ([]*UserDayTimes,
 	return result, nil
 }
 
-func (op *userDayTimesOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*UserDayTimes, error) {
-	result := []*UserDayTimes{}
-	var params []interface{}
-
-	sql := "select * from user_day_times where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *userDayTimesOp) GetByMap(m map[string]interface{}) (*UserDayTimes, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

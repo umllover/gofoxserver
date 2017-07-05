@@ -71,23 +71,6 @@ func (op *userWeekTimesOp) QueryByMap(m map[string]interface{}) ([]*UserWeekTime
 	return result, nil
 }
 
-func (op *userWeekTimesOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*UserWeekTimes, error) {
-	result := []*UserWeekTimes{}
-	var params []interface{}
-
-	sql := "select * from user_week_times where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *userWeekTimesOp) GetByMap(m map[string]interface{}) (*UserWeekTimes, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

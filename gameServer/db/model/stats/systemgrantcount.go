@@ -73,23 +73,6 @@ func (op *systemgrantcountOp) QueryByMap(m map[string]interface{}) ([]*Systemgra
 	return result, nil
 }
 
-func (op *systemgrantcountOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Systemgrantcount, error) {
-	result := []*Systemgrantcount{}
-	var params []interface{}
-
-	sql := "select * from systemgrantcount where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.StatsDB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *systemgrantcountOp) GetByMap(m map[string]interface{}) (*Systemgrantcount, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
