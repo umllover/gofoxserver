@@ -100,7 +100,7 @@ type G2C_ZPMJ_GameConclude struct {
 	ChiHuRight   []int       //胡牌类型
 	LeftUser     int         //玩家逃跑
 	LianZhuang   int         //连庄
-	ScoreKind    [][35]int   //得分类型
+	ScoreKind    [35]int     //得分类型
 	ZhuaHua      [16]HuaUser //用户抓花
 	//type HuaUser struct {
 	//	chairID int
