@@ -33,7 +33,7 @@ type DataManager interface {
 	// 明牌
 	ShowCard(u *user.User)
 	// 托管
-	Trustee(u *user.User, trustee bool)
+	Trustee(u *user.User)
 }
 
 type LogicManager interface {
