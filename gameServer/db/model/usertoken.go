@@ -1,12 +1,11 @@
 package model
 
-import (
-	"errors"
-	"fmt"
-	"mj/gameServer/db"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/lovelly/leaf/log"
+import(
+    "mj/gameServer/db"
+    "github.com/lovelly/leaf/log"
+    "github.com/jmoiron/sqlx"
+    "fmt"
+    "strings"
 )
 
 //This file is generate by scripts,don't edit it
@@ -16,31 +15,30 @@ import (
 
 // +gen *
 type Usertoken struct {
-	UserID   int `db:"UserID" json:"UserID"`     //
-	Currency int `db:"Currency" json:"Currency"` // 游戏豆
-	RoomCard int `db:"RoomCard" json:"RoomCard"` // 房卡数
-}
+    UserID int `db:"UserID" json:"UserID"` // 
+    Currency int `db:"Currency" json:"Currency"` // 游戏豆
+    RoomCard int `db:"RoomCard" json:"RoomCard"` // 房卡数
+    }
 
 type usertokenOp struct{}
 
 var UsertokenOp = &usertokenOp{}
 var DefaultUsertoken = &Usertoken{}
-
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
 func (op *usertokenOp) Get(UserID int) (*Usertoken, bool) {
-	obj := &Usertoken{}
-	sql := "select * from usertoken where UserID=? "
-	err := db.DB.Get(obj, sql,
-		UserID,
-	)
-
-	if err != nil {
-		log.Error("Get data error:%v", err.Error())
-		return nil, false
-	}
-	return obj, true
-}
-func (op *usertokenOp) SelectAll() ([]*Usertoken, error) {
+    obj := &Usertoken{}
+    sql := "select * from usertoken where UserID=? "
+    err := db.DB.Get(obj, sql, 
+        UserID,
+        )
+    
+    if err != nil{
+        log.Error("Get data error:%v", err.Error())
+        return nil,false
+    }
+    return obj, true
+} 
+func(op *usertokenOp) SelectAll() ([]*Usertoken, error) {
 	objList := []*Usertoken{}
 	sql := "select * from usertoken "
 	err := db.DB.Select(&objList, sql)
@@ -51,15 +49,15 @@ func (op *usertokenOp) SelectAll() ([]*Usertoken, error) {
 	return objList, nil
 }
 
-func (op *usertokenOp) QueryByMap(m map[string]interface{}) ([]*Usertoken, error) {
+func(op *usertokenOp) QueryByMap(m map[string]interface{}) ([]*Usertoken, error) {
 	result := []*Usertoken{}
-	var params []interface{}
+    var params []interface{}
 
 	sql := "select * from usertoken where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s=? ", k)
-		params = append(params, v)
-	}
+    for k, v := range m{
+        sql += fmt.Sprintf(" and %s=? ", k)
+        params = append(params, v)
+    }
 	err := db.DB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
@@ -68,15 +66,16 @@ func (op *usertokenOp) QueryByMap(m map[string]interface{}) ([]*Usertoken, error
 	return result, nil
 }
 
-func (op *usertokenOp) GetByMap(m map[string]interface{}) (*Usertoken, error) {
-	lst, err := op.QueryByMap(m)
-	if err != nil {
-		return nil, err
-	}
-	if len(lst) > 0 {
-		return lst[0], nil
-	}
-	return nil, errors.New("no row in result")
+
+func(op *usertokenOp) GetByMap(m map[string]interface{}) (*Usertoken, error) {
+    lst, err := op.QueryByMap(m)
+    if err != nil {
+        return nil, err
+    }
+    if len(lst) > 0 {
+        return lst[0], nil
+    }
+    return nil, errors.New("no row in result")
 }
 
 /*
@@ -91,24 +90,24 @@ func (i *Usertoken) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *usertokenOp) Insert(m *Usertoken) (int64, error) {
-	return op.InsertTx(db.DB, m)
+    return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
 func (op *usertokenOp) InsertTx(ext sqlx.Ext, m *Usertoken) (int64, error) {
-	sql := "insert into usertoken(UserID,Currency,RoomCard) values(?,?,?)"
-	result, err := ext.Exec(sql,
-		m.UserID,
-		m.Currency,
-		m.RoomCard,
-	)
-	if err != nil {
-		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
-		return -1, err
-	}
-	affected, _ := result.LastInsertId()
-	return affected, nil
-}
+    sql := "insert into usertoken(UserID,Currency,RoomCard) values(?,?,?)"
+    result, err := ext.Exec(sql,
+    m.UserID,
+        m.Currency,
+        m.RoomCard,
+        )
+    if err != nil{
+        log.Error("InsertTx sql error:%v, data:%v", err.Error(),m)
+        return -1, err
+    }
+    affected, _ := result.LastInsertId()
+        return affected, nil
+    }
 
 /*
 func (i *Usertoken) Update()  error {
@@ -121,49 +120,49 @@ func (i *Usertoken) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *usertokenOp) Update(m *Usertoken) error {
-	return op.UpdateTx(db.DB, m)
+func (op *usertokenOp) Update(m *Usertoken) (error) {
+    return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *usertokenOp) UpdateTx(ext sqlx.Ext, m *Usertoken) error {
-	sql := `update usertoken set Currency=?,RoomCard=? where UserID=?`
-	_, err := ext.Exec(sql,
-		m.Currency,
-		m.RoomCard,
-		m.UserID,
-	)
+func (op *usertokenOp) UpdateTx(ext sqlx.Ext, m *Usertoken) (error) {
+    sql := `update usertoken set Currency=?,RoomCard=? where UserID=?`
+    _, err := ext.Exec(sql,
+    m.Currency,
+        m.RoomCard,
+        m.UserID,
+        )
 
-	if err != nil {
-		log.Error("update sql error:%v, data:%v", err.Error(), m)
-		return err
-	}
+    if err != nil{
+		log.Error("update sql error:%v, data:%v", err.Error(),m)
+        return err
+    }
 
-	return nil
+    return nil
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *usertokenOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, UserID, m)
+func (op *usertokenOp) UpdateWithMap(UserID int, m map[string]interface{}) (error) {
+    return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *usertokenOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+func (op *usertokenOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) (error) {
 
-	sql := `update usertoken set %s where 1=1 and UserID=? ;`
+    sql := `update usertoken set %s where 1=1 and UserID=? ;`
 
-	var params []interface{}
-	var set_sql string
-	for k, v := range m {
+    var params []interface{}
+    var set_sql string
+    for k, v := range m{
 		if set_sql != "" {
 			set_sql += ","
 		}
-		set_sql += fmt.Sprintf(" %s=? ", k)
-		params = append(params, v)
-	}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
 	params = append(params, UserID)
-	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
-	return err
+    _, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
+    return err
 }
 
 /*
@@ -174,53 +173,54 @@ func (i *Usertoken) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *usertokenOp) Delete(UserID int) error {
-	return op.DeleteTx(db.DB, UserID)
+func (op *usertokenOp) Delete(UserID int) error{
+    return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *usertokenOp) DeleteTx(ext sqlx.Ext, UserID int) error {
-	sql := `delete from usertoken where 1=1
+func (op *usertokenOp) DeleteTx(ext sqlx.Ext, UserID int) error{
+    sql := `delete from usertoken where 1=1
         and UserID=?
         `
-	_, err := ext.Exec(sql,
-		UserID,
-	)
-	return err
+    _, err := ext.Exec(sql, 
+        UserID,
+        )
+    return err
 }
 
 // 返回符合查询条件的记录数
 func (op *usertokenOp) CountByMap(m map[string]interface{}) (int64, error) {
 
-	var params []interface{}
-	sql := `select count(*) from usertoken where 1=1 `
-	for k, v := range m {
-		sql += fmt.Sprintf(" and  %s=? ", k)
-		params = append(params, v)
-	}
-	count := int64(-1)
-	err := db.DB.Get(&count, sql, params...)
-	if err != nil {
-		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
-		return 0, err
-	}
-	return count, nil
+    var params []interface{}
+    sql := `select count(*) from usertoken where 1=1 `
+    for k, v := range m{
+        sql += fmt.Sprintf(" and  %s=? ",k)
+        params = append(params, v)
+    }
+    count := int64(-1)
+    err := db.DB.Get(&count, sql, params...)
+    if err != nil {
+        log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0,err
+    }
+    return count, nil
 }
 
-func (op *usertokenOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *usertokenOp) DeleteByMap(m map[string]interface{})(int64, error){
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *usertokenOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *usertokenOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){
 	var params []interface{}
 	sql := "delete from usertoken where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
 	}
-	result, err := ext.Exec(sql, params...)
-	if err != nil {
-		return -1, err
-	}
-	return result.RowsAffected()
+	result, err := ext.Exec(sql, params...) 
+    if err != nil {
+        return -1, err
+    }
+    return result.RowsAffected()
 }
+
