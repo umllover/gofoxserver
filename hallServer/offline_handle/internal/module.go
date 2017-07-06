@@ -9,7 +9,7 @@ import (
 
 	"mj/common/msg"
 
-	"mj/hallServer/gameList"
+	"mj/hallServer/game_list"
 
 	"sort"
 

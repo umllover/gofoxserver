@@ -1,7 +1,7 @@
-package raceMsg
+package race_msg
 
 import (
-	"mj/hallServer/raceMsg/internal"
+	"mj/hallServer/race_msg/internal"
 )
 
 var (

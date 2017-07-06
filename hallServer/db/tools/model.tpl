@@ -85,23 +85,6 @@ func(op *{{op_struct_name}}) QueryByMap(m map[string]interface{}) ([]*{{struct_n
 	return result, nil
 }
 
-func(op *{{op_struct_name}}) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*{{struct_name}}, error) {
-    result := []*{{struct_name}}{}
-    var params []interface{}
-
-    sql := "select * from {{table_name}} where 1=1 "
-    for k, v := range m{
-        sql += fmt.Sprintf(" and %s? ", k)
-        params = append(params, v)
-    }
-    err := db.{{db_sel}}.Select(&result, sql, params...)
-    if err != nil {
-        log.Error(err.Error())
-        return nil, err
-    }
-    return result, nil
-}
-
 func(op *{{op_struct_name}}) GetByMap(m map[string]interface{}) (*{{struct_name}}, error) {
     lst, err := op.QueryByMap(m)
     if err != nil {

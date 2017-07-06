@@ -75,23 +75,6 @@ func (op *tokenRecordOp) QueryByMap(m map[string]interface{}) ([]*TokenRecord, e
 	return result, nil
 }
 
-func (op *tokenRecordOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*TokenRecord, error) {
-	result := []*TokenRecord{}
-	var params []interface{}
-
-	sql := "select * from token_record where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *tokenRecordOp) GetByMap(m map[string]interface{}) (*TokenRecord, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

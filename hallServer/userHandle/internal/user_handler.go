@@ -8,7 +8,7 @@ import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
-	"mj/hallServer/gameList"
+	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
 	"reflect"
@@ -45,6 +45,7 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
 	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
+	handlerC2S(m, &msg.C2L_SetElect{}, m.SetElect)
 }
 
 //连接进来的通知
@@ -125,7 +126,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		"HallNodeID": conf.Server.NodeId,
 	})
 	BuildClientMsg(retMsg, player, accountData)
-	gameList.ChanRPC.Go("sendGameList", agent)
+	game_list.ChanRPC.Go("sendGameList", agent)
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -264,7 +265,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	host, nodeId := gameList.GetSvrByKind(recvMsg.Kind)
+	host, nodeId := game_list.GetSvrByKind(recvMsg.Kind)
 	if host == "" {
 		retCode = ErrNotFoudServer
 		return
@@ -356,7 +357,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	host := gameList.GetSvrByNodeID(roomInfo.NodeID)
+	host := game_list.GetSvrByNodeID(roomInfo.NodeID)
 	if host == "" {
 		retcode = ErrNotFoudServer
 		return
@@ -412,7 +413,7 @@ func (m *UserModule) GetRoomPlayerBreif(args []interface{}) {
 	if r == nil {
 		u.WriteMsg(&msg.L2C_RoomPlayerBrief{})
 	} else {
-		gameList.ChanRPC.Go("SendPlayerBrief", recvMsg.RoomId, u)
+		game_list.ChanRPC.Go("SendPlayerBrief", recvMsg.RoomId, u)
 	}
 }
 

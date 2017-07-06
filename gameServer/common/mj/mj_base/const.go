@@ -25,6 +25,7 @@ const (
 	LimitChiHu = 1      //禁止吃胡
 	LimitPeng  = 1 << 1 //禁止碰
 	LimitGang  = 1 << 2 //禁止杠牌
+	LimitChi   = 1 << 3 //禁止吃牌
 )
 
 //发牌状态

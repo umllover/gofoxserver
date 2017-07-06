@@ -71,23 +71,6 @@ func (op *roomRecordOp) QueryByMap(m map[string]interface{}) ([]*RoomRecord, err
 	return result, nil
 }
 
-func (op *roomRecordOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*RoomRecord, error) {
-	result := []*RoomRecord{}
-	var params []interface{}
-
-	sql := "select * from room_record where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *roomRecordOp) GetByMap(m map[string]interface{}) (*RoomRecord, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

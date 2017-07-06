@@ -66,23 +66,6 @@ func (op *versionLockerOp) QueryByMap(m map[string]interface{}) ([]*VersionLocke
 	return result, nil
 }
 
-func (op *versionLockerOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*VersionLocker, error) {
-	result := []*VersionLocker{}
-	var params []interface{}
-
-	sql := "select * from version_locker where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.StatsDB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *versionLockerOp) GetByMap(m map[string]interface{}) (*VersionLocker, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
