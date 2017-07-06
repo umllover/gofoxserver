@@ -1792,7 +1792,7 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 			continue
 		} else {
 			if room.CurrentUser == pAnalyseItem.CardData[k][1] {
-				return CHR_KONG_XIN
+				//return CHR_KONG_XIN
 			}
 		}
 	}

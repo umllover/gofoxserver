@@ -2,7 +2,7 @@ package room
 
 import "mj/gameServer/common/pk/pk_base"
 
-func NewNNTBZLogic(ConfigIdx int) *sss_logic {
+func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	return l

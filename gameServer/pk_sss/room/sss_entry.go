@@ -7,7 +7,6 @@ import (
 
 func NewSSSEntry(info *model.CreateRoomInfo) *SSS_Entry {
 	e := new(SSS_Entry)
-	return e
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e
 }

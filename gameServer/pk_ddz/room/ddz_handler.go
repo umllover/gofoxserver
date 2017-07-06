@@ -9,5 +9,5 @@ func RegisterHandler(r *DDZ_Entry) {
 	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
 	r.GetChanRPC().Register("userOffline", r.UserOffline)
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
-
+	r.GetChanRPC().Register("ShowCard", r.ShowCard)
 }

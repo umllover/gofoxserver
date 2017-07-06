@@ -61,6 +61,10 @@ type G2C_DDZ_StatusCall struct {
 	// 历史积分
 	TurnScore    []int // 积分信息
 	CollectScore []int // 积分信息
+
+	// 明牌
+	ShowCardSign map[int]bool  // 明牌标识
+	ShowCardData map[int][]int // 明牌数据
 }
 
 //游戏状态
@@ -79,7 +83,7 @@ type G2C_DDZ_StatusPlay struct {
 	BankerScore int //庄家叫分
 
 	//出牌信息
-	TurnWiner     int   //胜利玩家
+	TurnWiner     int   //出牌玩家
 	TurnCardCount int   //出牌数目
 	TurnCardData  []int //出牌数据
 
@@ -91,6 +95,10 @@ type G2C_DDZ_StatusPlay struct {
 	//历史积分
 	TurnScore    []int //积分信息
 	CollectScore []int //积分信息
+
+	// 明牌
+	ShowCardSign map[int]bool  // 明牌标识
+	ShowCardData map[int][]int // 明牌数据
 }
 
 //发送扑克
@@ -172,6 +180,12 @@ type G2C_DDZ_GameConclude struct {
 type G2C_DDZ_TRUSTEE struct {
 	TrusteeUser int //托管玩家
 	Trustee     int //托管标志
+}
+
+// 用户明牌
+type G2C_DDZ_ShowCard struct {
+	ShowCardUser int   // 明牌用户
+	CardData     []int // 明牌数据
 }
 
 //////////////////////////////////////////////////////////////////////////////////

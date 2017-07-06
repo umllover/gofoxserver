@@ -36,11 +36,11 @@ type ZP_RoomData struct {
 	HuKindType   []int       //胡牌类型
 	TingCnt      [4]int      //听牌个数
 
-	ZhuaHuaMap      [16]*mj_zp_msg.HuaUser //插花数据
-	HuKindScore     [COUNT_KIND_SCORE]int  //特殊胡牌分
-	ZhuaHuaScore    int                    //插花得分
-	FollowCardScore []int                  //跟牌得分
-	SumScore        [4]int                 //游戏总分
+	ZhuaHuaMap      [16]*mj_zp_msg.HuaUser   //插花数据
+	HuKindScore     [4][COUNT_KIND_SCORE]int //特殊胡牌分
+	ZhuaHuaScore    int                      //插花得分
+	FollowCardScore []int                    //跟牌得分
+	SumScore        [4]int                   //游戏总分
 }
 
 func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
@@ -121,13 +121,10 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.FollowCardScore = room.FollowCardScore[0:0]
 	room.LianZhuang = 0
 	room.ZhuaHuaScore = 0
-	room.HuKindScore = [COUNT_KIND_SCORE]int{}
 	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
-	room.BanCardCnt[0] = [9]int{}
-	room.BanCardCnt[1] = [9]int{}
-	room.BanCardCnt[2] = [9]int{}
-	room.BanCardCnt[3] = [9]int{}
+	room.BanCardCnt = [4][9]int{}
+	room.HuKindScore = [4][COUNT_KIND_SCORE]int{}
 	room.BanUser = [4]int{}
 }
 
@@ -522,7 +519,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 				}
 			}
 			//抢杠胡特殊分
-			room.HuKindScore[IDX_SUB_SCORE_QGH] = 3
+			room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 		}
 
 		//结果判断
@@ -751,7 +748,7 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	//放弃操作
 	if OperateCode == WIK_NULL {
 		//抢杠胡分
-		room.HuKindScore[IDX_SUB_SCORE_QGH] = 0
+		room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 0
 		////禁止这轮吃胡
 		if room.HasOperator(u.ChairId, WIK_CHI_HU) {
 			u.UserLimit |= LimitChiHu
@@ -814,8 +811,8 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 	room.ProvideCard = room.SendCardData
 
 	//特殊胡牌算分
-	room.SpecialCardKind(TagAnalyseItem)
-	room.SpecialCardScore()
+	room.SpecialCardKind(TagAnalyseItem, u.ChairId)
+	room.SpecialCardScore(u.ChairId)
 	return
 }
 
@@ -835,8 +832,8 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 		room.ChiHuKind[wChiHuUser] = chihuKind
 
 		//特殊胡牌算分
-		room.SpecialCardKind(TagAnalyseItem)
-		room.SpecialCardScore()
+		room.SpecialCardKind(TagAnalyseItem, wChiHuUser)
+		room.SpecialCardScore(wChiHuUser)
 
 		//插入扑克
 		if room.ChiHuKind[wChiHuUser] != WIK_NULL {
@@ -846,8 +843,8 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 }
 
 //特殊胡牌类型及算分
-func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseItem) {
-	winScore := room.HuKindScore
+func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseItem, HuUserID int) {
+	winScore := room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
 		kind := 0
 
@@ -990,8 +987,8 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseIte
 }
 
 //特殊胡牌算分规则
-func (room *ZP_RoomData) SpecialCardScore() {
-	winScore := room.HuKindScore
+func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
+	winScore := room.HuKindScore[HuUserID]
 	if room.ScoreType == GAME_TYPE_33 {
 		winScore[IDX_SUB_SCORE_JT] = 0
 		winScore[IDX_SUB_SCORE_KX] = 0
@@ -1114,15 +1111,22 @@ func (room *ZP_RoomData) SpecialCardScore() {
 }
 
 //总得分计算
-func (room *ZP_RoomData) SumGameScore() {
-	for i := 0; i < 4; i++ {
-		playerScore := room.HuKindScore
+func (room *ZP_RoomData) SumGameScore(WinUser []int) {
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	for i := 0; i < UserCnt; i++ {
+		playerScore := room.HuKindScore[i]
 
 		//暗杠
 		playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
 		room.SumScore[i] += playerScore[IDX_SUB_SCORE_AG]
 
-		if i == room.CurrentUser {
+		var j int
+		for j = 0; j < len(WinUser); j++ {
+			if WinUser[j] == i {
+				break
+			}
+		}
+		if j == len(WinUser) {
 			continue
 		}
 
@@ -1260,12 +1264,12 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 	for i := 0; i < UserCnt; i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%UserCnt] {
 			WinUser[WinCount] = (room.BankerUser + i) % UserCnt
+			room.SpecialCardScore(WinUser[WinCount])
 			WinCount++
 		}
 	}
 
 	if WinCount > 0 {
-		//todo,游戏算分
 
 		//插花
 		tempZhuaHuaCnt := room.ZhuaHuaCnt
@@ -1314,29 +1318,6 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		}
 		room.ZhuaHuaCnt = tempZhuaHuaCnt
 
-		////todo,
-		////有人胡牌
-		//bZiMo := room.ProvideUser == WinUser[0]
-		//if bZiMo {
-		//	for i := 0; i < UserCnt; i++ {
-		//
-		//		if i != WinUser[0] {
-		//			EndScore[i] -= CellScore
-		//			EndScore[WinUser[0]] += CellScore
-		//		}
-		//	}
-		//} else {
-		//	//抢杠
-		//	for i := 0; i < WinCount; i++ {
-		//		for j := 0; j < UserCnt; j++ {
-		//			if j != WinUser[i] {
-		//				EndScore[WinUser[i]] += CellScore
-		//			}
-		//		}
-		//		EndScore[room.ProvideUser] -= EndScore[WinUser[i]]
-		//	}
-		//}
-
 		//连庄次数
 		if room.CurrentUser == room.BankerUser {
 			room.LianZhuang = 1
@@ -1365,6 +1346,8 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 	} else { //荒庄
 		room.BankerUser = room.LastCatchCardUser //最后一个摸牌的人当庄
 	}
+
+	room.SumGameScore(WinUser)
 }
 
 //暗杠计分

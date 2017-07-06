@@ -11,7 +11,7 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_StatusCall{})
 	msg.Processor.Register(&G2C_TBNN_StatusScore{})
 	msg.Processor.Register(&G2C_TBNN_StatusPlay{})
-	msg.Processor.Register(&G2C_TBNN_CallBanker{})
+	msg.Processor.Register(&G2C_TBNN_CallScoreEnd{})
 	msg.Processor.Register(&G2C_TBNN_GameStart{})
 	msg.Processor.Register(&G2C_TBNN_GameEnd{})
 	msg.Processor.Register(&G2C_TBNN_AddScore{})
@@ -20,6 +20,8 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_PublicCard{})
 	msg.Processor.Register(&G2C_TBNN_PlayerExit{})
 	msg.Processor.Register(&G2C_TBNN_Open_Card{})
+	msg.Processor.Register(&G2C_TBNN_CalScore{})
+	msg.Processor.Register(&G2C_TBNN_CallScore{})
 
 	// ----------c2s------------
 	msg.Processor.Register(&C2G_TBNN_CallScore{})
@@ -101,9 +103,10 @@ type G2C_TBNN_StatusPlay struct {
 	EachRoundScore			[][]int			//房间每局游戏比分
 }
 
-type G2C_TBNN_CallBanker struct {
-	CallBanker				int			//叫庄用户
-	ScoreTimes				int			//倍数
+//叫分结果
+type G2C_TBNN_CallScoreEnd struct {
+	Banker     int //庄家用户
+	ScoreTimes int //倍数
 }
 
 //游戏开始
@@ -115,8 +118,9 @@ type G2C_TBNN_GameStart struct {
 	BankerUser				int				//庄家用户
 }
 
-//用户下注
+//广播用户下注
 type G2C_TBNN_AddScore struct {
+	ChairID 				int
 	AddScoreCount			int				//加注数目
 }
 
@@ -128,6 +132,12 @@ type G2C_TBNN_GameEnd	struct {
 	CardData				[]int			//用户扑克
 	AllbCardValue			[]int
 	MMcbCardData			[][]int     	//用户扑克
+}
+
+// 比牌结果
+type G2C_TBNN_CalScore struct {
+	GameScore 			int 	//得分
+	CardData  			[]int 	//手牌
 }
 
 //发牌数据包
@@ -158,7 +168,14 @@ type G2C_TBNN_PlayerExit struct {
 //用户摊牌
 type G2C_TBNN_Open_Card struct {
 	ChairID					int			//摊牌用户
+	CardType				int 		//牌型
 	CardData				[]int				//牌数据
+}
+
+//广播用户叫分
+type G2C_TBNN_CallScore struct {
+	ChairID					int 		//叫分用户
+	CallScore				int 		//叫分数目
 }
 
 
@@ -186,6 +203,7 @@ type C2G_TBNN_AddScore	struct {
 
 //用户摊牌
 type C2G_TBNN_OpenCard struct {
+	CardType				int 					//牌型
 	CardData				[]int					//用户扑克
 }
 
