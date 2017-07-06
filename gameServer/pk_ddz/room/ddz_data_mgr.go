@@ -1,14 +1,14 @@
 package room
 
 import (
-	"mj/common/cost"
-	"mj/common/msg/pk_ddz_msg"
+	//"mj/common/cost"
+	//"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/user"
+	//"mj/gameServer/user"
 
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/util"
+	//"github.com/lovelly/leaf/log"
+	//"github.com/lovelly/leaf/util"
 )
 
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
@@ -48,7 +48,7 @@ type ddz_data_mgr struct {
 	HandCardData  [][]int      // 手上扑克
 	ShowCardSign  map[int]bool // 用户明牌标识
 }
-
+/*
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	room.CardData = make([][]int, UserCnt)
@@ -335,4 +335,4 @@ func (r *ddz_data_mgr) NormalEnd() {
 func (r *ddz_data_mgr) DismissEnd() {
 
 }
-
+*/
