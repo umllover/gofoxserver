@@ -1,13 +1,17 @@
 {
 	"LogLevel": "debug",
 	"LogPath": "",
-	"RoomModuleCount": 4,
 	
-	"WSAddr": "192.168.1.141:20002",
-    "HttpAddr":"192.168.1.141:40002",
-    "ListenAddr": "192.168.1.141:32002",
+	"WSAddr": "192.168.1.88:20002",
+    "HttpAddr":"192.168.1.88:40002",
+    "ListenAddr": "192.168.1.88:32002",
 	"MaxConnNum": 20000,
-	
+
+    "AccountDbHost":"192.168.1.33",
+    "AccountDbPort":3306,
+    "AccountDbName":"mqjx_auth",
+    "AccountDbUsername":"root",
+    "AccountDbPassword":"hfwl@2017",
     "BaseDbHost":"192.168.1.33",
     "BaseDbPort":3306,
     "BaseDbName":"mqjx_base",
@@ -26,7 +30,7 @@
 
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
-    "ValidKind":"389,28,391",
+    "ValidKind":"391",
     "PrivatePort":7002,
-    "NodeId": 1
+    "NodeId": 3
 }
