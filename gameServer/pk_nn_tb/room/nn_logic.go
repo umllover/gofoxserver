@@ -18,6 +18,7 @@ const (
     OX_FIVE_KING  =   107								//五花：五张牌都是KQJ；（5倍）
     OX_FIVE_CALVES  =   108								//五小牛：5张牌都小于5点且加起来不超过10；（5倍）
 	// 牛一到牛牛 ： 1 - 10
+	OX_NiuNiu  		= 10
 )
 
 
@@ -137,6 +138,29 @@ func (lg *nntb_logic) IsHuLu(cardData []int) bool {
 	if len(cardData)!=5 {
 		return false
 	}
+	//先选两张对子
+	for i:=0;i<5;i++ {
+		for j:=0;j<5;j++ {
+			if j==i {
+				continue
+			}
+			if lg.GetCardValue(cardData[i]) == lg.GetCardValue(cardData[j]) { // 对子
+				// 再选三张
+				tempCardData := make([]int, 3)
+				indexTemp := 0
+				for k:=0;k<5;k++ {
+					if k==i || k==j {
+						continue
+					}
+					tempCardData[indexTemp] = cardData[k]
+					indexTemp++
+				}
+				if lg.IsAllCardValueSame(tempCardData) {
+					return true
+				}
+			}
+		}
+	}
 	return false
 }
 
@@ -188,6 +212,21 @@ func (lg *nntb_logic) IsSanTiao(cardData []int) bool {
 	return false
 }
 
+// 牛牛
+func (lg *nntb_logic) IsNiuNiu(cardData []int) bool {
+	if len(cardData) != 5{
+		return false
+	}
+	sum := 0
+	for i:=0;i<5;i++ {
+		sum += lg.GetCardValue(cardData[i])
+	}
+	if sum%10 == 0 {
+		return true
+	}
+	return false
+}
+
 func (lg *nntb_logic) GetCardType(CardData []int) int {
 
 	CardCount := len(CardData)
@@ -211,7 +250,9 @@ func (lg *nntb_logic) GetCardType(CardData []int) int {
 		return OX_FOUR_SAME
 	}
 
-	// 这里差一个葫芦
+	if lg.IsHuLu(CardData) {
+		return OX_THREE_SAME_TWAIN
+	}
 
 	if lg.IsTongHua(CardData) {
 		return OX_FIVE_SAME_FLOWER
@@ -225,45 +266,40 @@ func (lg *nntb_logic) GetCardType(CardData []int) int {
 		return OX_THREE_SAME
 	}
 
-	Temp := make([]int, lg.GetCfg().MaxCount)
-	Sum := 0
-	for i := 0; i < CardCount; i++ {
-		Temp[i] = lg.GetCardLogicValue(CardData[i])
-		log.Debug("%d", Temp[i])
-		Sum += Temp[i]
+	if lg.IsNiuNiu(CardData) {
+		return OX_NiuNiu
 	}
-	log.Debug("%d", Sum)
-
-	//王的数量
-	KingCount := 0
-	TenCount := 0
-
-	for i := 0; i < CardCount; i++ {
-		if lg.GetCardValue(CardData[i]) > 10 && CardData[i] != 0x4E && CardData[i] != 0x4F {
-			KingCount++
-		} else if lg.GetCardValue(CardData[i]) == 10 {
-			TenCount++
+	//普通牌型 选3张 有牛
+	for i:=0;i<5;i++ {
+		for j:=0;j<5;j++ {
+			if j==i {
+				continue
+			}
+			for k:=0;k<5;k++ {
+				if k==i || k==j {
+					continue
+				}
+				if (lg.GetCardValue(CardData[i]) +
+					lg.GetCardValue(CardData[j]) +
+					lg.GetCardValue(CardData[k])) % 10 ==0 {
+					// 有牛 再选两张
+					sum := 0
+					for n:=0;n<5;n++ {
+						if n==i || n==j || n==k {
+							continue
+						}
+						sum += lg.GetCardValue(CardData[n])
+					}
+					return sum%10
+				}
+			}
 		}
 	}
-
-	if KingCount == lg.GetCfg().MaxCount {
-		return OX_FIVE_KING   //五花――5张牌都是10以上（不含10）的牌。。
-	}
-
-	Value := lg.GetCardLogicValue(CardData[3])
-	Value += lg.GetCardLogicValue(CardData[4])
-
-	if Value > 10 {
-		if CardData[3] == 0x4E || CardData[4] == 0x4F || CardData[4] == 0x4E || CardData[3] == 0x4F {
-			Value = 10
-		} else {
-			Value -= 10 //2.3
-		}
-
-	}
-
-	return Value //OX_VALUE0
+	return OX_VALUE0
 }
+
+
+
 
 //获取牛牛倍数
 func (lg *nntb_logic) NNGetTimes(cardData []int, cardCount int, niu int) int {
@@ -399,151 +435,25 @@ func (lg *nntb_logic) NNIsIntValue(cardData []int, cardCount int) bool {
 
 // 牛牛比牌
 func (lg *nntb_logic) CompareCard(firstData []int, nextData []int)  bool {
-	/*
-	if firstOX != nextOX {
-		if firstOX {
-			return true
-		} else {
-			return false
-		}
-	}
-	if lg.NNGetCardType(firstData, cardCount) == OX_FIVE_KING && lg.NNGetCardType(nextData, cardCount) != OX_FIVE_KING {
-		return true
-	}
-	if lg.NNGetCardType(firstData, cardCount) != OX_FIVE_KING && lg.NNGetCardType(nextData, cardCount) == OX_FIVE_KING {
-		return false
-	}
-	//比较牛大小
-	if firstOX == true {
-		//获取点数
-		firstType := 0
-		nextType := 0
 
-		value := lg.GetCardLogicValue(nextData[3])
-		value += lg.GetCardLogicValue(nextData[4])
+	firstType := lg.GetCardType(firstData)
+	nextType := lg.GetCardType(nextData)
 
-		firstKing := false
-		nextKing := false
-
-		firstDa := false
-		nextDa := false //nextDa是判断4,5有没有利用大王的
-
-		if value > 10 {
-			if nextData[3] == 0x4E || nextData[4] == 0x4F || nextData[4] == 0x4E || nextData[3] == 0x4F {
-				left := 0
-				value = 0
-				for i := 3; i < 5; i++ {
-					value += lg.GetCardLogicValue(nextData[i])
-				}
-				left = value % 10
-				if left > 0 {
-					nextDa = true
-				}
-				value = 10
+	// 先比牌型
+	if firstType!= nextType {
+		return firstType>nextType
+	} else {
+		// 牌型一样比点数跟花色 最多只需比到第三张的花色（共同用到两张公共牌）；
+		lg.SortCardList(firstData, len(firstData))
+		lg.SortCardList(nextData, len(nextData))
+		for i:=0;i<3;i++ {
+			if lg.GetCardValue(firstData[i]) != lg.GetCardValue(nextData[i]) {
+				return lg.GetCardValue(firstData[i])>lg.GetCardValue(nextData[i])
 			} else {
-				value -= 10
+				return lg.GetCardColor(firstData[i])>lg.GetCardValue(nextData[i])
 			}
-		}
-		nextType = value
-		kingCount := 0
-		for i := 0; i < 3; i++ {
-			if nextData[i] == 0x4E || nextData[i] == 0x4F {
-				kingCount++
-			}
-		}
-		if kingCount > 0 {
-			value = 0
-			left := 0
-			for i := 0; i < 3; i++ {
-				value += lg.GetCardLogicValue(nextData[i])
-			}
-			left = value % 10
-			if left > 10 {
-				nextKing = true
-			}
-		}
-		value = 0
-		value = lg.GetCardLogicValue(firstData[3])
-		value += lg.GetCardLogicValue(firstData[4])
-		if value > 10 {
-			if firstData[3] == 0x4E || firstData[4] == 0x4F || firstData[4] == 0x4E || firstData[3] == 0x4F {
-				left := 0
-				value = 0
-				for i := 3; i < 5; i++ {
-					value += lg.GetCardLogicValue(firstData[i])
-				}
-				left = value % 10
-				if left > 0 {
-					firstDa = true
-				}
-				value = 10
-			} else {
-				value -= 10
-			}
-		}
-		firstType = value
-		kingCount = 0
-		for i := 0; i < 3; i++ {
-			if firstData[i] == 0x4E || firstData[i] == 0x4F {
-				kingCount++
-			}
-		}
-		if kingCount > 0 {
-			value = 0
-			left := 0
-			for i := 0; i < 3; i++ {
-				value += lg.GetCardLogicValue(firstData[i])
-			}
-			left = value % 10
-			if left > 0 {
-				firstKing = true
-			}
-		}
-		if firstType == nextType {
-			//同点数大王>小王>...
-			firstKingPoint := 10
-			nextKingPoint := 10
-			for i := 0; i < 5; i++ {
-				if firstData[i] == 0x4E {
-					firstKingPoint = 11
-				} else if firstData[i] == 0x4F {
-					firstKingPoint = 12
-				}
-				if nextData[i] == 0x4E {
-					nextKingPoint = 11
-				} else if nextData[i] == 0x4F {
-					nextKingPoint = 12
-				}
-			}
-			if firstKingPoint != nextKingPoint {
-				return (firstKingPoint > nextKingPoint)
-			}
-			if firstKing || firstDa {
-				return true
-			} else if nextKing || nextDa {
-				return false
-			}
-		}
-		//点数判断
-		if firstType != nextType {
-			return (firstType > nextType)
 		}
 	}
-	//排序大小
-	var firstTemp []int
-	var nextTemp []int
-	util.DeepCopy(firstTemp, firstData)
-	util.DeepCopy(nextTemp, nextData)
-	lg.SortCardList(firstTemp, cardCount)
-	lg.SortCardList(nextTemp, cardCount)
-	//比较数值
-	nextMaxValue := lg.GetCardValue(nextTemp[0])
-	firstMaxValue := lg.GetCardValue(firstTemp[0])
-	if nextMaxValue != firstMaxValue {
-		return (firstMaxValue > nextMaxValue)
-	}
-	//比较颜色
-	return (lg.GetCardColor(firstTemp[0]) > lg.GetCardColor(nextTemp[0]))
-*/
+
 	return false
 }

@@ -17,7 +17,7 @@ type GameTestpai struct {
 	KindID    int    `db:"KindID" json:"KindID"`       // 游戏第一类型
 	ServerID  int    `db:"ServerID" json:"ServerID"`   // 游戏第二类型
 	CardsName string `db:"CardsName" json:"CardsName"` // 卡牌类型名称
-	ChairId   int    `db:"chair_id" json:"chair_id"`   // 座位id
+	ChairId   string `db:"chair_id" json:"chair_id"`   // 座位id
 	Cards     string `db:"Cards" json:"Cards"`         // 所有玩家卡牌
 	IsAcivate int8   `db:"IsAcivate" json:"IsAcivate"` // 是否激活牌型
 }
