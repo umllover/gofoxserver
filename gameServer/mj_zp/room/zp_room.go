@@ -16,7 +16,7 @@ import (
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
-	log.Error("创建漳浦麻将房间！")
+	log.Debug("创建漳浦麻将房间！")
 	info := args[0].(*model.CreateRoomInfo)
 
 	u := args[1].(*user.User)

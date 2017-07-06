@@ -14,6 +14,8 @@ import (
 	"reflect"
 	"time"
 
+	"encoding/json"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -61,10 +63,12 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	agent := args[0].(gate.Agent)
 	u, ok := agent.UserData().(*user.User)
 	if !ok {
+		log.Error("at CloseAgent not foud user")
 		return nil
 	}
 	DelUser(u.Id)
 	m.Close(common.UserOffline)
+	log.Debug("CloseAgent ok")
 	return nil
 }
 
@@ -314,6 +318,13 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
+	by, err := json.Marshal(recvMsg.OtherInfo)
+	if err != nil {
+		log.Error("at CreateRoom json.Marshal(recvMsg.OtherInfo) error:%s", err.Error())
+		retCode = ErrParamError
+		return
+	}
+	info.OtherInfo = string(by)
 	if recvMsg.RoomName != "" {
 		info.RoomName = recvMsg.RoomName
 	} else {
