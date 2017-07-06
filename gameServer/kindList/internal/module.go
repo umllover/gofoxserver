@@ -3,18 +3,14 @@ package internal
 import (
 	"mj/gameServer/base"
 	"mj/gameServer/common"
+	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
+	"mj/gameServer/db"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
 	"mj/gameServer/mj_zp"
-
-	"mj/gameServer/common/room_base"
-
-	"mj/gameServer/pk_nn_tb"
-
 	"mj/gameServer/pk_ddz"
-
-	"gate/db"
+	"mj/gameServer/pk_nn_tb"
 
 	"github.com/lovelly/leaf/module"
 )
@@ -88,5 +84,5 @@ func ClearRoomId() {
 }
 
 func ClearLockerInfo(nodeid int) {
-	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID='' where 1=1 and GameNodeID=?", nodeid)
+	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID=0 where 1=1 and GameNodeID=?", nodeid)
 }
