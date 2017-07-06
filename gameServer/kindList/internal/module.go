@@ -12,8 +12,10 @@ import (
 
 	"mj/gameServer/pk_nn_tb"
 
-	"github.com/lovelly/leaf/module"
 	"mj/gameServer/pk_ddz"
+	"mj/gameServer/pk_sss"
+
+	"github.com/lovelly/leaf/module"
 )
 
 var (
@@ -25,7 +27,8 @@ var (
 		common.KIND_TYPE_HZMJ: hzmj.Module,
 		common.KIND_TYPE_ZPMJ: zpmj.Module,
 		common.KIND_TYPE_TBNN: pk_nn_tb.Module,
-		common.KIND_TYPE_DDZ:	pk_ddz.Module,
+		common.KIND_TYPE_DDZ:  pk_ddz.Module,
+		common.KIND_TYPE_SSS:  pk_sss.Module,
 	}
 )
 
@@ -76,7 +79,6 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 func Clears() {
 	ClearRoomId()
 }
-
 
 func ClearRoomId() {
 	model.RoomIdOp.DeleteByMap(map[string]interface{}{
