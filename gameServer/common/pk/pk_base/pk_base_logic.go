@@ -18,7 +18,6 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 	return GetCfg(lg.ConfigIdx)
 }
 
-
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 	//混乱准备
@@ -80,5 +79,9 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
-
-
+func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
+	return false
+}
+func (lg *BaseLogic) GetCardType(cardData []int) int {
+	return 0
+}

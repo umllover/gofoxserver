@@ -11,8 +11,6 @@ import (
 	"mj/gameServer/mj_zp"
 	"mj/gameServer/pk_ddz"
 	"mj/gameServer/pk_nn_tb"
-
-	"mj/gameServer/pk_ddz"
 	"mj/gameServer/pk_sss"
 
 	"github.com/lovelly/leaf/module"
