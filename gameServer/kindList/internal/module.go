@@ -77,6 +77,7 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 func Clears() {
 	ClearRoomId()
 	ClearLockerInfo(conf.Server.NodeId)
+	ClearCreaerInfo(conf.Server.NodeId)
 }
 
 func ClearRoomId() {
@@ -87,4 +88,10 @@ func ClearRoomId() {
 
 func ClearLockerInfo(nodeid int) {
 	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID=0 where 1=1 and GameNodeID=?", nodeid)
+}
+
+func ClearCreaerInfo(nodeid int) {
+	model.CreateRoomInfoOp.DeleteByMap(map[string]interface{}{
+		"node_id": nodeid,
+	})
 }
