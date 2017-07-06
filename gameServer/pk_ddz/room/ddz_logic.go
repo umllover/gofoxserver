@@ -224,7 +224,7 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 }
 
 //排列扑克
-func (dg *ddz_logic) SortCardList([]int, int)  {
+func (dg *ddz_logic) SortCardList([]int, int) {
 	return
 }
 
@@ -1374,4 +1374,11 @@ func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []uint8, cbHandCardCount 
 	} else {
 		return pSearchCardResult.cbSearchCount
 	}
+}
+
+//扑克转换
+func (dg *ddz_logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
+	//转换扑克
+
+	return cbCardData
 }

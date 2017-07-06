@@ -16,7 +16,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
 	u := args[1].(*user.User)
 	if info.KindId != common.KIND_TYPE_DDZ {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_DDZ uid:%d", u.Id)
 		return nil
 	}
 
@@ -35,7 +35,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	}
 	r.Init(cfg)
 	if r == nil {
-		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
+		log.Debug("at CreaterRoom NewPKBase error, uid:%d", u.Id)
 		return nil
 	}
 
