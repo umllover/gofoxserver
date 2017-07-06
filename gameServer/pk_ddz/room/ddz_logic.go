@@ -19,14 +19,14 @@ type ddz_logic struct {
 const (
 	// 牌类型
 	CT_ERROR          = 0  // 错误类型
-	CT_SINGLE         = 1  // 单牌类型
-	CT_DOUBLE         = 2  // 对牌类型
-	CT_THREE          = 3  // 三条类型
-	CT_SINGLE_LINE    = 4  // 单连类型
-	CT_DOUBLE_LINE    = 5  // 对连类型
-	CT_THREE_LINE     = 6  // 三连类型
-	CT_THREE_TAKE_ONE = 7  // 三带一单
-	CT_THREE_TAKE_TWO = 8  // 三带一对
+	CT_SINGLE         = 1  // 单张牌（散牌）
+	CT_DOUBLE         = 2  // 对子牌
+	CT_THREE          = 3  // 三张牌
+	CT_SINGLE_LINE    = 4  // 单顺子
+	CT_DOUBLE_LINE    = 5  // 双顺子
+	CT_THREE_LINE     = 6  // 三顺子
+	CT_THREE_TAKE_ONE = 7  // 三带一
+	CT_THREE_TAKE_TWO = 8  // 三带二
 	CT_FOUR_TAKE_ONE  = 9  // 四带两单
 	CT_FOUR_TAKE_TWO  = 10 // 四带两对
 	CT_BOMB_CARD      = 11 // 炸弹类型
@@ -219,7 +219,7 @@ func (dg *ddz_logic) GetCardType(cbCardData []int) int {
 		return CT_ERROR
 	}
 
-	//单张判断
+	// 全部无重复，都是单张
 	if (AnalyseResult.cbBlockCount[0] >= 5) && (AnalyseResult.cbBlockCount[0] == cbCardCount) {
 		// 变量定义
 		cbCardData := AnalyseResult.cbCardData[0][0]
@@ -231,9 +231,9 @@ func (dg *ddz_logic) GetCardType(cbCardData []int) int {
 		}
 
 		//连牌判断
-		for i := 1; int(i) < AnalyseResult.cbBlockCount[0]; i++ {
+		for i := 1; i < AnalyseResult.cbBlockCount[0]; i++ {
 			cbCardData := AnalyseResult.cbCardData[0][i]
-			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + int(i)) {
+			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + i) {
 				return CT_ERROR
 			}
 		}
@@ -245,11 +245,11 @@ func (dg *ddz_logic) GetCardType(cbCardData []int) int {
 }
 
 //排列扑克
-func (dg *ddz_logic) SortCardList([]int, int) {
-	return
+func (dg *ddz_logic) SortCardList(cbCardData []int, cbCount int) {
+	dg.DDZSortCardList(cbCardData, len(cbCardData), 1)
 }
 
-func (dg *ddz_logic) DDZSortCardList(cbCardData []int, cbCardCount int, cbSortType int) {
+func (dg *ddz_logic) DDZSortCardList(arry []int, cbCardCount int, cbSortType int) {
 	// 数目过虑
 	if cbCardCount == 0 {
 		return
@@ -257,37 +257,37 @@ func (dg *ddz_logic) DDZSortCardList(cbCardData []int, cbCardCount int, cbSortTy
 	if cbSortType == ST_CUSTOM {
 		return
 	}
-	// 转换数值
-	var cbSortValue [MAX_COUNT]int
-	for i := 0; int(i) < cbCardCount; i++ {
-		cbSortValue[i] = dg.GetCardLogicValue(cbCardData[i])
+
+	startValue := [...]int{0, 11, 11, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 0}
+
+	for num := 0; num < len(arry); num++ {
+		var a = arry[num] % 0x10
+		arry[num] += startValue[a]
 	}
 
-	// 排序操作
-	bSorted := true
-	var cbSwitchData int
-	cbLast := cbCardCount - 1
-	for bSorted {
-		bSorted = true
-		for i := 0; i < int(cbLast); i++ {
-			if (cbSortValue[i] < cbSortValue[i+1]) ||
-				((cbSortValue[i] == cbSortValue[i+1]) &&
-					(cbCardData[i] < cbCardData[i+1])) {
-				// 设置标志
-				bSorted = false
-
-				//扑克数据
-				cbSwitchData = cbCardData[i]
-				cbCardData[i] = cbCardData[i+1]
-				cbCardData[i+1] = cbSwitchData
-
-				//排序权位
-				cbSwitchData = cbSortValue[i]
-				cbSortValue[i] = cbSortValue[i+1]
-				cbSortValue[i+1] = cbSwitchData
+	var arrLen = len(arry)
+	Inum, Jnum := 0, 0
+	for Inum = 0; Inum < arrLen; Inum++ {
+		for Jnum = 0; Jnum < arrLen-1; Jnum++ {
+			if (arry[Jnum] % 16) < (arry[Jnum+1] % 16) {
+				arry[Jnum] = arry[Jnum] + arry[Jnum+1]
+				arry[Jnum+1] = arry[Jnum] - arry[Jnum+1]
+				arry[Jnum] = arry[Jnum] - arry[Jnum+1]
+			}
+			if (arry[Jnum] % 16) == (arry[Jnum+1] % 16) {
+				if (arry[Jnum] / 16) < (arry[Jnum+1] / 16) {
+					arry[Jnum] = arry[Jnum] + arry[Jnum+1]
+					arry[Jnum+1] = arry[Jnum] - arry[Jnum+1]
+					arry[Jnum] = arry[Jnum] - arry[Jnum+1]
+				}
 			}
 		}
-		cbLast--
+	}
+
+	endValue := [...]int{0, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 11, 11, 0, 0}
+	for num := 0; num < len(arry); num++ {
+		var a = arry[num] % 0x10
+		arry[num] -= endValue[a]
 	}
 }
 
