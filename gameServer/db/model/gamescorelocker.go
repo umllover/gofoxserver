@@ -19,9 +19,9 @@ import (
 type Gamescorelocker struct {
 	UserID       int        `db:"UserID" json:"UserID"`             // 用户索引
 	KindID       int        `db:"KindID" json:"KindID"`             // 房间索引
+	ServerID     int        `db:"ServerID" json:"ServerID"`         // 游戏标识
 	HallNodeID   int        `db:"HallNodeID" json:"HallNodeID"`     //
 	GameNodeID   int        `db:"GameNodeID" json:"GameNodeID"`     // 在哪个服务器上
-	ServerID     int        `db:"ServerID" json:"ServerID"`         // 游戏标识
 	Roomid       int        `db:"roomid" json:"roomid"`             // 进出索引
 	EnterIP      string     `db:"EnterIP" json:"EnterIP"`           // 进入地址
 	EnterMachine string     `db:"EnterMachine" json:"EnterMachine"` // 进入机器
@@ -75,23 +75,6 @@ func (op *gamescorelockerOp) QueryByMap(m map[string]interface{}) ([]*Gamescorel
 	return result, nil
 }
 
-func (op *gamescorelockerOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Gamescorelocker, error) {
-	result := []*Gamescorelocker{}
-	var params []interface{}
-
-	sql := "select * from gamescorelocker where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *gamescorelockerOp) GetByMap(m map[string]interface{}) (*Gamescorelocker, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
@@ -120,13 +103,13 @@ func (op *gamescorelockerOp) Insert(m *Gamescorelocker) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *gamescorelockerOp) InsertTx(ext sqlx.Ext, m *Gamescorelocker) (int64, error) {
-	sql := "insert into gamescorelocker(UserID,KindID,HallNodeID,GameNodeID,ServerID,roomid,EnterIP,EnterMachine,CollectDate) values(?,?,?,?,?,?,?,?,?)"
+	sql := "insert into gamescorelocker(UserID,KindID,ServerID,HallNodeID,GameNodeID,roomid,EnterIP,EnterMachine,CollectDate) values(?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.KindID,
+		m.ServerID,
 		m.HallNodeID,
 		m.GameNodeID,
-		m.ServerID,
 		m.Roomid,
 		m.EnterIP,
 		m.EnterMachine,
@@ -157,12 +140,12 @@ func (op *gamescorelockerOp) Update(m *Gamescorelocker) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *gamescorelockerOp) UpdateTx(ext sqlx.Ext, m *Gamescorelocker) error {
-	sql := `update gamescorelocker set KindID=?,HallNodeID=?,GameNodeID=?,ServerID=?,roomid=?,EnterIP=?,EnterMachine=?,CollectDate=? where UserID=?`
+	sql := `update gamescorelocker set KindID=?,ServerID=?,HallNodeID=?,GameNodeID=?,roomid=?,EnterIP=?,EnterMachine=?,CollectDate=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.KindID,
+		m.ServerID,
 		m.HallNodeID,
 		m.GameNodeID,
-		m.ServerID,
 		m.Roomid,
 		m.EnterIP,
 		m.EnterMachine,

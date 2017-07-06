@@ -72,23 +72,6 @@ func (op *systemstreaminfoOp) QueryByMap(m map[string]interface{}) ([]*Systemstr
 	return result, nil
 }
 
-func (op *systemstreaminfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Systemstreaminfo, error) {
-	result := []*Systemstreaminfo{}
-	var params []interface{}
-
-	sql := "select * from systemstreaminfo where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.StatsDB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *systemstreaminfoOp) GetByMap(m map[string]interface{}) (*Systemstreaminfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

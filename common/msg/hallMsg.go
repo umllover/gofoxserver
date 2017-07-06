@@ -79,6 +79,16 @@ type C2L_ReqRoomPlayerBrief struct {
 	RoomId int
 }
 
+//领取奖励
+type C2L_DrawSahreAward struct {
+	DrawId int //领取奖励的key
+}
+
+//设置推荐人
+type C2L_SetElect struct {
+	ElectUid int //推荐人id
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
@@ -180,4 +190,23 @@ type L2C_CreatorRoomRecord struct {
 //请求房间内玩家简要信息的返回值
 type L2C_RoomPlayerBrief struct {
 	Players []*PlayerBrief //房间内玩家的简要信息
+}
+
+//登录时下发已领取过的奖励信息
+type L2C_ActivityInfo struct {
+	DayTimes  map[int]int64 //每日次数信息
+	Times     map[int]int64 //永久次数信息
+	WeekTimes map[int]int64 //周次数信息
+}
+
+//领取奖励结果
+type L2C_DrawSahreAwardResult struct {
+	DrawId  int //领取奖励的key
+	Times   int //已经领取的次数
+	RetCode int //领取成功还是失败的结果
+}
+
+//设置推荐人结果
+type L2C_SetElectResult struct {
+	RetCode int // 0带表成功， 其他则是错误码
 }

@@ -70,23 +70,6 @@ func (op *raceMsgInfoOp) QueryByMap(m map[string]interface{}) ([]*RaceMsgInfo, e
 	return result, nil
 }
 
-func (op *raceMsgInfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*RaceMsgInfo, error) {
-	result := []*RaceMsgInfo{}
-	var params []interface{}
-
-	sql := "select * from race_msg_info where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *raceMsgInfoOp) GetByMap(m map[string]interface{}) (*RaceMsgInfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

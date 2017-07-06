@@ -103,23 +103,6 @@ func (op *accountsinfoOp) QueryByMap(m map[string]interface{}) ([]*Accountsinfo,
 	return result, nil
 }
 
-func (op *accountsinfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Accountsinfo, error) {
-	result := []*Accountsinfo{}
-	var params []interface{}
-
-	sql := "select * from accountsinfo where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *accountsinfoOp) GetByMap(m map[string]interface{}) (*Accountsinfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

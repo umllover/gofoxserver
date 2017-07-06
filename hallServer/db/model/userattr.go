@@ -31,6 +31,7 @@ type Userattr struct {
 	HeadImgUrl      string `db:"HeadImgUrl" json:"HeadImgUrl"`           // 头像
 	Gender          int8   `db:"Gender" json:"Gender"`                   // 性别
 	NickName        string `db:"NickName" json:"NickName"`               //
+	ElectUid        int    `db:"elect_uid" json:"elect_uid"`             // 推举人id
 }
 
 type userattrOp struct{}
@@ -80,23 +81,6 @@ func (op *userattrOp) QueryByMap(m map[string]interface{}) ([]*Userattr, error) 
 	return result, nil
 }
 
-func (op *userattrOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Userattr, error) {
-	result := []*Userattr{}
-	var params []interface{}
-
-	sql := "select * from userattr where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *userattrOp) GetByMap(m map[string]interface{}) (*Userattr, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
@@ -125,7 +109,7 @@ func (op *userattrOp) Insert(m *Userattr) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
-	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName,elect_uid) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.UnderWrite,
@@ -142,6 +126,7 @@ func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
 		m.HeadImgUrl,
 		m.Gender,
 		m.NickName,
+		m.ElectUid,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -168,7 +153,7 @@ func (op *userattrOp) Update(m *Userattr) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
-	sql := `update userattr set UnderWrite=?,FaceID=?,CustomID=?,UserMedal=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,MasterOrder=?,PlayTimeCount=?,OnLineTimeCount=?,HeadImgUrl=?,Gender=?,NickName=? where UserID=?`
+	sql := `update userattr set UnderWrite=?,FaceID=?,CustomID=?,UserMedal=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,MasterOrder=?,PlayTimeCount=?,OnLineTimeCount=?,HeadImgUrl=?,Gender=?,NickName=?,elect_uid=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.UnderWrite,
 		m.FaceID,
@@ -184,6 +169,7 @@ func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
 		m.HeadImgUrl,
 		m.Gender,
 		m.NickName,
+		m.ElectUid,
 		m.UserID,
 	)
 

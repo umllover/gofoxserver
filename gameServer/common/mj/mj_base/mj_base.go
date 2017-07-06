@@ -290,6 +290,9 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		return
 	}
 
+	//记录出牌数
+	room.DataMgr.RecordOutCarCnt()
+
 	u.UserLimit &= ^LimitChiHu
 	u.UserLimit &= ^LimitPeng
 	u.UserLimit &= ^LimitGang

@@ -72,23 +72,6 @@ func (op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionU
 	return result, nil
 }
 
-func (op *versionUpdateTestOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*VersionUpdateTest, error) {
-	result := []*VersionUpdateTest{}
-	var params []interface{}
-
-	sql := "select * from version_update_test where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdateTest, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

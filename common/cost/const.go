@@ -54,6 +54,17 @@ const (
 	ErrNoOperator    = 206 //没有操作
 )
 
+/// 活动领取错误码
+const (
+	ErrNotFoudTemplate = 301 //没有找到模板
+	ErrMaxDrawTimes    = 302 //领取次数上线
+)
+
+//设置推举人的错误码
+const (
+	ErrNotFoudPlayer = 401 //没找到推举人
+)
+
 ///////// 无效的数字
 const (
 	//无效数值
@@ -164,4 +175,5 @@ func GetHallSvrName(sververId int) string {
 
 const (
 	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
+	MAX_ELECT_AWARD      = "MAX_ELECT_AWARD"
 )

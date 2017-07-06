@@ -8,7 +8,7 @@ import (
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
-	"mj/hallServer/idGenerate"
+	"mj/hallServer/id_generate"
 	"reflect"
 	"strconv"
 	"strings"
@@ -169,7 +169,7 @@ func NotifyDelRoom(args []interface{}) {
 func delRoom(roomId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
-	idGenerate.DelRoomId(roomId)
+	id_generate.DelRoomId(roomId)
 	model.CreateRoomInfoOp.Delete(roomId)
 	m, ok := roomKindList[ri.KindID]
 	if ok && ri != nil {

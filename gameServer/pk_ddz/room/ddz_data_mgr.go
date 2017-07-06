@@ -335,3 +335,4 @@ func (r *ddz_data_mgr) NormalEnd() {
 func (r *ddz_data_mgr) DismissEnd() {
 
 }
+
