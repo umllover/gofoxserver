@@ -6,11 +6,8 @@ import (
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
-	"mj/common/msg/mj_zp_msg"
-
 	"mj/common/msg/mj_hz_msg"
 
-	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -55,10 +52,14 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		retcode = NotValidCard
 	}
 
-	//todo,吃啥打啥
-	//if  {
-	//
-	//}
+	//吃啥打啥
+	if !room.DataMgr.OutOfChiCardRule(CardData, u.ChairId) {
+		log.Error("zpmj at OutOfChiCardRule IsValidCard card ")
+		retcode = NotValidCard
+	}
+
+	//清除出牌禁忌
+	room.DataMgr.ClearBanCard(u.ChairId)
 
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
@@ -124,6 +125,8 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
+			//记录放弃操作
+			room.DataMgr.RecordBanCard(OperateCode, u.ChairId)
 		}
 
 		//胡牌操作
@@ -183,12 +186,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 
 //抓花
 func (room *ZP_base) ZhaMa(args []interface{}) {
-	//recvMsg := args[0].(*mj_zp_msg.C2G_HZMJ_ZhaMa)
-	retMsg := &mj_zp_msg.G2C_ZPMJ_ZhuaHua{}
-	agent := args[1].(gate.Agent)
-	u := agent.UserData().(*user.User)
-	retMsg.ZhongHua, retMsg.BuZhong = room.DataMgr.OnZhuaHua(u.ChairId)
-	u.WriteMsg(retMsg)
+	return
 }
 
 //托管

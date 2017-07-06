@@ -37,6 +37,9 @@ type DataManager interface {
 	RecordFollowCard(cbCenterCard int) bool                          //记录跟牌
 	RecordOutCarCnt() int                                            //记录出牌数
 	OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int)        //抓花 扎码出库
+	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
+	ClearBanCard(ChairId int)                                        //清除出牌禁忌
+	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 
 	GetResumeUser() int
 	GetGangStatus() int

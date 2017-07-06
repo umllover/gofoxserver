@@ -84,6 +84,9 @@ type RoomData struct {
 	Ting            []bool             //是否听牌
 	BankerUser      int                //庄家用户
 	FlowerCnt       []int              //补花数
+
+	BanUser    [4]int    //是否出牌禁忌
+	BanCardCnt [4][9]int //禁忌卡牌
 }
 
 func (room *RoomData) GetCfg() *MJ_CFG {
@@ -1386,6 +1389,25 @@ func (room *RoomData) RecordFollowCard(cbCenterCard int) bool {
 func (room *RoomData) RecordOutCarCnt() int {
 	room.OutCardCount++
 	return room.OutCardCount
+}
+
+//出牌禁忌
+func (room *RoomData) RecordBanCard(OperateCode, ChairId int) {
+	room.BanUser[ChairId] |= OperateCode
+}
+
+//清除出牌禁忌
+func (room *RoomData) ClearBanCard(ChairId int) {
+	room.BanUser[ChairId] = 0
+	room.BanCardCnt[ChairId] = [9]int{}
+}
+
+//吃啥打啥
+func (room *RoomData) OutOfChiCardRule(CardData, ChairId int) bool {
+	if room.BanUser[ChairId]&LimitChi != 0 && room.BanCardCnt[ChairId][LimitChi] == CardData {
+		return false
+	}
+	return true
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

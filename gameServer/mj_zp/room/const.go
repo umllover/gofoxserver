@@ -28,8 +28,8 @@ const (
 	IDX_SUB_SCORE_LZ   = 1 //连庄
 	IDX_SUB_SCORE_HUA  = 2 //花牌
 	IDX_SUB_SCORE_AG   = 3 //暗杠
-	IDX_SUB_SCORE_AK   = 4 //***
-	IDX_SUB_SCORE_ZG   = 5 //***
+	IDX_SUB_SCORE_CH   = 4 //插花
+	IDX_SUB_SCORE_ZH   = 5 //抓花
 	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
 	//胡牌+分
 	IDX_SUB_SCORE_HP   = 7  //平胡
@@ -54,12 +54,12 @@ const (
 	IDX_SUB_SCORE_DH  = 24 //地胡
 	IDX_SUB_SCORE_TH  = 25 //天胡
 
-	IDX_SUB_SCORE_DD  = 26 //单吊
-	IDX_SUB_SCORE_WDD = 27 //尾单吊
+	IDX_SUB_SCORE_DDPH = 26 //单吊平胡
+	IDX_SUB_SCORE_WDD  = 27 //尾单吊
 
 	IDX_SUB_SCORE_KX    = 28 //空心
 	IDX_SUB_SCORE_JT    = 29 //截头
-	IDX_SUB_SCORE_ZDP   = 30 //***
+	IDX_SUB_SCORE_DDZM  = 30 //单吊自摸
 	IDX_SUB_SCORE_MQBL  = 31 //门清佰六
 	IDX_SUB_SCORE_SANAK = 32 //三暗刻
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
@@ -80,6 +80,7 @@ const (
 	LimitChiHu = 1      //禁止吃胡
 	LimitPeng  = 1 << 1 //禁止碰
 	LimitGang  = 1 << 2 //禁止杠牌
+	LimitChi   = 1 << 3 //禁止吃牌
 )
 
 //发牌状态
