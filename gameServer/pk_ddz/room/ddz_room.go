@@ -16,7 +16,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
 	u := args[1].(*user.User)
 	if info.KindId != common.KIND_TYPE_DDZ {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_DDZ uid:%d", u.Id)
 		return nil
 	}
 
@@ -28,14 +28,14 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewDDZEntry(info)
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_DDZ, temp.RoomName, temp, r),
+		//DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_DDZ, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ),
+		//LogicMgr: NewDDZLogic(pk_base.IDX_DDZ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
 	if r == nil {
-		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
+		log.Debug("at CreaterRoom NewPKBase error, uid:%d", u.Id)
 		return nil
 	}
 
