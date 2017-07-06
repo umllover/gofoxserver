@@ -4,11 +4,16 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/timer"
+	"github.com/lovelly/leaf/util"
+
 	"mj/common/msg"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-
+	"mj/common/cost"
+	"mj/common/msg/nn_tb_msg"
 )
 
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
@@ -50,12 +55,28 @@ type RoomData struct {
 	PlayCount         int                  //游戏局数
 	PlayerCount       int                  //指定游戏人数，2-4
 
+	BankerUser      int     //庄家用户
 	FisrtCallUser   int     //始叫用户
 	CurrentUser     int     //当前用户
 	ExitScore       int64   //强退分数
 	EscapeUserScore []int64 //逃跑玩家分数
 	DynamicScore    int64   //总分
 
+	//用户数据
+	IsOpenCard          []bool  //是否摊牌
+	DynamicJoin         []int   //动态加入
+	PlayStatus          []int   //游戏状态
+	CallStatus          []int   //叫庄状态
+	OxCard              []int   //牛牛数据
+	TableScore          []int64 //下注数目
+	BuckleServiceCharge []bool  //收服务费
+
+	//下注信息
+	//TurnMaxScore		[]int64			//最大下注
+	//MaxScoreTimes		int				//最大倍数
+	ScoreMap map[*user.User]int //记录用户加注信息
+
+	//历史积分
 
 	//历史积分
 	HistoryScores []*HistoryScore //历史积分
@@ -101,7 +122,8 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	})
 }
 
-
+func (room *RoomData) SendStatusReady(u *user.User) {
+	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
 	StatusFree.CellScore = room.CellScore                                  //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
@@ -418,7 +440,17 @@ func (r *RoomData) SetScoreTimes(scoreTimes int) {
 	r.ScoreTimes = scoreTimes
 }
 
-
+// 用户加倍
+func (r *RoomData) AddScoreTimes(u *user.User, scoreTimes int) {
+	log.Debug("add score times userChairId:%d, scoretimes:%d", u.ChairId, scoreTimes)
+	r.CallScoreTimesMap[scoreTimes] = u
+	maxScoreTimes := 0
+	for s, _ := range r.CallScoreTimesMap {
+		if s > maxScoreTimes {
+			maxScoreTimes = s
+		}
+	}
+	r.BankerUser = r.CallScoreTimesMap[maxScoreTimes].ChairId
 	if len(r.CallScoreTimesMap) == r.PlayerCount {
 		//叫分结束
 		r.CallScoreEnd()
