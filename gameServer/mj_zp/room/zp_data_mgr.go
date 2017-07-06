@@ -14,6 +14,8 @@ import (
 
 	"mj/common/utils"
 
+	"time"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -137,28 +139,28 @@ func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
-		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
-		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
-		log.Debug("超时插花")
-		for i := 0; i < 4; i++ {
-			_, ok := room.ChaHuaMap[i]
-			if !ok {
-				room.ChaHuaMap[i] = 0
-			} else {
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+			//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
+			log.Debug("超时插花")
+			for i := 0; i < 4; i++ {
+				_, ok := room.ChaHuaMap[i]
+				if !ok {
+					room.ChaHuaMap[i] = 0
+				} else {
+				}
 			}
-		}
 
-		//洗牌
-		room.StartDispatchCard()
-		//向客户端发牌
-		room.SendGameStart()
-		//开局补花
-		room.InitBuHua()
-		//庄家开局动作
-		room.InitBankerAction()
-		//检查自摸
-		room.CheckZiMo()
-		//})
+			//洗牌
+			room.StartDispatchCard()
+			//向客户端发牌
+			room.SendGameStart()
+			//开局补花
+			room.InitBuHua()
+			//庄家开局动作
+			room.InitBankerAction()
+			//检查自摸
+			room.CheckZiMo()
+		})
 	} else {
 		room.StartDispatchCard()
 		//向客户端发牌
@@ -376,6 +378,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		var tempCard []int
 		room.RemoveAllZiCar(tempCard, room.RepertoryCard)
 		room.RepertoryCard = tempCard
+		room.LeftCardCount = room.GetCfg().MaxRepertory - 7*4
 		log.Debug("剔除大字")
 	}
 
@@ -591,6 +594,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		}
 		GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
+
 	}
 
 	//计算胡牌输赢分
@@ -599,6 +603,10 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	//拷贝码数据
 	GameConclude.MaCount = make([]int, 0)
+	util.DeepCopy(GameConclude.ZhuaHua, room.ZhuaHuaMap)
+	//for k, v := range room.HuKindScore {
+	//	GameConclude.ScoreKind[k] = v
+	//}
 
 	//积分变量
 	ScoreInfoArray := make([]*msg.TagScoreInfo, UserCnt)
@@ -612,9 +620,9 @@ func (room *ZP_RoomData) NormalEnd() {
 			return
 		}
 		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
-		//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
+		//胡牌分
 		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
+		GameConclude.GangScore[u.ChairId] += room.SumScore[u.ChairId]
 
 		//收税
 		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
@@ -1110,8 +1118,9 @@ func (room *ZP_RoomData) SumGameScore() {
 	for i := 0; i < 4; i++ {
 		playerScore := room.HuKindScore
 
-		//todo,暗杠
+		//暗杠
 		playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
+		room.SumScore[i] += playerScore[IDX_SUB_SCORE_AG]
 
 		if i == room.CurrentUser {
 			continue
@@ -1119,6 +1128,7 @@ func (room *ZP_RoomData) SumGameScore() {
 
 		//基础分
 		playerScore[IDX_SUB_SCORE_JC] = 1
+		room.SumScore[i] += 1
 		//补花得分
 		if room.FlowerCnt[i] > 1 {
 			if room.FlowerCnt[i] < 8 {
@@ -1153,6 +1163,7 @@ func (room *ZP_RoomData) SumGameScore() {
 		//抓花
 		playerScore[IDX_SUB_SCORE_ZH] = room.ZhuaHuaScore
 		room.SumScore[i] += room.ZhuaHuaScore
+		//分饼
 	}
 }
 
@@ -1259,6 +1270,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		//插花
 		tempZhuaHuaCnt := room.ZhuaHuaCnt
 		leftZhuaHuaCnt := room.ZhuaHuaCnt
+		huaUser := mj_zp_msg.HuaUser{}
 		for k, v := range WinUser {
 			//一炮多响，数量随机
 			if WinCount > 1 && k < WinCount-1 {
@@ -1270,21 +1282,34 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			}
 
 			//进行抓花
-			CardData, _ := room.OnZhuaHua(v)
+			ZhongCard, BuZhong := room.OnZhuaHua(v)
 
 			//抓花派位
-			huaUser := mj_zp_msg.HuaUser{}
-			for _, cardV := range CardData {
+			for _, cardV := range ZhongCard {
 				for {
 					randV, randOk := utils.RandInt(0, 15)
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
 						huaUser.Card = cardV
 						huaUser.ChairID = v
+						huaUser.IsZhong = true
 						room.ZhuaHuaMap[randV] = &huaUser
 						break
 					}
 				}
 			}
+			for _, cardV2 := range BuZhong {
+				for {
+					randV, randOk := utils.RandInt(0, 15)
+					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
+						huaUser.Card = cardV2
+						huaUser.ChairID = v
+						huaUser.IsZhong = false
+						room.ZhuaHuaMap[randV] = &huaUser
+						break
+					}
+				}
+			}
+
 			leftZhuaHuaCnt -= room.ZhuaHuaCnt
 		}
 		room.ZhuaHuaCnt = tempZhuaHuaCnt
