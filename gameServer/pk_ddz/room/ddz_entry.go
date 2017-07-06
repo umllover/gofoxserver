@@ -30,6 +30,7 @@ func (room *DDZ_Entry) CallScore(args []interface{}) {
 
 // 用户出牌
 func (room *DDZ_Entry) OutCard(args []interface{}) {
+
 	//recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_OutCard)
 	//u := args[1].(*user.User)
 

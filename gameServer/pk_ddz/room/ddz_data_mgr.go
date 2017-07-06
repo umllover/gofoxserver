@@ -6,7 +6,6 @@ import (
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
 	//"mj/gameServer/user"
-
 	//"github.com/lovelly/leaf/log"
 	//"github.com/lovelly/leaf/util"
 )
@@ -14,6 +13,7 @@ import (
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
+
 	return d
 }
 
@@ -48,6 +48,7 @@ type ddz_data_mgr struct {
 	HandCardData  [][]int      // 手上扑克
 	ShowCardSign  map[int]bool // 用户明牌标识
 }
+
 /*
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	//初始化
