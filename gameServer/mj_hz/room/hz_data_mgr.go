@@ -1,8 +1,10 @@
 package room
 
 import (
+	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
+	"mj/gameServer/user"
 )
 
 func NewHZDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
@@ -15,6 +17,31 @@ type hz_data struct {
 	*mj_base.RoomData
 	ZhuaHuaCnt   int //扎花个数
 	ZhuaHuaScore int //扎花分数
+}
+
+func (room *hz_data) AfterStartGame() {
+	//检查自摸
+	room.CheckZiMo()
+	//通知客户端开始了
+	room.SendGameStart()
+}
+
+func (room *hz_data) SendGameStart() {
+
+	//构造变量
+	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
+	GameStart.BankerUser = room.BankerUser
+	GameStart.SiceCount = room.SiceCount
+	GameStart.HeapHead = room.HeapHead
+	GameStart.HeapTail = room.HeapTail
+	GameStart.HeapCardInfo = room.HeapCardInfo
+	//发送数据
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		GameStart.UserAction = room.UserAction[u.ChairId]
+		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
+		u.WriteMsg(GameStart)
+	})
+
 }
 
 func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
