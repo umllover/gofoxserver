@@ -38,7 +38,7 @@ type LogicManager interface {
 	GetCardColor(CardData int) int
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
-
+	GetCardType(cardData []int) int
 }
 
 ////////////////////////////////////////////

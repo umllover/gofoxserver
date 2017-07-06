@@ -378,7 +378,8 @@ func (room *nntb_data_mgr) DismissEnd() {
 
 // 用户叫分(抢庄)
 func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
-	log.Debug("add score times userChairId:%d, scoretimes:%d", u.ChairId, scoreTimes)
+	log.Debug("call score times userChairId:%d, scoretimes:%d", u.ChairId, scoreTimes)
+
 	r.CallScoreTimesMap[scoreTimes] = u
 	maxScoreTimes := 0
 	for s, _ := range r.CallScoreTimesMap {
@@ -388,6 +389,17 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 	}
 	r.BankerUser = r.CallScoreTimesMap[maxScoreTimes]
 	r.ScoreTimes = maxScoreTimes
+
+	// 广播叫分
+	callScore := &nn_tb_msg.G2C_TBNN_CallScore{}
+	callScore.ChairID = u.ChairId
+	callScore.CallScore = scoreTimes
+	userMgr := r.PkBase.UserMgr
+	userMgr.ForEachUser(func(u1 *user.User) {
+		if u != u1 {
+			u1.WriteMsg(callScore)
+		}
+	})
 
 	if len(r.CallScoreTimesMap) == r.PlayerCount {
 		//叫分结束
@@ -400,8 +412,8 @@ func (r * nntb_data_mgr) CallScoreEnd()  {
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(&nn_tb_msg.G2C_TBNN_CallBanker{
-			CallBanker: r.BankerUser.ChairId,
+		u.WriteMsg(&nn_tb_msg.G2C_TBNN_CallScoreEnd{
+			Banker:     r.BankerUser.ChairId,
 			ScoreTimes: r.ScoreTimes,
 		})
 	})
@@ -421,7 +433,16 @@ func (r * nntb_data_mgr) CallScoreEnd()  {
 // 用户加注
 func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 	log.Debug("add score userChairId:%d, score:%d", u.ChairId, score)
-	r.AddScoreMap[u] += score
+	r.AddScoreMap[u] = score
+
+	// 广播加注
+	userMgr := r.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User) {
+		addScore := &nn_tb_msg.G2C_TBNN_AddScore{}
+		addScore.ChairID = u.ChairId
+		addScore.AddScoreCount = score
+		u.WriteMsg(addScore)
+	})
 
 	if len(r.AddScoreMap) == r.PlayerCount { //全加过加注结束
 		r.AddScoreEnd()
@@ -430,19 +451,13 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 
 // 加注结束
 func (r * nntb_data_mgr) AddScoreEnd() {
-	// 发回加注结果
-	userMgr := r.PkBase.UserMgr
-	userMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(&nn_tb_msg.G2C_TBNN_AddScore{
-			AddScoreCount: r.AddScoreMap[u],
-		})
-	})
 
 	// 进入最后一张牌
 	log.Debug("enter last card")
 	r.GameStatus = SEND_LAST_CARD
 
 	// 发最后一张牌
+	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		lastCard := r.GetOneCard()
 		r.CardData[u.ChairId][r.GetCfg().MaxCount-1] = lastCard
