@@ -3,17 +3,19 @@ package internal
 import (
 	"mj/gameServer/base"
 	"mj/gameServer/common"
+	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
+	"mj/gameServer/db"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
 	"mj/gameServer/mj_zp"
-
-	"mj/gameServer/common/room_base"
-
+	"mj/gameServer/pk_ddz"
 	"mj/gameServer/pk_nn_tb"
 
-	"github.com/lovelly/leaf/module"
 	"mj/gameServer/pk_ddz"
+	"mj/gameServer/pk_sss"
+
+	"github.com/lovelly/leaf/module"
 )
 
 var (
@@ -25,7 +27,8 @@ var (
 		common.KIND_TYPE_HZMJ: hzmj.Module,
 		common.KIND_TYPE_ZPMJ: zpmj.Module,
 		common.KIND_TYPE_TBNN: pk_nn_tb.Module,
-		common.KIND_TYPE_DDZ:	pk_ddz.Module,
+		common.KIND_TYPE_DDZ:  pk_ddz.Module,
+		common.KIND_TYPE_SSS:  pk_sss.Module,
 	}
 )
 
@@ -75,11 +78,15 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 
 func Clears() {
 	ClearRoomId()
+	ClearLockerInfo(conf.Server.NodeId)
 }
-
 
 func ClearRoomId() {
 	model.RoomIdOp.DeleteByMap(map[string]interface{}{
 		"node_id": conf.Server.NodeId,
 	})
+}
+
+func ClearLockerInfo(nodeid int) {
+	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID=0 where 1=1 and GameNodeID=?", nodeid)
 }
