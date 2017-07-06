@@ -11,9 +11,12 @@ import (
 
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/db/model/base"
+
+	"github.com/lovelly/leaf/log"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
+	log.Error("创建漳浦麻将房间！")
 	info := args[0].(*model.CreateRoomInfo)
 
 	u := args[1].(*user.User)
@@ -24,7 +27,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		}
 	}()
 
-	if info.KindId != common.KIND_TYPE_HZMJ {
+	if info.KindId != common.KIND_TYPE_ZPMJ {
 		retCode = ErrParamError
 		return nil
 	}
