@@ -30,7 +30,13 @@ const (
 	CT_FOUR_TAKE_ONE  = 9  // 四带两单
 	CT_FOUR_TAKE_TWO  = 10 // 四带两对
 	CT_BOMB_CARD      = 11 // 炸弹类型
-	CT_MISSILE_CARD   = 12 // 火箭类型
+	CT_King_2         = 12 // 双王类型
+	CT_King_3         = 13 // 三王类型
+	CT_King_4         = 14 // 四王类型
+	CT_King_5         = 15 // 五王类型
+	CT_King_6         = 16 // 六王类型
+	CT_King_7         = 17 // 七王类型
+	CT_King_8         = 18 // 八王类型
 
 	// 数目定义
 	MAX_COUNT  = 20 //最大数目
@@ -65,31 +71,33 @@ type BaseLogic struct {
 
 //分析结构
 type tagAnalyseResult struct {
-	cbBlockCount [4]uint8            //扑克数目
-	cbCardData   [4][MAX_COUNT]uint8 //扑克数据
+	cbBlockCount [4]int            //扑克数目
+	cbCardData   [4][MAX_COUNT]int //扑克数据
 }
 
 //出牌结果
 type tagOutCardResult struct {
-	cbCardCount  uint8            //扑克数目
-	cbResultCard [MAX_COUNT]uint8 //结果扑克
+	cbCardCount  int            //扑克数目
+	cbResultCard [MAX_COUNT]int //结果扑克
 }
 
 //分布信息
 type tagDistributing struct {
-	cbCardCount    uint8        //扑克数目
-	cbDistributing [15][6]uint8 //分布信息
+	cbCardCount    int        //扑克数目
+	cbDistributing [15][6]int //分布信息
 }
 
 //搜索结果
 type tagSearchCardResult struct {
-	cbSearchCount uint8                       //结果数目
-	cbCardCount   [MAX_COUNT]uint8            //扑克数目
-	cbResultCard  [MAX_COUNT][MAX_COUNT]uint8 //结果扑克
+	cbSearchCount int                       //结果数目
+	cbCardCount   [MAX_COUNT]int            //扑克数目
+	cbResultCard  [MAX_COUNT][MAX_COUNT]int //结果扑克
 }
 
 //获取类型
-func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
+func (dg *ddz_logic) GetCardType(cbCardData []int) int {
+	cbCardCount := len(cbCardData)
+	dg.SortCardList(cbCardData, cbCardCount)
 	//	简单牌型
 	switch cbCardCount {
 	case 0: //空牌
@@ -100,7 +108,7 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 		{
 			//牌型判断
 			if (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
-				return CT_MISSILE_CARD
+				return CT_King_2
 			}
 			if dg.GetCardLogicValue(cbCardData[0]) == dg.GetCardLogicValue(cbCardData[1]) {
 				return CT_DOUBLE
@@ -108,6 +116,19 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 
 			return CT_ERROR
 		}
+	}
+
+	kingCount := 0 // 判断王数量
+	for _, v := range cbCardData {
+		if v >= 0x4E && v <= 0x4F {
+			kingCount++
+		} else {
+			break
+		}
+	}
+
+	if kingCount == cbCardCount {
+		return CT_King_2 + kingCount - 2
 	}
 
 	//分析扑克
@@ -146,9 +167,9 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 			}
 
 			//连牌判断
-			for i := 1; uint8(i) < AnalyseResult.cbBlockCount[2]; i++ {
+			for i := 1; int(i) < AnalyseResult.cbBlockCount[2]; i++ {
 				cbCardData := AnalyseResult.cbCardData[2][i*3]
-				if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + uint8(i)) {
+				if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + int(i)) {
 					return CT_ERROR
 				}
 			}
@@ -185,7 +206,7 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 		// 连牌判断
 		for i := 1; i < int(AnalyseResult.cbBlockCount[1]); i++ {
 			cbCardData := AnalyseResult.cbCardData[1][i*2]
-			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + uint8(i)) {
+			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + int(i)) {
 				return CT_ERROR
 			}
 		}
@@ -210,9 +231,9 @@ func (dg *ddz_logic) GetCardType(cbCardData []uint8, cbCardCount uint8) uint8 {
 		}
 
 		//连牌判断
-		for i := 1; uint8(i) < AnalyseResult.cbBlockCount[0]; i++ {
+		for i := 1; int(i) < AnalyseResult.cbBlockCount[0]; i++ {
 			cbCardData := AnalyseResult.cbCardData[0][i]
-			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + uint8(i)) {
+			if cbFirstLogicValue != (dg.GetCardLogicValue(cbCardData) + int(i)) {
 				return CT_ERROR
 			}
 		}
@@ -228,7 +249,7 @@ func (dg *ddz_logic) SortCardList([]int, int) {
 	return
 }
 
-func (dg *ddz_logic) DDZSortCardList(cbCardData []uint8, cbCardCount uint8, cbSortType uint8) {
+func (dg *ddz_logic) DDZSortCardList(cbCardData []int, cbCardCount int, cbSortType int) {
 	// 数目过虑
 	if cbCardCount == 0 {
 		return
@@ -237,14 +258,14 @@ func (dg *ddz_logic) DDZSortCardList(cbCardData []uint8, cbCardCount uint8, cbSo
 		return
 	}
 	// 转换数值
-	var cbSortValue [MAX_COUNT]uint8
-	for i := 0; uint8(i) < cbCardCount; i++ {
+	var cbSortValue [MAX_COUNT]int
+	for i := 0; int(i) < cbCardCount; i++ {
 		cbSortValue[i] = dg.GetCardLogicValue(cbCardData[i])
 	}
 
 	// 排序操作
 	bSorted := true
-	var cbSwitchData uint8
+	var cbSwitchData int
 	cbLast := cbCardCount - 1
 	for bSorted {
 		bSorted = true
@@ -271,18 +292,18 @@ func (dg *ddz_logic) DDZSortCardList(cbCardData []uint8, cbCardCount uint8, cbSo
 }
 
 //删除扑克
-func (dg *ddz_logic) RemoveCardList(cbRemoveCard []uint8, cbRemoveCount uint8, cbCardData []uint8) bool {
+func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCardData []int) bool {
 	// 检验数据
-	if cbRemoveCount > uint8(len(cbCardData)) {
+	if cbRemoveCount > int(len(cbCardData)) {
 		log.Error("要删除的扑克数%i大于已有扑克数%i", cbRemoveCount, len(cbCardData))
 		return false
 	}
 
 	// 备份
-	var tmpCardData []uint8
+	var tmpCardData []int
 	copy(tmpCardData, cbCardData)
 
-	var u8DeleteCount uint8 // 记录删除记录
+	var u8DeleteCount int // 记录删除记录
 
 	for _, v1 := range cbRemoveCard {
 		for j, v2 := range cbCardData {
@@ -304,15 +325,15 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []uint8, cbRemoveCount uint8, c
 }
 
 //删除扑克
-func (dg *ddz_logic) RemoveCard(cbRemoveCard []uint8, cbRemoveCount uint8, cbCardData []uint8, cbCardCount uint8) bool {
+func (dg *ddz_logic) RemoveCard(cbRemoveCard []int, cbRemoveCount int, cbCardData []int, cbCardCount int) bool {
 	return dg.RemoveCardList(cbRemoveCard, cbRemoveCount, cbCardData)
 }
 
 // 排列出牌扑克
-func (dg *ddz_logic) SortOutCardList(cbCardData []uint8, cbCardCount uint8) {
+func (dg *ddz_logic) SortOutCardList(cbCardData []int, cbCardCount int) {
 
 	// 获取牌型
-	cbCardType := dg.GetCardType(cbCardData, cbCardCount)
+	cbCardType := dg.GetCardType(cbCardData)
 
 	if cbCardType == CT_THREE_TAKE_ONE || cbCardType == CT_THREE_TAKE_TWO {
 		//分析牌
@@ -328,7 +349,7 @@ func (dg *ddz_logic) SortOutCardList(cbCardData []uint8, cbCardCount uint8) {
 
 			if AnalyseResult.cbBlockCount[i] > 0 {
 				copy(cbCardData[cbCardCount:], AnalyseResult.cbCardData[i][:(i+1)*int(AnalyseResult.cbBlockCount[i])])
-				cbCardCount += uint8(i+1) * AnalyseResult.cbBlockCount[i]
+				cbCardCount += int(i+1) * AnalyseResult.cbBlockCount[i]
 			}
 		}
 	} else if cbCardType == CT_FOUR_TAKE_ONE || cbCardType == CT_FOUR_TAKE_TWO {
@@ -344,8 +365,8 @@ func (dg *ddz_logic) SortOutCardList(cbCardData []uint8, cbCardCount uint8) {
 			}
 
 			if AnalyseResult.cbBlockCount[i] > 0 {
-				copy(cbCardData[cbCardCount:], AnalyseResult.cbCardData[i][:uint8(i+1)*AnalyseResult.cbBlockCount[i]])
-				cbCardCount += uint8(i+1) * AnalyseResult.cbBlockCount[i]
+				copy(cbCardData[cbCardCount:], AnalyseResult.cbCardData[i][:int(i+1)*AnalyseResult.cbBlockCount[i]])
+				cbCardCount += int(i+1) * AnalyseResult.cbBlockCount[i]
 			}
 		}
 	}
@@ -354,10 +375,10 @@ func (dg *ddz_logic) SortOutCardList(cbCardData []uint8, cbCardCount uint8) {
 }
 
 //逻辑数值
-func (dg *ddz_logic) GetCardLogicValue(cbCardData uint8) uint8 {
+func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 	// 扑克属性
-	cbCardColor := uint8(dg.GetCardColor(int(cbCardData)))
-	cbCardValue := uint8(dg.GetCardValue(int(cbCardData)))
+	cbCardColor := int(dg.GetCardColor(int(cbCardData)))
+	cbCardValue := int(dg.GetCardValue(int(cbCardData)))
 
 	if cbCardValue <= 0 || cbCardValue > (pk_base.LOGIC_MASK_VALUE&0x4f) {
 		log.Error("求取逻辑数值的扑克数据有误%i", cbCardValue)
@@ -377,16 +398,18 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData uint8) uint8 {
 }
 
 //对比扑克
-func (dg *ddz_logic) CompareCard(cbFirstCard []uint8, cbNextCard []uint8, cbFirstCount uint8, cbNextCount uint8) bool {
+func (dg *ddz_logic) CompareCard(cbFirstCard []int, cbNextCard []int) bool {
+	cbFirstCount := len(cbFirstCard)
+	cbNextCount := len(cbNextCard)
 	// 获取类型
-	cbNextType := dg.GetCardType(cbNextCard, cbNextCount)
-	cbFirstType := dg.GetCardType(cbFirstCard, cbFirstCount)
+	cbNextType := dg.GetCardType(cbNextCard)
+	cbFirstType := dg.GetCardType(cbFirstCard)
 
 	// 类型判断
 	if cbNextType == CT_ERROR {
 		return false
 	}
-	if cbNextType == CT_MISSILE_CARD {
+	if cbNextType >= CT_King_2 {
 		return true
 	}
 
@@ -457,23 +480,23 @@ func (dg *ddz_logic) CompareCard(cbFirstCard []uint8, cbNextCard []uint8, cbFirs
 }
 
 //构造扑克
-func (dg *ddz_logic) MakeCardData(cbValueIndex uint8, cbColorIndex uint8) uint8 {
+func (dg *ddz_logic) MakeCardData(cbValueIndex int, cbColorIndex int) int {
 	return (cbColorIndex << 4) | (cbValueIndex + 1)
 }
 
 //分析扑克
-func (dg *ddz_logic) AnalysebCardData(cbCardData []uint8, cbCardCount uint8, AnalyseResult *tagAnalyseResult) {
+func (dg *ddz_logic) AnalysebCardData(cbCardData []int, cbCardCount int, AnalyseResult *tagAnalyseResult) {
 	// 设置结果
 	//ZeroMemory(&AnalyseResult,sizeof(AnalyseResult));
 
 	// 扑克分析
-	for i := 0; uint8(i) < cbCardCount; i++ {
+	for i := 0; int(i) < cbCardCount; i++ {
 		// 变量定义
 		cbSameCount := 1
 		cbLogicValue := dg.GetCardLogicValue(cbCardData[i])
 
 		// 搜索同牌
-		for j := i + 1; uint8(j) < cbCardCount; j++ {
+		for j := i + 1; int(j) < cbCardCount; j++ {
 			// 获取扑克
 			if dg.GetCardLogicValue(cbCardData[j]) != cbLogicValue {
 				break
@@ -503,12 +526,12 @@ func (dg *ddz_logic) AnalysebCardData(cbCardData []uint8, cbCardCount uint8, Ana
 }
 
 // 分析分布
-func (dg *ddz_logic) AnalysebDistributing(cbCardData []uint8, cbCardCount uint8, Distributing *tagDistributing) {
+func (dg *ddz_logic) AnalysebDistributing(cbCardData []int, cbCardCount int, Distributing *tagDistributing) {
 	// 设置变量
 	//	ZeroMemory(&Distributing,sizeof(Distributing));
 
 	//设置变量
-	for i := 0; uint8(i) < cbCardCount; i++ {
+	for i := 0; int(i) < cbCardCount; i++ {
 		if cbCardData[i] == 0 {
 			continue
 		}
@@ -526,18 +549,18 @@ func (dg *ddz_logic) AnalysebDistributing(cbCardData []uint8, cbCardCount uint8,
 }
 
 //出牌搜索
-func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8, cbTurnCardData []uint8, cbTurnCardCount uint8, pSearchCardResult *tagSearchCardResult) uint8 {
+func (dg *ddz_logic) SearchOutCard(cbHandCardData []int, cbHandCardCount int, cbTurnCardData []int, cbTurnCardCount int, pSearchCardResult *tagSearchCardResult) int {
 	// 设置结果
 	if pSearchCardResult == nil {
 		return 0
 	}
 
 	// 变量定义
-	var cbResultCount uint8
+	var cbResultCount int
 	var tmpSearchCardResult tagSearchCardResult
 
 	// 构造扑克
-	var cbCardData [MAX_COUNT]uint8
+	var cbCardData [MAX_COUNT]int
 	cbCardCount := cbHandCardCount
 	copy(cbCardData[:], cbHandCardData[:cbHandCardCount])
 
@@ -545,7 +568,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 	dg.DDZSortCardList(cbCardData[:], cbCardCount, ST_ORDER)
 
 	// 获取类型
-	cbTurnOutType := dg.GetCardType(cbTurnCardData, cbTurnCardCount)
+	cbTurnOutType := dg.GetCardType(cbTurnCardData)
 
 	// 出牌分析
 	switch cbTurnOutType {
@@ -554,14 +577,14 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 			// 提取各种牌型一组
 
 			// 是否一手出完
-			if dg.GetCardType(cbCardData[:], cbCardCount) != CT_ERROR {
+			if dg.GetCardType(cbCardData[:]) != CT_ERROR {
 				pSearchCardResult.cbCardCount[cbResultCount] = cbCardCount
 				copy(pSearchCardResult.cbResultCard[cbResultCount][:], cbCardData[:cbCardCount])
 				cbResultCount++
 			}
 
 			// 如果最小牌不是单牌，则提取
-			var cbSameCount uint8
+			var cbSameCount int
 			if cbCardCount > 1 && dg.GetCardValue(int(cbCardData[cbCardCount-1])) == dg.GetCardValue(int(cbCardData[cbCardCount-2])) {
 				cbSameCount = 1
 				pSearchCardResult.cbResultCard[cbResultCount][0] = cbCardData[cbCardCount-1]
@@ -580,7 +603,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 			}
 
 			// 单牌
-			var cbTmpCount uint8
+			var cbTmpCount int
 			if cbSameCount != 1 {
 				cbTmpCount = dg.SearchSameCard(cbCardData[:], cbCardCount, 0, 1, &tmpSearchCardResult)
 				if cbTmpCount > 0 {
@@ -688,7 +711,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 		{ //三条类型
 			// 变量定义
 			cbReferCard := cbTurnCardData[0]
-			var cbSameCount uint8
+			var cbSameCount int
 			cbSameCount = 1
 			if cbTurnOutType == CT_DOUBLE {
 				cbSameCount = 2
@@ -707,7 +730,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 	case CT_THREE_LINE:
 		{ //三连类型
 			// 变量定义
-			var cbBlockCount uint8
+			var cbBlockCount int
 			cbBlockCount = 1
 			if cbTurnOutType == CT_DOUBLE_LINE {
 				cbBlockCount = 2
@@ -732,7 +755,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 
 			// 如果是三带一或三带二
 			if cbTurnCardCount == 4 || cbTurnCardCount == 5 {
-				var cbTakeCardCount uint8
+				var cbTakeCardCount int
 				if cbTurnOutType == CT_THREE_TAKE_ONE {
 					cbTakeCardCount = 1
 				} else {
@@ -743,17 +766,17 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 				cbResultCount = dg.SearchTakeCardType(cbCardData[:], cbCardCount, cbTurnCardData[2], 3, cbTakeCardCount, pSearchCardResult)
 			} else {
 				// 变量定义
-				var cbBlockCount uint8
+				var cbBlockCount int
 				cbBlockCount = 3
 
-				var cbLineCount uint8
+				var cbLineCount int
 				if cbTurnOutType == CT_THREE_TAKE_ONE {
 					cbLineCount = 4
 				} else {
 					cbLineCount = 5
 				}
 
-				var cbTakeCardCount uint8
+				var cbTakeCardCount int
 				if cbTurnOutType == CT_THREE_TAKE_ONE {
 					cbTakeCardCount = 1
 				} else {
@@ -761,18 +784,18 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 				}
 
 				// 搜索连牌
-				var cbTmpTurnCard [MAX_COUNT]uint8
+				var cbTmpTurnCard [MAX_COUNT]int
 				copy(cbTmpTurnCard[:], cbTurnCardData[:cbTurnCardCount])
 				dg.SortOutCardList(cbTmpTurnCard[:], cbTurnCardCount)
 				cbResultCount = dg.SearchLineCardType(cbCardData[:], cbCardCount, cbTmpTurnCard[0], cbBlockCount, cbLineCount, pSearchCardResult)
 
 				//提取带牌
 				bAllDistill := true
-				for i := 0; uint8(i) < cbResultCount; i++ {
-					cbResultIndex := cbResultCount - uint8(i) - 1
+				for i := 0; int(i) < cbResultCount; i++ {
+					cbResultIndex := cbResultCount - int(i) - 1
 
 					// 变量定义
-					var cbTmpCardData [MAX_COUNT]uint8
+					var cbTmpCardData [MAX_COUNT]int
 					cbTmpCardCount := cbCardCount
 
 					//删除连牌
@@ -789,8 +812,8 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 					dg.AnalysebCardData(cbTmpCardData[:], cbTmpCardCount, &TmpResult)
 
 					// 提取牌
-					var cbDistillCard [MAX_COUNT]uint8
-					var cbDistillCount uint8
+					var cbDistillCard [MAX_COUNT]int
+					var cbDistillCount int
 					for j := cbTakeCardCount - 1; j < 4; j++ {
 						if TmpResult.cbBlockCount[j] > 0 {
 							if j+1 == cbTakeCardCount && TmpResult.cbBlockCount[j] >= cbLineCount {
@@ -799,9 +822,9 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 								cbDistillCount = (j + 1) * cbLineCount
 								break
 							} else {
-								for k := 0; uint8(k) < TmpResult.cbBlockCount[j]; k++ {
+								for k := 0; int(k) < TmpResult.cbBlockCount[j]; k++ {
 									cbTmpBlockCount := TmpResult.cbBlockCount[j]
-									copy(cbDistillCard[cbDistillCount:], TmpResult.cbCardData[j][(cbTmpBlockCount-uint8(k)-1)*(j+1):(cbTmpBlockCount-uint8(k)-1)*(j+1)+cbTakeCardCount])
+									copy(cbDistillCard[cbDistillCount:], TmpResult.cbCardData[j][(cbTmpBlockCount-int(k)-1)*(j+1):(cbTmpBlockCount-int(k)-1)*(j+1)+cbTakeCardCount])
 									cbDistillCount += cbTakeCardCount
 									// 提取完成
 									if cbDistillCount == cbTakeCardCount*cbLineCount {
@@ -833,7 +856,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 				if !bAllDistill {
 					pSearchCardResult.cbSearchCount = cbResultCount
 					cbResultCount = 0
-					for i := 0; uint8(i) < pSearchCardResult.cbSearchCount; i++ {
+					for i := 0; int(i) < pSearchCardResult.cbSearchCount; i++ {
 						if pSearchCardResult.cbCardCount[i] != 0 {
 							tmpSearchCardResult.cbCardCount[cbResultCount] = pSearchCardResult.cbCardCount[i]
 							copy(tmpSearchCardResult.cbResultCard[cbResultCount][:], pSearchCardResult.cbResultCard[i][:pSearchCardResult.cbCardCount[i]])
@@ -852,14 +875,14 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 	case CT_FOUR_TAKE_TWO:
 		{ //四带两双
 
-			var cbTakeCount uint8
+			var cbTakeCount int
 			if cbTurnOutType == CT_FOUR_TAKE_ONE {
 				cbTakeCount = 1
 			} else {
 				cbTakeCount = 2
 			}
 
-			var cbTmpTurnCard [MAX_COUNT]uint8
+			var cbTmpTurnCard [MAX_COUNT]int
 			copy(cbTmpTurnCard[:], cbTurnCardData[:cbTurnCardCount])
 			dg.SortOutCardList(cbTmpTurnCard[:], cbTurnCardCount)
 
@@ -871,16 +894,16 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 	}
 
 	// 搜索炸弹
-	if (cbCardCount >= 4) && (cbTurnOutType != CT_MISSILE_CARD) {
+	if (cbCardCount >= 4) && (cbTurnOutType < CT_King_2) {
 		// 变量定义
-		var cbReferCard uint8
+		var cbReferCard int
 		if cbTurnOutType == CT_BOMB_CARD {
 			cbReferCard = cbTurnCardData[0]
 		}
 
 		// 搜索炸弹
 		cbTmpResultCount := dg.SearchSameCard(cbCardData[:], cbCardCount, cbReferCard, 4, &tmpSearchCardResult)
-		for i := 0; uint8(i) < cbTmpResultCount; i++ {
+		for i := 0; int(i) < cbTmpResultCount; i++ {
 			pSearchCardResult.cbCardCount[cbResultCount] = tmpSearchCardResult.cbCardCount[i]
 			copy(pSearchCardResult.cbResultCard[cbResultCount][:], tmpSearchCardResult.cbResultCard[i][:tmpSearchCardResult.cbCardCount[i]])
 			cbResultCount++
@@ -889,7 +912,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 	}
 
 	// 搜索火箭
-	if cbTurnOutType != CT_MISSILE_CARD && (cbCardCount >= 2) && (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
+	if cbTurnOutType < CT_King_2 && (cbCardCount >= 2) && (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
 		// 设置结果
 		pSearchCardResult.cbCardCount[cbResultCount] = 2
 		pSearchCardResult.cbResultCard[cbResultCount][0] = cbCardData[0]
@@ -903,12 +926,12 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []uint8, cbHandCardCount uint8
 }
 
 //同牌搜索
-func (dg *ddz_logic) SearchSameCard(cbHandCardData []uint8, cbHandCardCount uint8, cbReferCard uint8, cbSameCardCount uint8, pSearchCardResult *tagSearchCardResult) uint8 {
+func (dg *ddz_logic) SearchSameCard(cbHandCardData []int, cbHandCardCount int, cbReferCard int, cbSameCardCount int, pSearchCardResult *tagSearchCardResult) int {
 	// 设置结果
-	var cbResultCount uint8
+	var cbResultCount int
 
 	// 构造扑克
-	var cbCardData [MAX_COUNT]uint8
+	var cbCardData [MAX_COUNT]int
 	cbCardCount := cbHandCardCount
 	copy(cbCardData[:], cbHandCardData[:cbHandCardCount])
 
@@ -919,7 +942,7 @@ func (dg *ddz_logic) SearchSameCard(cbHandCardData []uint8, cbHandCardCount uint
 	var AnalyseResult tagAnalyseResult
 	dg.AnalysebCardData(cbCardData[:], cbCardCount, &AnalyseResult)
 
-	var cbReferLogicValue uint8
+	var cbReferLogicValue int
 	if cbReferCard == 0 {
 		cbReferLogicValue = 0
 	} else {
@@ -928,8 +951,8 @@ func (dg *ddz_logic) SearchSameCard(cbHandCardData []uint8, cbHandCardCount uint
 
 	cbBlockIndex := cbSameCardCount - 1
 	for cbBlockIndex < 4 {
-		for i := 0; uint8(i) < AnalyseResult.cbBlockCount[cbBlockIndex]; i++ {
-			cbIndex := (AnalyseResult.cbBlockCount[cbBlockIndex] - uint8(i) - 1) * (cbBlockIndex + 1)
+		for i := 0; int(i) < AnalyseResult.cbBlockCount[cbBlockIndex]; i++ {
+			cbIndex := (AnalyseResult.cbBlockCount[cbBlockIndex] - int(i) - 1) * (cbBlockIndex + 1)
 			if dg.GetCardLogicValue(AnalyseResult.cbCardData[cbBlockIndex][cbIndex]) > cbReferLogicValue {
 				if pSearchCardResult == nil {
 					return 1
@@ -958,10 +981,10 @@ func (dg *ddz_logic) SearchSameCard(cbHandCardData []uint8, cbHandCardCount uint
 }
 
 //带牌类型搜索(三带一，四带一等)
-func (dg *ddz_logic) SearchTakeCardType(cbHandCardData []uint8, cbHandCardCount uint8, cbReferCard uint8, cbSameCount uint8, cbTakeCardCount uint8, pSearchCardResult *tagSearchCardResult) uint8 {
+func (dg *ddz_logic) SearchTakeCardType(cbHandCardData []int, cbHandCardCount int, cbReferCard int, cbSameCount int, cbTakeCardCount int, pSearchCardResult *tagSearchCardResult) int {
 
 	// 设置结果
-	var cbResultCount uint8
+	var cbResultCount int
 
 	// 效验
 	if cbSameCount != 3 && cbSameCount != 4 {
@@ -979,7 +1002,7 @@ func (dg *ddz_logic) SearchTakeCardType(cbHandCardData []uint8, cbHandCardCount 
 	}
 
 	// 构造扑克
-	var cbCardData [MAX_COUNT]uint8
+	var cbCardData [MAX_COUNT]int
 	cbCardCount := cbHandCardCount
 	copy(cbCardData[:], cbHandCardData[:cbHandCardCount])
 
@@ -1002,13 +1025,13 @@ func (dg *ddz_logic) SearchTakeCardType(cbHandCardData []uint8, cbHandCardCount 
 		}
 
 		// 提取带牌
-		for i := 0; uint8(i) < cbSameCardResultCount; i++ {
+		for i := 0; int(i) < cbSameCardResultCount; i++ {
 			bMerge := false
 
 			for j := cbTakeCardCount - 1; j < 4; j++ {
-				for k := 0; uint8(k) < AnalyseResult.cbBlockCount[j]; k++ {
+				for k := 0; int(k) < AnalyseResult.cbBlockCount[j]; k++ {
 					// 从小到大
-					cbIndex := (AnalyseResult.cbBlockCount[j] - uint8(k) - 1) * (j + 1)
+					cbIndex := (AnalyseResult.cbBlockCount[j] - int(k) - 1) * (j + 1)
 
 					// 过滤相同牌
 					if dg.GetCardValue(int(SameCardResult.cbResultCard[i][0])) ==
@@ -1054,10 +1077,10 @@ func (dg *ddz_logic) SearchTakeCardType(cbHandCardData []uint8, cbHandCardCount 
 }
 
 //连牌搜索
-func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount uint8, cbReferCard uint8, cbBlockCount uint8, cbLineCount uint8, pSearchCardResult *tagSearchCardResult) uint8 {
+func (dg *ddz_logic) SearchLineCardType(cbHandCardData []int, cbHandCardCount int, cbReferCard int, cbBlockCount int, cbLineCount int, pSearchCardResult *tagSearchCardResult) int {
 	// 设置结果
-	var cbResultCount uint8
-	var cbLessLineCount uint8
+	var cbResultCount int
+	var cbLessLineCount int
 
 	if cbLineCount == 0 {
 		if cbBlockCount == 1 {
@@ -1071,7 +1094,7 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 		cbLessLineCount = cbLineCount
 	}
 
-	var cbReferIndex uint8
+	var cbReferIndex int
 	cbReferIndex = 2
 	if cbReferCard != 0 {
 		if dg.GetCardLogicValue(cbReferCard)-cbLessLineCount >= 2 {
@@ -1091,7 +1114,7 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 	}
 
 	// 构造扑克
-	var cbCardData [MAX_COUNT]uint8
+	var cbCardData [MAX_COUNT]int
 	cbCardCount := cbHandCardCount
 	copy(cbCardData[:], cbHandCardData[:cbHandCardCount])
 
@@ -1103,8 +1126,8 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 	dg.AnalysebDistributing(cbCardData[:], cbCardCount, &Distributing)
 
 	// 搜索顺子
-	var cbTmpLinkCount uint8
-	var cbValueIndex uint8
+	var cbTmpLinkCount int
+	var cbValueIndex int
 	for cbValueIndex = cbReferIndex; cbValueIndex < 13; cbValueIndex++ {
 		// 继续判断
 		if Distributing.cbDistributing[cbValueIndex][cbIndexCount] < cbBlockCount {
@@ -1133,12 +1156,12 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 			//ASSERT( cbResultCount < CountArray(pSearchCardResult.cbCardCount) );
 
 			// 复制扑克
-			var cbCount uint8
+			var cbCount int
 			for cbIndex := cbValueIndex + 1 - cbTmpLinkCount; cbIndex <= cbValueIndex; cbIndex++ {
-				var cbTmpCount uint8
+				var cbTmpCount int
 				for cbColorIndex := 0; cbColorIndex < 4; cbColorIndex++ {
-					for cbColorCount := 0; uint8(cbColorCount) < Distributing.cbDistributing[cbIndex][3-cbColorIndex]; cbColorCount++ {
-						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(cbIndex, 3-uint8(cbColorIndex))
+					for cbColorCount := 0; int(cbColorCount) < Distributing.cbDistributing[cbIndex][3-cbColorIndex]; cbColorCount++ {
+						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(cbIndex, 3-int(cbColorIndex))
 						cbCount++
 						cbTmpCount++
 						if cbTmpCount == cbBlockCount {
@@ -1174,13 +1197,13 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 			}
 
 			// 复制扑克
-			var cbCount uint8
-			var cbTmpCount uint8
+			var cbCount int
+			var cbTmpCount int
 			for cbIndex := cbValueIndex - cbTmpLinkCount; cbIndex < 13; cbIndex++ {
 				cbTmpCount = 0
 				for cbColorIndex := 0; cbColorIndex < 4; cbColorIndex++ {
-					for cbColorCount := 0; uint8(cbColorCount) < Distributing.cbDistributing[cbIndex][3-cbColorIndex]; cbColorCount++ {
-						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(cbIndex, 3-uint8(cbColorIndex))
+					for cbColorCount := 0; int(cbColorCount) < Distributing.cbDistributing[cbIndex][3-cbColorIndex]; cbColorCount++ {
+						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(cbIndex, 3-int(cbColorIndex))
 						cbCount++
 						cbTmpCount++
 						if cbTmpCount == cbBlockCount {
@@ -1196,8 +1219,8 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 			if Distributing.cbDistributing[0][cbIndexCount] >= cbBlockCount {
 				cbTmpCount = 0
 				for cbColorIndex := 0; cbColorIndex < 4; cbColorIndex++ {
-					for cbColorCount := 0; uint8(cbColorCount) < Distributing.cbDistributing[0][3-cbColorIndex]; cbColorCount++ {
-						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(0, 3-uint8(cbColorIndex))
+					for cbColorCount := 0; int(cbColorCount) < Distributing.cbDistributing[0][3-cbColorIndex]; cbColorCount++ {
+						pSearchCardResult.cbResultCard[cbResultCount][cbCount] = dg.MakeCardData(0, 3-int(cbColorIndex))
 						cbCount++
 						cbTmpCount++
 						if cbTmpCount == cbBlockCount {
@@ -1223,34 +1246,34 @@ func (dg *ddz_logic) SearchLineCardType(cbHandCardData []uint8, cbHandCardCount 
 }
 
 //搜索飞机
-func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []uint8, cbHandCardCount uint8, pSearchCardResult *tagSearchCardResult) uint8 {
+func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []int, cbHandCardCount int, pSearchCardResult *tagSearchCardResult) int {
 
 	// 变量定义
 	var tmpSearchResult tagSearchCardResult
 	var tmpSingleWing tagSearchCardResult
 	var tmpDoubleWing tagSearchCardResult
-	var cbTmpResultCount uint8
+	var cbTmpResultCount int
 
 	// 搜索连牌
 	cbTmpResultCount = dg.SearchLineCardType(cbHandCardData, cbHandCardCount, 0, 3, 0, &tmpSearchResult)
 
 	if cbTmpResultCount > 0 {
 		//提取带牌
-		for i := 0; uint8(i) < cbTmpResultCount; i++ {
+		for i := 0; int(i) < cbTmpResultCount; i++ {
 			// 变量定义
-			var cbTmpCardData [MAX_COUNT]uint8
+			var cbTmpCardData [MAX_COUNT]int
 			var cbTmpCardCount = cbHandCardCount
 
 			// 不够牌
 			if cbHandCardCount-tmpSearchResult.cbCardCount[i] < tmpSearchResult.cbCardCount[i]/3 {
-				var cbNeedDelCount uint8
+				var cbNeedDelCount int
 				cbNeedDelCount = 3
-				for cbHandCardCount+uint8(cbNeedDelCount)-tmpSearchResult.cbCardCount[i] < (tmpSearchResult.cbCardCount[i]-uint8(cbNeedDelCount))/3 {
+				for cbHandCardCount+int(cbNeedDelCount)-tmpSearchResult.cbCardCount[i] < (tmpSearchResult.cbCardCount[i]-int(cbNeedDelCount))/3 {
 					cbNeedDelCount += 3
 				}
 
 				// 不够连牌
-				if (tmpSearchResult.cbCardCount[i]-uint8(cbNeedDelCount))/3 < 2 {
+				if (tmpSearchResult.cbCardCount[i]-int(cbNeedDelCount))/3 < 2 {
 					// 废除连牌
 					continue
 				}
@@ -1285,7 +1308,7 @@ func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []uint8, cbHandCardCount 
 
 			// 不够带翅膀
 			if cbTmpCardCount < tmpSearchResult.cbCardCount[i]/3*2 {
-				var cbNeedDelCount uint8
+				var cbNeedDelCount int
 				cbNeedDelCount = 3
 				for cbTmpCardCount+cbNeedDelCount-tmpSearchResult.cbCardCount[i] < (tmpSearchResult.cbCardCount[i]-cbNeedDelCount)/3*2 {
 					cbNeedDelCount += 3
@@ -1314,20 +1337,20 @@ func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []uint8, cbHandCardCount 
 			dg.AnalysebCardData(cbTmpCardData[:], cbTmpCardCount, &TmpResult)
 
 			//提取翅膀
-			var cbDistillCard [MAX_COUNT]uint8
-			var cbDistillCount uint8
+			var cbDistillCard [MAX_COUNT]int
+			var cbDistillCount int
 			cbLineCount := tmpSearchResult.cbCardCount[i] / 3
 			for j := 1; j < 4; j++ {
 				if TmpResult.cbBlockCount[j] > 0 {
 					if j+1 == 2 && TmpResult.cbBlockCount[j] >= cbLineCount {
 						cbTmpBlockCount := TmpResult.cbBlockCount[j]
-						copy(cbDistillCard[:], TmpResult.cbCardData[j][(cbTmpBlockCount-cbLineCount)*uint8(j+1):(cbTmpBlockCount-cbLineCount)*uint8(j+1)+uint8(j+1)*cbLineCount])
-						cbDistillCount = uint8(j+1) * cbLineCount
+						copy(cbDistillCard[:], TmpResult.cbCardData[j][(cbTmpBlockCount-cbLineCount)*int(j+1):(cbTmpBlockCount-cbLineCount)*int(j+1)+int(j+1)*cbLineCount])
+						cbDistillCount = int(j+1) * cbLineCount
 						break
 					} else {
-						for k := 0; uint8(k) < TmpResult.cbBlockCount[j]; k++ {
+						for k := 0; int(k) < TmpResult.cbBlockCount[j]; k++ {
 							cbTmpBlockCount := TmpResult.cbBlockCount[j]
-							copy(cbDistillCard[cbDistillCount:], TmpResult.cbCardData[j][(cbTmpBlockCount-uint8(k)-1)*uint8(j+1):(cbTmpBlockCount-uint8(k)-1)*uint8(j+1)+2])
+							copy(cbDistillCard[cbDistillCount:], TmpResult.cbCardData[j][(cbTmpBlockCount-int(k)-1)*int(j+1):(cbTmpBlockCount-int(k)-1)*int(j+1)+2])
 							cbDistillCount += 2
 
 							//提取完成
@@ -1355,13 +1378,13 @@ func (dg *ddz_logic) SearchThreeTwoLine(cbHandCardData []uint8, cbHandCardCount 
 		}
 
 		// 复制结果
-		for i := 0; uint8(i) < tmpDoubleWing.cbSearchCount; i++ {
+		for i := 0; int(i) < tmpDoubleWing.cbSearchCount; i++ {
 			cbResultCount := pSearchCardResult.cbSearchCount
 			pSearchCardResult.cbSearchCount++
 			copy(pSearchCardResult.cbResultCard[cbResultCount][:], tmpDoubleWing.cbResultCard[i][:tmpDoubleWing.cbCardCount[i]])
 			pSearchCardResult.cbCardCount[cbResultCount] = tmpDoubleWing.cbCardCount[i]
 		}
-		for i := 0; uint8(i) < tmpSingleWing.cbSearchCount; i++ {
+		for i := 0; int(i) < tmpSingleWing.cbSearchCount; i++ {
 			cbResultCount := pSearchCardResult.cbSearchCount
 			pSearchCardResult.cbSearchCount++
 			copy(pSearchCardResult.cbResultCard[cbResultCount][:], tmpSingleWing.cbResultCard[i][:tmpSingleWing.cbCardCount[i]])
