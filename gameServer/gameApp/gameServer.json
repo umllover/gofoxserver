@@ -2,9 +2,9 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 	
-	"WSAddr": "192.168.1.81:20002",
-    "HttpAddr":"192.168.1.81:40002",
-    "ListenAddr": "192.168.1.81:32002",
+	"WSAddr": "192.168.1.37:20002",
+    "HttpAddr":"192.168.1.37:40002",
+    "ListenAddr": "192.168.1.37:32002",
 	"MaxConnNum": 20000,
 
     "AccountDbHost":"192.168.1.33",

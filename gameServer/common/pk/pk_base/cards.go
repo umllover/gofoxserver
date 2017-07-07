@@ -42,12 +42,16 @@ func GetTBNNCards() []int {
 	return getCardByIdx(IDX_TBNN)
 }
 
+func GetSSSCards() []int {
+	return getCardByIdx(IDX_SSS)
+}
+
 type PK_CFG struct {
 	PublicCardCount int //
 	MaxCount        int //最大手牌数目
 	MaxRepertory    int //最多存放多少张牌
-	CallScoreTime	int //叫分时间
-	AddScoreTime	int //加注时间
+	CallScoreTime   int //叫分时间
+	AddScoreTime    int //加注时间
 
 }
 
@@ -63,6 +67,13 @@ var cfg = []*PK_CFG{
 		PublicCardCount: 0,
 		MaxCount:        0,
 		MaxRepertory:    54,
+		CallScoreTime:   10,
+		AddScoreTime:    10,
+	},
+	IDX_SSS: &PK_CFG{
+		PublicCardCount: 0,
+		MaxCount:        13,
+		MaxRepertory:    52,
 		CallScoreTime:   10,
 		AddScoreTime:    10,
 	},

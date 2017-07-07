@@ -3,14 +3,16 @@ package room
 import (
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
+
 	"github.com/lovelly/leaf/timer"
 
+	"mj/common/cost"
+	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/user"
 	"time"
-	"mj/common/msg/nn_tb_msg"
-	"mj/common/cost"
-	"github.com/lovelly/leaf/util"
+
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/util"
 )
 
 // 游戏状态
@@ -22,17 +24,15 @@ const (
 	ADD_SCORE        = 1004 // 加注
 	SEND_LAST_CARD   = 1005 // 发最后一张牌
 	OPEN_CARD        = 1006 // 亮牌
-	CAL_SCORE		= 1007// 结算
+	CAL_SCORE        = 1007 // 结算
 )
 
 // 定时器 -- for test
 const (
 	CALL_SCORE_TIME = 10
 	ADD_SCORE_TIME  = 10
-	OPEN_CARD_TIME	= 30
+	OPEN_CARD_TIME  = 30
 )
-
-
 
 func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry) *nntb_data_mgr {
 	d := new(nntb_data_mgr)
@@ -44,34 +44,28 @@ type nntb_data_mgr struct {
 	*pk_base.RoomData
 
 	//游戏变量
-	CardData       [][]int //用户扑克
-	PublicCardData []int   //公共牌 两张
-	RepertoryCard  []int   //库存扑克
-	LeftCardCount  int     //库存剩余扑克数量
-	OpenCardMap			map[*user.User][]int 	//亮牌数据
-	CallScoreTimesMap 	map[int]*user.User 		//记录叫分信息
-	CalScoreMap			map[*user.User]int		//计分信息
-	AddScoreMap 		map[*user.User]int //记录用户加注信息
+	CardData          [][]int              //用户扑克
+	PublicCardData    []int                //公共牌 两张
+	RepertoryCard     []int                //库存扑克
+	LeftCardCount     int                  //库存剩余扑克数量
+	OpenCardMap       map[*user.User][]int //亮牌数据
+	CallScoreTimesMap map[int]*user.User   //记录叫分信息
+	CalScoreMap       map[*user.User]int   //计分信息
+	AddScoreMap       map[*user.User]int   //记录用户加注信息
 
-
-
-	BankerUser      *user.User     //庄家用户
-
-
+	BankerUser *user.User //庄家用户
 
 	// 游戏状态
-	GameStatus     	int
-	CallScoreTimer 	*timer.Timer
-	AddScoreTimer  	*timer.Timer
-	OpenCardTimer	*timer.Timer
-
+	GameStatus     int
+	CallScoreTimer *timer.Timer
+	AddScoreTimer  *timer.Timer
+	OpenCardTimer  *timer.Timer
 }
-
 
 func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
 
-	StatusFree.CellScore = room.CellScore                                    //基础积分
+	StatusFree.CellScore = room.CellScore                                  //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetCreatrTime()        //开始时间
@@ -118,10 +112,9 @@ func (room *nntb_data_mgr) StartGameing() {
 	room.StartDispatchCard()
 }
 
-
 func (room *nntb_data_mgr) AfterStartGame() {
 	room.GameStatus = CALL_SCORE_TIMES
-	room.CallScoreTimer = room.PkBase.AfterFunc(CALL_SCORE_TIME * time.Second, func() {
+	room.CallScoreTimer = room.PkBase.AfterFunc(CALL_SCORE_TIME*time.Second, func() {
 		if room.GameStatus != ADD_SCORE { // 超时叫分结束
 			room.CallScoreEnd()
 		}
@@ -149,10 +142,9 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.FisrtCallUser = cost.INVALID_CHAIR
 	room.CurrentUser = cost.INVALID_CHAIR
 
-
 }
 
-func (r *nntb_data_mgr) GetOneCard() int  { // 从牌堆取出一张
+func (r *nntb_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	r.LeftCardCount -= 1
 	return r.RepertoryCard[r.LeftCardCount]
 }
@@ -408,7 +400,7 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 }
 
 // 叫分结束
-func (r * nntb_data_mgr) CallScoreEnd()  {
+func (r *nntb_data_mgr) CallScoreEnd() {
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
@@ -422,7 +414,7 @@ func (r * nntb_data_mgr) CallScoreEnd()  {
 	log.Debug("enter add score")
 	r.GameStatus = ADD_SCORE
 
-	r.AddScoreTimer = r.PkBase.AfterFunc(ADD_SCORE_TIME * time.Second, func() { // 超时加注结束
+	r.AddScoreTimer = r.PkBase.AfterFunc(ADD_SCORE_TIME*time.Second, func() { // 超时加注结束
 		if r.GameStatus != SEND_LAST_CARD {
 			r.AddScoreEnd()
 		}
@@ -450,7 +442,7 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 }
 
 // 加注结束
-func (r * nntb_data_mgr) AddScoreEnd() {
+func (r *nntb_data_mgr) AddScoreEnd() {
 
 	// 进入最后一张牌
 	log.Debug("enter last card")
@@ -472,7 +464,7 @@ func (r * nntb_data_mgr) AddScoreEnd() {
 }
 
 // 进入亮牌
-func (r *nntb_data_mgr) EnterOpenCard()  {
+func (r *nntb_data_mgr) EnterOpenCard() {
 	log.Debug("enter open card")
 	r.GameStatus = OPEN_CARD
 	// 亮牌超时
@@ -483,7 +475,7 @@ func (r *nntb_data_mgr) EnterOpenCard()  {
 			userMgr.ForEachUser(func(u *user.User) {
 				if r.OpenCardMap[u] == nil {
 					// 需要改进
-					r.OpenCard(u,0, r.CardData[u.ChairId] )
+					r.OpenCard(u, 0, r.CardData[u.ChairId])
 				}
 			})
 		}
@@ -492,15 +484,15 @@ func (r *nntb_data_mgr) EnterOpenCard()  {
 }
 
 // 验证
-func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool  {
+func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool {
 	// 先验证是不是在公共牌中
-	for i:=0; i<pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount; i++ {
+	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount; i++ {
 		if card == r.PublicCardData[i] {
 			return true
 		}
 	}
 	// 是不是在用户手牌
-	for i:=0; i<pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
+	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
 		if card == r.CardData[chairID][i] {
 			return true
 		}
@@ -508,9 +500,9 @@ func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool  {
 	return false
 }
 
-func (r *nntb_data_mgr)IsValidCardData(chairID int, cardData []int) bool {
-	for i:=0; i<pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
-		if !r.IsValidCard(chairID,cardData[i]) {
+func (r *nntb_data_mgr) IsValidCardData(chairID int, cardData []int) bool {
+	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
+		if !r.IsValidCard(chairID, cardData[i]) {
 			return false
 		}
 	}
@@ -518,7 +510,7 @@ func (r *nntb_data_mgr)IsValidCardData(chairID int, cardData []int) bool {
 }
 
 // 亮牌
-func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int)  {
+func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	// 验证牌数据
 	if !r.IsValidCardData(u.ChairId, cardData) {
 		log.Debug("user open card failed at %d", u.ChairId)
@@ -532,9 +524,9 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int)  {
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(&nn_tb_msg.G2C_TBNN_Open_Card{
-			ChairID:u.ChairId,
-			CardType:cardType,
-			CardData:cardData,
+			ChairID:  u.ChairId,
+			CardType: cardType,
+			CardData: cardData,
 		})
 	})
 
@@ -544,7 +536,7 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int)  {
 }
 
 // 亮牌结束
-func (r *nntb_data_mgr) OpenCardEnd()  {
+func (r *nntb_data_mgr) OpenCardEnd() {
 	r.GameStatus = CAL_SCORE
 	// 比牌
 	logicMgr := r.PkBase.LogicMgr
@@ -554,7 +546,7 @@ func (r *nntb_data_mgr) OpenCardEnd()  {
 			if logicMgr.CompareCard(r.OpenCardMap[r.BankerUser], r.OpenCardMap[u]) { // 庄家比闲家大
 				r.CalScoreMap[r.BankerUser] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
 				r.CalScoreMap[u] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
-			}else {
+			} else {
 				r.CalScoreMap[r.BankerUser] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
 				r.CalScoreMap[u] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
 			}
@@ -563,7 +555,6 @@ func (r *nntb_data_mgr) OpenCardEnd()  {
 
 	// 游戏结束
 	userMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.OnEventGameConclude(u.ChairId, u, cost.GER_NORMAL )
+		r.PkBase.OnEventGameConclude(u.ChairId, u, cost.GER_NORMAL)
 	})
 }
-
