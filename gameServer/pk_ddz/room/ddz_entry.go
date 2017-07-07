@@ -59,7 +59,8 @@ func (room *DDZ_Entry) OnEventGameSceneStatusPlaying(args []interface{}) {
 
 // 明牌
 func (r *DDZ_Entry) ShowCard(args []interface{}) {
-
+	u := args[1].(*user.User)
+	r.DataMgr.ShowCard(u)
 }
 
 // 发送扑克
