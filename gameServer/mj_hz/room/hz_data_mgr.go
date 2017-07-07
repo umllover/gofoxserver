@@ -2,6 +2,7 @@ package room
 
 import (
 	"mj/common/msg/mj_hz_msg"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -52,7 +53,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 
 	isWin := false
 	for chairId, v := range room.UserAction {
-		if v&mj_base.WIK_CHI_HU != 0 && chairId == CenterUser {
+		if v&WIK_CHI_HU != 0 && chairId == CenterUser {
 			isWin = true
 		}
 	}

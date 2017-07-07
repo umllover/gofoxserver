@@ -7,6 +7,7 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -452,15 +453,15 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 			return 0
 		}
 
-		Wrave := &msg.WeaveItem{}
-		Wrave.Param = WIK_AN_GANG
-		Wrave.ProvideUser = u.ChairId
-		Wrave.WeaveKind = cbOperateCode
-		Wrave.CenterCard = cbOperateCard[0]
+		cbWeave = &msg.WeaveItem{}
+		cbWeave.Param = WIK_AN_GANG
+		cbWeave.ProvideUser = u.ChairId
+		cbWeave.WeaveKind = cbOperateCode
+		cbWeave.CenterCard = cbOperateCard[0]
 		for j := 0; j < 4; j++ {
-			Wrave.CardData[j] = cbOperateCard[0]
+			cbWeave.CardData[j] = cbOperateCard[0]
 		}
-		room.WeaveItemArray[u.ChairId] = append(room.WeaveItemArray[u.ChairId], Wrave)
+		room.WeaveItemArray[u.ChairId] = append(room.WeaveItemArray[u.ChairId], cbWeave)
 	}
 
 	//删除扑克
@@ -470,17 +471,24 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 	room.GangCard[u.ChairId] = true
 	room.GangCount[u.ChairId]++
 
-	//构造结果
-	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
-	OperateResult.OperateUser = u.ChairId
-	OperateResult.ProvideUser = wProvideUser
-	OperateResult.OperateCode = cbOperateCode
-	OperateResult.OperateCard[0] = cbOperateCard[0]
-
 	//发送消息
-	room.MjBase.UserMgr.SendMsgAll(OperateResult)
-
+	room.MjBase.DataMgr.SendOperateResult(u, cbWeave)
 	return cbGangKind
+}
+
+//发送操作结果
+func (room *RoomData) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
+	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
+	OperateResult.ProvideUser = wrave.ProvideUser
+	OperateResult.OperateCode = wrave.WeaveKind
+	OperateResult.OperateCard[0] = wrave.CenterCard
+	if u != nil {
+		OperateResult.OperateUser = u.ChairId
+	} else {
+		OperateResult.OperateUser = wrave.OperateUser
+		OperateResult.ActionMask = wrave.ActionMask
+	}
+	room.MjBase.UserMgr.SendMsgAll(OperateResult)
 }
 
 func (room *RoomData) ZiMo(u *user.User) {
@@ -500,22 +508,22 @@ func (room *RoomData) ZiMo(u *user.User) {
 
 func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	//构造结果
-	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
-	OperateResult.OperateUser = wTargetUser
-	OperateResult.OperateCode = cbTargetAction
+	wrave := &msg.WeaveItem{}
+	wrave.OperateUser = wTargetUser
+	wrave.WeaveKind = cbTargetAction
 	if room.ProvideUser == INVALID_CHAIR {
-		OperateResult.ProvideUser = wTargetUser
+		wrave.ProvideUser = wTargetUser
 	} else {
-		OperateResult.ProvideUser = room.ProvideUser
+		wrave.ProvideUser = room.ProvideUser
 	}
 
 	cbTargetCard := room.OperateCard[wTargetUser][0]
-	OperateResult.OperateCard[0] = cbTargetCard
+	wrave.CardData[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
-		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
+		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
 	} else if cbTargetAction&WIK_PENG != 0 {
-		OperateResult.OperateCard[1] = cbTargetCard
-		OperateResult.OperateCard[2] = cbTargetCard
+		wrave.CardData[1] = cbTargetCard
+		wrave.CardData[2] = cbTargetCard
 	}
 
 	//用户状态
@@ -551,11 +559,11 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 				u.WriteMsg(HuData)
 			}
 		}
-		OperateResult.ActionMask |= room.UserAction[wTargetUser]
+		wrave.ActionMask |= room.UserAction[wTargetUser]
 	}
 
 	//发送消息
-	room.MjBase.UserMgr.SendMsgAll(OperateResult)
+	room.MjBase.DataMgr.SendOperateResult(nil, wrave)
 
 	//设置用户
 	room.CurrentUser = wTargetUser

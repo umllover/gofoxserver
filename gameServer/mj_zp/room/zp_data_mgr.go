@@ -4,6 +4,7 @@ import (
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -112,7 +113,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
-	room.HistoryScores = make([]*mj_base.HistoryScore, UserCnt)
+	room.HistoryScores = make([]*HistoryScore, UserCnt)
 
 	//设置漳浦麻将牌数据
 	room.EndLeftCount = 16
@@ -645,7 +646,7 @@ func (room *ZP_RoomData) NormalEnd() {
 
 		//历史积分
 		if room.HistoryScores[u.ChairId] == nil {
-			room.HistoryScores[u.ChairId] = &mj_base.HistoryScore{}
+			room.HistoryScores[u.ChairId] = &HistoryScore{}
 		}
 		room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
 		room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
@@ -814,12 +815,12 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 		log.Error("not foud card at Operater")
 		return
 	}
-	kind, TagAnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
+	kind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
 	room.ChiHuKind[u.ChairId] = int(kind)
 	room.ProvideCard = room.SendCardData
 
 	//特殊胡牌类型
-	room.SpecialCardKind(TagAnalyseItem, u.ChairId)
+	room.SpecialCardKind(AnalyseItem, u.ChairId)
 	return
 }
 
@@ -835,11 +836,11 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 
 		//胡牌判断
 		pWeaveItem := room.WeaveItemArray[wChiHuUser]
-		chihuKind, TagAnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
+		chihuKind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
 		room.ChiHuKind[wChiHuUser] = chihuKind
 
 		//特殊胡牌类型
-		room.SpecialCardKind(TagAnalyseItem, wChiHuUser)
+		room.SpecialCardKind(AnalyseItem, wChiHuUser)
 
 		//插入扑克
 		if room.ChiHuKind[wChiHuUser] != WIK_NULL {
@@ -849,7 +850,7 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 }
 
 //特殊胡牌类型及算分
-func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*mj_base.TagAnalyseItem, HuUserID int) {
+func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID int) {
 	winScore := room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
 		kind := 0
@@ -1372,7 +1373,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 func (room *ZP_RoomData) CallGangScore() {
 	lcell := room.Source
 	//暗杠得分
-	if room.GangStatus == mj_base.WIK_AN_GANG {
+	if room.GangStatus == WIK_AN_GANG {
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			if u.Status != US_PLAYING {
 				return
@@ -1471,7 +1472,7 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 		}
 
 		Wrave := &msg.WeaveItem{}
-		Wrave.Param = mj_base.WIK_AN_GANG
+		Wrave.Param = WIK_AN_GANG
 		Wrave.ProvideUser = u.ChairId
 		Wrave.WeaveKind = cbOperateCode
 		Wrave.CenterCard = cbOperateCard[0]
@@ -1568,7 +1569,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	//杠牌处理
 	if cbTargetAction == WIK_GANG {
-		room.GangStatus = mj_base.WIK_FANG_GANG
+		room.GangStatus = WIK_FANG_GANG
 		if room.ProvideUser == INVALID_CHAIR {
 			room.ProvideGangUser = wTargetUser
 		} else {

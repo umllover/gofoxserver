@@ -2,6 +2,7 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	. "mj/gameServer/common/mj"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"

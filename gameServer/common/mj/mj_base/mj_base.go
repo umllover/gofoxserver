@@ -5,6 +5,7 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
