@@ -3,6 +3,7 @@ package internal
 import (
 	"mj/common/msg"
 	"reflect"
+	"mj/common/msg/mj_hz_msg"
 )
 
 ////注册rpc 消息
@@ -18,7 +19,17 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	//handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, SSSShowCard)
 	//handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
+
+}
+func SSSShowCard(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	user := agent.UserData().(*user.User)
+
+	r := getRoom(user.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("CallScore", args[0], user)
+	}
 
 }
