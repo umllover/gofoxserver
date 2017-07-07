@@ -27,6 +27,7 @@ func init() {
 	handlerC2S(&mj_zp_msg.C2G_MJZP_SetChaHua{}, SetChaHua)
 	handlerC2S(&mj_zp_msg.G2C_MJZP_ReplaceCard{}, SetBuHua)
 	handlerC2S(&mj_zp_msg.C2G_MJZP_ListenCard{}, SetTingCard)
+	handlerC2S(&mj_zp_msg.C2G_MJZP_Trustee{}, Trustee)
 }
 
 func ZPOutCard(args []interface{}) {
@@ -80,5 +81,16 @@ func SetTingCard(args []interface{}) {
 	r := getRoom(u.RoomId)
 	if r != nil {
 		r.GetChanRPC().Go("SetTingCard", args[0], u)
+	}
+}
+
+//托管
+func Trustee(args []interface{}) {
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+
+	r := getRoom(u.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("UserTrustee", args[0], u)
 	}
 }

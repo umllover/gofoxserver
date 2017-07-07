@@ -853,7 +853,6 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.MinusLastCount = 0
 	room.MinusHeadCount = 0
 	room.OutCardCount = 0
-
 }
 
 func (room *RoomData) GetSice() (int, int) {
@@ -913,19 +912,19 @@ func (room *RoomData) StartDispatchCard() {
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
 
-	//替换测试代码
-	if conf.Test {
-		for _, v := range base.GameTestpaiCache.All() {
-			if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
-				cards := utils.GetStrIntList(v.Cards, ",")
-				room.SetUserCard(v.ChairId, cards)
-			}
-		}
-	}
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-	room.ProvideCard = room.SendCardData
-	room.ProvideUser = room.BankerUser
-	room.CurrentUser = room.BankerUser
+	////替换测试代码
+	//if conf.Test {
+	//	for _, v := range base.GameTestpaiCache.All() {
+	//		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
+	//			cards := utils.GetStrIntList(v.Cards, ",")
+	//			room.SetUserCard(v.ChairId, cards)
+	//		}
+	//	}
+	//}
+	//room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
+	//room.ProvideCard = room.SendCardData
+	//room.ProvideUser = room.BankerUser
+	//room.CurrentUser = room.BankerUser
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1367,7 +1366,7 @@ func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	outData.ReplaceUser = u.ChairId
 	outData.ReplaceCard = CardData
 	outData.NewCard = room.SendCardData
-	room.MjBase.UserMgr.SendMsgAll(&outData)
+	room.MjBase.UserMgr.SendMsgAll(outData)
 
 	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
 	return true
@@ -1729,15 +1728,33 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem) int {
 		return 0
 	}
 
+	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v & (WIK_LEFT | WIK_RIGHT)) == 0 {
-			if pAnalyseItem.IsAnalyseGet[k] == false {
-				return 0
+		if (v & (WIK_PENG | WIK_GANG)) == 0 {
+			return 0
+		} else {
+			CenterColor := pAnalyseItem.CenterCard[k] >> 4
+			CurColor := HuOfCard >> 4
+			if CenterColor != CurColor {
+				continue
+				if pAnalyseItem.CenterCard[k] == HuOfCard {
+					//排除12和89
+					if (pAnalyseItem.CardData[k][0]&MASK_VALUE == 1 && pAnalyseItem.CardData[k][1]&MASK_VALUE == 2) ||
+						(pAnalyseItem.CardData[k][1]&MASK_VALUE == 8 && pAnalyseItem.CardData[k][2]&MASK_VALUE == 9) {
+						continue
+					}
+					if pAnalyseItem.CardData[k][0] == HuOfCard && pAnalyseItem.CardData[k][2] == HuOfCard+2 {
+						return CHR_BAI_LIU
+					}
+					if pAnalyseItem.CardData[k][0] == HuOfCard+2 && pAnalyseItem.CardData[k][2] == HuOfCard {
+						return CHR_BAI_LIU
+					}
+				}
 			}
 		}
 	}
 
-	return CHR_BAI_LIU
+	return 0
 }
 
 //门清佰六
@@ -1800,7 +1817,6 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 //单吊
 func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
 
-	//todo,单吊
 	return false
 }
 

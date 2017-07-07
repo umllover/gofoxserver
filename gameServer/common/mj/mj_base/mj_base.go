@@ -314,23 +314,33 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 //插花
 func (room *Mj_base) ChaHuaMsg(args []interface{}) {
-	u := args[0].(*user.User)
-	getData := args[1].(*mj_zp_msg.C2G_MJZP_SetChaHua)
+	u := args[1].(*user.User)
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_SetChaHua)
 	room.DataMgr.GetChaHua(u, getData.SetCount)
 }
 
 //补花
 func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
-	u := args[0].(*user.User)
-	getData := args[1].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
+	u := args[1].(*user.User)
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
 	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
 }
 
 //用户听牌
 func (room *Mj_base) OnUserListenCardMsg(args []interface{}) {
-	u := args[0].(*user.User)
-	getData := args[1].(*mj_zp_msg.C2G_MJZP_ListenCard)
+	u := args[1].(*user.User)
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_ListenCard)
 	room.DataMgr.OnUserListenCard(u, getData.ListenCard)
+}
+
+//用户托管
+func (room *Mj_base) OnRecUserTrustee(args []interface{}) {
+	u := args[1].(*user.User)
+	getData := args[0].(*mj_zp_msg.C2G_MJZP_Trustee)
+	ok := room.OnUserTrustee(u.ChairId, getData.Trustee)
+	if !ok {
+		log.Error("at OnRecUserTrustee user.chairid:", u.ChairId)
+	}
 }
 
 // 吃碰杠胡各种操作

@@ -40,6 +40,7 @@ type BaseLogic struct {
 	CardDataArray []int //扑克数据
 	MagicIndex    int   //钻牌索引
 	ReplaceCard   int   //替换金牌的牌
+	HuOfCard      int   //胡的牌
 	SwitchToIdx   func(int) int
 	CheckValid    func(int) bool
 	SwitchToCard  func(int) int
@@ -260,6 +261,9 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	if cbCurrentCard == 0 {
 		return WIK_NULL, nil
 	}
+
+	//记录胡的牌
+	lg.HuOfCard = cbCurrentCard
 
 	//插入扑克
 	if cbCurrentCard != 0 {
@@ -647,4 +651,8 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 	}
 
 	return cbEatKind
+}
+
+func (lg *BaseLogic) GetHuOfCard() int {
+	return lg.HuOfCard
 }
