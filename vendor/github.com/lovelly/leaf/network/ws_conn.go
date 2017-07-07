@@ -2,10 +2,12 @@ package network
 
 import (
 	"errors"
-	"github.com/gorilla/websocket"
-	"github.com/lovelly/leaf/log"
 	"net"
 	"sync"
+	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/lovelly/leaf/log"
 )
 
 type WebsocketConnSet map[*websocket.Conn]struct{}
@@ -25,21 +27,36 @@ func newWSConn(conn *websocket.Conn, pendingWriteNum int, maxMsgLen uint32) *WSC
 	wsConn.maxMsgLen = maxMsgLen
 
 	go func() {
-		for b := range wsConn.writeChan {
-			if b == nil {
-				break
-			}
+		ticker := time.NewTicker(pingPeriod)
+		defer func() {
+			conn.Close()
+			wsConn.Lock()
+			wsConn.closeFlag = true
+			wsConn.Unlock()
+		}()
 
-			err := conn.WriteMessage(websocket.BinaryMessage, b)
-			if err != nil {
-				break
+		for {
+			select {
+			case b, ok := <-wsConn.writeChan:
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				if b == nil || !ok {
+					conn.WriteMessage(websocket.CloseMessage, []byte{})
+					return
+				}
+
+				err := conn.WriteMessage(websocket.BinaryMessage, b)
+				if err != nil {
+					log.Error("write msg error :%s", err.Error())
+					conn.WriteMessage(websocket.CloseMessage, []byte{})
+					break
+				}
+			case <-ticker.C:
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					return
+				}
 			}
 		}
-
-		conn.Close()
-		wsConn.Lock()
-		wsConn.closeFlag = true
-		wsConn.Unlock()
 	}()
 
 	return wsConn

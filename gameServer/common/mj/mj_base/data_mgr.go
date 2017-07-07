@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"time"
 
+	"strings"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -146,34 +148,6 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
-}
-
-//注意这个函数仅供调试用
-func (room *RoomData) SetUserCard(charirID int, cards []int) {
-	log.Debug("begin SetUserCard", room.CardIndex[charirID])
-	gameLogic := room.MjBase.LogicMgr
-	//repalce := func(old, new int) {
-	//	for idx, v := range room.RepertoryCard {
-	//		if v == old {
-	//			room.RepertoryCard[idx] = new
-	//		}
-	//	}
-	//}
-
-	inc := 0
-	userCard := room.CardIndex[charirID]
-	for idx, cnt := range userCard {
-		for i := 0; i < cnt; i++ {
-			if inc >= len(cards) {
-				break
-			}
-			//repalce(cards[inc], gameLogic.SwitchToCardData(idx))
-			userCard[idx]--
-			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
-			inc++
-		}
-	}
-	log.Debug("end SetUserCard", room.CardIndex[charirID])
 }
 
 func (room *RoomData) SendStatusPlay(u *user.User) {
@@ -912,21 +886,14 @@ func (room *RoomData) StartDispatchCard() {
 	log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
-
-	//替换测试代码
-	if conf.Test {
-		for _, v := range base.GameTestpaiCache.All() {
-			if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
-				cards := utils.GetStrIntList(v.Cards, ",")
-				room.SetUserCard(v.ChairId, cards)
-			}
-		}
-	}
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
+	if conf.Test {
+		room.RepalceCard()
+	}
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
@@ -973,6 +940,55 @@ func (room *RoomData) StartDispatchCard() {
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	return
+}
+
+func (room *RoomData) RepalceCard() {
+	for _, v := range base.GameTestpaiCache.All() {
+		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
+			chairIds := utils.GetStrIntList(v.ChairId, "#")
+			if len(chairIds) < 1 {
+				break
+			}
+			cards := strings.Split(v.Cards, "#")
+			if len(cards) < len(chairIds) {
+				break
+			}
+
+			for idx, chair := range chairIds {
+				card := utils.GetStrIntList(cards[idx], ",")
+				room.SetUserCard(chair, card)
+			}
+		}
+	}
+}
+
+//注意这个函数仅供调试用
+func (room *RoomData) SetUserCard(charirID int, cards []int) {
+	log.Debug("begin SetUserCard", room.CardIndex[charirID])
+	gameLogic := room.MjBase.LogicMgr
+
+	repalc := func(Oldcard int, newCard int) {
+		for i := room.MinusHeadCount; i < room.LeftCardCount; i++ {
+			if room.RepertoryCard[i] == Oldcard {
+				room.RepertoryCard[i] = newCard
+			}
+		}
+	}
+
+	inc := 0
+	userCard := room.CardIndex[charirID]
+	for idx, cnt := range userCard {
+		for i := 0; i < cnt; i++ {
+			if inc >= len(cards) {
+				break
+			}
+			userCard[idx]--
+			repalc(idx, gameLogic.SwitchToCardData(idx))
+			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
+			inc++
+		}
+	}
+	log.Debug("end SetUserCard", room.CardIndex[charirID])
 }
 
 func (room *RoomData) CheckZiMo() {

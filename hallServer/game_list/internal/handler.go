@@ -171,11 +171,13 @@ func delRoom(roomId int) {
 	delete(roomList, roomId)
 	id_generate.DelRoomId(roomId)
 	model.CreateRoomInfoOp.Delete(roomId)
-	m, ok := roomKindList[ri.KindID]
-	if ok && ri != nil {
-		delete(m, ri.Idx)
-	} else {
-		log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
+	if ri != nil {
+		m, ok := roomKindList[ri.KindID]
+		if ok {
+			delete(m, ri.Idx)
+		} else {
+			log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
+		}
 	}
 }
 
