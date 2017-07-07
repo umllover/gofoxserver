@@ -40,6 +40,7 @@ type DataManager interface {
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
 	ClearBanCard(ChairId int)                                        //清除出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
+	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
 
 	GetResumeUser() int
 	GetGangStatus() int

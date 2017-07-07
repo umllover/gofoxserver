@@ -75,10 +75,11 @@ type G2C_MJXS_SendCard struct {
 
 //操作命令
 type G2C_MJXS_OperateResult struct {
-	OperateUser int //操作用户
-	ProvideUser int //供应用户
-	OperateCode int //操作代码
+	OperateUser int    //操作用户
+	ProvideUser int    //供应用户
+	OperateCode int    //操作代码
 	OperateCard int //操作扑克
+	ActionMask  int    //操作码
 }
 
 //操作提示
