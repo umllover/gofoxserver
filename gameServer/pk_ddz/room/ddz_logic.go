@@ -1,19 +1,31 @@
 package room
 
 import (
+	"encoding/json"
 	"mj/gameServer/common/pk/pk_base"
+
+	"mj/gameServer/db/model"
+
+	"mj/common/msg/pk_ddz_msg"
 
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDDZLogic(ConfigIdx int) *ddz_logic {
+func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
 	l := new(ddz_logic)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
+
+	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
+	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+		l.GameType = setInfo.GameType
+	}
+
 	return l
 }
 
 type ddz_logic struct {
 	*pk_base.BaseLogic
+	GameType int
 }
 
 const (
@@ -57,6 +69,12 @@ const (
 
 	// 游戏人数
 	GAME_PLAYER = 3
+
+	// 游戏类型
+	GAME_TYPE_INVALID = 255 // 无效类型
+	GAME_TYPE_CLASSIC = 0   // 经典场
+	GAME_TYPE_HAPPY   = 1   // 欢乐场
+	GAME_TYPE_LZ      = 2   // 癞子场
 )
 
 type BaseLogic struct {

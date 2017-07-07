@@ -4,16 +4,24 @@ import (
 	"mj/common/cost"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+
+	"encoding/json"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
+func NewDDZDataMgr(info *model.CreateRoomInfo, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
+
+	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
+	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+		d.EightKing = setInfo.King
+	}
 	return d
 }
 
@@ -25,19 +33,20 @@ const (
 
 type ddz_data_mgr struct {
 	*pk_base.RoomData
-	GameStatus    int   // 当前游戏状态
-	CurrentUser   int   // 当前玩家
-	OutCardCount  []int // 出牌次数
-	CallScoreUser int   // 叫分玩家
-	BankerUser    int   // 地主
+	GameStatus int // 当前游戏状态
+
+	CurrentUser   int // 当前玩家
+	CallScoreUser int // 叫分玩家
+	BankerUser    int // 地主
+	TurnWiner     int // 出牌玩家
 
 	TimeHeadOutCard int // 首出时间
 
-	// 托管信息
-	OffLineTrustee bool // 离线托管
+	OutCardCount []int // 出牌次数
+
+	EightKing bool // 是否八王模式
 
 	// 炸弹信息
-	BombCount     int   // 炸弹个数
 	EachBombCount []int // 炸弹个数
 	KingCount     []int // 八王个数
 
@@ -47,22 +56,40 @@ type ddz_data_mgr struct {
 	ScoreInfo      []int // 叫分信息
 
 	// 出牌信息
-	TurnWiner         int                // 出牌玩家
-	TurnCardCount     int                // 出牌数目
-	TurnCardData      []int              // 出牌数据
-	RepertoryCard     []int              //库存扑克
-	CallScoreTimesMap map[int]*user.User //记录叫分信息
+	TurnCardData  []int // 出牌数据
+	RepertoryCard []int // 库存扑克
 
 	// 扑克信息
-	BankerCard    [3]int       // 游戏底牌
-	HandCardCount []int        // 扑克数目
-	HandCardData  [][]int      // 手上扑克
-	ShowCardSign  map[int]bool // 用户明牌标识
+	BankerCard   [3]int  // 游戏底牌
+	HandCardData [][]int // 手上扑克
+	ShowCardSign []bool  // 用户明牌标识
+	TrusteeSign  []bool  // 托管标识
 }
 
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.RoomData.InitRoom(UserCnt)
+
+	room.GameStatus = GAME_STATUS_FREE
+	room.CurrentUser = cost.INVALID_CHAIR
 	room.CallScoreUser = cost.INVALID_CHAIR
+	room.BankerUser = cost.INVALID_CHAIR
+	room.TurnWiner = cost.INVALID_CHAIR
+
+	room.TimeHeadOutCard = 0
+	room.OutCardCount = make([]int, room.PlayCount)
+	room.EachBombCount = make([]int, room.PlayCount)
+	room.KingCount = make([]int, room.PlayCount)
+
+	room.CallScoreUser = 0
+	room.BankerScore = 0
+	room.ScoreInfo = make([]int, room.PlayCount)
+
+	room.TurnCardData = make([]int, room.PlayCount)
+	room.RepertoryCard = make([]int, room.PlayCount)
+
+	room.HandCardData = make([][]int, room.PlayCount)
+	room.ShowCardSign = make([]bool, room.PlayCount)
+	room.TrusteeSign = make([]bool, room.PlayCount)
 }
 
 // 游戏开始
@@ -226,9 +253,10 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		return
 	}
 	r.BankerScore = scoreTimes
-	r.CallScoreTimesMap[scoreTimes] = u
+	r.ScoreInfo[u.ChairId] = scoreTimes
+	r.CallScoreCount++
 
-	if len(r.CallScoreTimesMap) == r.PlayerCount {
+	if r.CallScoreCount >= r.PlayerCount {
 		//叫分结束，发庄家信息
 		r.BankerInfo()
 	} else {
@@ -237,7 +265,7 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		GameCallSore.CurrentUser = r.CurrentUser
 		GameCallSore.CallScoreUser = r.CallScoreUser
 		GameCallSore.CurrentScore = r.BankerScore
-		GameCallSore.UserCallScore = r.CallScoreTimesMap[scoreTimes].ChairId
+		GameCallSore.UserCallScore = r.ScoreInfo[u.ChairId]
 		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 			u.WriteMsg(GameCallSore)
 		})
@@ -330,6 +358,13 @@ func (r *ddz_data_mgr) NormalEnd() {
 		}
 	}
 
+	// 明牌翻倍
+	for _, v := range r.ShowCardSign {
+		if v {
+			nMultiple <<= 1
+		}
+	}
+
 	// 八王
 	util.DeepCopy(DataGameConclude.KingCount, r.KingCount)
 	for _, v := range r.KingCount {
@@ -380,5 +415,17 @@ func (r *ddz_data_mgr) DismissEnd() {
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(DataGameConclude)
+	})
+}
+
+// 托管
+func (room *ddz_data_mgr) Trustee(u *user.User, t bool) {
+	room.TrusteeSign[u.ChairId] = t
+	DataTrustee := &pk_ddz_msg.G2C_DDZ_TRUSTEE{}
+	DataTrustee.TrusteeUser = u.ChairId
+	DataTrustee.Trustee = t
+
+	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(DataTrustee)
 	})
 }

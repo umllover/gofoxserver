@@ -177,8 +177,8 @@ type G2C_DDZ_GameConclude struct {
 
 //托管
 type G2C_DDZ_TRUSTEE struct {
-	TrusteeUser int //托管玩家
-	Trustee     int //托管标志
+	TrusteeUser int  //托管玩家
+	Trustee     bool //托管标志
 }
 
 // 用户明牌
@@ -204,4 +204,10 @@ type C2G_DDZ_OutCard struct {
 //托管
 type C2G_DDZ_TRUSTEE struct {
 	Trustee bool //托管标志
+}
+
+// 斗地主创建房间附带信息
+type C2G_DDZ_CreateRoomInfo struct {
+	GameType int
+	King     bool
 }
