@@ -29,7 +29,7 @@
     "StatsDbPassword":"hfwl@2017",
 
     "ConsulAddr":"192.168.1.144:8500",
-    "AuthServerUrl":"192.168.1.69:40001",
+    "AuthServerUrl":"192.168.1.69:40001/Auth",
 	"PendingWriteNum": 100,
     "PrivatePort":1
 }

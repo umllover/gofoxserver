@@ -46,6 +46,7 @@ var Server struct {
 	ConsulAddr        string
 
 	ConnAddrs       map[string]string
+	AuthServerUrl   string
 	PendingWriteNum int
 	PrivatePort     int
 	NodeId          int

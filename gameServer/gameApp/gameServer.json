@@ -2,9 +2,9 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 	
-	"WSAddr": "mqjx.cn.mq:20002",
-    "HttpAddr":"mqjx.cn.mq:40002",
-    "ListenAddr": "mqjx.cn.mq:32002",
+	"WSAddr": "192.168.1.141:20002",
+    "HttpAddr":"192.168.1.141:40002",
+    "ListenAddr": "192.168.1.141:32002",
 	"MaxConnNum": 20000,
 
     "AccountDbHost":"192.168.1.33",

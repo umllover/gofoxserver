@@ -3,6 +3,7 @@ package mj_base
 import (
 	"mj/common/msg"
 	"mj/common/utils"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"

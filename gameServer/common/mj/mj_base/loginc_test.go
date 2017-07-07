@@ -2,6 +2,7 @@ package mj_base
 
 import (
 	. "mj/common/cost"
+	. "mj/gameServer/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
