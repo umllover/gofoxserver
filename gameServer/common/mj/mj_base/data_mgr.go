@@ -371,6 +371,7 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 	Wrave.Param = WIK_GANERAL
 	Wrave.CenterCard = cbTargetCard
 	Wrave.WeaveKind = cbTargetAction
+	Wrave.CardData = make([]int, 4)
 	if room.ProvideUser == INVALID_CHAIR {
 		Wrave.ProvideUser = wTargetUser
 	} else {
@@ -829,7 +830,6 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.MinusLastCount = 0
 	room.MinusHeadCount = 0
 	room.OutCardCount = 0
-
 }
 
 func (room *RoomData) GetSice() (int, int) {

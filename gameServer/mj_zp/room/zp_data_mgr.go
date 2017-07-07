@@ -130,6 +130,10 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.BanCardCnt = [4][9]int{}
 	room.HuKindScore = [4][COUNT_KIND_SCORE]int{}
 	room.BanUser = [4]int{}
+
+	room.IsResponse = make([]bool, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
+	room.PerformAction = make([]int, UserCnt)
 }
 
 func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
@@ -485,7 +489,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 			}
 
 			//吃牌判断
-			eatUser := (wCenterUser + 4 - 1) % 4 //4==GAME_PLAYER
+			eatUser := (wCenterUser + 4 + 1) % 4 //4==GAME_PLAYER
 			if eatUser == u.ChairId {
 				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateEatCard(room.CardIndex[u.ChairId], cbCenterCard)
 				room.BanCardCnt[u.ChairId][LimitChi] = cbCenterCard
@@ -709,10 +713,13 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 	if room.IsFollowCard {
 		return false
 	}
+	//todo,BUG
+	return false //BUG
+
 	log.Debug("记录分饼")
 	room.FollowCard = append(room.FollowCard, cbCenterCard)
 
-	count := len(room.FollowCard) % 4
+	count := len(room.FollowCard)
 	if count == 0 {
 		begin := count - 4
 		for i := begin; i < count; i++ {
@@ -745,6 +752,7 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 
 //设置用户相应牌的操作 ,返回是否可以操作
 func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, OperateCard []int) (int, int) {
+	log.Debug("u.ChairId:%d,len:%d", u.ChairId, len(room.IsResponse))
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
@@ -1467,6 +1475,7 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 		Wrave.ProvideUser = u.ChairId
 		Wrave.WeaveKind = cbOperateCode
 		Wrave.CenterCard = cbOperateCard[0]
+		Wrave.CardData = make([]int, 4)
 		for j := 0; j < 4; j++ {
 			Wrave.CardData[j] = cbOperateCard[0]
 		}
@@ -1494,6 +1503,7 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 }
 
 func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@CallOperateResult")
 	//构造结果
 	OperateResult := &mj_zp_msg.G2C_ZPMJ_OperateResult{}
 	OperateResult.OperateUser = wTargetUser
@@ -1515,6 +1525,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	//用户状态
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	log.Debug("+++++++++++++++++++++", UserCnt)
 	room.IsResponse = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)

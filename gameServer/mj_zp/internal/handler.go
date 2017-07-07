@@ -42,12 +42,13 @@ func ZPOutCard(args []interface{}) {
 }
 
 func OperateCard(args []interface{}) {
+	recvMsg := args[0].(*mj_zp_msg.C2G_ZPMJ_OperateCard)
 	agent := args[1].(gate.Agent)
-	u := agent.UserData().(*user.User)
+	user := agent.UserData().(*user.User)
 
-	r := getRoom(u.RoomId)
+	r := getRoom(user.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OperateCard", args[0], u)
+		r.GetChanRPC().Go("OperateCard", user, recvMsg.OperateCode, recvMsg.OperateCard)
 	}
 }
 
