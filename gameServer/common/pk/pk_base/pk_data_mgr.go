@@ -95,9 +95,8 @@ func (r *RoomData) SetScoreTimes(scoreTimes int) {
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
-
+	room.PlayerCount = UserCnt
 }
-
 
 // 游戏开始
 func (room *RoomData) BeforeStartGame(UserCnt int) {
@@ -133,5 +132,15 @@ func (room *RoomData) AddScore(u *user.User, score int) {
 
 }
 func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
+
+}
+
+// 明牌
+func (room *RoomData) ShowCard(u *user.User) {
+
+}
+
+// 托管
+func (room *RoomData) Trustee(u *user.User, t bool) {
 
 }

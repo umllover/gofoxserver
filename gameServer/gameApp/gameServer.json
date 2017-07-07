@@ -2,9 +2,9 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 	
-	"WSAddr": "192.168.1.37:20002",
-    "HttpAddr":"192.168.1.37:40002",
-    "ListenAddr": "192.168.1.37:32002",
+	"WSAddr": "mqjx.cn.mq:20002",
+    "HttpAddr":"mqjx.cn.mq:40002",
+    "ListenAddr": "mqjx.cn.mq:32002",
 	"MaxConnNum": 20000,
 
     "AccountDbHost":"192.168.1.33",
@@ -30,7 +30,7 @@
 
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
-    "ValidKind":"389,28",
+    "ValidKind":"391,389",
     "PrivatePort":7002,
-    "NodeId": 8
+    "NodeId": 1
 }

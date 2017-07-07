@@ -518,6 +518,9 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	}
 
 	// 验证牌型
+	if r.PkBase.LogicMgr.GetCardType(cardData) != cardType {
+		return
+	}
 
 	r.OpenCardMap[u] = cardData
 	// 广播亮牌
