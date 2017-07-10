@@ -7,11 +7,14 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
 	"time"
+
+	"strings"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -148,34 +151,6 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
-}
-
-//注意这个函数仅供调试用
-func (room *RoomData) SetUserCard(charirID int, cards []int) {
-	log.Debug("begin SetUserCard", room.CardIndex[charirID])
-	gameLogic := room.MjBase.LogicMgr
-	//repalce := func(old, new int) {
-	//	for idx, v := range room.RepertoryCard {
-	//		if v == old {
-	//			room.RepertoryCard[idx] = new
-	//		}
-	//	}
-	//}
-
-	inc := 0
-	userCard := room.CardIndex[charirID]
-	for idx, cnt := range userCard {
-		for i := 0; i < cnt; i++ {
-			if inc >= len(cards) {
-				break
-			}
-			//repalce(cards[inc], gameLogic.SwitchToCardData(idx))
-			userCard[idx]--
-			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
-			inc++
-		}
-	}
-	log.Debug("end SetUserCard", room.CardIndex[charirID])
 }
 
 func (room *RoomData) SendStatusPlay(u *user.User) {
@@ -397,6 +372,7 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 	Wrave.Param = WIK_GANERAL
 	Wrave.CenterCard = cbTargetCard
 	Wrave.WeaveKind = cbTargetAction
+	Wrave.CardData = make([]int, 4)
 	if room.ProvideUser == INVALID_CHAIR {
 		Wrave.ProvideUser = wTargetUser
 	} else {
@@ -477,15 +453,15 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 			return 0
 		}
 
-		Wrave := &msg.WeaveItem{}
-		Wrave.Param = WIK_AN_GANG
-		Wrave.ProvideUser = u.ChairId
-		Wrave.WeaveKind = cbOperateCode
-		Wrave.CenterCard = cbOperateCard[0]
+		cbWeave = &msg.WeaveItem{}
+		cbWeave.Param = WIK_AN_GANG
+		cbWeave.ProvideUser = u.ChairId
+		cbWeave.WeaveKind = cbOperateCode
+		cbWeave.CenterCard = cbOperateCard[0]
 		for j := 0; j < 4; j++ {
-			Wrave.CardData[j] = cbOperateCard[0]
+			cbWeave.CardData[j] = cbOperateCard[0]
 		}
-		room.WeaveItemArray[u.ChairId] = append(room.WeaveItemArray[u.ChairId], Wrave)
+		room.WeaveItemArray[u.ChairId] = append(room.WeaveItemArray[u.ChairId], cbWeave)
 	}
 
 	//删除扑克
@@ -495,17 +471,24 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 	room.GangCard[u.ChairId] = true
 	room.GangCount[u.ChairId]++
 
-	//构造结果
-	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
-	OperateResult.OperateUser = u.ChairId
-	OperateResult.ProvideUser = wProvideUser
-	OperateResult.OperateCode = cbOperateCode
-	OperateResult.OperateCard[0] = cbOperateCard[0]
-
 	//发送消息
-	room.MjBase.UserMgr.SendMsgAll(OperateResult)
-
+	room.MjBase.DataMgr.SendOperateResult(u, cbWeave)
 	return cbGangKind
+}
+
+//发送操作结果
+func (room *RoomData) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
+	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
+	OperateResult.ProvideUser = wrave.ProvideUser
+	OperateResult.OperateCode = wrave.WeaveKind
+	OperateResult.OperateCard[0] = wrave.CenterCard
+	if u != nil {
+		OperateResult.OperateUser = u.ChairId
+	} else {
+		OperateResult.OperateUser = wrave.OperateUser
+		OperateResult.ActionMask = wrave.ActionMask
+	}
+	room.MjBase.UserMgr.SendMsgAll(OperateResult)
 }
 
 func (room *RoomData) ZiMo(u *user.User) {
@@ -525,22 +508,22 @@ func (room *RoomData) ZiMo(u *user.User) {
 
 func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	//构造结果
-	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
-	OperateResult.OperateUser = wTargetUser
-	OperateResult.OperateCode = cbTargetAction
+	wrave := &msg.WeaveItem{}
+	wrave.OperateUser = wTargetUser
+	wrave.WeaveKind = cbTargetAction
 	if room.ProvideUser == INVALID_CHAIR {
-		OperateResult.ProvideUser = wTargetUser
+		wrave.ProvideUser = wTargetUser
 	} else {
-		OperateResult.ProvideUser = room.ProvideUser
+		wrave.ProvideUser = room.ProvideUser
 	}
 
 	cbTargetCard := room.OperateCard[wTargetUser][0]
-	OperateResult.OperateCard[0] = cbTargetCard
+	wrave.CardData[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
-		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
+		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
 	} else if cbTargetAction&WIK_PENG != 0 {
-		OperateResult.OperateCard[1] = cbTargetCard
-		OperateResult.OperateCard[2] = cbTargetCard
+		wrave.CardData[1] = cbTargetCard
+		wrave.CardData[2] = cbTargetCard
 	}
 
 	//用户状态
@@ -576,11 +559,11 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 				u.WriteMsg(HuData)
 			}
 		}
-		OperateResult.ActionMask |= room.UserAction[wTargetUser]
+		wrave.ActionMask |= room.UserAction[wTargetUser]
 	}
 
 	//发送消息
-	room.MjBase.UserMgr.SendMsgAll(OperateResult)
+	room.MjBase.DataMgr.SendOperateResult(nil, wrave)
 
 	//设置用户
 	room.CurrentUser = wTargetUser
@@ -855,7 +838,6 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.MinusLastCount = 0
 	room.MinusHeadCount = 0
 	room.OutCardCount = 0
-
 }
 
 func (room *RoomData) GetSice() (int, int) {
@@ -914,21 +896,14 @@ func (room *RoomData) StartDispatchCard() {
 	log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
-
-	//替换测试代码
-	if conf.Test {
-		for _, v := range base.GameTestpaiCache.All() {
-			if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
-				cards := utils.GetStrIntList(v.Cards, ",")
-				room.SetUserCard(v.ChairId, cards)
-			}
-		}
-	}
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
+	if conf.Test {
+		room.RepalceCard()
+	}
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
@@ -975,6 +950,55 @@ func (room *RoomData) StartDispatchCard() {
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	return
+}
+
+func (room *RoomData) RepalceCard() {
+	for _, v := range base.GameTestpaiCache.All() {
+		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
+			chairIds := utils.GetStrIntList(v.ChairId, "#")
+			if len(chairIds) < 1 {
+				break
+			}
+			cards := strings.Split(v.Cards, "#")
+			if len(cards) < len(chairIds) {
+				break
+			}
+
+			for idx, chair := range chairIds {
+				card := utils.GetStrIntList(cards[idx], ",")
+				room.SetUserCard(chair, card)
+			}
+		}
+	}
+}
+
+//注意这个函数仅供调试用
+func (room *RoomData) SetUserCard(charirID int, cards []int) {
+	log.Debug("begin SetUserCard", room.CardIndex[charirID])
+	gameLogic := room.MjBase.LogicMgr
+
+	repalc := func(Oldcard int, newCard int) {
+		for i := room.MinusHeadCount; i < room.LeftCardCount; i++ {
+			if room.RepertoryCard[i] == Oldcard {
+				room.RepertoryCard[i] = newCard
+			}
+		}
+	}
+
+	inc := 0
+	userCard := room.CardIndex[charirID]
+	for idx, cnt := range userCard {
+		for i := 0; i < cnt; i++ {
+			if inc >= len(cards) {
+				break
+			}
+			userCard[idx]--
+			repalc(idx, gameLogic.SwitchToCardData(idx))
+			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
+			inc++
+		}
+	}
+	log.Debug("end SetUserCard", room.CardIndex[charirID])
 }
 
 func (room *RoomData) CheckZiMo() {
@@ -1369,7 +1393,7 @@ func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	outData.ReplaceUser = u.ChairId
 	outData.ReplaceCard = CardData
 	outData.NewCard = room.SendCardData
-	room.MjBase.UserMgr.SendMsgAll(&outData)
+	room.MjBase.UserMgr.SendMsgAll(outData)
 
 	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
 	return true
@@ -1731,15 +1755,33 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem) int {
 		return 0
 	}
 
+	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v & (WIK_LEFT | WIK_RIGHT)) == 0 {
-			if pAnalyseItem.IsAnalyseGet[k] == false {
-				return 0
+		if (v & (WIK_PENG | WIK_GANG)) == 0 {
+			return 0
+		} else {
+			CenterColor := pAnalyseItem.CenterCard[k] >> 4
+			CurColor := HuOfCard >> 4
+			if CenterColor != CurColor {
+				continue
+				if pAnalyseItem.CenterCard[k] == HuOfCard {
+					//排除12和89
+					if (pAnalyseItem.CardData[k][0]&MASK_VALUE == 1 && pAnalyseItem.CardData[k][1]&MASK_VALUE == 2) ||
+						(pAnalyseItem.CardData[k][1]&MASK_VALUE == 8 && pAnalyseItem.CardData[k][2]&MASK_VALUE == 9) {
+						continue
+					}
+					if pAnalyseItem.CardData[k][0] == HuOfCard && pAnalyseItem.CardData[k][2] == HuOfCard+2 {
+						return CHR_BAI_LIU
+					}
+					if pAnalyseItem.CardData[k][0] == HuOfCard+2 && pAnalyseItem.CardData[k][2] == HuOfCard {
+						return CHR_BAI_LIU
+					}
+				}
 			}
 		}
 	}
 
-	return CHR_BAI_LIU
+	return 0
 }
 
 //门清佰六
@@ -1802,7 +1844,6 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 //单吊
 func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
 
-	//todo,单吊
 	return false
 }
 
