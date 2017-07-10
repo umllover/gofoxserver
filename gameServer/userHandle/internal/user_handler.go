@@ -173,6 +173,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})
 
+	log.Debug("login user status %d", user.Status)
 	agent.WriteMsg(&msg.G2C_UserEnter{
 		UserID:      user.Id,          //用户 I D
 		FaceID:      user.FaceID,      //头像索引
