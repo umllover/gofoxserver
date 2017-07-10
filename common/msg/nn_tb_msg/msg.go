@@ -142,7 +142,7 @@ type G2C_TBNN_CalScore struct {
 
 //发牌数据包
 type G2C_TBNN_SendCard struct {
-	CardData				[]int     	//用户扑克
+	CardData				[][]int     	//用户扑克
 }
 
 //发牌数据包
