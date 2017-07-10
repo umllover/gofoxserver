@@ -72,6 +72,7 @@ type LogicManager interface {
 	SwitchToCardData(cbCardIndex int) int
 	SwitchToCardIndex(cbCardData int) int
 	IsValidCard(card int) bool
+	GetHuOfCard() int //记录胡的那张牌
 
 	GetCardColor(cbCardData int) int
 	GetCardValue(cbCardData int) int
