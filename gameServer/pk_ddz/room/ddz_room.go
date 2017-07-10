@@ -30,7 +30,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		BaseMgr:  room_base.NewRoomBase(),
 		DataMgr:  NewDDZDataMgr(info, u.Id, pk_base.IDX_DDZ, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
-		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ),
+		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ, info),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)

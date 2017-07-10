@@ -86,7 +86,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
 
-	gameLogic.RandCardList(room.bCardData, pk_base.GetSSSCards())
+	gameLogic.RandCardList(room.bCardData, pk_base.GetCardByIdx(room.ConfigIdx))
 
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, US_PLAYING)
