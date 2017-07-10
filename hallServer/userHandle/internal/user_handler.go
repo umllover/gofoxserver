@@ -16,8 +16,6 @@ import (
 
 	"encoding/json"
 
-	"mj/hallServer/http_service"
-
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -96,19 +94,27 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	info := http_service.AuthUser(conf.Server.AuthServerUrl, []interface{}{recvMsg.SessionKey, recvMsg.Accounts})
-	if info.RetCode != 0 {
+	accountData, ok := model.AccountsinfoOp.GetByMap(map[string]interface{}{
+		"Accounts": recvMsg.Accounts,
+	})
+
+	if ok != nil || accountData == nil {
 		retcode = NotFoudAccout
 		return
 	}
 
-	if _, ok := Users[info.UserID]; ok {
+	if _, ok := Users[accountData.UserID]; ok {
 		retcode = ErrUserDoubleLogin
 		return
 	}
 
-	player := user.NewUser(info.UserID)
-	player.Id = info.UserID
+	//if accountData.PasswordID != recvMsg.Password {
+	//	sendErrFunc("password is error")
+	//	return
+	//}
+
+	player := user.NewUser(accountData.UserID)
+	player.Id = accountData.UserID
 	lok := loadUser(player)
 	if !lok {
 		retcode = LoadUserInfoError
@@ -123,7 +129,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
 		"HallNodeID": conf.Server.NodeId,
 	})
-	BuildClientMsg(retMsg, player, info)
+	BuildClientMsg(retMsg, player, accountData)
 	game_list.ChanRPC.Go("sendGameList", agent)
 }
 
@@ -576,11 +582,11 @@ func createUser(UserID int, accountData *model.Accountsinfo) (*user.User, bool) 
 	return U, true
 }
 
-func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, info *msg.AuthInfo) {
+func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model.Accountsinfo) {
 	retMsg.FaceID = user.FaceID //头像标识
 	retMsg.Gender = user.Gender
 	retMsg.UserID = user.Id
-	retMsg.Spreader = info.SpreaderID
+	retMsg.Spreader = acinfo.SpreaderID
 	retMsg.Experience = user.Experience
 	retMsg.LoveLiness = user.LoveLiness
 	retMsg.NickName = user.NickName
@@ -597,12 +603,12 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, info *msg.Aut
 	log.Debug("node id === %v", conf.Server.NodeId)
 	retMsg.HallNodeID = conf.Server.NodeId
 	tm := &msg.DateTime{}
-	tm.Year = info.RegisterDate.Year()
-	tm.DayOfWeek = int(info.RegisterDate.Weekday())
-	tm.Day = info.RegisterDate.Day()
-	tm.Hour = info.RegisterDate.Hour()
-	tm.Second = info.RegisterDate.Second()
-	tm.Minute = info.RegisterDate.Minute()
+	tm.Year = acinfo.RegisterDate.Year()
+	tm.DayOfWeek = int(acinfo.RegisterDate.Weekday())
+	tm.Day = acinfo.RegisterDate.Day()
+	tm.Hour = acinfo.RegisterDate.Hour()
+	tm.Second = acinfo.RegisterDate.Second()
+	tm.Minute = acinfo.RegisterDate.Minute()
 	retMsg.RegisterDate = tm
 	//额外信息
 	retMsg.MbTicket = user.MbTicket
