@@ -9,7 +9,6 @@ import (
 
 func NewDDZEntry(info *model.CreateRoomInfo) *DDZ_Entry {
 	e := new(DDZ_Entry)
-	return e
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e
 }
@@ -67,16 +66,6 @@ func (r *DDZ_Entry) ShowCard(args []interface{}) {
 
 // 发送扑克
 func (room *DDZ_Entry) GameStartSendCards(args []interface{}) {
-
-}
-
-// 机器人扑克
-func (room *DDZ_Entry) AndroidCard(args []interface{}) {
-
-}
-
-// 作弊扑克
-func (room *DDZ_Entry) CheatCard(args []interface{}) {
 
 }
 
