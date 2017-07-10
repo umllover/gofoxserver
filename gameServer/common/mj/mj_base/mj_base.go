@@ -390,7 +390,8 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
 
 		//删除扑克
-		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) {
+		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) == false {
+			log.Error("at UserOperateCard RemoveCardByOP error")
 			return
 		}
 

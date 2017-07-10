@@ -357,7 +357,8 @@ func (room *ZP_RoomData) InitBankerAction() {
 		outData := &mj_zp_msg.G2C_MJZP_OperateNotify{}
 		outData.ActionCard = room.SendCardData
 		outData.ActionMask = room.UserAction[room.BankerUser]
-		userMgr.SendMsgAll(outData)
+		u := userMgr.GetUserByChairId(room.BankerUser)
+		u.WriteMsg(u)
 	}
 }
 
@@ -564,7 +565,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 	} else {
 		room.GangOutCard = false
 	}
-
+	log.Debug("!!!!!!!!!!!!!!!!!! room.UserAction:%d", room.UserAction)
 	return false
 }
 
@@ -749,11 +750,11 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 
 //设置用户相应牌的操作 ,返回是否可以操作
 func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, OperateCard []int) (int, int) {
-	log.Debug("u.ChairId:%d,len:%d", u.ChairId, len(room.IsResponse))
+
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
-	log.Debug("11111111111111111")
+
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
 	room.OperateCard[u.ChairId] = OperateCard
@@ -771,6 +772,8 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 
 	cbTargetAction := OperateCode
 	wTargetUser := u.ChairId
+
+	log.Debug("=============room.UserAction %d", room.UserAction)
 	//执行判断
 	for i := 0; i < userCnt; i++ {
 		//获取动作
@@ -778,10 +781,13 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		if room.IsResponse[wTargetUser] {
 			cbUserAction = room.PerformAction[i]
 		}
-
+		log.Debug("userd:%d cbUserAction:%d ", i, room.UserAction[i])
+		log.Debug("room.PerformAction:%d ", i, room.PerformAction)
 		//优先级别
 		cbUserActionRank := room.MjBase.LogicMgr.GetUserActionRank(cbUserAction)
 		cbTargetActionRank := room.MjBase.LogicMgr.GetUserActionRank(cbTargetAction)
+		log.Debug("cbUserActionRank:%d", cbUserActionRank)
+		log.Debug("cbTargetActionRank:%d", cbTargetActionRank)
 
 		//动作判断
 		if cbUserActionRank > cbTargetActionRank {
@@ -794,14 +800,14 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
 		return -1, u.ChairId
 	}
-	log.Debug("2222222222222222222222222")
+
 	if cbTargetAction == WIK_NULL {
 		room.UserAction = make([]int, userCnt)
 		room.OperateCard = make([][]int, userCnt)
 		room.PerformAction = make([]int, userCnt)
 		return cbTargetAction, wTargetUser
 	}
-	log.Debug("333333333333333333333333")
+
 	//走到这里一定是所有人都响应完了
 	return cbTargetAction, wTargetUser
 }
@@ -1524,10 +1530,15 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	//用户状态
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	log.Debug("+++++++++++++++++++++", UserCnt)
+	log.Debug("+++++++++++++++++++++UserAction :%v", room.UserAction)
 	room.IsResponse = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
+	room.PerformAction = make([]int, UserCnt)
+	log.Debug("状态清除")
+	log.Debug("room.IsResponse %v", room.IsResponse)
+	log.Debug("room.UserActionResponse %v", room.UserAction)
+	log.Debug("room.OperateCard %v", room.OperateCard)
 
 	//如果非杠牌
 	if cbTargetAction != WIK_GANG {
@@ -1693,6 +1704,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		room.UserActionDone = true
 		//超时出牌定时
 		room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+			log.Debug("超时出牌定时")
 			card := room.SendCardData
 			for j := 0; j < room.GetCfg().MaxIdx; j++ {
 				if room.CardIndex[wCurrentUser][j] > 0 {

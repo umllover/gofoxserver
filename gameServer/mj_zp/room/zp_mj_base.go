@@ -147,8 +147,8 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
 		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.RemoveCardByOP")
 		//删除扑克
-		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) {
-			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@删除扑克")
+		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) == false {
+			log.Error("at UserOperateCard RemoveCardByOP error")
 			return
 		}
 		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.CallOperateResult(")
@@ -162,6 +162,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.GetCurrentUser() != INVALID_CHAIR")
 		//扑克效验
 		if (OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])) {
+			log.Error("OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])")
 			return
 		}
 
@@ -171,10 +172,12 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		//执行动作
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
+			log.Debug("有暗杠")
 			cbGangKind := room.DataMgr.AnGang(u, OperateCode, OperateCard)
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {
+				log.Debug("执行暗杠")
 				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, OperateCard[0], EstimatKind_GangCard)
 			}
 

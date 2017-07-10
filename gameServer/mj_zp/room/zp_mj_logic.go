@@ -85,6 +85,7 @@ func SwitchToCardData(cbCardIndex int) int {
 
 //有效判断
 func IsValidCard(cbCardData int) bool {
+	log.Debug("有效判断卡牌：%d", cbCardData)
 	var cbValue = int(cbCardData & MASK_VALUE)
 	var cbColor = int((cbCardData & MASK_COLOR) >> 4)
 	return ((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= 7) && (cbColor == 3) || ((cbValue >= 1) && (cbValue <= 8) && (cbColor == 4)))
@@ -141,7 +142,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		//log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
