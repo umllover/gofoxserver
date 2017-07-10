@@ -2,6 +2,8 @@ package pk_base
 
 import (
 	"github.com/lovelly/leaf/util"
+	"time"
+	"math/rand"
 )
 
 type BaseLogic struct {
@@ -20,24 +22,28 @@ func (lg *BaseLogic) GetCfg() *PK_CFG {
 
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
+	if !(len(OriDataArray) >= len(cbCardBuffer)) {
+		return
+	}
 	//混乱准备
 	cbBufferCount := int(len(cbCardBuffer))
 	cbCardDataTemp := make([]int, cbBufferCount)
 	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
 
-	//混乱扑克
-	var cbRandCount int
-	var cbPosition int
-	for {
-		if cbRandCount >= cbBufferCount {
-			break
-		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
-		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
-		cbRandCount++
-		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
+	//随机交换两张牌
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i:=0; i<len(cbCardDataTemp); i++ {
+		t1 := r.Int() % len(cbCardDataTemp)
+		t2 := r.Int() % len(cbCardDataTemp)
+		temp := cbCardDataTemp[t1]
+		cbCardDataTemp[t1] = cbCardDataTemp[t2]
+		cbCardDataTemp[t2] = temp
 	}
 
+	// 赋给输出缓冲
+	for i:=0; i< len(cbCardBuffer); i++ {
+		cbCardBuffer[i] = cbCardDataTemp[i]
+	}
 	return
 }
 
