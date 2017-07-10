@@ -18,6 +18,7 @@ import (
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"mj/common/utils"
 )
 
 func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
@@ -908,9 +909,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	if conf.Test {
+	/*if conf.Test {
 		room.RepalceCard()
-	}
+	}*/
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
