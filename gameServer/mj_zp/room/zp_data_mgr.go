@@ -88,7 +88,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("zpmj at InitRoom")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
-	log.Debug("牌数量：%d", len(room.RepertoryCard))
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
@@ -293,10 +292,9 @@ func (room *ZP_RoomData) InitBuHua() {
 	playerIndex := room.BankerUser
 	playerCNT := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < playerCNT; i++ {
-		if playerIndex >= 3 {
+		if playerIndex > 3 {
 			playerIndex = 0
 		}
-
 		outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
 		outData.ReplaceUser = playerIndex
 		outData.IsInitFlower = true
@@ -714,8 +712,6 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 	if room.IsFollowCard {
 		return false
 	}
-	//todo,BUG
-	return false //BUG
 
 	log.Debug("记录分饼")
 	room.FollowCard = append(room.FollowCard, cbCenterCard)
@@ -757,6 +753,7 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
+	log.Debug("11111111111111111")
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
 	room.OperateCard[u.ChairId] = OperateCard
@@ -793,17 +790,18 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		}
 	}
 
+	log.Debug("wTargetUser:%d u.ChairId：%d", wTargetUser, u.ChairId)
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
 		return -1, u.ChairId
 	}
-
+	log.Debug("2222222222222222222222222")
 	if cbTargetAction == WIK_NULL {
 		room.UserAction = make([]int, userCnt)
 		room.OperateCard = make([][]int, userCnt)
 		room.PerformAction = make([]int, userCnt)
 		return cbTargetAction, wTargetUser
 	}
-
+	log.Debug("333333333333333333333333")
 	//走到这里一定是所有人都响应完了
 	return cbTargetAction, wTargetUser
 }
@@ -1654,7 +1652,6 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		}
 	}
 
-	log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
 	//听牌判断
 	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[wCurrentUser] == false {
@@ -1704,7 +1701,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 				}
 			}
 			log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-			room.MjBase.OutCard([]interface{}{card, u, true})
+			//todo,BUG待修改 room.MjBase.OutCard([]interface{}{card, u, true})
 		})
 	}
 	return 0

@@ -6,25 +6,29 @@ import (
 
 func init() {
 	msg.Processor.Register(&C2G_MJZP_SetChaHua{})
-	msg.Processor.Register(&C2G_MJZP_OperateNotify{})
 	msg.Processor.Register(&C2G_MJZP_ReplaceCard{})
 	msg.Processor.Register(&C2G_MJZP_ListenCard{})
 	msg.Processor.Register(&C2G_ZPMJ_OutCard{})
 	msg.Processor.Register(&C2G_ZPMJ_OperateCard{})
+	msg.Processor.Register(&C2G_MJZP_Trustee{})
 
 	msg.Processor.Register(&G2C_MJZP_NotifiChaHua{})
 	msg.Processor.Register(&G2C_MJZP_ReplaceCard{})
 	msg.Processor.Register(&G2C_MJZP_ListenCard{})
 	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 	msg.Processor.Register(&G2C_ZPMG_GameStart{})
-	msg.Processor.Register(&C2G_MJZP_Trustee{})
 	msg.Processor.Register(&G2C_ZPMJ_Trustee{})
 	msg.Processor.Register(&G2C_ZPMJ_OutCard{})
 	msg.Processor.Register(&G2C_ZPMJ_OperateResult{})
 	msg.Processor.Register(&G2C_ZPMJ_SendCard{})
 	msg.Processor.Register(&G2C_ZPMJ_StatusPlay{})
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
+	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
+}
 
+type G2C_MJZP_OperateNotify struct {
+	ActionMask int //动作掩码
+	ActionCard int //动作扑克
 }
 
 //通知插花
@@ -66,12 +70,6 @@ type G2C_MJZP_ListenCard struct {
 	IsListen    bool  //是否听牌
 	HuCardCount int   //胡几张牌
 	HuCardData  []int //胡牌数据
-}
-
-//操作提示
-type C2G_MJZP_OperateNotify struct {
-	ActionMask int //动作掩码
-	ActionCard int //动作扑克
 }
 
 // 出牌
@@ -129,7 +127,7 @@ type G2C_ZPMG_GameStart struct {
 
 //托管
 type C2G_MJZP_Trustee struct {
-	Trustee int //1：托管 0：取消托管
+	Trustee bool //1：托管 0：取消托管
 }
 
 //用户出牌

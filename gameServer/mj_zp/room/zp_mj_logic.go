@@ -137,7 +137,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
-	GetCardWordArray(cbCardIndex)
+	//GetCardWordArray(cbCardIndex)  测试代码
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
