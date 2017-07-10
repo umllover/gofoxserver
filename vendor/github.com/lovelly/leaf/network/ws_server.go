@@ -2,12 +2,24 @@ package network
 
 import (
 	"crypto/tls"
-	"github.com/gorilla/websocket"
-	"github.com/lovelly/leaf/log"
 	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/lovelly/leaf/log"
+)
+
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 30 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
 )
 
 type WSServer struct {
@@ -64,6 +76,12 @@ func (handler *WSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	handler.conns[conn] = struct{}{}
 	handler.mutexConns.Unlock()
+	conn.SetReadLimit(int64(handler.maxMsgLen))
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
 
 	wsConn := newWSConn(conn, handler.pendingWriteNum, handler.maxMsgLen)
 	agent := handler.newAgent(wsConn)
@@ -137,7 +155,7 @@ func (server *WSServer) Start() {
 		WriteTimeout:   server.HTTPTimeout,
 		MaxHeaderBytes: 1024,
 	}
-	log.Debug("WSServer listen ok, addr:%s",server.Addr)
+	log.Debug("WSServer listen ok, addr:%s", server.Addr)
 	go httpServer.Serve(ln)
 }
 

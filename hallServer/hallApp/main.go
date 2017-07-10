@@ -10,12 +10,16 @@ import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
 	"mj/hallServer/db/model/base"
-	"mj/hallServer/gameList"
+	"mj/hallServer/game_list"
 	"mj/hallServer/gate"
 	"mj/hallServer/http_service"
-	"mj/hallServer/raceMsg"
+	"mj/hallServer/race_msg"
 	"mj/hallServer/userHandle"
 	"os"
+
+	"mj/hallServer/match_room"
+
+	"mj/hallServer/times_mgr"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -36,7 +40,7 @@ func main() {
 	}
 	Init()
 	log.Debug("enter hallApp main")
-	gameList.SetTest(*Test)
+	game_list.SetTest(*Test)
 	if *reloadDB {
 		db.NeedReloadBaseDB = true
 		log.Debug("need reload base db")
@@ -56,8 +60,10 @@ func main() {
 		center.Module,
 		consul.Module,
 		userHandle.UserMgr,
-		gameList.Module,
-		raceMsg.Module,
+		game_list.Module,
+		race_msg.Module,
+		match_room.Module,
+		times_mgr.Module,
 	)
 }
 

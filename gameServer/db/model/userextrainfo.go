@@ -70,23 +70,6 @@ func (op *userextrainfoOp) QueryByMap(m map[string]interface{}) ([]*Userextrainf
 	return result, nil
 }
 
-func (op *userextrainfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Userextrainfo, error) {
-	result := []*Userextrainfo{}
-	var params []interface{}
-
-	sql := "select * from userextrainfo where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.DB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *userextrainfoOp) GetByMap(m map[string]interface{}) (*Userextrainfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {

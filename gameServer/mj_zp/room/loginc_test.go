@@ -11,7 +11,7 @@ import (
 	"net"
 	"testing"
 
-	"mj/gameServer/common/mj_base"
+	"mj/gameServer/common/mj/mj_base"
 
 	"sync"
 

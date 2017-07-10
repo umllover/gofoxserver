@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"errors"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -9,11 +8,13 @@ import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
-	"mj/hallServer/gameList"
-	"mj/hallServer/idGenerate"
+	"mj/hallServer/game_list"
+	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
 	"reflect"
 	"time"
+
+	"encoding/json"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -33,6 +34,10 @@ func RegisterHandler(m *UserModule) {
 	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
 	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
 	m.ChanRPC.Register("restoreToken", m.restoreToken)
+	m.ChanRPC.Register("matchResult", m.matchResult)
+	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
+	m.ChanRPC.Register("JoinRoom", m.joinRoom)
+	m.ChanRPC.Register("Recharge", m.Recharge)
 
 	//c2s
 	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
@@ -41,6 +46,8 @@ func RegisterHandler(m *UserModule) {
 	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
 	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
 	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
+	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
+	handlerC2S(m, &msg.C2L_SetElect{}, m.SetElect)
 }
 
 //连接进来的通知
@@ -51,14 +58,17 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 
 //连接关闭的同喜
 func (m *UserModule) CloseAgent(args []interface{}) error {
+
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
 	u, ok := agent.UserData().(*user.User)
 	if !ok {
+		log.Error("at CloseAgent not foud user")
 		return nil
 	}
 	DelUser(u.Id)
 	m.Close(common.UserOffline)
+	log.Debug("CloseAgent ok")
 	return nil
 }
 
@@ -67,6 +77,9 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	retMsg := &msg.L2C_LogonSuccess{}
 	agent := m.a
 	retcode := 0
+
+	log.Debug("enter mbLogin  user:%s", recvMsg.Accounts)
+
 	defer func() {
 		if retcode != 0 {
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
@@ -100,19 +113,24 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	//	return
 	//}
 
-	user := user.NewUser(accountData.UserID)
-	user.Id = accountData.UserID
-	lok := loadUser(user)
+	player := user.NewUser(accountData.UserID)
+	player.Id = accountData.UserID
+	lok := loadUser(player)
 	if !lok {
 		retcode = LoadUserInfoError
 		return
 	}
 
-	user.Agent = agent
-	AddUser(user.Id, user)
-	agent.SetUserData(user)
-	BuildClientMsg(retMsg, user, accountData)
-	gameList.ChanRPC.Go("sendGameList", agent)
+	player.Agent = agent
+	AddUser(player.Id, player)
+	agent.SetUserData(player)
+	player.LoadTimes()
+	player.HallNodeID = conf.Server.NodeId
+	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"HallNodeID": conf.Server.NodeId,
+	})
+	BuildClientMsg(retMsg, player, accountData)
+	game_list.ChanRPC.Go("sendGameList", agent)
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -175,38 +193,45 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	}
 	accInfo.UserID = int(lastid)
 
-	user, cok := createUser(accInfo.UserID, accInfo)
+	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
 		retcode = CreateUserError
 		return
 	}
-	user.Agent = agent
+
+	player.HallNodeID = conf.Server.NodeId
+	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"HallNodeID": conf.Server.NodeId,
+	})
+	player.Agent = agent
 	//AddUser(user.Id, user)
-	agent.SetUserData(user)
-	BuildClientMsg(retMsg, user, accInfo)
+	agent.SetUserData(player)
+	BuildClientMsg(retMsg, player, accInfo)
 }
 
+//获取个人信息
 func (m *UserModule) GetUserIndividual(args []interface{}) {
 	agent := args[1].(gate.Agent)
-	user, ok := agent.UserData().(*user.User)
+	player, ok := agent.UserData().(*user.User)
 	if !ok {
 		log.Debug("not foud user data")
 		return
 	}
 	retmsg := &msg.L2C_UserIndividual{
-		UserID:      user.Id,        //用户 I D
-		NickName:    user.NickName,  //昵称
-		WinCount:    user.WinCount,  //赢数
-		LostCount:   user.LostCount, //输数
-		DrawCount:   user.DrawCount, //平数
-		Medal:       user.UserMedal,
-		RoomCard:    user.RoomCard,    //房卡
-		MemberOrder: user.MemberOrder, //会员等级
-		Score:       user.Score,
-		HeadImgUrl:  user.HeadImgUrl,
+		UserID:      player.Id,        //用户 I D
+		NickName:    player.NickName,  //昵称
+		WinCount:    player.WinCount,  //赢数
+		LostCount:   player.LostCount, //输数
+		DrawCount:   player.DrawCount, //平数
+		Medal:       player.UserMedal,
+		RoomCard:    player.Currency,    //房卡
+		MemberOrder: player.MemberOrder, //会员等级
+		Score:       player.Score,
+		HeadImgUrl:  player.HeadImgUrl,
 	}
 
-	user.WriteMsg(retmsg)
+	player.WriteMsg(retmsg)
+	player.SendActivityInfo()
 }
 
 func (m *UserModule) UserOffline() {
@@ -238,13 +263,13 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	u := agent.UserData().(*user.User)
-	if u.GetRoomCnt() >= common.GetGlobalVarInt(MAX_CREATOR_ROOM_CNT) {
+	player := agent.UserData().(*user.User)
+	if player.GetRoomCnt() >= common.GetGlobalVarInt(MAX_CREATOR_ROOM_CNT) {
 		retCode = ErrMaxRoomCnt
 		return
 	}
 
-	host, nodeId := gameList.GetSvrByKind(recvMsg.Kind)
+	host, nodeId := game_list.GetSvrByKind(recvMsg.Kind)
 	if host == "" {
 		retCode = ErrNotFoudServer
 		return
@@ -257,35 +282,35 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		}
 	}
 
-	rid, iok := idGenerate.GenerateRoomId(nodeId)
+	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
 		return
 	}
 
 	if recvMsg.PayType == SELF_PAY_TYPE {
-		if !u.SubCurrency(feeTemp.TableFee) {
+		if !player.SubCurrency(feeTemp.TableFee) {
 			retCode = NotEnoughFee
 			return
 		}
 
 		record := &model.TokenRecord{}
-		record.UserId = u.Id
+		record.UserId = player.Id
 		record.RoomId = rid
 		record.Amount = feeTemp.TableFee
 		record.TokenType = SELF_PAY_TYPE
 		record.KindID = template.KindID
 		record.ServerId = template.ServerID
-		if !u.AddRecord(record) {
+		if !player.AddRecord(record) {
 			retCode = ErrServerError
-			u.AddCurrency(feeTemp.TableFee)
+			player.AddCurrency(feeTemp.TableFee)
 			return
 		}
 	}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
-	info.UserId = u.Id
+	info.UserId = player.Id
 	info.PayType = recvMsg.PayType
 	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
 	info.RoomId = rid
@@ -293,20 +318,27 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
+	by, err := json.Marshal(recvMsg.OtherInfo)
+	if err != nil {
+		log.Error("at CreateRoom json.Marshal(recvMsg.OtherInfo) error:%s", err.Error())
+		retCode = ErrParamError
+		return
+	}
+	info.OtherInfo = string(by)
 	if recvMsg.RoomName != "" {
 		info.RoomName = recvMsg.RoomName
 	} else {
 		info.RoomName = template.RoomName
 	}
 
-	u.AddRooms(info)
+	player.AddRooms(info)
 
 	//回给客户端的消息
 	retMsg.TableID = rid
 	retMsg.DrawCountLimit = info.Num
 	retMsg.DrawTimeLimit = 0
 	retMsg.Beans = feeTemp.TableFee
-	retMsg.RoomCard = u.Currency
+	retMsg.RoomCard = player.Currency
 	retMsg.ServerIP = host
 }
 
@@ -336,7 +368,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	host := gameList.GetSvrByNodeID(roomInfo.NodeID)
+	host := game_list.GetSvrByNodeID(roomInfo.NodeID)
 	if host == "" {
 		retcode = ErrNotFoudServer
 		return
@@ -363,6 +395,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		}
 	}
 
+	u.KindID = roomInfo.KindID
+	u.ServerID = roomInfo.ServerID
+	model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
+		"KindID":   u.KindID,
+		"ServerID": u.ServerID,
+	})
+
 	retMsg.TableID = roomInfo.RoomID
 	retMsg.ServerIP = host
 	return
@@ -385,7 +424,7 @@ func (m *UserModule) GetRoomPlayerBreif(args []interface{}) {
 	if r == nil {
 		u.WriteMsg(&msg.L2C_RoomPlayerBrief{})
 	} else {
-		gameList.ChanRPC.Go("SendPlayerBrief", recvMsg.RoomId, u)
+		game_list.ChanRPC.Go("SendPlayerBrief", recvMsg.RoomId, u)
 	}
 }
 
@@ -402,7 +441,12 @@ func loadUser(u *user.User) bool {
 
 	glInfo, glok := model.GamescorelockerOp.Get(u.Id)
 	if !glok {
-		glInfo = &model.Gamescorelocker{}
+		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
+		//return false
+		glInfo = &model.Gamescorelocker{
+			UserID: u.Id,
+		}
+		model.GamescorelockerOp.Insert(glInfo)
 	}
 	u.Gamescorelocker = glInfo
 
@@ -520,6 +564,15 @@ func createUser(UserID int, accountData *model.Accountsinfo) (*user.User, bool) 
 		UserID: UserID,
 	}
 
+	U.Gamescorelocker = &model.Gamescorelocker{
+		UserID: UserID,
+	}
+	_, err = model.GamescorelockerOp.Insert(U.Gamescorelocker)
+	if err != nil {
+		log.Error("at createUser insert Gamescorelocker error")
+		return nil, false
+	}
+
 	_, err = model.UsertokenOp.Insert(U.Usertoken)
 	if err != nil {
 		log.Error("at createUser insert Userroomcard error")
@@ -564,7 +617,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.RoomCard
+	retMsg.RoomCard = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
@@ -611,12 +664,44 @@ func (m *UserModule) restoreToken(args []interface{}) {
 	}
 }
 
-/////////////////////////////// help 函数
-
-func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
-	u, ok := m.a.UserData().(*user.User)
-	if !ok {
-		return nil, errors.New("not foud user Data at GetUser")
+func (m *UserModule) matchResult(args []interface{}) {
+	ret := args[0].(bool)
+	retMsg := msg.L2C_SearchResult{}
+	u := m.a.UserData().(*user.User)
+	if ret {
+		r := args[1].(*msg.RoomInfo)
+		retMsg.TableID = r.RoomID
 	}
-	return u, nil
+	u.WriteMsg(retMsg)
+}
+
+func (m *UserModule) leaveRoom(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server leaveRoom uid:%v", u.Id)
+}
+
+func (m *UserModule) joinRoom(args []interface{}) {
+	room := args[0].(*msg.RoomInfo)
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server joinRoom uid:%v", u.Id)
+	u.KindID = room.KindID
+	u.ServerID = room.ServerID
+	u.GameNodeID = room.NodeID
+	u.EnterIP = room.SvrHost
+}
+
+func (m *UserModule) Recharge(args []interface{}) {
+	u := m.a.UserData().(*user.User)
+	orders := GetOrders(u.Id)
+	for _, v := range orders {
+		goods, ok := base.GoodsCache.Get(v.GoodsID)
+		if !ok {
+			log.Error("at Recharge error")
+			continue
+		}
+
+		if UpdateOrderStats(v.OnLineID) {
+			u.AddCurrency(goods.Diamond)
+		}
+	}
 }

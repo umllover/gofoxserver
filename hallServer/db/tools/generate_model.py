@@ -3,6 +3,7 @@
 
 
 import os
+import re
 import pymysql
 from pymysql.cursors import DictCursor
 from jinja2 import Template
@@ -57,10 +58,14 @@ go_type_dict = {
 }
 
 
-def get_go_type(db_name, db_type):
+def get_go_type(db_name, db_type, data_type):
+    ret = re.search("unsigned",data_type)
     if (db_type == "int" and db_name.endswith('time')) or db_name == "v":
         return 'int64'
-    return go_type_dict.get(db_type)
+    t  = go_type_dict.get(db_type)
+    if t == 'int64' and ret != None:
+        return 'uint64'
+    return t
 
 
 def generate_gen(model_dir):
@@ -119,7 +124,7 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
         sql = """
         SELECT
         COLUMN_NAME,DATA_TYPE, COLUMN_COMMENT,
-        COLUMN_DEFAULT,COLUMN_KEY,EXTRA
+        COLUMN_DEFAULT,COLUMN_KEY,COLUMN_TYPE,EXTRA
         FROM COLUMNS
         WHERE TABLE_NAME = %s  and TABLE_SCHEMA = %s
         """
@@ -144,7 +149,8 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
             column_name = c['COLUMN_NAME']
             field_name = to_camel_case(column_name)
             column_type = c['DATA_TYPE']
-            go_type = get_go_type(column_name, column_type)
+            data_type = c['COLUMN_TYPE']
+            go_type = get_go_type(column_name, column_type,data_type)
             column_key = c['COLUMN_KEY']
             column_comment = c['COLUMN_COMMENT']
             auto_incr = (c['EXTRA'] == 'auto_increment')

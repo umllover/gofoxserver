@@ -30,7 +30,7 @@ type GameServiceOption struct {
 	FeeBeanOrRoomCard   int    `db:"FeeBeanOrRoomCard" json:"FeeBeanOrRoomCard"`     // 消耗房卡或游戏豆的数量
 	MaxCellScore        int    `db:"MaxCellScore" json:"MaxCellScore"`               // 房间最大底分
 	PlayTurnCount       int    `db:"PlayTurnCount" json:"PlayTurnCount"`             // 房间能够进行游戏的最大局数
-	TimeAfterBeginTime  int    `db:"TimeAfterBeginTime" json:"TimeAfterBeginTime"`   // 一局游戏开始后多长时间后解散桌子
+	TimeAfterBeginTime  int    `db:"TimeAfterBeginTime" json:"TimeAfterBeginTime"`   // 游戏开始后多长时间后解散桌子
 	TimeOffLineCount    int    `db:"TimeOffLineCount" json:"TimeOffLineCount"`       // 玩家掉线多长时间后解散桌子
 	TimeNotBeginGame    int    `db:"TimeNotBeginGame" json:"TimeNotBeginGame"`       // 多长时间未开始游戏解散桌子	 单位秒
 	DynamicJoin         int    `db:"DynamicJoin" json:"DynamicJoin"`                 // 是够允许游戏开始后加入 1是允许

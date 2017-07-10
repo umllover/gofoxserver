@@ -71,23 +71,6 @@ func (op *systemstatusinfoOp) QueryByMap(m map[string]interface{}) ([]*Systemsta
 	return result, nil
 }
 
-func (op *systemstatusinfoOp) QueryByMapQueryByMapComparison(m map[string]interface{}) ([]*Systemstatusinfo, error) {
-	result := []*Systemstatusinfo{}
-	var params []interface{}
-
-	sql := "select * from systemstatusinfo where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s? ", k)
-		params = append(params, v)
-	}
-	err := db.StatsDB.Select(&result, sql, params...)
-	if err != nil {
-		log.Error(err.Error())
-		return nil, err
-	}
-	return result, nil
-}
-
 func (op *systemstatusinfoOp) GetByMap(m map[string]interface{}) (*Systemstatusinfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
