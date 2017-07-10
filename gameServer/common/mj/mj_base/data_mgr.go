@@ -6,6 +6,8 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
+	"mj/common/utils"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"

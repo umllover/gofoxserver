@@ -70,9 +70,7 @@ type TagAnalyseItem struct {
 }
 
 type tagAnalyseType struct {
-
 }
-
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
@@ -115,6 +113,7 @@ func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData [
 
 		return true
 	}
+	return true
 }
 
 //逻辑数值
@@ -217,7 +216,7 @@ func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyse
 	TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 	return TagAnalyseItemArray
 }
-func (lg *sss_logic) GetCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
+func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
 	CardCount := len(cardData)
 	if CardCount != 3 && CardCount != 5 && CardCount != 13 {
 		return CT_INVALID
@@ -275,7 +274,7 @@ func (lg *sss_logic) GetCardType(cardData []int, bCardCount int, btSpecialCard [
 						bFlushFirstA = false
 					}
 				}
-				if lg.GetCardLogicValue(cardData[4]) {
+				if lg.GetCardLogicValue(cardData[4]) != 0 {
 					bFlushFirstA = false
 				}
 			}
@@ -1002,6 +1001,6 @@ func (lg *sss_logic) GetCardType(cardData []int, bCardCount int, btSpecialCard [
 
 	return CT_INVALID
 }
-func (lg *sss_logic) GetType(bCardData []int ,bCardCount int) {
+func (lg *sss_logic) GetType(bCardData []int, bCardCount int) {
 
 }

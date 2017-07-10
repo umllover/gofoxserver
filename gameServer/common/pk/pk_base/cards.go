@@ -42,9 +42,6 @@ func GetTBNNCards() []int {
 	return GetCardByIdx(IDX_TBNN)
 }
 
-func GetSSSCards() []int {
-	return getCardByIdx(IDX_SSS)
-}
 
 type PK_CFG struct {
 	PublicCardCount int //
