@@ -26,6 +26,7 @@ func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
 type ddz_logic struct {
 	*pk_base.BaseLogic
 	GameType int
+	LizeCard int
 }
 
 const (
@@ -310,7 +311,8 @@ func (dg *ddz_logic) DDZSortCardList(arry []int, cbCardCount int, cbSortType int
 }
 
 //删除扑克
-func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCardData []int) bool {
+func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbCardData []int) bool {
+	cbRemoveCount := len(cbRemoveCard)
 	// 检验数据
 	if cbRemoveCount > int(len(cbCardData)) {
 		log.Error("要删除的扑克数%i大于已有扑克数%i", cbRemoveCount, len(cbCardData))
@@ -344,7 +346,7 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCar
 
 //删除扑克
 func (dg *ddz_logic) RemoveCard(cbRemoveCard []int, cbRemoveCount int, cbCardData []int, cbCardCount int) bool {
-	return dg.RemoveCardList(cbRemoveCard, cbRemoveCount, cbCardData)
+	return dg.RemoveCardList(cbRemoveCard, cbCardData)
 }
 
 // 排列出牌扑克
@@ -1422,4 +1424,9 @@ func (dg *ddz_logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	//转换扑克
 
 	return cbCardData
+}
+
+// 设置癞子牌
+func (dg *ddz_logic) SetParamToLogic(args interface{}) {
+	dg.LizeCard = args.(int)
 }

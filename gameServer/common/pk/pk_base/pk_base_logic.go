@@ -79,12 +79,17 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
-
-
-
 func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
 	return false
 }
 func (lg *BaseLogic) GetCardType(cardData []int) int {
 	return 0
+}
+
+func (lg *BaseLogic) SetParamToLogic(args interface{}) {
+
+}
+
+func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) bool {
+	return true
 }

@@ -44,6 +44,9 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
+
+	RemoveCardList(cbRemoveCard []int, cbCardData []int) bool
+	SetParamToLogic(args interface{}) // 设置算法必要参数
 }
 
 ////////////////////////////////////////////
