@@ -1701,7 +1701,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 				}
 			}
 			log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-			//todo,BUG待修改 room.MjBase.OutCard([]interface{}{card, u, true})
+			room.MjBase.OutCard([]interface{}{u, card, true})
 		})
 	}
 	return 0
