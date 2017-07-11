@@ -65,6 +65,12 @@ const (
 	ErrNotFoudPlayer = 401 //没找到推举人
 )
 
+// 斗地主错误码
+const (
+	ErrDDZCSUser  = 501 // 当前此人叫分
+	ErrDDZCSValid = 502 // 叫分信息有误，得大于上一个叫分
+)
+
 ///////// 无效的数字
 const (
 	//无效数值
