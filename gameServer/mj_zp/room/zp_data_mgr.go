@@ -144,8 +144,7 @@ func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
-			//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(0)*time.Second, func() {
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
 			log.Debug("超时插花")
 			for i := 0; i < 4; i++ {
 				_, ok := room.ChaHuaMap[i]
@@ -1197,7 +1196,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 }
 
 func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
-	StatusPlay := &mj_zp_msg.G2C_ZPMJ_StatusPlay{}
+	StatusPlay := &msg.G2C_StatusPlay{}
 	//自定规则
 	StatusPlay.TimeOutCard = room.MjBase.TimerMgr.GetTimeOutCard()
 	StatusPlay.TimeOperateCard = room.MjBase.TimerMgr.GetTimeOperateCard()
