@@ -91,19 +91,19 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.TurnWiner = cost.INVALID_CHAIR
 
 	room.TimeHeadOutCard = 0
-	room.OutCardCount = make([]int, room.PlayCount)
-	room.EachBombCount = make([]int, room.PlayCount)
-	room.KingCount = make([]int, room.PlayCount)
+	room.OutCardCount = make([]int, room.PlayerCount)
+	room.EachBombCount = make([]int, room.PlayerCount)
+	room.KingCount = make([]int, room.PlayerCount)
 
 	room.CallScoreUser = 0
 	room.BankerScore = 0
-	room.ScoreInfo = make([]int, room.PlayCount)
+	room.ScoreInfo = make([]int, room.PlayerCount)
 
-	room.TurnCardStatus = make([]int, room.PlayCount)
-	room.TurnCardData = make([][][]int, room.PlayCount)
-	room.RepertoryCard = make([]int, room.PlayCount)
+	room.TurnCardStatus = make([]int, room.PlayerCount)
+	room.TurnCardData = make([][][]int, room.PlayerCount)
+	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 
-	room.HandCardData = make([][]int, room.PlayCount)
+	room.HandCardData = make([][]int, room.PlayerCount)
 }
 
 //// 叫分
@@ -255,22 +255,26 @@ func (room *ddz_data_mgr) SendGameStart() {
 	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetCardByIdx(room.ConfigIdx))
 
 	// 底牌
-	util.DeepCopy(room.BankerCard[:], room.RepertoryCard[len(room.RepertoryCard)-3:])
+	//util.DeepCopy(room.BankerCard[:], &room.RepertoryCard[len(room.RepertoryCard)-3:])
+	copy(room.BankerCard[:], room.RepertoryCard[len(room.RepertoryCard)-3:])
 	room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-3]
 
-	cardCount := int(len(room.RepertoryCard) / room.PlayCount)
+	log.Debug("底牌%v", room.BankerCard)
+	log.Debug("剩余牌%v", room.RepertoryCard)
+
+	cardCount := len(room.RepertoryCard) / room.PkBase.Temp.MaxPlayer
 
 	//构造变量
 	GameStart := &pk_ddz_msg.G2C_DDZ_GameStart{}
 
 	// 初始化叫分信息
-	for i := 0; i < room.PlayCount; i++ {
+	for i := 0; i < room.PlayerCount; i++ {
 		room.ScoreInfo[i] = CALLSCORE_NOCALL
 	}
 
 	// 初始化牌
 	var cardData [][]int
-	for i := 0; i < room.PlayCount; i++ {
+	for i := 0; i < room.PlayerCount; i++ {
 		tempCardData := room.RepertoryCard[len(room.RepertoryCard)-cardCount:]
 		room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-cardCount]
 		cardData = append(cardData, tempCardData)
@@ -286,19 +290,27 @@ func (room *ddz_data_mgr) SendGameStart() {
 	}
 
 	GameStart.CallScoreUser = room.CallScoreUser
+
+	if room.ShowCardSign == nil {
+		room.ShowCardSign = make(map[int]bool)
+	}
+
 	util.DeepCopy(&GameStart.ShowCard, &room.ShowCardSign)
 
 	//发送数据
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 
 		GameStart.CardData = append([][]int{})
-		for i := 0; i < room.PlayCount; i++ {
-
+		for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
 			if room.ShowCardSign[i] || u.ChairId == i {
-				util.DeepCopy(GameStart.CardData[i], cardData[i])
+				GameStart.CardData = append(GameStart.CardData, cardData[i])
+				//util.DeepCopy(GameStart.CardData[i], cardData[i])
+			} else {
+				GameStart.CardData = append(GameStart.CardData, nil)
 			}
 		}
 
+		log.Debug("需要发送的扑克牌%v", GameStart)
 		u.WriteMsg(GameStart)
 	})
 
