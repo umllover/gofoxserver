@@ -101,14 +101,20 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.Ting = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.DiscardCard = make([][]int, UserCnt)
+	for i := 0; i < UserCnt; i++ {
+		room.DiscardCard[i] = make([]int, 60)
+	}
 	room.UserGangScore = make([]int, UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, UserCnt)
+	//for i:=0;i<UserCnt ;i++  {
+	//	room.WeaveItemArray[i]=make([]*msg.WeaveItem,room.GetCfg().MaxWeave)
+	//}
 	room.ChiHuRight = make([]int, UserCnt)
 	room.HeapCardInfo = make([][]int, UserCnt)
-	room.OperateTime = make([]*timer.Timer, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
 	}
+	room.OperateTime = make([]*timer.Timer, UserCnt)
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 	room.UserActionDone = false
@@ -136,6 +142,10 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 
 	room.IsResponse = make([]bool, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
+	for i := 0; i < UserCnt; i++ {
+		room.OperateCard[i] = make([]int, 60)
+	}
+	log.Debug("len1 OperateCard: %d %d", len(room.OperateCard), len(room.OperateCard[1]))
 	room.PerformAction = make([]int, UserCnt)
 }
 
@@ -238,7 +248,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	//状态变量
 	room.SendStatus = BuHua_Send
 	room.GangStatus = WIK_GANERAL
-	room.ProvideUser = INVALID_CHAIR
+	room.ProvideGangUser = INVALID_CHAIR
 
 	//派发扑克
 	room.DispatchCardData(u.ChairId, true)
@@ -338,7 +348,6 @@ func (room *ZP_RoomData) InitBuHua() {
 
 //庄家开局动作
 func (room *ZP_RoomData) InitBankerAction() {
-	log.Debug("庄家开局动作")
 	userMgr := room.MjBase.UserMgr
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	gameLogic := room.MjBase.LogicMgr
@@ -617,7 +626,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		}
 		GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
-		util.DeepCopy(GameConclude.ScoreKind, room.HuKindScore[i]) //游戏得分类型
+		util.DeepCopy(&GameConclude.ScoreKind, &room.HuKindScore[i]) //游戏得分类型
 	}
 
 	//计算胡牌输赢分
@@ -767,7 +776,6 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 //设置用户相应牌的操作 ,返回是否可以操作
 func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, OperateCard []int) (int, int) {
 
-	log.Debug("room.IsResponse[u.ChairId]:%v", room.IsResponse[u.ChairId])
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
@@ -790,14 +798,16 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	cbTargetAction := OperateCode
 	wTargetUser := u.ChairId
 
-	log.Debug("=============room.UserAction %d", room.UserAction)
 	//执行判断
 	for i := 0; i < userCnt; i++ {
 		//获取动作
 		cbUserAction := room.UserAction[i]
-		if room.IsResponse[wTargetUser] {
+		if room.IsResponse[i] {
 			cbUserAction = room.PerformAction[i]
+		} else {
+			cbUserAction = room.UserAction[i]
 		}
+
 		log.Debug("userd:%d cbUserAction:%d ", i, room.UserAction[i])
 		log.Debug("room.PerformAction:%d ", i, room.PerformAction)
 		//优先级别
@@ -822,6 +832,9 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		room.IsResponse = make([]bool, userCnt)
 		room.UserAction = make([]int, userCnt)
 		room.OperateCard = make([][]int, userCnt)
+		for i := 0; i < userCnt; i++ {
+			room.OperateCard[i] = make([]int, 60)
+		}
 		room.PerformAction = make([]int, userCnt)
 		return cbTargetAction, wTargetUser
 	}
@@ -892,7 +905,7 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			winScore[IDX_SUB_SCORE_CYS] = 6
 			room.HuKindType = append(room.HuKindType, kind)
 		}
-		kind = room.IsQingYiSe(v, nil) //清一色
+		kind, _ = room.IsQingYiSe(v) //清一色
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_QYS] = 24
 			room.HuKindType = append(room.HuKindType, kind)
@@ -1150,10 +1163,17 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		room.SumScore[i] += playerScore[IDX_SUB_SCORE_AG]
 
 		var j int
-		for j = 0; j < len(WinUser); j++ {
-			if WinUser[j] == i {
+		var winCnt int
+		for k := range WinUser {
+			if WinUser[k] == i {
+				winCnt++
 				break
 			}
+		}
+		log.Debug("winCnt:%d", winCnt)
+		//黄庄
+		if winCnt == 0 {
+			return
 		}
 		if j == len(WinUser) {
 			continue
@@ -1174,6 +1194,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		//连庄
 		if i == room.BankerUser {
 			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
+			log.Debug("room.ProvideUser:%d", room.ProvideUser)
 			room.SumScore[room.ProvideUser] -= room.LianZhuang
 			room.SumScore[room.BankerUser] += room.LianZhuang
 		} else if room.ProvideUser == room.BankerUser {
@@ -1225,12 +1246,15 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	//游戏变量
 	StatusPlay.BankerUser = room.BankerUser
-	StatusPlay.CurrentUser = room.OutCardUser
+	StatusPlay.CurrentUser = room.CurrentUser
 	StatusPlay.CellScore = room.Source
 	StatusPlay.MagicIndex = room.MjBase.LogicMgr.GetMagicIndex()
 	StatusPlay.Trustee = room.MjBase.UserMgr.GetTrustees()
 	StatusPlay.HuCardCount = make([]int, room.GetCfg().MaxCount)
 	StatusPlay.HuCardData = make([][]int, room.GetCfg().MaxCount)
+	for i := 0; i < room.GetCfg().MaxCount; i++ {
+		StatusPlay.HuCardData[i] = make([]int, 28)
+	}
 	StatusPlay.OutCardDataEx = make([]int, room.GetCfg().MaxCount)
 	StatusPlay.CardCount = make([]int, UserCnt)
 	StatusPlay.TurnScore = make([]int, UserCnt)
@@ -1310,12 +1334,13 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		UserScore[u.ChairId] = int(u.Score)
 	})
 
-	WinUser := make([]int, UserCnt)
+	//WinUser := make([]int, UserCnt)
+	var WinUser []int
 	WinCount := 0
 
 	for i := 0; i < UserCnt; i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%UserCnt] {
-			WinUser[WinCount] = (room.BankerUser + i) % UserCnt
+			WinUser = append(WinUser, (room.BankerUser+i)%UserCnt)
 			room.SpecialCardScore(WinUser[WinCount])
 			WinCount++
 		}
@@ -1345,6 +1370,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 					randV, randOk := utils.RandInt(0, 15)
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
 						huaUser.Card = cardV
+						log.Debug("中花：%d", cardV)
 						huaUser.ChairID = v
 						huaUser.IsZhong = true
 						room.ZhuaHuaMap[randV] = &huaUser
@@ -1358,6 +1384,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
 						huaUser.Card = cardV2
 						huaUser.ChairID = v
+						log.Debug("中花：%d", cardV2)
 						huaUser.IsZhong = false
 						room.ZhuaHuaMap[randV] = &huaUser
 						break
@@ -1466,6 +1493,7 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 }
 
 func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
+	log.Debug("########## cbOperateCode:%d", cbOperateCode)
 	room.SendStatus = Gang_Send
 	//变量定义
 	var cbWeave *msg.WeaveItem
@@ -1536,7 +1564,6 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 }
 
 func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@CallOperateResult")
 	//构造结果
 	OperateResult := &mj_zp_msg.G2C_ZPMJ_OperateResult{}
 	OperateResult.OperateUser = wTargetUser
@@ -1563,11 +1590,15 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	room.IsResponse = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
+	for i := 0; i < UserCnt; i++ {
+		room.OperateCard[i] = make([]int, 60)
+	}
 	room.PerformAction = make([]int, UserCnt)
 	log.Debug("状态清除")
 	log.Debug("room.IsResponse %v", room.IsResponse)
 	log.Debug("room.UserActionResponse %v", room.UserAction)
 	log.Debug("room.OperateCard %v", room.OperateCard)
+	log.Debug("len1 OperateCard: %d %d", len(room.OperateCard), len(room.OperateCard[1]))
 
 	//如果非杠牌
 	if cbTargetAction != WIK_GANG {
@@ -1579,6 +1610,11 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 		if room.Ting[wTargetUser] == false {
 			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+			for k := 0; k < room.GetCfg().MaxCount; k++ {
+				HuData.HuCardData[k] = make([]int, 28)
+				HuData.HuCardRemainingCount[k] = make([]int, 28)
+			}
+
 			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
 			HuData.OutCardCount = cbCount
 			if cbCount > 0 {
@@ -1639,6 +1675,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//荒庄结束
 	if room.LeftCardCount <= room.EndLeftCount {
+		log.Debug("荒庄结束,room.LeftCardCount:%d,room.EndLeftCount:%d", room.LeftCardCount, room.EndLeftCount)
 		room.ProvideUser = INVALID_CHAIR
 		return 1
 	}
@@ -1694,6 +1731,11 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//听牌判断
 	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	for i := 0; i < room.GetCfg().MaxCount; i++ {
+		HuData.HuCardData[i] = make([]int, 28)
+		HuData.HuCardRemainingCount[i] = make([]int, 28)
+	}
+
 	if room.Ting[wCurrentUser] == false {
 		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
 		room.TingCnt[wCurrentUser] = int(cbCount)
@@ -1746,6 +1788,9 @@ func (room *ZP_RoomData) DismissEnd() {
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
+	for i := 0; i < UserCnt; i++ {
+		GameConclude.HandCardData[i] = make([]int, 28)
+	}
 	GameConclude.GameScore = make([]int, UserCnt)
 	GameConclude.GangScore = make([]int, UserCnt)
 	GameConclude.Revenue = make([]int, UserCnt)

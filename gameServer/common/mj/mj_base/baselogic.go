@@ -130,6 +130,7 @@ func (lg *BaseLogic) RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool {
 
 //删除扑克
 func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
+	log.Debug("用户卡牌数据：%v", cbCardIndex)
 	//删除扑克
 	cbRemoveIndex := lg.SwitchToIdx(cbRemoveCard)
 	//效验扑克
@@ -143,7 +144,7 @@ func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
 		cbCardIndex[cbRemoveIndex]--
 		return true
 	}
-
+	log.Debug("删除扑克用户卡牌数据：%v", cbCardIndex)
 	return false
 }
 
@@ -205,7 +206,6 @@ func (lg *BaseLogic) GetWeaveCard(cbWeaveKind, cbCenterCard int, cbCardBuffer []
 
 //动作等级
 func (lg *BaseLogic) GetUserActionRank(cbUserAction int) int {
-	log.Debug("动作等级用户：%d", cbUserAction)
 	//胡牌等级
 	if cbUserAction&WIK_CHI_HU != 0 {
 		return 4
