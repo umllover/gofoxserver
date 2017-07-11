@@ -3,6 +3,8 @@ package room
 import (
 	"mj/gameServer/common/pk/pk_base"
 
+	"mj/gameServer/common/pk"
+
 	"github.com/lovelly/leaf/util"
 )
 
@@ -1001,6 +1003,395 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 
 	return CT_INVALID
 }
-func (lg *sss_logic) GetType(bCardData []int, bCardCount int) {
+func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	CardData := make([]int, 13)
+	Type := new(pk.TagAnalyseType)
+	util.DeepCopy(&CardData, &bCardData)
+	lg.SortCardList(CardData, 13)
+	Index := make([]int, 13)
+	Number := 0
+	SameValueCount := 1
+	Num := make([]int, 8)
+	bLogicValue := lg.GetCardLogicValue(CardData[0])
+	Index[Number] = 0
+	Number++
+	for i := 1; i < bCardCount; i++ {
+		if bLogicValue == lg.GetCardLogicValue(CardData[i]) {
+			SameValueCount++
+			Index[Number] = i
+			Number++
+		}
+		if bLogicValue != lg.GetCardLogicValue(CardData[i]) || i == bCardCount-1 {
+			if SameValueCount == 1 {
 
+			} else if SameValueCount == 2 {
+				Type.BOnePare = true
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-2]
+				Num[0]++
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-1]
+				Num[0]++
+				Type.BtOnePare++
+			} else if SameValueCount == 3 {
+				Type.BOnePare = true
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-3]
+				Num[0]++
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-2]
+				Num[0]++
+				Type.BThreeSame = true
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-3]
+				Num[2]++
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-2]
+				Num[2]++
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-1]
+				Num[2]++
+				Type.BtThreeSame++
+			} else if SameValueCount == 4 {
+				Type.BOnePare = true
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-4]
+				Num[0]++
+				Type.CbOnePare[Num[0]] = Index[SameValueCount-3]
+				Num[0]++
+				Type.BThreeSame = true
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-4]
+				Num[2]++
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-3]
+				Num[2]++
+				Type.CbThreeSame[Num[2]] = Index[SameValueCount-2]
+				Num[2]++
+				Type.BFourSame = true
+				Type.CbFourSame[Num[6]] = Index[SameValueCount-4]
+				Num[6]++
+				Type.CbFourSame[Num[6]] = Index[SameValueCount-3]
+				Num[6]++
+				Type.CbFourSame[Num[6]] = Index[SameValueCount-2]
+				Num[6]++
+				Type.CbFourSame[Num[6]] = Index[SameValueCount-1]
+				Num[6]++
+				Type.BtFourSame++
+			} else {
+
+			}
+			Number = 0
+			//ZeroMemory(Index,sizeof(Index));
+			Index[Number] = i
+			Number++
+			SameValueCount = 1
+			bLogicValue = lg.GetCardLogicValue(CardData[i])
+		}
+
+	}
+	//判断两对
+	OnePareCount := Num[0] / 2
+	ThreeSameCount := Num[2] / 3
+	if OnePareCount >= 2 {
+		Type.BTwoPare = true
+		for i := 0; i < OnePareCount; i++ {
+			for j := i + 1; j < OnePareCount; j++ {
+				Type.CbTwoPare[Num[1]] = Type.CbOnePare[i*2]
+				Num[1]++
+				Type.CbTwoPare[Num[1]] = Type.CbOnePare[i*2+1]
+				Num[1]++
+				Type.CbTwoPare[Num[1]] = Type.CbOnePare[j*2]
+				Num[1]++
+				Type.CbTwoPare[Num[1]] = Type.CbOnePare[j*2+1]
+				Num[1]++
+				Type.BtTwoPare++
+			}
+		}
+	}
+	//判断葫芦
+	if OnePareCount > 0 && ThreeSameCount > 0 {
+		for i := 0; i < ThreeSameCount; i++ {
+			for j := 0; j < OnePareCount; j++ {
+				if lg.GetCardLogicValue(Type.CbThreeSame[i*3]) == lg.GetCardLogicValue(Type.CbOnePare[j*2]) {
+					continue
+				}
+				Type.BGourd = true
+				Type.CbGourd[Num[5]] = Type.CbThreeSame[i*3]
+				Num[5]++
+				Type.CbGourd[Num[5]] = Type.CbThreeSame[i*3+1]
+				Num[5]++
+				Type.CbGourd[Num[5]] = Type.CbThreeSame[i*3+2]
+				Num[5]++
+				Type.CbGourd[Num[5]] = Type.CbOnePare[j*2]
+				Num[5]++
+				Type.CbGourd[Num[5]] = Type.CbOnePare[j*2+1]
+				Num[5]++
+				Type.BtGourd++
+			}
+		}
+	}
+	//判断顺子及同花顺
+	Number = 0
+	//ZeroMemory(Index,sizeof(Index))
+	Straight := 1
+	bStraight := lg.GetCardLogicValue(CardData[0])
+	Index[Number] = 0
+	Number++
+	if bStraight != 14 {
+		for i := 1; i < bCardCount; i++ {
+			if bStraight == lg.GetCardLogicValue(CardData[i])+1 {
+				Straight++
+				Index[Number] = i
+				Number++
+				bStraight = lg.GetCardLogicValue(CardData[i])
+			}
+			if bStraight > lg.GetCardLogicValue(CardData[i])+1 || i == bCardCount-1 {
+				if Straight >= 5 {
+					Type.BStraight = true
+					for j := 0; j < Straight; j++ {
+						if Straight-j >= 5 {
+							Type.CbStraight[Num[3]] = Index[j]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+1]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+2]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+3]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+4]
+							Num[3]++
+							Type.BtStraight++
+							//从手牌中找到和顺子5张中其中一张数值相同的牌，组成另一种顺子
+							for k := j; k < j+5; k++ {
+								for m := 0; m < bCardCount; m++ {
+									if lg.GetCardLogicValue(CardData[Index[k]]) == lg.GetCardLogicValue(CardData[m]) && lg.GetCardColor(CardData[Index[k]]) != lg.GetCardColor(CardData[m]) {
+										for n := j; n < j+5; n++ {
+											if n == k {
+												Type.CbStraight[Num[3]] = m
+												Num[3]++
+											} else {
+												Type.CbStraight[Num[3]] = Index[n]
+												Num[3]++
+											}
+										}
+										Type.BtStraight++
+									}
+								}
+							}
+						} else {
+							break
+						}
+					}
+
+				}
+				if bCardCount-i < 5 {
+					break
+				}
+				bStraight = lg.GetCardLogicValue(CardData[i])
+				Straight = 1
+				Number = 0
+				//ZeroMemory(Index,sizeof(Index));
+				Index[Number] = i
+				Number++
+			}
+		}
+
+	}
+	if bStraight == 14 {
+		for i := 1; i < bCardCount; i++ {
+			if bStraight == lg.GetCardLogicValue(CardData[i])+1 {
+				Straight++
+				Index[Number] = i
+				Number++
+				bStraight = lg.GetCardLogicValue(CardData[i])
+			}
+			if bStraight > lg.GetCardLogicValue(CardData[i])+1 || i == bCardCount-1 {
+				if Straight >= 5 {
+					Type.BStraight = true
+					for j := 0; j < Straight; j++ {
+						if Straight-j >= 5 {
+							Type.CbStraight[Num[3]] = Index[j]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+1]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+2]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+3]
+							Num[3]++
+							Type.CbStraight[Num[3]] = Index[j+4]
+							Num[3]++
+							Type.BtStraight++
+							//从手牌中找到和顺子5张中其中一张数值相同的牌，组成另一种顺子
+							for k := j; k < j+5; k++ {
+								for m := 0; m < bCardCount; m++ {
+									if lg.GetCardLogicValue(CardData[Index[k]]) == lg.GetCardLogicValue(CardData[m]) && lg.GetCardColor(CardData[Index[k]]) != lg.GetCardColor(CardData[m]) {
+										for n := j; n < j+5; n++ {
+											if n == k {
+												Type.CbStraight[Num[3]] = m
+												Num[3]++
+											} else {
+												Type.CbStraight[Num[3]] = Index[n]
+												Num[3]++
+											}
+										}
+										Type.BtStraight++
+									}
+								}
+							}
+
+						} else {
+							break
+						}
+					}
+				}
+				if bCardCount-i < 5 {
+					break
+				}
+				bStraight = lg.GetCardLogicValue(CardData[i])
+				Straight = 1
+				Number = 0
+				//ZeroMemory(Index,sizeof(Index));
+				Index[Number] = i
+				Number++
+			}
+		}
+		if lg.GetCardLogicValue(CardData[bCardCount-1]) == 2 {
+			Number = 0
+			BackA := 1
+			FrontA := 1
+			bStraight = lg.GetCardLogicValue(CardData[0])
+			//ZeroMemory(Index,sizeof(Index));
+			Index[Number] = 0
+			Number++
+			bStraight = lg.GetCardLogicValue(CardData[bCardCount-1])
+			Index[Number] = bCardCount - 1
+			Number++
+			for i := bCardCount - 2; i >= 0; i-- {
+				if bStraight == lg.GetCardLogicValue(CardData[i])-1 {
+					FrontA++
+					Index[Number] = i
+					Number++
+					bStraight = lg.GetCardLogicValue(CardData[i])
+				}
+			}
+			if FrontA+BackA >= 5 {
+				Type.BStraight = true
+				for i := BackA; i > 0; i-- {
+					for j := 1; j <= FrontA; j++ {
+						if i+j == 5 {
+							for k := 0; k < i; k++ {
+								Type.CbStraight[Num[3]] = Index[k]
+								Num[3]++
+							}
+							for k := 0; k < j; k++ {
+								Type.CbStraight[Num[3]] = Index[k+BackA]
+								Num[3]++
+							}
+							break
+						}
+					}
+				}
+
+			}
+		}
+
+	}
+	//判断同花及同花顺
+	Number = 0
+	//ZeroMemory(Index,sizeof(Index));
+	lg.SortCardList(CardData, bCardCount)
+	cbCardData := make([]int, 13)
+	util.DeepCopy(&cbCardData, bCardData)
+	lg.SortCardList(cbCardData, bCardCount)
+	SameColorCount := 1
+	bCardColor := lg.GetCardColor(CardData[0])
+	Index[Number] = 0
+	Number++
+	for i := 1; i < bCardCount; i++ {
+		if bCardColor == lg.GetCardColor(CardData[i]) {
+			SameColorCount++
+			Index[Number] = i
+			Number++
+		}
+		if bCardColor != lg.GetCardColor(CardData[i]) || i == bCardCount-1 {
+			if SameColorCount >= 5 {
+				Type.BFlush = true
+
+				for j := 0; j < SameColorCount; j++ {
+					for k := 0; k < bCardCount; k++ {
+						if lg.GetCardLogicValue(CardData[Index[j]]) == lg.GetCardLogicValue(cbCardData[k]) && lg.GetCardColor(CardData[Index[j]]) == lg.GetCardColor(cbCardData[k]) {
+							Index[j] = k
+							break
+						}
+					}
+				}
+				SaveIndex := 0
+				for j := 0; j < SameColorCount; j++ {
+					for k := j + 1; k < SameColorCount; k++ {
+						if Index[j] > Index[k] {
+							SaveIndex = Index[j]
+							Index[j] = Index[k]
+							Index[k] = SaveIndex
+						}
+					}
+				}
+				for j := 0; j < SameColorCount; j++ {
+					if SameColorCount-j >= 5 {
+						Type.CbFlush[Num[4]] = Index[j]
+						Num[4]++
+						Type.CbFlush[Num[4]] = Index[j+1]
+						Num[4]++
+						Type.CbFlush[Num[4]] = Index[j+2]
+						Num[4]++
+						Type.CbFlush[Num[4]] = Index[j+3]
+						Num[4]++
+						Type.CbFlush[Num[4]] = Index[j+4]
+						Num[4]++
+						Type.BtFlush++
+						if lg.GetCardLogicValue(cbCardData[Index[j]]) == 14 {
+							if lg.GetCardLogicValue(cbCardData[Index[j+1]]) == 5 && lg.GetCardLogicValue(cbCardData[Index[j+2]]) == 4 && lg.GetCardLogicValue(cbCardData[Index[j+3]]) == 3 && lg.GetCardLogicValue(cbCardData[Index[j+4]]) == 2 {
+								Type.BStraightFlush = true
+								Type.CbStraightFlush[Num[7]] = Index[j]
+								Num[7]++
+								Type.CbStraightFlush[Num[7]] = Index[j+1]
+								Num[7]++
+								Type.CbStraightFlush[Num[7]] = Index[j+2]
+								Num[7]++
+								Type.CbStraightFlush[Num[7]] = Index[j+3]
+								Num[7]++
+								Type.CbStraightFlush[Num[7]] = Index[j+4]
+								Num[7]++
+								Type.BtStraightFlush++
+							}
+
+						}
+						if lg.GetCardLogicValue(cbCardData[Index[j]]) == lg.GetCardLogicValue(cbCardData[Index[j+1]])+1 &&
+							lg.GetCardLogicValue(cbCardData[Index[j]]) == lg.GetCardLogicValue(cbCardData[Index[j+2]])+2 &&
+							lg.GetCardLogicValue(cbCardData[Index[j]]) == lg.GetCardLogicValue(cbCardData[Index[j+3]])+3 &&
+							lg.GetCardLogicValue(cbCardData[Index[j]]) == lg.GetCardLogicValue(cbCardData[Index[j+4]])+4 {
+							Type.BStraightFlush = true
+							Type.CbStraightFlush[Num[7]] = Index[j]
+							Num[7]++
+							Type.CbStraightFlush[Num[7]] = Index[j+1]
+							Num[7]++
+							Type.CbStraightFlush[Num[7]] = Index[j+2]
+							Num[7]++
+							Type.CbStraightFlush[Num[7]] = Index[j+3]
+							Num[7]++
+							Type.CbStraightFlush[Num[7]] = Index[j+4]
+							Num[7]++
+							Type.BtStraightFlush++
+						}
+
+					} else {
+						break
+					}
+				}
+			}
+			if bCardCount-i < 5 {
+				break
+			}
+			Number = 0
+			///ZeroMemory(Index,sizeof(Index));
+			SameColorCount = 1
+			Index[Number] = i
+			Number++
+			bCardColor = lg.GetCardColor(CardData[i])
+		}
+	}
+	return Type
+}
+func (lg *sss_logic) CompareSSSCard(bInFirstList[]int, bInNextList[]int, bFirstCount int, bNextCount int, bComperWithOther bool) bool {
+ return false
 }

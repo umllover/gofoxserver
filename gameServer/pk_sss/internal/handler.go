@@ -2,7 +2,7 @@ package internal
 
 import (
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
+	"mj/common/msg/pk_sss_msg"
 	"mj/gameServer/user"
 	"reflect"
 
@@ -22,7 +22,7 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, SSSShowCard)
+	handlerC2S(&pk_sss_msg.C2G_SSS_Open_Card{}, SSSShowCard)
 	//handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
 
 }
@@ -32,7 +32,7 @@ func SSSShowCard(args []interface{}) {
 
 	r := getRoom(user.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("CallScore", args[0], user)
+		r.GetChanRPC().Go("ShowCard", args[0], user)
 	}
 
 }
