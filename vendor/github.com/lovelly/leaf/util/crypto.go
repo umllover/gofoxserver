@@ -3,8 +3,34 @@ package util
 import (
 	"bytes"
 	"crypto/des"
+	"encoding/base64"
 	"errors"
 )
+
+func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(ciphertext, padtext...)
+}
+
+func PKCS5UnPadding(origData []byte) []byte {
+	length := len(origData)
+	unpadding := int(origData[length-1])
+	return origData[:(length - unpadding)]
+}
+
+func ZeroPadding(ciphertext []byte, blockSize int) []byte {
+	padding := blockSize - len(ciphertext)%blockSize
+	padtext := bytes.Repeat([]byte{0}, padding)
+	return append(ciphertext, padtext...)
+}
+
+func ZeroUnPadding(origData []byte) []byte {
+	return bytes.TrimFunc(origData,
+		func(r rune) bool {
+			return r == rune(0)
+		})
+}
 
 func DesEncrypt(src, key []byte) ([]byte, error) {
 	block, err := des.NewCipher(key)
@@ -12,7 +38,7 @@ func DesEncrypt(src, key []byte) ([]byte, error) {
 		return nil, err
 	}
 	bs := block.BlockSize()
-	src = PKCS5Padding(src, bs)
+	src = ZeroPadding(src, bs)
 	// src = PKCS5Padding(src, bs)
 	if len(src)%bs != 0 {
 		return nil, errors.New("Need a multiple of the blocksize")
@@ -24,10 +50,12 @@ func DesEncrypt(src, key []byte) ([]byte, error) {
 		src = src[bs:]
 		dst = dst[bs:]
 	}
-	return out, nil
+
+	return []byte(base64.StdEncoding.EncodeToString(out)), nil
 }
 
-func DesDecrypt(src, key []byte) ([]byte, error) {
+func DesDecrypt(bstr, key []byte) ([]byte, error) {
+	src, _ := base64.StdEncoding.DecodeString(string(bstr))
 	block, err := des.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -43,18 +71,7 @@ func DesDecrypt(src, key []byte) ([]byte, error) {
 		src = src[bs:]
 		dst = dst[bs:]
 	}
-	out = PKCS5UnPadding(out)
+	out = ZeroUnPadding(out)
+	// out = PKCS5UnPadding(out)
 	return out, nil
-}
-
-func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
-
-func PKCS5UnPadding(origData []byte) []byte {
-	length := len(origData)
-	unpadding := int(origData[length-1])
-	return origData[:(length - unpadding)]
 }
