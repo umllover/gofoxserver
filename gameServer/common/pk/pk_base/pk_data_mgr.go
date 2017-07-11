@@ -90,8 +90,8 @@ func (room *RoomData) SetCellScore(cellScore int) {
 }
 
 // 设置倍数
-func (r *RoomData) SetScoreTimes(scoreTimes int) {
-	r.ScoreTimes = scoreTimes
+func (room *RoomData) SetScoreTimes(scoreTimes int) {
+	room.ScoreTimes = scoreTimes
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
@@ -142,5 +142,8 @@ func (room *RoomData) ShowCard(u *user.User) {
 
 // 托管
 func (room *RoomData) Trustee(u *user.User, t bool) {
+
+}
+func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }

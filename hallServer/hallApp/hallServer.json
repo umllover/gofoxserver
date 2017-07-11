@@ -1,7 +1,9 @@
 {
 	"LogLevel": "debug",
 	"LogPath": "",
-	
+
+    "WSAddr": "192.168.1.37:20001",
+    "HttpAddr":"192.168.1.37:40001",
     "ListenAddr": "192.168.1.37:32001",
 	"MaxConnNum": 20000,
 
@@ -29,5 +31,5 @@
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
     "PrivatePort":7002,
-    "NodeId": 1
+    "NodeId": 37
 }
