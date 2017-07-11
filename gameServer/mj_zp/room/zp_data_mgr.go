@@ -208,6 +208,7 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 
 //用户补花
 func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
+	log.Debug("[用户补花开始] 用户：%d补花：%d", u.ChairId, CardData)
 	gameLogic := room.MjBase.LogicMgr
 	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
 		log.Debug("[用户补花] 用户：%d补花失败", u.ChairId)
@@ -237,7 +238,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	outData.NewCard = room.SendCardData
 	room.MjBase.UserMgr.SendMsgAll(outData)
 
-	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
+	log.Debug("[用户补花结束] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
 	return true
 }
 
@@ -1196,7 +1197,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 }
 
 func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
-	StatusPlay := &msg.G2C_StatusPlay{}
+	StatusPlay := &mj_zp_msg.G2C_ZPMJ_StatusPlay{}
 	//自定规则
 	StatusPlay.TimeOutCard = room.MjBase.TimerMgr.GetTimeOutCard()
 	StatusPlay.TimeOperateCard = room.MjBase.TimerMgr.GetTimeOperateCard()
@@ -1217,6 +1218,16 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.CardCount = make([]int, UserCnt)
 	StatusPlay.TurnScore = make([]int, UserCnt)
 	StatusPlay.CollectScore = make([]int, UserCnt)
+	StatusPlay.BuHuaCnt = make([]int, UserCnt)
+	StatusPlay.ChaHuaCnt = make([]int, UserCnt)
+
+	StatusPlay.ZhuaHuaCnt = room.ZhuaHuaCnt
+	for k, v := range room.ChaHuaMap {
+		StatusPlay.ChaHuaCnt[k] = v
+	}
+	for i := 0; i < len(room.FlowerCnt); i++ {
+		StatusPlay.BuHuaCnt[i] = room.FlowerCnt[i]
+	}
 
 	//状态变量
 	StatusPlay.ActionCard = room.ProvideCard
@@ -1523,6 +1534,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	OperateResult.OperateCard[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
+		OperateResult.OperateCard[2] = room.OperateCard[wTargetUser][2]
 	} else if cbTargetAction&WIK_PENG != 0 {
 		OperateResult.OperateCard[1] = cbTargetCard
 		OperateResult.OperateCard[2] = cbTargetCard

@@ -110,22 +110,22 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			u.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@UserOperateCard")
+
 	if room.DataMgr.GetCurrentUser() == INVALID_CHAIR {
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@HasOperator")
+
 		//效验状态
 		if !room.DataMgr.HasOperator(u.ChairId, OperateCode) {
 			retcode = ErrNoOperator
 			return
 		}
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@CheckUserOperator")
+
 		//变量定义
 		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), OperateCode, OperateCard)
 		if cbTargetAction < 0 {
 			log.Debug("wait other user")
 			return
 		}
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@cbTargetAction == WIK_NULL")
+
 		//放弃操作
 		if cbTargetAction == WIK_NULL {
 			//用户状态
@@ -135,7 +135,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			//记录放弃操作
 			room.DataMgr.RecordBanCard(OperateCode, u.ChairId)
 		}
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@cbTargetAction == WIK_CHI_HU ")
+
 		//胡牌操作
 		if cbTargetAction == WIK_CHI_HU {
 			room.DataMgr.UserChiHu(wTargetUser, room.UserMgr.GetMaxPlayerCnt())
@@ -145,13 +145,13 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 
 		//收集牌
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.RemoveCardByOP")
+
 		//删除扑克
 		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) == false {
 			log.Error("at UserOperateCard RemoveCardByOP error")
 			return
 		}
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.CallOperateResult(")
+
 		room.DataMgr.CallOperateResult(wTargetUser, cbTargetAction)
 		if cbTargetAction == WIK_GANG {
 			if room.DataMgr.DispatchCardData(wTargetUser, true) > 0 {
@@ -159,7 +159,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			}
 		}
 	} else {
-		log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@room.DataMgr.GetCurrentUser() != INVALID_CHAIR")
+
 		//扑克效验
 		if (OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])) {
 			log.Error("OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])")
@@ -182,7 +182,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			}
 
 			//发送扑克
-
 			if !bAroseAction {
 				if room.DataMgr.DispatchCardData(u.ChairId, true) > 0 {
 					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)

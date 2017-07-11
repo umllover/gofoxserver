@@ -397,8 +397,13 @@ func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
 	opCard := room.OperateCard[wTargetUser]
 	var card []int
 	switch ChoOp {
-	case WIK_LEFT, WIK_RIGHT, WIK_CENTER:
+	case WIK_LEFT:
 		card = opCard[1:]
+	case WIK_RIGHT:
+		card = opCard[0:2]
+	case WIK_CENTER:
+		card = append(card, opCard[0])
+		card = append(card, opCard[2])
 	case WIK_PENG:
 		card = []int{opCard[0], opCard[0]}
 	case WIK_GANG: //杠牌操作
@@ -521,6 +526,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	wrave.CardData[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
+		wrave.CardData[2] = room.OperateCard[wTargetUser][2]
 	} else if cbTargetAction&WIK_PENG != 0 {
 		wrave.CardData[1] = cbTargetCard
 		wrave.CardData[2] = cbTargetCard

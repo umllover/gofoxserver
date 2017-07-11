@@ -85,7 +85,6 @@ func SwitchToCardData(cbCardIndex int) int {
 
 //有效判断
 func IsValidCard(cbCardData int) bool {
-	log.Debug("有效判断卡牌：%d", cbCardData)
 	var cbValue = int(cbCardData & MASK_VALUE)
 	var cbColor = int((cbCardData & MASK_COLOR) >> 4)
 	return ((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= 7) && (cbColor == 3) || ((cbValue >= 1) && (cbValue <= 8) && (cbColor == 4)))

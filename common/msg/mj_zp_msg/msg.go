@@ -169,12 +169,13 @@ type G2C_ZPMJ_StatusPlay struct {
 	CreateTime      int64 //开始时间
 
 	//游戏变量
-	CellScore   int     //单元积分
-	BankerUser  int     //庄家用户
-	CurrentUser int     //当前用户
-	MagicIndex  int     //财神索引
-	ChaHuaCnt   [][]int //插花数
-	BuHuaCnt    [][]int //补花数
+	CellScore   int   //单元积分
+	BankerUser  int   //庄家用户
+	CurrentUser int   //当前用户
+	MagicIndex  int   //财神索引
+	ChaHuaCnt   []int //插花数
+	BuHuaCnt    []int //补花数
+	ZhuaHuaCnt  int   //抓花数
 
 	//规则
 	PlayerCount int //玩家人数

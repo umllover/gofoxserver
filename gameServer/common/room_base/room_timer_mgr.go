@@ -46,7 +46,7 @@ func (room *RoomTimerMgr) GetTimeOperateCard() int {
 }
 
 func (room *RoomTimerMgr) GetTimeOutCard() int {
-	return room.MaxPlayCnt
+	return room.TimeOutCard
 }
 
 func (room *RoomTimerMgr) GetMaxPayCnt() int {
