@@ -259,14 +259,12 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 
 //检测是否可以做某个操作
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
-	if OperateCode == WIK_NULL {
-		return false
-	}
+
 	if room.UserAction[ChairId] == WIK_NULL {
 		return false
 	}
 
-	if (room.UserAction[ChairId] & OperateCode) == 0 {
+	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
 		return false
 	}
 

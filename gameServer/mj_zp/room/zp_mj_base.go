@@ -70,6 +70,8 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		return
 	}
 
+	//todo.记录出牌用户
+
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
 
