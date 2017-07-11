@@ -11,8 +11,8 @@ import (
 )
 
 type ChatRoom struct {
-	members      map[int]gate.Agent
-	memChatIndex map[int]int //成员聊天索引
+	members      map[int64]gate.Agent
+	memChatIndex map[int64]int //成员聊天索引
 }
 
 var (
@@ -39,7 +39,7 @@ func (m *Module) OnDestroy() {
 func createRoom(args []interface{}) (interface{}, error) {
 	ag := args[0].(gate.Agent)
 	user := ag.UserData().(*user.User)
-	room := &ChatRoom{members: make(map[int]gate.Agent), memChatIndex: make(map[int]int)}
+	room := &ChatRoom{members: make(map[int64]gate.Agent), memChatIndex: make(map[int64]int)}
 	room.members[user.Id] = ag
 	room.memChatIndex[user.Id] = 0
 	roomList[roomID] = room
@@ -65,7 +65,7 @@ func addRoomMember(args []interface{}) {
 //删除聊天房间成员
 func delRoomMember(args []interface{}) {
 	GetRoomID := args[0].(int)
-	UserID := args[1].(int)
+	UserID := args[1].(int64)
 	room, ok := roomList[GetRoomID]
 	if !ok {
 		log.Error("聊天房间：%d不存在", GetRoomID)
@@ -83,7 +83,7 @@ func delRoomMember(args []interface{}) {
 	}
 }
 
-func SendMsgToUser(getRoomID int, userID int, data interface{}) {
+func SendMsgToUser(getRoomID int, userID int64, data interface{}) {
 	room, ok := roomList[getRoomID]
 	if !ok {
 		log.Error("聊天房间：%d不存在", getRoomID)

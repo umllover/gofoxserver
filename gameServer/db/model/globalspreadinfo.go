@@ -1,4 +1,4 @@
-package stats
+package model
 
 import(
     "mj/gameServer/db"
@@ -32,7 +32,7 @@ var DefaultGlobalspreadinfo = &Globalspreadinfo{}
 func (op *globalspreadinfoOp) Get(ID int) (*Globalspreadinfo, bool) {
     obj := &Globalspreadinfo{}
     sql := "select * from globalspreadinfo where ID=? "
-    err := db.StatsDB.Get(obj, sql, 
+    err := db.DB.Get(obj, sql, 
         ID,
         )
     
@@ -45,7 +45,7 @@ func (op *globalspreadinfoOp) Get(ID int) (*Globalspreadinfo, bool) {
 func(op *globalspreadinfoOp) SelectAll() ([]*Globalspreadinfo, error) {
 	objList := []*Globalspreadinfo{}
 	sql := "select * from globalspreadinfo "
-	err := db.StatsDB.Select(&objList, sql)
+	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -62,7 +62,7 @@ func(op *globalspreadinfoOp) QueryByMap(m map[string]interface{}) ([]*Globalspre
         sql += fmt.Sprintf(" and %s=? ", k)
         params = append(params, v)
     }
-	err := db.StatsDB.Select(&result, sql, params...)
+	err := db.DB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -84,7 +84,7 @@ func(op *globalspreadinfoOp) GetByMap(m map[string]interface{}) (*Globalspreadin
 
 /*
 func (i *Globalspreadinfo) Insert() error {
-    err := db.StatsDBMap.Insert(i)
+    err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
         return err
@@ -94,7 +94,7 @@ func (i *Globalspreadinfo) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *globalspreadinfoOp) Insert(m *Globalspreadinfo) (int64, error) {
-    return op.InsertTx(db.StatsDB, m)
+    return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
@@ -119,7 +119,7 @@ func (op *globalspreadinfoOp) InsertTx(ext sqlx.Ext, m *Globalspreadinfo) (int64
 
 /*
 func (i *Globalspreadinfo) Update()  error {
-    _,err := db.StatsDBMap.Update(i)
+    _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
         return err
@@ -129,7 +129,7 @@ func (i *Globalspreadinfo) Update()  error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *globalspreadinfoOp) Update(m *Globalspreadinfo) (error) {
-    return op.UpdateTx(db.StatsDB, m)
+    return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
@@ -155,7 +155,7 @@ func (op *globalspreadinfoOp) UpdateTx(ext sqlx.Ext, m *Globalspreadinfo) (error
 
 // 用主键做条件，更新map里包含的字段名
 func (op *globalspreadinfoOp) UpdateWithMap(ID int, m map[string]interface{}) (error) {
-    return op.UpdateWithMapTx(db.StatsDB, ID, m)
+    return op.UpdateWithMapTx(db.DB, ID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
@@ -179,14 +179,14 @@ func (op *globalspreadinfoOp) UpdateWithMapTx(ext sqlx.Ext, ID int, m map[string
 
 /*
 func (i *Globalspreadinfo) Delete() error{
-    _,err := db.StatsDBMap.Delete(i)
+    _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
 func (op *globalspreadinfoOp) Delete(ID int) error{
-    return op.DeleteTx(db.StatsDB, ID)
+    return op.DeleteTx(db.DB, ID)
 }
 
 // 根据主键删除相关记录,Tx
@@ -210,7 +210,7 @@ func (op *globalspreadinfoOp) CountByMap(m map[string]interface{}) (int64, error
         params = append(params, v)
     }
     count := int64(-1)
-    err := db.StatsDB.Get(&count, sql, params...)
+    err := db.DB.Get(&count, sql, params...)
     if err != nil {
         log.Error("CountByMap  error:%v data :%v", err.Error(), m)
 		return 0,err
@@ -219,7 +219,7 @@ func (op *globalspreadinfoOp) CountByMap(m map[string]interface{}) (int64, error
 }
 
 func (op *globalspreadinfoOp) DeleteByMap(m map[string]interface{})(int64, error){
-	return op.DeleteByMapTx(db.StatsDB, m)
+	return op.DeleteByMapTx(db.DB, m)
 }
 
 func (op *globalspreadinfoOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){

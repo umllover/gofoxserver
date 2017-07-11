@@ -19,7 +19,7 @@ type C2G_GR_LogonMobile struct {
 	PageTableCount int //分页桌数
 
 	//登录信息
-	UserID     int    //用户 I D
+	UserID     int64  //用户 I D
 	Password   string //登录密码
 	MachineID  string //机器标识
 	HallNodeID int
@@ -92,13 +92,13 @@ type G2C_LogonFailur struct {
 
 //玩家状态
 type G2C_UserStatus struct {
-	UserID     int
+	UserID     int64
 	UserStatus *UserStu
 }
 
 //发送提示信息
 type G2C_PersonalTableTip struct {
-	TableOwnerUserID  int    //桌主 I D
+	TableOwnerUserID  int64  //桌主 I D
 	DrawCountLimit    int    //局数限制
 	DrawTimeLimit     int    //时间限制
 	PlayCount         int    //已玩局数
@@ -213,8 +213,8 @@ type G2C_ConfigFinish struct {
 
 //用户信息
 type G2C_UserEnter struct {
-	GameID int //游戏 I D
-	UserID int //用户 I D
+	GameID int   //游戏 I D
+	UserID int64 //用户 I D
 
 	//头像信息
 	FaceID   int8 //头像索引
@@ -243,7 +243,7 @@ type G2C_UserEnter struct {
 }
 
 type SysMsg struct {
-	ClientID int
+	ClientID int64
 	Type     int
 	Context  string
 }
@@ -269,7 +269,7 @@ type C2G_GameChart_ToAll struct {
 
 type G2C_GameChart_ToAll struct {
 	ChatColor    int
-	SendUserID   int
+	SendUserID   int64
 	TargetUserID int
 	ClientID     int
 	ChatIndex    int

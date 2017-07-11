@@ -1,4 +1,4 @@
-package stats
+package model
 
 import(
     "mj/gameServer/db"
@@ -31,7 +31,7 @@ var DefaultSystemgrantcount = &Systemgrantcount{}
 func (op *systemgrantcountOp) Get(DateID int,RegisterIP string) (*Systemgrantcount, bool) {
     obj := &Systemgrantcount{}
     sql := "select * from systemgrantcount where DateID=? and RegisterIP=? "
-    err := db.StatsDB.Get(obj, sql, 
+    err := db.DB.Get(obj, sql, 
         DateID,
         RegisterIP,
         )
@@ -45,7 +45,7 @@ func (op *systemgrantcountOp) Get(DateID int,RegisterIP string) (*Systemgrantcou
 func(op *systemgrantcountOp) SelectAll() ([]*Systemgrantcount, error) {
 	objList := []*Systemgrantcount{}
 	sql := "select * from systemgrantcount "
-	err := db.StatsDB.Select(&objList, sql)
+	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -62,7 +62,7 @@ func(op *systemgrantcountOp) QueryByMap(m map[string]interface{}) ([]*Systemgran
         sql += fmt.Sprintf(" and %s=? ", k)
         params = append(params, v)
     }
-	err := db.StatsDB.Select(&result, sql, params...)
+	err := db.DB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -84,7 +84,7 @@ func(op *systemgrantcountOp) GetByMap(m map[string]interface{}) (*Systemgrantcou
 
 /*
 func (i *Systemgrantcount) Insert() error {
-    err := db.StatsDBMap.Insert(i)
+    err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
         return err
@@ -94,7 +94,7 @@ func (i *Systemgrantcount) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *systemgrantcountOp) Insert(m *Systemgrantcount) (int64, error) {
-    return op.InsertTx(db.StatsDB, m)
+    return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
@@ -118,7 +118,7 @@ func (op *systemgrantcountOp) InsertTx(ext sqlx.Ext, m *Systemgrantcount) (int64
 
 /*
 func (i *Systemgrantcount) Update()  error {
-    _,err := db.StatsDBMap.Update(i)
+    _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
         return err
@@ -128,7 +128,7 @@ func (i *Systemgrantcount) Update()  error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *systemgrantcountOp) Update(m *Systemgrantcount) (error) {
-    return op.UpdateTx(db.StatsDB, m)
+    return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
@@ -153,7 +153,7 @@ func (op *systemgrantcountOp) UpdateTx(ext sqlx.Ext, m *Systemgrantcount) (error
 
 // 用主键做条件，更新map里包含的字段名
 func (op *systemgrantcountOp) UpdateWithMap(DateID int,RegisterIP string, m map[string]interface{}) (error) {
-    return op.UpdateWithMapTx(db.StatsDB, DateID,RegisterIP, m)
+    return op.UpdateWithMapTx(db.DB, DateID,RegisterIP, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
@@ -177,14 +177,14 @@ func (op *systemgrantcountOp) UpdateWithMapTx(ext sqlx.Ext, DateID int,RegisterI
 
 /*
 func (i *Systemgrantcount) Delete() error{
-    _,err := db.StatsDBMap.Delete(i)
+    _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
 func (op *systemgrantcountOp) Delete(DateID int,RegisterIP string) error{
-    return op.DeleteTx(db.StatsDB, DateID,RegisterIP)
+    return op.DeleteTx(db.DB, DateID,RegisterIP)
 }
 
 // 根据主键删除相关记录,Tx
@@ -210,7 +210,7 @@ func (op *systemgrantcountOp) CountByMap(m map[string]interface{}) (int64, error
         params = append(params, v)
     }
     count := int64(-1)
-    err := db.StatsDB.Get(&count, sql, params...)
+    err := db.DB.Get(&count, sql, params...)
     if err != nil {
         log.Error("CountByMap  error:%v data :%v", err.Error(), m)
 		return 0,err
@@ -219,7 +219,7 @@ func (op *systemgrantcountOp) CountByMap(m map[string]interface{}) (int64, error
 }
 
 func (op *systemgrantcountOp) DeleteByMap(m map[string]interface{})(int64, error){
-	return op.DeleteByMapTx(db.StatsDB, m)
+	return op.DeleteByMapTx(db.DB, m)
 }
 
 func (op *systemgrantcountOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){

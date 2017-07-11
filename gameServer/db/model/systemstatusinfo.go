@@ -10,29 +10,29 @@ import(
 
 //This file is generate by scripts,don't edit it
 
-//room_record
+//systemstatusinfo
 //
 
 // +gen *
-type RoomRecord struct {
-    RoomId int `db:"room_id" json:"room_id"` // 
-    KindId int `db:"kind_id" json:"kind_id"` // 
-    UserId int64 `db:"user_id" json:"user_id"` // 创建房间的玩家id
-    Status int `db:"status" json:"status"` // 游戏状态
-    RoomName string `db:"room_name" json:"room_name"` // 房间名字
-    JionUser string `db:"jion_user" json:"jion_user"` // 进入的玩家id
+type Systemstatusinfo struct {
+    StatusName string `db:"StatusName" json:"StatusName"` // 状态名字
+    StatusValue int `db:"StatusValue" json:"StatusValue"` // 状态数值
+    StatusString string `db:"StatusString" json:"StatusString"` // 状态字符
+    StatusTip string `db:"StatusTip" json:"StatusTip"` // 状态显示名称
+    StatusDescription string `db:"StatusDescription" json:"StatusDescription"` // 字符的描述
+    SortID int `db:"SortID" json:"SortID"` // 
     }
 
-type roomRecordOp struct{}
+type systemstatusinfoOp struct{}
 
-var RoomRecordOp = &roomRecordOp{}
-var DefaultRoomRecord = &RoomRecord{}
+var SystemstatusinfoOp = &systemstatusinfoOp{}
+var DefaultSystemstatusinfo = &Systemstatusinfo{}
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *roomRecordOp) Get(room_id int) (*RoomRecord, bool) {
-    obj := &RoomRecord{}
-    sql := "select * from room_record where room_id=? "
+func (op *systemstatusinfoOp) Get(StatusName string) (*Systemstatusinfo, bool) {
+    obj := &Systemstatusinfo{}
+    sql := "select * from systemstatusinfo where StatusName=? "
     err := db.DB.Get(obj, sql, 
-        room_id,
+        StatusName,
         )
     
     if err != nil{
@@ -41,9 +41,9 @@ func (op *roomRecordOp) Get(room_id int) (*RoomRecord, bool) {
     }
     return obj, true
 } 
-func(op *roomRecordOp) SelectAll() ([]*RoomRecord, error) {
-	objList := []*RoomRecord{}
-	sql := "select * from room_record "
+func(op *systemstatusinfoOp) SelectAll() ([]*Systemstatusinfo, error) {
+	objList := []*Systemstatusinfo{}
+	sql := "select * from systemstatusinfo "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -52,11 +52,11 @@ func(op *roomRecordOp) SelectAll() ([]*RoomRecord, error) {
 	return objList, nil
 }
 
-func(op *roomRecordOp) QueryByMap(m map[string]interface{}) ([]*RoomRecord, error) {
-	result := []*RoomRecord{}
+func(op *systemstatusinfoOp) QueryByMap(m map[string]interface{}) ([]*Systemstatusinfo, error) {
+	result := []*Systemstatusinfo{}
     var params []interface{}
 
-	sql := "select * from room_record where 1=1 "
+	sql := "select * from systemstatusinfo where 1=1 "
     for k, v := range m{
         sql += fmt.Sprintf(" and %s=? ", k)
         params = append(params, v)
@@ -70,7 +70,7 @@ func(op *roomRecordOp) QueryByMap(m map[string]interface{}) ([]*RoomRecord, erro
 }
 
 
-func(op *roomRecordOp) GetByMap(m map[string]interface{}) (*RoomRecord, error) {
+func(op *systemstatusinfoOp) GetByMap(m map[string]interface{}) (*Systemstatusinfo, error) {
     lst, err := op.QueryByMap(m)
     if err != nil {
         return nil, err
@@ -82,7 +82,7 @@ func(op *roomRecordOp) GetByMap(m map[string]interface{}) (*RoomRecord, error) {
 }
 
 /*
-func (i *RoomRecord) Insert() error {
+func (i *Systemstatusinfo) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -92,20 +92,20 @@ func (i *RoomRecord) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *roomRecordOp) Insert(m *RoomRecord) (int64, error) {
+func (op *systemstatusinfoOp) Insert(m *Systemstatusinfo) (int64, error) {
     return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *roomRecordOp) InsertTx(ext sqlx.Ext, m *RoomRecord) (int64, error) {
-    sql := "insert into room_record(room_id,kind_id,user_id,status,room_name,jion_user) values(?,?,?,?,?,?)"
+func (op *systemstatusinfoOp) InsertTx(ext sqlx.Ext, m *Systemstatusinfo) (int64, error) {
+    sql := "insert into systemstatusinfo(StatusName,StatusValue,StatusString,StatusTip,StatusDescription,SortID) values(?,?,?,?,?,?)"
     result, err := ext.Exec(sql,
-    m.RoomId,
-        m.KindId,
-        m.UserId,
-        m.Status,
-        m.RoomName,
-        m.JionUser,
+    m.StatusName,
+        m.StatusValue,
+        m.StatusString,
+        m.StatusTip,
+        m.StatusDescription,
+        m.SortID,
         )
     if err != nil{
         log.Error("InsertTx sql error:%v, data:%v", err.Error(),m)
@@ -116,7 +116,7 @@ func (op *roomRecordOp) InsertTx(ext sqlx.Ext, m *RoomRecord) (int64, error) {
     }
 
 /*
-func (i *RoomRecord) Update()  error {
+func (i *Systemstatusinfo) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -126,20 +126,20 @@ func (i *RoomRecord) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *roomRecordOp) Update(m *RoomRecord) (error) {
+func (op *systemstatusinfoOp) Update(m *Systemstatusinfo) (error) {
     return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *roomRecordOp) UpdateTx(ext sqlx.Ext, m *RoomRecord) (error) {
-    sql := `update room_record set kind_id=?,user_id=?,status=?,room_name=?,jion_user=? where room_id=?`
+func (op *systemstatusinfoOp) UpdateTx(ext sqlx.Ext, m *Systemstatusinfo) (error) {
+    sql := `update systemstatusinfo set StatusValue=?,StatusString=?,StatusTip=?,StatusDescription=?,SortID=? where StatusName=?`
     _, err := ext.Exec(sql,
-    m.KindId,
-        m.UserId,
-        m.Status,
-        m.RoomName,
-        m.JionUser,
-        m.RoomId,
+    m.StatusValue,
+        m.StatusString,
+        m.StatusTip,
+        m.StatusDescription,
+        m.SortID,
+        m.StatusName,
         )
 
     if err != nil{
@@ -151,14 +151,14 @@ func (op *roomRecordOp) UpdateTx(ext sqlx.Ext, m *RoomRecord) (error) {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *roomRecordOp) UpdateWithMap(room_id int, m map[string]interface{}) (error) {
-    return op.UpdateWithMapTx(db.DB, room_id, m)
+func (op *systemstatusinfoOp) UpdateWithMap(StatusName string, m map[string]interface{}) (error) {
+    return op.UpdateWithMapTx(db.DB, StatusName, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *roomRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[string]interface{}) (error) {
+func (op *systemstatusinfoOp) UpdateWithMapTx(ext sqlx.Ext, StatusName string, m map[string]interface{}) (error) {
 
-    sql := `update room_record set %s where 1=1 and room_id=? ;`
+    sql := `update systemstatusinfo set %s where 1=1 and StatusName=? ;`
 
     var params []interface{}
     var set_sql string
@@ -169,39 +169,39 @@ func (op *roomRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, m map[string]
         set_sql += fmt.Sprintf(" %s=? ", k)
         params = append(params, v)
     }
-	params = append(params, room_id)
+	params = append(params, StatusName)
     _, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
     return err
 }
 
 /*
-func (i *RoomRecord) Delete() error{
+func (i *Systemstatusinfo) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *roomRecordOp) Delete(room_id int) error{
-    return op.DeleteTx(db.DB, room_id)
+func (op *systemstatusinfoOp) Delete(StatusName string) error{
+    return op.DeleteTx(db.DB, StatusName)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *roomRecordOp) DeleteTx(ext sqlx.Ext, room_id int) error{
-    sql := `delete from room_record where 1=1
-        and room_id=?
+func (op *systemstatusinfoOp) DeleteTx(ext sqlx.Ext, StatusName string) error{
+    sql := `delete from systemstatusinfo where 1=1
+        and StatusName=?
         `
     _, err := ext.Exec(sql, 
-        room_id,
+        StatusName,
         )
     return err
 }
 
 // 返回符合查询条件的记录数
-func (op *roomRecordOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *systemstatusinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 
     var params []interface{}
-    sql := `select count(*) from room_record where 1=1 `
+    sql := `select count(*) from systemstatusinfo where 1=1 `
     for k, v := range m{
         sql += fmt.Sprintf(" and  %s=? ",k)
         params = append(params, v)
@@ -215,13 +215,13 @@ func (op *roomRecordOp) CountByMap(m map[string]interface{}) (int64, error) {
     return count, nil
 }
 
-func (op *roomRecordOp) DeleteByMap(m map[string]interface{})(int64, error){
+func (op *systemstatusinfoOp) DeleteByMap(m map[string]interface{})(int64, error){
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *roomRecordOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){
+func (op *systemstatusinfoOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){
 	var params []interface{}
-	sql := "delete from room_record where 1=1 "
+	sql := "delete from systemstatusinfo where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
