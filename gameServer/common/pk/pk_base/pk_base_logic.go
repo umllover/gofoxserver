@@ -1,6 +1,7 @@
 package pk_base
 
 import (
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
 
@@ -32,12 +33,14 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		if cbRandCount >= cbBufferCount {
 			break
 		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount-1)))
 		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
+		log.Debug("混乱完的扑克%d", cbPosition)
 	}
 
+	log.Debug("混乱完的扑克%v", cbCardBuffer)
 	return
 }
 
