@@ -39,7 +39,9 @@ func (room *DDZ_Entry) OutCard(args []interface{}) {
 
 // 托管
 func (room *DDZ_Entry) CTrustee(args []interface{}) {
-
+	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_TRUSTEE)
+	u := args[1].(*user.User)
+	room.DataMgr.Trustee(u, recvMsg.Trustee)
 }
 
 // 空闲状态
@@ -59,7 +61,8 @@ func (room *DDZ_Entry) OnEventGameSceneStatusPlaying(args []interface{}) {
 
 // 明牌
 func (r *DDZ_Entry) ShowCard(args []interface{}) {
-
+	u := args[1].(*user.User)
+	r.DataMgr.ShowCard(u)
 }
 
 // 发送扑克

@@ -159,27 +159,26 @@ type G2C_DDZ_PassCard struct {
 //游戏结束
 type G2C_DDZ_GameConclude struct {
 	//积分变量
-	CellScore int   //单元积分
-	GameScore []int //游戏积分
+	CellScore int //单元积分
 
 	//春天标志
-	ChunTian    bool //春天标志
-	FanChunTian bool //春天标志
+	SpringSign int //春天标志(0：无 1：春天 2：反春天)
 
 	//炸弹信息
-	BombCount     int   //炸弹个数
 	EachBombCount []int //炸弹个数
 
 	//游戏信息
-	BankerScore  int   //叫分数目
-	CardCount    []int //扑克数目
-	HandCardData []int //扑克列表
+	BankerScore  int     //叫分数目
+	HandCardData [][]int //扑克列表
+	GameScore    []int   //游戏积分
+	// 八王信息
+	KingCount []int // 八王信息
 }
 
 //托管
 type G2C_DDZ_TRUSTEE struct {
-	TrusteeUser int //托管玩家
-	Trustee     int //托管标志
+	TrusteeUser int  //托管玩家
+	Trustee     bool //托管标志
 }
 
 // 用户明牌
@@ -205,4 +204,10 @@ type C2G_DDZ_OutCard struct {
 //托管
 type C2G_DDZ_TRUSTEE struct {
 	Trustee bool //托管标志
+}
+
+// 斗地主创建房间附带信息
+type C2G_DDZ_CreateRoomInfo struct {
+	GameType int
+	King     bool
 }
