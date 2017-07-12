@@ -23,6 +23,7 @@ import (
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"fmt"
 )
 
 var (
@@ -37,7 +38,6 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
-
 }
 
 func TestOutCard(t *testing.T) {

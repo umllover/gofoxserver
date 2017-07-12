@@ -49,7 +49,7 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 //排列扑克
 func (lg *BaseLogic) SortCardList(cardData []int, cardCount int) {
-	var logicValue []int
+	logicValue := make([]int, cardCount)
 	for i := 0; i < cardCount; i++ {
 		logicValue[i] = lg.GetCardValue(cardData[i])
 	}
