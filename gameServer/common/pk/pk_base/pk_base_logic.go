@@ -7,7 +7,8 @@ import (
 )
 
 type BaseLogic struct {
-	ConfigIdx int //配置索引
+	ConfigIdx         int //配置索引
+	BtCardSpecialData []int
 }
 
 func NewBaseLogic(ConfigIdx int) *BaseLogic {
@@ -87,7 +88,7 @@ func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
 func (lg *BaseLogic) GetCardType(cardData []int) int {
 	return 0
 }
-func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComperWithOther bool) bool {
+func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
 	return false
 }
 func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {

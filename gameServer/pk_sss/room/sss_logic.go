@@ -74,6 +74,20 @@ type TagAnalyseItem struct {
 type tagAnalyseType struct {
 }
 
+//分析结构
+type tagAnalyseData struct {
+	bOneCount   int   //单张数目
+	bTwoCount   int   //两张数目
+	bThreeCount int   //三张数目
+	bFourCount  int   //四张数目
+	bFiveCount  int   //五张数目
+	bOneFirst   []int //单牌位置
+	bTwoFirst   []int //对牌位置
+	bThreeFirst []int //三条位置
+	bFourFirst  []int //四张位置
+	bStraight   bool  //是否顺子
+}
+
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
@@ -82,6 +96,7 @@ func NewSssZLogic(ConfigIdx int) *sss_logic {
 
 type sss_logic struct {
 	*pk_base.BaseLogic
+	BtCardSpecialData []int
 }
 
 func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData []int, bCardCount int) bool {
@@ -137,7 +152,7 @@ func (lg *sss_logic) GetCardValue(bCardData int) int { return bCardData & LOGIC_
 //获取花色
 func (lg *sss_logic) GetCardColor(bCardData int) int { return (bCardData & LOGIC_MASK_COLOR) >> 4 } //十六进制后面四位表示牌的花色
 
-func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyseItemArray []*TagAnalyseItem) []*TagAnalyseItem {
+func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyseItemArray *TagAnalyseItem) *TagAnalyseItem {
 
 	cbBufferCount := int(len(bCardDataList))
 	bCardData := make([]int, cbBufferCount)
@@ -215,7 +230,7 @@ func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyse
 	} else {
 		analyseItem.bStraight = false
 	}
-	TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
+
 	return TagAnalyseItemArray
 }
 func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
@@ -224,7 +239,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 		return CT_INVALID
 	}
 
-	TagAnalyseItemArray := make([]*TagAnalyseItem, 0) //
+	TagAnalyseItemArray := new(TagAnalyseItem)
 	TagAnalyseItemArray = lg.AnalyseCard(cardData, bCardCount, TagAnalyseItemArray)
 
 	//开始分析
@@ -232,17 +247,17 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 	case 3: //三条类型
 		{
 			//单牌类型
-			if TagAnalyseItemArray[0].bOneCount == 3 {
+			if TagAnalyseItemArray.bOneCount == 3 {
 				return CT_SINGLE
 			}
 
 			//对带一张
-			if TagAnalyseItemArray[0].bTwoCount == 1 && 1 == TagAnalyseItemArray[0].bOneCount {
+			if TagAnalyseItemArray.bTwoCount == 1 && 1 == TagAnalyseItemArray.bOneCount {
 				return CT_ONE_DOUBLE
 			}
 
 			//三张牌型
-			if TagAnalyseItemArray[0].bThreeCount == 1 {
+			if TagAnalyseItemArray.bThreeCount == 1 {
 				return CT_THREE
 			}
 
@@ -282,53 +297,53 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 			}
 			//同花五牌
 			if false == bFlushBackA && false == bFlushNoA && false == bFlushFirstA {
-				if true == TagAnalyseItemArray[0].bStraight {
+				if true == TagAnalyseItemArray.bStraight {
 					return CT_FIVE_FLUSH
 				}
 			} else if true == bFlushNoA {
 				//杂顺类型
-				if false == TagAnalyseItemArray[0].bStraight {
+				if false == TagAnalyseItemArray.bStraight {
 					return CT_FIVE_MIXED_FLUSH_NO_A
 				} else { //同花顺牌
 					return CT_FIVE_STRAIGHT_FLUSH_NO_A
 				}
 			} else if true == bFlushFirstA {
 				//杂顺类型
-				if false == TagAnalyseItemArray[0].bStraight {
+				if false == TagAnalyseItemArray.bStraight {
 					return CT_FIVE_MIXED_FLUSH_FIRST_A
 				} else { //同花顺牌
 					return CT_FIVE_STRAIGHT_FLUSH_FIRST_A
 				}
 			} else if true == bFlushBackA {
 				//杂顺类型
-				if false == TagAnalyseItemArray[0].bStraight {
+				if false == TagAnalyseItemArray.bStraight {
 					return CT_FIVE_MIXED_FLUSH_BACK_A
 				} else { //同花顺牌
 					return CT_FIVE_STRAIGHT_FLUSH_BACK_A
 				}
 			}
 			//四带单张
-			if 1 == TagAnalyseItemArray[0].bFourCount && 1 == TagAnalyseItemArray[0].bOneCount {
+			if 1 == TagAnalyseItemArray.bFourCount && 1 == TagAnalyseItemArray.bOneCount {
 				return CT_FIVE_FOUR_ONE
 			}
 			//三条一对
-			if 1 == TagAnalyseItemArray[0].bThreeCount && 1 == TagAnalyseItemArray[0].bTwoCount {
+			if 1 == TagAnalyseItemArray.bThreeCount && 1 == TagAnalyseItemArray.bTwoCount {
 				return CT_FIVE_THREE_DEOUBLE
 			}
 			//三条带单
-			if 1 == TagAnalyseItemArray[0].bThreeCount && 2 == TagAnalyseItemArray[0].bOneCount {
+			if 1 == TagAnalyseItemArray.bThreeCount && 2 == TagAnalyseItemArray.bOneCount {
 				return CT_THREE
 			}
 			//两对牌型
-			if 2 == TagAnalyseItemArray[0].bTwoCount && 1 == TagAnalyseItemArray[0].bOneCount {
+			if 2 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bOneCount {
 				return CT_FIVE_TWO_DOUBLE
 			}
 			//只有一对
-			if 1 == TagAnalyseItemArray[0].bTwoCount && 3 == TagAnalyseItemArray[0].bOneCount {
+			if 1 == TagAnalyseItemArray.bTwoCount && 3 == TagAnalyseItemArray.bOneCount {
 				return CT_ONE_DOUBLE
 			}
 			//单牌类型
-			if 5 == TagAnalyseItemArray[0].bOneCount && false == TagAnalyseItemArray[0].bStraight {
+			if 5 == TagAnalyseItemArray.bOneCount && false == TagAnalyseItemArray.bStraight {
 				return CT_SINGLE
 			}
 			//错误类型
@@ -338,11 +353,11 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 		{
 			TwelveKing := false
 			//同花十三水
-			if 13 == TagAnalyseItemArray[0].bOneCount && true == TagAnalyseItemArray[0].bStraight {
+			if 13 == TagAnalyseItemArray.bOneCount && true == TagAnalyseItemArray.bStraight {
 				return CT_THIRTEEN_FLUSH
 			}
 			//十三水
-			if 13 == TagAnalyseItemArray[0].bOneCount {
+			if 13 == TagAnalyseItemArray.bOneCount {
 				return CT_THIRTEEN
 			}
 
@@ -466,7 +481,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 				return CT_THREE_STRAIGHTFLUSH
 			}
 			//三炸弹
-			if 3 == TagAnalyseItemArray[0].bFourCount {
+			if 3 == TagAnalyseItemArray.bFourCount {
 				return CT_THREE_BOMB
 			}
 			//全大
@@ -505,18 +520,18 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 				return CT_SAME_COLOR
 			}
 			//四套冲三
-			if 4 == TagAnalyseItemArray[0].bThreeCount {
+			if 4 == TagAnalyseItemArray.bThreeCount {
 				return CT_FOUR_THREESAME
 			}
 			//五对冲三
-			if (5 == TagAnalyseItemArray[0].bTwoCount && 1 == TagAnalyseItemArray[0].bThreeCount) ||
-				(3 == TagAnalyseItemArray[0].bTwoCount && 1 == TagAnalyseItemArray[0].bFourCount && 1 == TagAnalyseItemArray[0].bThreeCount) ||
-				(1 == TagAnalyseItemArray[0].bTwoCount && 2 == TagAnalyseItemArray[0].bFourCount && 1 == TagAnalyseItemArray[0].bThreeCount) {
+			if (5 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bThreeCount) ||
+				(3 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bFourCount && 1 == TagAnalyseItemArray.bThreeCount) ||
+				(1 == TagAnalyseItemArray.bTwoCount && 2 == TagAnalyseItemArray.bFourCount && 1 == TagAnalyseItemArray.bThreeCount) {
 				return CT_FIVEPAIR_THREE
 			}
 			//六对半
-			if (6 == TagAnalyseItemArray[0].bTwoCount) || (4 == TagAnalyseItemArray[0].bTwoCount && 1 == TagAnalyseItemArray[0].bFourCount) ||
-				(2 == TagAnalyseItemArray[0].bTwoCount && 2 == TagAnalyseItemArray[0].bFourCount) || (3 == TagAnalyseItemArray[0].bFourCount) {
+			if (6 == TagAnalyseItemArray.bTwoCount) || (4 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bFourCount) ||
+				(2 == TagAnalyseItemArray.bTwoCount && 2 == TagAnalyseItemArray.bFourCount) || (3 == TagAnalyseItemArray.bFourCount) {
 				return CT_SIXPAIR
 			}
 			//三同花
@@ -1383,7 +1398,6 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 				break
 			}
 			Number = 0
-			///ZeroMemory(Index,sizeof(Index));
 			SameColorCount = 1
 			Index[Number] = i
 			Number++
@@ -1392,6 +1406,678 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	}
 	return Type
 }
-func (lg *sss_logic) CompareSSSCard(bInFirstList[]int, bInNextList[]int, bFirstCount int, bNextCount int, bComperWithOther bool) bool {
- return false
+func (lg *sss_logic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
+
+	FirstAnalyseData := new(TagAnalyseItem)
+	NextAnalyseData := new(TagAnalyseItem)
+
+	bFirstList := make([]int, 13)
+	bNextList := make([]int, 13)
+
+	util.DeepCopy(bFirstList, bInFirstList)
+	util.DeepCopy(bNextList, bInNextList)
+
+	lg.SortCardList(bFirstList, bFirstCount)
+	lg.SortCardList(bNextList, bNextCount)
+
+	lg.AnalyseCard(bFirstList, bFirstCount, FirstAnalyseData)
+	lg.AnalyseCard(bNextList, bNextCount, NextAnalyseData)
+
+	if bFirstCount != (FirstAnalyseData.bOneCount + FirstAnalyseData.bTwoCount*2 + FirstAnalyseData.bThreeCount*3 + FirstAnalyseData.bFourCount*4 + FirstAnalyseData.bFiveCount*5) {
+		return false
+	}
+	if bNextCount != (NextAnalyseData.bOneCount + NextAnalyseData.bTwoCount*2 + NextAnalyseData.bThreeCount*3 + NextAnalyseData.bFourCount*4 + NextAnalyseData.bFiveCount*5) {
+		return false
+	}
+	if !((bFirstCount == bNextCount) || (bFirstCount != bNextCount && (3 == bFirstCount && 5 == bNextCount || 5 == bFirstCount && 3 == bNextCount))) {
+		return false
+	}
+	bNextType := lg.GetSSSCardType(bNextList, bNextCount, lg.BtCardSpecialData)
+	bFirstType := lg.GetSSSCardType(bFirstList, bFirstCount, lg.BtCardSpecialData)
+
+	if CT_INVALID == bFirstType || CT_INVALID == bNextType {
+		return false
+	}
+	//头段比较
+	if true == bComPerWithOther {
+		if 3 == bFirstCount {
+			//开始对比
+			if bNextType == bFirstType {
+				switch bFirstType {
+				case CT_SINGLE: //单牌类型
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						bAllSame := true
+						for i := 0; i < 3; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								bAllSame = false
+								break
+							}
+						}
+						if true == bAllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+						} else {
+							for i := 0; i < 3; i++ {
+								if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+									return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+								}
+							}
+							return false
+						}
+						return false
+					}
+				case CT_ONE_DOUBLE: //对带一张
+					{
+						if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) != lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+							} else {
+								return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较花色
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]])
+						}
+					}
+				case CT_THREE: //三张牌型
+					{
+						if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+							return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+						}
+					}
+				}
+			} else {
+				return bNextType > bFirstType
+			}
+		} else if 5 == bFirstCount {
+			//开始对比
+			if bNextType == bFirstType {
+				switch bFirstType {
+				case CT_SINGLE: //单牌类型
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						bAllSame := true
+						for i := 0; i < 5; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								bAllSame = false
+								break
+							}
+						}
+						if true == bAllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+						} else {
+							for i := 0; i < 5; i++ {
+								if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+									return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+								}
+							}
+							return false
+						}
+						return false
+					}
+				case CT_ONE_DOUBLE: //对带一张
+					{
+						if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+							//对比单张
+							for i := 0; i < 3; i++ {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[i]]) != lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[i]]) {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[i]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[i]])
+								}
+							}
+							return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+						}
+					}
+				case CT_FIVE_TWO_DOUBLE: //两对牌型
+					{
+						if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) != lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+								}
+								return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较花色
+							} else {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) //比较数值
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+						}
+					}
+				case CT_THREE: //三张牌型
+					{
+						//数据验证
+						if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+						}
+						if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+							return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+						}
+					}
+				case CT_FIVE_MIXED_FLUSH_FIRST_A: //A在前顺子
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+						}
+					}
+				case CT_FIVE_MIXED_FLUSH_NO_A: //没A杂顺
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+						}
+					}
+				case CT_FIVE_MIXED_FLUSH_BACK_A: //A在后顺子
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+						}
+					}
+				case CT_FIVE_FLUSH: //同花五牌
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						//比较数值
+						for i := 0; i < 5; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						//比较花色
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+					}
+				case CT_FIVE_THREE_DEOUBLE: //三条一对
+					{
+						if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+							return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+						}
+					}
+				case CT_FIVE_FOUR_ONE: //四带一张
+					{
+						if bNextList[NextAnalyseData.bFourFirst[0]] == bFirstList[FirstAnalyseData.bFourFirst[0]] {
+							return false
+						}
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) {
+							return lg.GetCardColor(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bFourFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) //比较数值
+						}
+					}
+				case CT_FIVE_STRAIGHT_FLUSH_NO_A: //没A同花顺
+				case CT_FIVE_STRAIGHT_FLUSH_FIRST_A: //A在前同花顺
+				case CT_FIVE_STRAIGHT_FLUSH_BACK_A: //A在后同花顺
+					{
+						if bNextList[0] == bFirstList[0] {
+							return false
+						}
+						//比较数值
+						for i := 0; i < 5; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						//比较花色
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+					}
+				default:
+					return false
+				}
+			} else {
+				return bNextType > bFirstType
+			}
+		} else {
+			if bNextType == bFirstType {
+				switch bFirstType {
+				case CT_THIRTEEN_FLUSH:
+					{
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+					}
+				case CT_TWELVE_KING:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_THREE_STRAIGHTFLUSH:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_THREE_BOMB:
+					{
+
+						if bNextList[NextAnalyseData.bFourFirst[0]] == bFirstList[FirstAnalyseData.bFourFirst[0]] {
+							return false
+						}
+
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[1]]) {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[2]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[2]]) {
+									if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+										return lg.GetCardColor(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bFourFirst[0]])
+									} else {
+										return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+									}
+								} else {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[2]])
+								}
+							} else {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[1]])
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) //比较数值
+						}
+
+						return false
+					}
+				case CT_ALL_BIG:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_ALL_SMALL:
+					{
+
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_SAME_COLOR:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_FOUR_THREESAME:
+					{
+
+						if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+							return false
+						}
+
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[1]]) {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[2]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[2]]) {
+									if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[3]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[3]]) {
+										if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+											return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]])
+										} else {
+											return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+										}
+
+									} else {
+										return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[3]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[3]])
+									}
+								} else {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[2]])
+								}
+							} else {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[1]])
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+						}
+
+						return false
+					}
+
+				case CT_FIVEPAIR_THREE:
+					{
+
+						if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+							return false
+						}
+
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
+									if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
+										if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
+											if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+												return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]])
+											} else {
+												return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]])
+											}
+										} else {
+											return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]])
+										}
+									} else {
+										return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]])
+									}
+								} else {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]])
+								}
+							} else {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]])
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+						}
+
+						return false
+					}
+
+				case CT_SIXPAIR:
+					{
+
+						if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+							return false
+						}
+
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+								if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
+									if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
+										if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
+											if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[5]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[5]]) {
+												if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+													return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]])
+												} else {
+													return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+												}
+											} else {
+												return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[5]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[5]])
+											}
+										} else {
+											return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]])
+										}
+									} else {
+										return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]])
+									}
+								} else {
+									return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]])
+								}
+							} else {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]])
+							}
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+						}
+
+						return false
+					}
+				case CT_THREE_FLUSH:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				case CT_THREE_STRAIGHT:
+					{
+						AllSame := true
+						for i := 0; i < 13; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								AllSame = false
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						if AllSame {
+							return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+						}
+						return false
+					}
+				}
+			} else {
+				return bNextType > bFirstType
+			}
+		}
+	} else {
+		//开始对比
+		if bNextType == bFirstType {
+			switch bFirstType {
+			case CT_SINGLE: //单牌类型
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					bAllSame := true
+					for i := 0; i < 3; i++ {
+						if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+							bAllSame = false
+							break
+						}
+					}
+					if true == bAllSame {
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+					} else {
+						for i := 0; i < 3; i++ {
+							if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+								return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+							}
+						}
+						return bNextCount < bFirstCount
+					}
+					return bNextCount < bFirstCount
+				}
+			case CT_ONE_DOUBLE: //对带一张
+				{
+					if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) != lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+						}
+
+						return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+					}
+					return bNextCount < bFirstCount
+				}
+			case CT_FIVE_TWO_DOUBLE: //两对牌型
+				{
+					if bNextList[NextAnalyseData.bTwoFirst[0]] == bFirstList[FirstAnalyseData.bTwoFirst[0]] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+						if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+							//对比单牌
+							if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) != lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+								return lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]])
+							}
+							return lg.GetCardColor(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较花色
+						} else {
+							return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) //比较数值
+						}
+					} else {
+						return lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) //比较数值
+					}
+				}
+			case CT_THREE: //三张牌型
+				{
+					if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+						return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+					}
+					return bNextCount < bFirstCount
+				}
+			case CT_FIVE_MIXED_FLUSH_FIRST_A: //A在前顺子
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+					}
+				}
+			case CT_FIVE_MIXED_FLUSH_NO_A: //没A杂顺
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+					}
+				}
+			case CT_FIVE_MIXED_FLUSH_BACK_A: //A在后顺子
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[0]) == lg.GetCardLogicValue(bFirstList[0]) {
+						return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) //比较数值
+					}
+				}
+			case CT_FIVE_FLUSH: //同花五牌
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					//比较数值
+					for i := 0; i < 5; i++ {
+						if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+							return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+						}
+					}
+					//比较花色
+					return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+				}
+			case CT_FIVE_THREE_DEOUBLE: //三条一对
+				{
+					if bNextList[NextAnalyseData.bThreeFirst[0]] == bFirstList[FirstAnalyseData.bThreeFirst[0]] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+						return lg.GetCardColor(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) //比较数值
+					}
+				}
+			case CT_FIVE_FOUR_ONE: //四带一张
+				{
+					if bNextList[NextAnalyseData.bFourFirst[0]] == bFirstList[FirstAnalyseData.bFourFirst[0]] {
+						return false
+					}
+					if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) == lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) {
+						return lg.GetCardColor(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardColor(bFirstList[FirstAnalyseData.bFourFirst[0]]) //比较花色
+					} else {
+						return lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) //比较数值
+					}
+				}
+			case CT_FIVE_STRAIGHT_FLUSH_NO_A: //没A同花顺
+			case CT_FIVE_STRAIGHT_FLUSH_FIRST_A: //A在前同花顺
+			case CT_FIVE_STRAIGHT_FLUSH_BACK_A: //A在后同花顺
+				{
+					if bNextList[0] == bFirstList[0] {
+						return false
+					}
+					//比较数值
+					for i := 0; i < 5; i++ {
+						if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+							return lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i])
+						}
+					}
+					//比较花色
+					return lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0])
+				}
+			default:
+				return false
+			}
+		} else {
+			return bNextType > bFirstType
+		}
+	}
+	return false
 }
