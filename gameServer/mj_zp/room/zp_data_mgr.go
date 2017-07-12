@@ -396,7 +396,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.SiceCount, minSice = room.GetSice()
 
 	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx))
-	log.Debug("牌大小：", room.RepertoryCard)
+	log.Debug("牌大小：%v", room.RepertoryCard)
 	log.Debug("牌型：%d", room.ConfigIdx)
 
 	//剔除大字

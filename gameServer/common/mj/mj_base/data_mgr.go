@@ -391,6 +391,7 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 			Wrave.CardData[3] = cbTargetCard
 		}
 	}
+	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
 func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
