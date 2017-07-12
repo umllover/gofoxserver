@@ -261,10 +261,12 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
+		log.Error("room.UserAction[ChairId] == WIK_NULL")
 		return false
 	}
 
 	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
+		log.Error("OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0)")
 		return false
 	}
 
@@ -389,6 +391,7 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 			Wrave.CardData[3] = cbTargetCard
 		}
 	}
+	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
 func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {

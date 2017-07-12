@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	"fmt"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -106,9 +104,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	}
 	room.UserGangScore = make([]int, UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, UserCnt)
-	//for i:=0;i<UserCnt ;i++  {
-	//	room.WeaveItemArray[i]=make([]*msg.WeaveItem,room.GetCfg().MaxWeave)
-	//}
 	room.ChiHuRight = make([]int, UserCnt)
 	room.HeapCardInfo = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -401,7 +396,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.SiceCount, minSice = room.GetSice()
 
 	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx))
-	fmt.Println("牌大小：", room.RepertoryCard)
+	log.Debug("牌大小：%v", room.RepertoryCard)
 	log.Debug("牌型：%d", room.ConfigIdx)
 
 	//剔除大字
@@ -596,6 +591,9 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 
 //正常结束房间
 func (room *ZP_RoomData) NormalEnd() {
+	//清理变量
+	room.ClearAllTimer()
+
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
@@ -1782,6 +1780,9 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 //解散接触
 func (room *ZP_RoomData) DismissEnd() {
+	//清理变量
+	room.ClearAllTimer()
+
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
@@ -1819,6 +1820,24 @@ func (room *ZP_RoomData) DismissEnd() {
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }
 
+//空闲状态
+func (room *ZP_RoomData) SendStatusReady(u *user.User) {
+	StatusFree := &msg.G2C_StatusFree{}
+	StatusFree.CellScore = room.Source                                     //基础积分
+	StatusFree.TimeOutCard = room.MjBase.TimerMgr.GetTimeOutCard()         //出牌时间
+	StatusFree.TimeOperateCard = room.MjBase.TimerMgr.GetTimeOperateCard() //操作时间
+	StatusFree.CreateTime = room.MjBase.TimerMgr.GetCreatrTime()           //开始时间
+	for _, v := range room.HistoryScores {
+		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
+		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
+	}
+	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
+	StatusFree.MaCount = 0                                       //码数
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
+	u.WriteMsg(StatusFree)
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 //定时器
 
@@ -1847,6 +1866,10 @@ func (room *ZP_RoomData) OutCardTimer(u *user.User) {
 func (room *ZP_RoomData) OperateCardTimer(u *user.User) {
 	chairID := u.ChairId
 
+	//todo,是否stop OutCardTime
+	if room.OutCardTime != nil {
+		room.OutCardTime.Stop()
+	}
 	if room.OperateTime[chairID] != nil {
 		room.OperateTime[chairID].Stop()
 	}
@@ -1861,4 +1884,17 @@ func (room *ZP_RoomData) OperateCardTimer(u *user.User) {
 		}
 	})
 	room.OperateTime = append(room.OperateTime, operateTimer)
+}
+
+//清理定时器
+func (room *ZP_RoomData) ClearAllTimer() {
+	if room.OutCardTime != nil {
+		room.OutCardTime.Stop()
+	}
+	for k := range room.OperateTime {
+		if room.OperateTime[k] != nil {
+			room.OperateTime[k].Stop()
+		}
+	}
+	log.Debug("zpmj at ClearAllTimer")
 }

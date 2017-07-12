@@ -483,7 +483,7 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		return false
 	}
 
-	room.UserMgr.SetUsetTrustee(wChairID, true)
+	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
 
 	room.UserMgr.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
 		Trustee: bTrustee,
