@@ -16,8 +16,9 @@ import (
 
 // +gen *
 type ShopLive struct {
-	Id         int `db:"id" json:"id"`                   // 物品id
-	LeftAmount int `db:"left_amount" json:"left_amount"` // 剩余的数量
+	Id         int   `db:"id" json:"id"`                   // 物品id
+	LeftAmount int   `db:"left_amount" json:"left_amount"` // 剩余的数量
+	TradeTime  int64 `db:"trade_time" json:"trade_time"`   // 交易次数
 }
 
 type shopLiveOp struct{}
@@ -95,10 +96,11 @@ func (op *shopLiveOp) Insert(m *ShopLive) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *shopLiveOp) InsertTx(ext sqlx.Ext, m *ShopLive) (int64, error) {
-	sql := "insert into shop_live(id,left_amount) values(?,?)"
+	sql := "insert into shop_live(id,left_amount,trade_time) values(?,?,?)"
 	result, err := ext.Exec(sql,
 		m.Id,
 		m.LeftAmount,
+		m.TradeTime,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -125,9 +127,10 @@ func (op *shopLiveOp) Update(m *ShopLive) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *shopLiveOp) UpdateTx(ext sqlx.Ext, m *ShopLive) error {
-	sql := `update shop_live set left_amount=? where id=?`
+	sql := `update shop_live set left_amount=?,trade_time=? where id=?`
 	_, err := ext.Exec(sql,
 		m.LeftAmount,
+		m.TradeTime,
 		m.Id,
 	)
 
