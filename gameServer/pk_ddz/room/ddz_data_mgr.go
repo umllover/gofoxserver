@@ -29,21 +29,6 @@ func NewDDZDataMgr(info *model.CreateRoomInfo, uid, ConfigIdx int, name string, 
 	return d
 }
 
-const (
-	// 游戏状态
-	GAME_STATUS_FREE = 0
-	GAME_STATUS_CALL = 1
-	GAME_STATUS_PLAY = 2
-
-	// 用户叫分信息
-	CALLSCORE_CALLING = 0XFFFF // 正在叫分状态
-	CALLSCORE_NOCALL  = 0xFFFE // 未叫状态
-
-	// 用户出牌状态
-	OUTCARD_OUTING = 0XFFFF // 出牌中
-	OUTCARD_PASS   = 0XFFFE // 不出
-)
-
 type ddz_data_mgr struct {
 	*pk_base.RoomData
 	GameStatus int // 当前游戏状态
@@ -95,7 +80,7 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.EachBombCount = make([]int, room.PlayerCount)
 	room.KingCount = make([]int, room.PlayerCount)
 
-	room.CallScoreUser = 0
+	room.CallScoreUser = cost.INVALID_CHAIR
 	room.BankerScore = 0
 	room.ScoreInfo = make([]int, room.PlayerCount)
 
@@ -273,21 +258,25 @@ func (room *ddz_data_mgr) SendGameStart() {
 	}
 
 	// 初始化牌
-	var cardData [][]int
+	room.HandCardData = append([][]int{})
 	for i := 0; i < room.PlayerCount; i++ {
 		tempCardData := room.RepertoryCard[len(room.RepertoryCard)-cardCount:]
 		room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-cardCount]
-		cardData = append(cardData, tempCardData)
+		room.HandCardData = append(room.HandCardData, tempCardData)
 		if room.CallScoreUser == cost.INVALID_CHAIR {
 			for _, v := range tempCardData {
 				if v == 0x33 {
 					room.CallScoreUser = i
-					room.ScoreInfo[i] = CALLSCORE_CALLING
 					break
 				}
 			}
 		}
 	}
+
+	if room.CallScoreUser == cost.INVALID_CHAIR {
+		room.CallScoreUser = util.RandInterval(0, 2)
+	}
+	room.ScoreInfo[room.CallScoreUser] = CALLSCORE_CALLING
 
 	GameStart.CallScoreUser = room.CallScoreUser
 
@@ -303,7 +292,7 @@ func (room *ddz_data_mgr) SendGameStart() {
 		GameStart.CardData = append([][]int{})
 		for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
 			if room.ShowCardSign[i] || u.ChairId == i {
-				GameStart.CardData = append(GameStart.CardData, cardData[i])
+				GameStart.CardData = append(GameStart.CardData, room.HandCardData[i])
 				//util.DeepCopy(GameStart.CardData[i], cardData[i])
 			} else {
 				GameStart.CardData = append(GameStart.CardData, nil)
@@ -318,9 +307,15 @@ func (room *ddz_data_mgr) SendGameStart() {
 
 // 用户叫分(抢庄)
 func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
+	// 判断当前是否为叫分状态
+	if r.GameStatus != GAME_STATUS_CALL {
+		log.Debug("叫分错误，当前游戏状态为%d", r.GameStatus)
+		return
+	}
 
 	// 判断当前叫分玩家是否正确
 	if r.ScoreInfo[u.ChairId] != CALLSCORE_CALLING {
+		log.Debug("叫分玩家%d叫分失败，当前玩家叫分状态%v", u.ChairId, r.ScoreInfo)
 		cost.RenderErrorMessage(cost.ErrDDZCSUser)
 		return
 	}
@@ -333,18 +328,43 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 	r.BankerScore = scoreTimes
 	r.ScoreInfo[u.ChairId] = scoreTimes
 
-	nextCallUser := (r.CallScoreUser + 1) % r.PlayCount // 下一个叫分玩家
+	nextCallUser := (r.CallScoreUser + 1) % r.PlayerCount // 下一个叫分玩家
 
-	if r.ScoreInfo[nextCallUser] != CALLSCORE_NOCALL {
+	isEnd := (r.BankerScore == CALLSCORE_MAX) || (r.ScoreInfo[nextCallUser] != CALLSCORE_NOCALL)
+
+	if !isEnd {
+		r.ScoreInfo[nextCallUser] = CALLSCORE_CALLING
+		r.CallScoreUser = nextCallUser
+	} else {
+		// 叫分结束，看谁叫的分数大就是地主
+		var score int
+		for i, v := range r.ScoreInfo {
+			log.Debug("遍历叫分%d,%d", i, v)
+			if v > score && v >= 0 && v <= CALLSCORE_MAX {
+				score = v
+				r.BankerScore = v
+				r.BankerUser = i
+			}
+		}
+		// 如果都未叫，则随机选一个作为地主，并且倍数默认为1
+		if score == 0 {
+			r.BankerUser = util.RandInterval(0, 2)
+			r.BankerScore = 1
+		}
+		r.CurrentUser = r.BankerUser
+	}
+
+	// 发送叫分信息
+	GameCallSore := &pk_ddz_msg.G2C_DDZ_CallScore{}
+	util.DeepCopy(&GameCallSore.ScoreInfo, &r.ScoreInfo)
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("发送叫分信息%v", GameCallSore)
+		u.WriteMsg(GameCallSore)
+	})
+
+	if isEnd {
 		// 叫分结束，发庄家信息
 		r.BankerInfo()
-	} else {
-		r.CallScoreUser = nextCallUser
-		GameCallSore := &pk_ddz_msg.G2C_DDZ_CallScore{}
-		util.DeepCopy(GameCallSore.ScoreInfo, r.ScoreInfo)
-		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-			u.WriteMsg(GameCallSore)
-		})
 	}
 }
 
@@ -361,17 +381,18 @@ func (r *ddz_data_mgr) BankerInfo() {
 	GameBankerInfo.CurrentUser = r.CurrentUser
 	GameBankerInfo.BankerScore = r.BankerScore
 
-	// 随机选一张牌为癞子牌
-	ran := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.LiziCard = ran.Intn(13)
+	if r.GameType == GAME_TYPE_LZ {
+		// 随机选一张牌为癞子牌
+		ran := rand.New(rand.NewSource(time.Now().UnixNano()))
+		r.LiziCard = ran.Intn(13)
+		GameBankerInfo.LiziCard = r.LiziCard
+		r.PkBase.LogicMgr.SetParamToLogic(r.LiziCard)
+	}
 
-	GameBankerInfo.LiziCard = r.LiziCard
-
-	r.PkBase.LogicMgr.SetParamToLogic(r.LiziCard)
-
-	util.DeepCopy(GameBankerInfo.BankerCard, r.BankerCard)
+	util.DeepCopy(&GameBankerInfo.BankerCard, &r.BankerCard)
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("庄家信息%v", GameBankerInfo)
 		u.WriteMsg(GameBankerInfo)
 	})
 }
@@ -382,18 +403,26 @@ func (r *ddz_data_mgr) ShowCard(u *user.User) {
 
 	DataShowCard := &pk_ddz_msg.G2C_DDZ_ShowCard{}
 	DataShowCard.ShowCardUser = u.ChairId
-	util.DeepCopy(DataShowCard.CardData, r.HandCardData[u.ChairId])
+	util.DeepCopy(&DataShowCard.CardData, &r.HandCardData[u.ChairId])
+	log.Debug("明牌前%v", r.HandCardData[u.ChairId])
+	log.Debug("%v", r.HandCardData)
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("明牌数据%v", DataShowCard)
 		u.WriteMsg(DataShowCard)
 	})
 }
 
 // 用户出牌
 func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
+	// 检查当前是否是游戏中
+	if r.GameStatus != GAME_STATUS_PLAY {
+		log.Debug("出牌错误，当前游戏状态为%d", r.GameStatus)
+		return
+	}
 	// 检查当前是否该用户出牌
 	if r.CurrentUser != u.ChairId {
-
+		log.Debug("出牌错误，当前出牌人为%d", r.CurrentUser)
 		return
 	}
 
@@ -529,6 +558,7 @@ func (r *ddz_data_mgr) NormalEnd() {
 	for i := 0; i < r.PlayCount; i++ {
 		if i == r.BankerUser {
 			DataGameConclude.GameScore[i] = (0 - gameScore) * (r.PlayCount - 1)
+			r.CallScoreUser = r.BankerUser
 		} else {
 			DataGameConclude.GameScore[i] = gameScore
 		}
@@ -566,4 +596,22 @@ func (room *ddz_data_mgr) Trustee(u *user.User, t bool) {
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(DataTrustee)
 	})
+}
+
+// 托管、明牌、放弃出牌
+func (r *ddz_data_mgr) OtherOperation(args []interface{}) {
+	nType := args[0].(string)
+	u := args[1].(*user.User)
+	switch nType {
+	case "Trustee":
+		t := args[2].(pk_ddz_msg.C2G_DDZ_TRUSTEE)
+		r.Trustee(u, t.Trustee)
+		break
+	case "ShowCard":
+		r.ShowCard(u)
+		break
+	case "PassCard":
+
+		break
+	}
 }
