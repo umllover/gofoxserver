@@ -18,6 +18,7 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_SendCard{})
 	msg.Processor.Register(&G2C_TBNN_AllCard{})
 	msg.Processor.Register(&G2C_TBNN_PublicCard{})
+	msg.Processor.Register(&G2C_TBNN_LastCard{})
 	msg.Processor.Register(&G2C_TBNN_PlayerExit{})
 	msg.Processor.Register(&G2C_TBNN_Open_Card{})
 	msg.Processor.Register(&G2C_TBNN_CalScore{})
@@ -157,7 +158,7 @@ type G2C_TBNN_PublicCard struct {
 
 // 最后一张牌
 type G2C_TBNN_LastCard struct {
-	LastCard 				int 		// 最后一张牌
+	LastCard 				[][]int 		// 最后一张牌
 }
 
 //用户退出
