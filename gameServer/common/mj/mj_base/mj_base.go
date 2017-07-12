@@ -275,6 +275,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
 		log.Error("at OnUserOutCard not self out ")
+		log.Error("u.ChairId:%d,room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
 		retcode = ErrNotSelfOut
 		return
 	}
@@ -482,7 +483,7 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		return false
 	}
 
-	room.UserMgr.SetUsetTrustee(wChairID, true)
+	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
 
 	room.UserMgr.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
 		Trustee: bTrustee,
