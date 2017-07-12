@@ -135,13 +135,8 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 
 }
 
-// 明牌
-func (room *RoomData) ShowCard(u *user.User) {
-
-}
-
-// 托管
-func (room *RoomData) Trustee(u *user.User, t bool) {
+// 其它操作，各个游戏自己有自己的游戏指令
+func (room *RoomData) OtherOperation(args []interface{}) {
 
 }
 func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
