@@ -193,8 +193,7 @@ type C2G_DDZ_CallScore struct {
 
 //用户出牌
 type C2G_DDZ_OutCard struct {
-	CardCount int   //出牌数目
-	CardData  []int //扑克数据
+	CardData []int //扑克数据
 }
 
 //托管
