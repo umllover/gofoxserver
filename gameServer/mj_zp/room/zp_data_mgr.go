@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	"fmt"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
