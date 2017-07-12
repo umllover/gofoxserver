@@ -544,7 +544,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
-		for i := 0; i < 13; i++ {
+		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
 			room.m_bUserCardData[u][i] = room.GetOneCard()
 		}
 	})
