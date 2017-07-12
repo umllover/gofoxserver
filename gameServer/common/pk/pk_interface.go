@@ -29,6 +29,11 @@ type DataManager interface {
 	CallScore(u *user.User, scoreTimes int)
 	AddScore(u *user.User, score int)
 	OpenCard(u *user.User, cardType int, cardData []int)
+
+	// 明牌
+	ShowCard(u *user.User)
+	// 托管
+	Trustee(u *user.User, trustee bool)
 }
 
 type LogicManager interface {

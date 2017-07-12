@@ -7,7 +7,6 @@ import (
 
 func NewNNTBEntry(info *model.CreateRoomInfo) *NNTB_Entry {
 	e := new(NNTB_Entry)
-	return e
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e
 }
