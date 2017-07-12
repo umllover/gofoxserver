@@ -30,6 +30,12 @@ type DataManager interface {
 	AddScore(u *user.User, score int)
 	OpenCard(u *user.User, cardType int, cardData []int)
 
+	//十三水
+	ShowSSSCard(u *user.User, Dragon bool, SpecialType bool, SpecialData []int, FrontCard []int, MidCard []int, BackCard []int)
+
+	// 其它操作，各个游戏自己有自己的游戏指令
+	OtherOperation(args []interface{})
+
 	// 明牌
 	ShowCard(u *user.User)
 	// 托管
@@ -44,6 +50,12 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
+	GetType(bCardData []int, bCardCount int) *TagAnalyseType
+
+	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
+	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
+	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComperWithOther bool) bool
+	SetParamToLogic(args interface{}) // 设置算法必要参数
 }
 
 ////////////////////////////////////////////

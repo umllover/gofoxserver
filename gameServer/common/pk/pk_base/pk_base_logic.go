@@ -1,13 +1,16 @@
 package pk_base
 
 import (
+	"mj/gameServer/common/pk"
+
 	"github.com/lovelly/leaf/util"
 	"time"
 	"math/rand"
 )
 
 type BaseLogic struct {
-	ConfigIdx int //配置索引
+	ConfigIdx         int //配置索引
+	BtCardSpecialData []int
 }
 
 func NewBaseLogic(ConfigIdx int) *BaseLogic {
@@ -93,4 +96,21 @@ func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
 }
 func (lg *BaseLogic) GetCardType(cardData []int) int {
 	return 0
+}
+func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
+	return false
+}
+func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
+	return 0
+}
+func (lg *BaseLogic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	return nil
+}
+
+func (lg *BaseLogic) SetParamToLogic(args interface{}) {
+
+}
+
+func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool){
+	return nil, true
 }

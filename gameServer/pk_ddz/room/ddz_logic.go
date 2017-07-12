@@ -26,6 +26,7 @@ func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
 type ddz_logic struct {
 	*pk_base.BaseLogic
 	GameType int
+	LizeCard int
 }
 
 const (
@@ -69,12 +70,6 @@ const (
 
 	// 游戏人数
 	GAME_PLAYER = 3
-
-	// 游戏类型
-	GAME_TYPE_INVALID = 255 // 无效类型
-	GAME_TYPE_CLASSIC = 0   // 经典场
-	GAME_TYPE_HAPPY   = 1   // 欢乐场
-	GAME_TYPE_LZ      = 2   // 癞子场
 )
 
 type BaseLogic struct {
@@ -310,11 +305,12 @@ func (dg *ddz_logic) DDZSortCardList(arry []int, cbCardCount int, cbSortType int
 }
 
 //删除扑克
-func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCardData []int) bool {
+func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
+	cbRemoveCount := len(cbRemoveCard)
 	// 检验数据
 	if cbRemoveCount > int(len(cbCardData)) {
 		log.Error("要删除的扑克数%i大于已有扑克数%i", cbRemoveCount, len(cbCardData))
-		return false
+		return cbCardData, false
 	}
 
 	// 备份
@@ -327,6 +323,7 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCar
 		for j, v2 := range cbCardData {
 			if v1 == v2 {
 				copy(cbCardData[j:], cbCardData[j+1:])
+				cbCardData = cbCardData[:len(cbCardData)-1]
 				u8DeleteCount++
 			}
 		}
@@ -336,15 +333,17 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCar
 		// 删除数量不一，恢复数据
 		log.Error("实际删除数量%与需要删除数量%i不一样", u8DeleteCount, cbRemoveCount)
 		copy(cbCardData, tmpCardData)
-		return false
+		return cbCardData, false
 	}
 
-	return true
+	log.Debug("删除完的数据%v", cbCardData)
+	return cbCardData, true
 }
 
 //删除扑克
 func (dg *ddz_logic) RemoveCard(cbRemoveCard []int, cbRemoveCount int, cbCardData []int, cbCardCount int) bool {
-	return dg.RemoveCardList(cbRemoveCard, cbRemoveCount, cbCardData)
+	_, err := dg.RemoveCardList(cbRemoveCard, cbCardData)
+	return err
 }
 
 // 排列出牌扑克
@@ -417,11 +416,17 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 
 //对比扑克
 func (dg *ddz_logic) CompareCard(cbFirstCard []int, cbNextCard []int) bool {
+	log.Debug("出牌数据对比%v\n%v", cbFirstCard, cbNextCard)
 	cbFirstCount := len(cbFirstCard)
-	cbNextCount := len(cbNextCard)
-	// 获取类型
+
 	cbNextType := dg.GetCardType(cbNextCard)
+
+	if cbFirstCount == 0 && cbNextType != CT_ERROR {
+		return true
+	}
+
 	cbFirstType := dg.GetCardType(cbFirstCard)
+	cbNextCount := len(cbNextCard)
 
 	// 类型判断
 	if cbNextType == CT_ERROR {
@@ -1422,4 +1427,9 @@ func (dg *ddz_logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	//转换扑克
 
 	return cbCardData
+}
+
+// 设置癞子牌
+func (dg *ddz_logic) SetParamToLogic(args interface{}) {
+	dg.LizeCard = args.(int)
 }
