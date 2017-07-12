@@ -45,6 +45,7 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
+
 	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
