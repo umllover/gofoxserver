@@ -27,3 +27,4 @@ func (e *hz_entry) ZhaMa(args []interface{}) {
 	retMsg.ZhongHua, retMsg.BuZhong = e.DataMgr.OnZhuaHua(u.ChairId)
 	u.WriteMsg(retMsg)
 }
+
