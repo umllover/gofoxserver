@@ -90,6 +90,6 @@ func (lg *BaseLogic) SetParamToLogic(args interface{}) {
 
 }
 
-func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) bool {
-	return true
+func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool){
+	return nil, true
 }
