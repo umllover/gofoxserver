@@ -261,6 +261,7 @@ func (room *ddz_data_mgr) SendGameStart() {
 	room.HandCardData = append([][]int{})
 	for i := 0; i < room.PlayerCount; i++ {
 		tempCardData := room.RepertoryCard[len(room.RepertoryCard)-cardCount:]
+		room.PkBase.LogicMgr.SortCardList(tempCardData, len(tempCardData))
 		room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-cardCount]
 		room.HandCardData = append(room.HandCardData, tempCardData)
 		if room.CallScoreUser == cost.INVALID_CHAIR {
@@ -376,6 +377,19 @@ func (r *ddz_data_mgr) checkCallScore(u *user.User, scoreTimes int) int {
 
 // 庄家信息
 func (r *ddz_data_mgr) BankerInfo() {
+	for _, v := range r.BankerCard {
+		r.HandCardData[r.BankerUser] = append(r.HandCardData[r.BankerUser], v)
+	}
+	r.PkBase.LogicMgr.SortCardList(r.HandCardData[r.BankerUser], len(r.HandCardData[r.BankerUser]))
+	log.Debug("地主的牌%v", r.HandCardData[r.BankerUser])
+
+	r.GameStatus = GAME_STATUS_PLAY // 确定地主了，进入游戏状态
+
+	for i := 1; i < r.PlayerCount; i++ {
+		r.TurnCardStatus[(r.BankerUser+i)%r.PlayerCount] = OUTCARD_PASS
+	}
+	r.TurnCardStatus[r.BankerUser] = OUTCARD_OUTING
+
 	GameBankerInfo := &pk_ddz_msg.G2C_DDZ_BankerInfo{}
 	GameBankerInfo.BankerUser = r.BankerUser
 	GameBankerInfo.CurrentUser = r.CurrentUser
@@ -421,7 +435,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		return
 	}
 	// 检查当前是否该用户出牌
-	if r.CurrentUser != u.ChairId {
+	if r.TurnCardStatus[u.ChairId] != OUTCARD_OUTING {
 		log.Debug("出牌错误，当前出牌人为%d", r.CurrentUser)
 		return
 	}
@@ -450,6 +464,23 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	// 对比牌型
 	r.PkBase.LogicMgr.SortCardList(cardData, len(cardData)) // 排序
 
+	var lastTurnCard []int
+	for i := 1; i < r.PlayerCount; i++ {
+		lastUser := r.lastUser(u.ChairId)
+		uStatus := r.TurnCardStatus[lastUser]
+		if uStatus < OUTCARD_MAXCOUNT {
+			log.Debug("手牌%d,%d", lastUser, uStatus)
+			log.Debug("手牌信息%v", r.TurnCardData)
+			lastTurnCard = r.TurnCardData[lastUser][uStatus]
+			break
+		}
+	}
+
+	if !r.PkBase.LogicMgr.CompareCard(lastTurnCard, cardData) {
+		log.Debug("出牌数据错误")
+		return
+	}
+
 	r.TurnWiner = u.ChairId
 	r.CurrentUser = r.nextUser(r.CurrentUser)
 	r.TurnCardStatus[r.CurrentUser] = OUTCARD_OUTING
@@ -458,38 +489,85 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	r.TurnCardStatus[u.ChairId] = len(r.TurnCardData[u.ChairId]) - 1
 
 	// 从手牌删除数据
+	log.Debug("删除前数据%v", r.HandCardData[u.ChairId])
 	r.PkBase.LogicMgr.RemoveCardList(cardData, r.HandCardData[u.ChairId])
+	log.Debug("删除后数据%v", r.HandCardData[u.ChairId])
+
+	// 发送给所有玩家
+	DataOutCard := pk_ddz_msg.G2C_DDZ_OutCard{}
+	DataOutCard.CurrentUser = r.CurrentUser
+	DataOutCard.OutCardUser = u.ChairId
+	DataOutCard.CardData = make([]int, len(cardData))
+	util.DeepCopy(&DataOutCard.CardData, &cardData)
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("用户%d出牌数据%v", u.ChairId, DataOutCard)
+		u.WriteMsg(DataOutCard)
+	})
+
+	r.checkNextUserTrustee()
+}
+
+// 判断下一个玩家托管状态
+func (r *ddz_data_mgr) checkNextUserTrustee() {
+	log.Debug("当前玩家%d,托管状态%v", r.CurrentUser, r.PkBase.UserMgr.GetTrustees())
+	if r.PkBase.UserMgr.IsTrustee(r.CurrentUser) {
+		// 出牌玩家为托管状态
+		if r.CurrentUser == r.TurnWiner {
+			// 上一个出牌玩家是自己，则选最小牌
+			var cardData []int
+			cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
+			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0, cardData)
+		} else {
+			// 上一个出牌玩家不是自己，则不出
+			r.PassCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser))
+		}
+	}
 }
 
 // 下一个玩家
 func (r *ddz_data_mgr) nextUser(u int) int {
-	return (u + 1) % r.PlayCount
+	return (u + 1) % r.PlayerCount
 }
 
-func (r *ddz_data_mgr) OutCard() {
-	DataOutCard := &pk_ddz_msg.G2C_DDZ_OutCard{}
-
-	DataOutCard.CurrentUser = r.CurrentUser
-	DataOutCard.OutCardUser = r.TurnWiner
-	util.DeepCopy(DataOutCard.CardData, r.TurnCardData[r.TurnWiner][len(r.TurnCardData[r.TurnWiner])])
-
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(DataOutCard)
-	})
+// 上一个玩家
+func (r *ddz_data_mgr) lastUser(u int) int {
+	return (u + r.PlayerCount - 1) % r.PlayerCount
 }
 
 // 放弃出牌
-func (r *ddz_data_mgr) PassCard() {
+func (r *ddz_data_mgr) PassCard(u *user.User) {
+	// 检查当前是否是游戏中
+	if r.GameStatus != GAME_STATUS_PLAY {
+		log.Debug("出牌错误，当前游戏状态为%d", r.GameStatus)
+		return
+	}
+	// 检查当前是否该用户出牌
+	if r.TurnCardStatus[u.ChairId] != OUTCARD_OUTING {
+		log.Debug("出牌错误，当前出牌人为%d", r.CurrentUser)
+		return
+	}
+	// 如果上一个出牌人是自己，则不能放弃
+	if r.TurnWiner == u.ChairId {
+		log.Debug("不允许放弃")
+		return
+	}
+
+	r.CurrentUser = r.nextUser(u.ChairId)
+	r.TurnCardStatus[u.ChairId] = OUTCARD_PASS
+	r.TurnCardStatus[r.CurrentUser] = OUTCARD_OUTING
+
 	DataPassCard := &pk_ddz_msg.G2C_DDZ_PassCard{}
 
-	DataPassCard.TurnOver = 0
+	DataPassCard.TurnOver = r.CurrentUser == r.TurnWiner
 	DataPassCard.CurrentUser = r.CurrentUser
-	DataPassCard.PassCardUser = 0
+	DataPassCard.PassCardUser = u.ChairId
 
-	r.TurnCardStatus[r.CurrentUser] = OUTCARD_PASS
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		//log.Debug("用户放弃出牌%v", DataPassCard)
 		u.WriteMsg(DataPassCard)
 	})
+
+	r.checkNextUserTrustee()
 }
 
 // 游戏正常结束
@@ -594,6 +672,7 @@ func (room *ddz_data_mgr) Trustee(u *user.User, t bool) {
 	DataTrustee.Trustee = t
 
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("托管状态%v", DataTrustee)
 		u.WriteMsg(DataTrustee)
 	})
 }
@@ -604,14 +683,14 @@ func (r *ddz_data_mgr) OtherOperation(args []interface{}) {
 	u := args[1].(*user.User)
 	switch nType {
 	case "Trustee":
-		t := args[2].(pk_ddz_msg.C2G_DDZ_TRUSTEE)
+		t := args[2].(*pk_ddz_msg.C2G_DDZ_TRUSTEE)
 		r.Trustee(u, t.Trustee)
 		break
 	case "ShowCard":
 		r.ShowCard(u)
 		break
 	case "PassCard":
-
+		r.PassCard(u)
 		break
 	}
 }

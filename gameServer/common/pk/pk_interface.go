@@ -48,7 +48,7 @@ type LogicManager interface {
 	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
-	RemoveCardList(cbRemoveCard []int, cbCardData []int) bool
+	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComperWithOther bool) bool
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 }
