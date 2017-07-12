@@ -25,7 +25,6 @@ import (
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"bufio"
 )
 
 var (
@@ -80,8 +79,8 @@ func TestTrustee(t *testing.T) {
 	args = []interface{}{data, u2}
 	room.CTrustee(args)
 
-	//args = []interface{}{data, u3}
-	//room.CTrustee(args)
+	args = []interface{}{data, u3}
+	room.CTrustee(args)
 }
 
 func TestOutCard(t *testing.T) {
@@ -102,7 +101,7 @@ func TestOutCard(t *testing.T) {
 	//log.Debug("sfd%v", cardData)
 
 	//fmt.Print("请输入Í∑Í要打的牌")
-	reader := bufio.NewReader(os.Stdin)
+	//reader := bufio.NewReader(os.Stdin)
 	//
 	//cardData, _, _ := reader.ReadLine()
 	//fmt.Printf("dfsdfsd%s", cardData)
@@ -238,6 +237,7 @@ func init() {
 		MaxPlayerCnt: 3,
 		KindId:       29,
 		ServiceId:    1,
+		Num:          1,
 	}
 
 	setCfg := map[string]interface{}{
