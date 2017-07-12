@@ -32,10 +32,9 @@ type DataManager interface {
 
 	//十三水
 	ShowSSSCard(u *user.User, Dragon bool, SpecialType bool, SpecialData []int, FrontCard []int, MidCard []int, BackCard []int)
-	// 明牌
-	ShowCard(u *user.User)
-	// 托管
-	Trustee(u *user.User, trustee bool)
+
+	// 其它操作，各个游戏自己有自己的游戏指令
+	OtherOperation(args []interface{})
 }
 
 type LogicManager interface {
@@ -50,7 +49,7 @@ type LogicManager interface {
 
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) bool
-	CompareSSSCard(bInFirstList[]int, bInNextList[]int, bFirstCount int, bNextCount int, bComperWithOther bool) bool
+	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComperWithOther bool) bool
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 }
 
