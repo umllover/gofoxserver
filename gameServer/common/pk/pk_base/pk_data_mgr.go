@@ -96,6 +96,7 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
+	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始

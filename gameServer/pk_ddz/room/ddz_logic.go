@@ -336,7 +336,6 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int
 		return cbCardData, false
 	}
 
-	log.Debug("删除完的数据%v", cbCardData)
 	return cbCardData, true
 }
 
@@ -416,7 +415,6 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 
 //对比扑克
 func (dg *ddz_logic) CompareCard(cbFirstCard []int, cbNextCard []int) bool {
-	log.Debug("出牌数据对比%v\n%v", cbFirstCard, cbNextCard)
 	cbFirstCount := len(cbFirstCard)
 
 	cbNextType := dg.GetCardType(cbNextCard)
