@@ -396,8 +396,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.SiceCount, minSice = room.GetSice()
 
 	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx))
-	log.Debug("牌大小：%v", room.RepertoryCard)
-	log.Debug("牌型：%d", room.ConfigIdx)
+	log.Debug("牌大小：%v 牌大小：%d", room.RepertoryCard, len(room.RepertoryCard))
+	log.Debug("牌型：%d,牌大小：%d", room.ConfigIdx, len(mj_base.GetCardByIdx(room.ConfigIdx)))
 
 	//剔除大字
 	if room.WithZiCard == false {
@@ -1607,7 +1607,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
 		if room.Ting[wTargetUser] == false {
-			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+			HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 			for k := 0; k < room.GetCfg().MaxCount; k++ {
 				HuData.HuCardData[k] = make([]int, 28)
 				HuData.HuCardRemainingCount[k] = make([]int, 28)
