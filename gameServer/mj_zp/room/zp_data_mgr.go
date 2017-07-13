@@ -528,8 +528,10 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 			//吃胡判断
 			if u.ChairId != wCenterUser {
 				if u.UserLimit&LimitChiHu == 0 {
+					log.Debug("有吃胡1")
 					//有禁止吃胡的牌
 					if !(room.BanUser[u.ChairId]&LimitChiHu != 0 && room.BanCardCnt[u.ChairId][LimitChiHu] == cbCenterCard) {
+						log.Debug("有吃胡2")
 						chr := 0
 						huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
 						if huKind == WIK_CHI_HU {
