@@ -16,7 +16,7 @@ import (
 
 // +gen *
 type Userattr struct {
-	UserID          int64  `db:"UserID" json:"UserID"`                   //
+	UserID          int    `db:"UserID" json:"UserID"`                   //
 	UnderWrite      string `db:"UnderWrite" json:"UnderWrite"`           // 个性签名
 	FaceID          int8   `db:"FaceID" json:"FaceID"`                   // 头像标识
 	CustomID        int    `db:"CustomID" json:"CustomID"`               // 自定标识
@@ -40,7 +40,7 @@ var UserattrOp = &userattrOp{}
 var DefaultUserattr = &Userattr{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userattrOp) Get(UserID int64) (*Userattr, bool) {
+func (op *userattrOp) Get(UserID int) (*Userattr, bool) {
 	obj := &Userattr{}
 	sql := "select * from userattr where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -182,12 +182,12 @@ func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userattrOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
+func (op *userattrOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userattrOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
+func (op *userattrOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
 
 	sql := `update userattr set %s where 1=1 and UserID=? ;`
 
@@ -213,12 +213,12 @@ func (i *Userattr) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userattrOp) Delete(UserID int64) error {
+func (op *userattrOp) Delete(UserID int) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userattrOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
+func (op *userattrOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 	sql := `delete from userattr where 1=1
         and UserID=?
         `

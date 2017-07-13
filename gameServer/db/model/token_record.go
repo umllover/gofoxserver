@@ -18,7 +18,7 @@ import (
 // +gen *
 type TokenRecord struct {
 	RoomId      int        `db:"room_id" json:"room_id"`           //
-	UserId      int64      `db:"user_id" json:"user_id"`           //
+	UserId      int        `db:"user_id" json:"user_id"`           //
 	TokenType   int        `db:"tokenType" json:"tokenType"`       //
 	Amount      int        `db:"amount" json:"amount"`             //
 	Status      int        `db:"status" json:"status"`             //
@@ -33,7 +33,7 @@ var TokenRecordOp = &tokenRecordOp{}
 var DefaultTokenRecord = &TokenRecord{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *tokenRecordOp) Get(room_id int, user_id int64) (*TokenRecord, bool) {
+func (op *tokenRecordOp) Get(room_id int, user_id int) (*TokenRecord, bool) {
 	obj := &TokenRecord{}
 	sql := "select * from token_record where room_id=? and user_id=? "
 	err := db.DB.Get(obj, sql,
@@ -160,12 +160,12 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMap(room_id int, user_id int64, m map[string]interface{}) error {
+func (op *tokenRecordOp) UpdateWithMap(room_id int, user_id int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, room_id, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int64, m map[string]interface{}) error {
+func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int, m map[string]interface{}) error {
 
 	sql := `update token_record set %s where 1=1 and room_id=? and user_id=? ;`
 
@@ -191,12 +191,12 @@ func (i *TokenRecord) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *tokenRecordOp) Delete(room_id int, user_id int64) error {
+func (op *tokenRecordOp) Delete(room_id int, user_id int) error {
 	return op.DeleteTx(db.DB, room_id, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int, user_id int64) error {
+func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int, user_id int) error {
 	sql := `delete from token_record where 1=1
         and room_id=?
         and user_id=?

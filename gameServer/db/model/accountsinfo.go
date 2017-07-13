@@ -17,7 +17,7 @@ import (
 
 // +gen *
 type Accountsinfo struct {
-	UserID           int64      `db:"UserID" json:"UserID"`                     // 用户标识
+	UserID           int        `db:"UserID" json:"UserID"`                     // 用户标识
 	ProtectID        int        `db:"ProtectID" json:"ProtectID"`               // 密保标识
 	SpreaderID       int        `db:"SpreaderID" json:"SpreaderID"`             // 推广员标识
 	Accounts         string     `db:"Accounts" json:"Accounts"`                 // 用户帐号
@@ -62,7 +62,7 @@ var AccountsinfoOp = &accountsinfoOp{}
 var DefaultAccountsinfo = &Accountsinfo{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *accountsinfoOp) Get(UserID int64) (*Accountsinfo, bool) {
+func (op *accountsinfoOp) Get(UserID int) (*Accountsinfo, bool) {
 	obj := &Accountsinfo{}
 	sql := "select * from accountsinfo where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -245,12 +245,12 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsinfoOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
+func (op *accountsinfoOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
+func (op *accountsinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
 
 	sql := `update accountsinfo set %s where 1=1 and UserID=? ;`
 
@@ -276,12 +276,12 @@ func (i *Accountsinfo) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *accountsinfoOp) Delete(UserID int64) error {
+func (op *accountsinfoOp) Delete(UserID int) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *accountsinfoOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
+func (op *accountsinfoOp) DeleteTx(ext sqlx.Ext, UserID int) error {
 	sql := `delete from accountsinfo where 1=1
         and UserID=?
         `

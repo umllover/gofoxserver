@@ -17,7 +17,7 @@ import (
 
 // +gen *
 type UserTimes struct {
-	UserId     int64      `db:"user_id" json:"user_id"`         //
+	UserId     int        `db:"user_id" json:"user_id"`         //
 	KeyId      int        `db:"key_id" json:"key_id"`           //
 	V          int64      `db:"v" json:"v"`                     //
 	CreateTime *time.Time `db:"create_time" json:"create_time"` //
@@ -29,7 +29,7 @@ var UserTimesOp = &userTimesOp{}
 var DefaultUserTimes = &UserTimes{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userTimesOp) Get(user_id int64, key_id int) (*UserTimes, bool) {
+func (op *userTimesOp) Get(user_id int, key_id int) (*UserTimes, bool) {
 	obj := &UserTimes{}
 	sql := "select * from user_times where user_id=? and key_id=? "
 	err := db.DB.Get(obj, sql,
@@ -148,12 +148,12 @@ func (op *userTimesOp) UpdateTx(ext sqlx.Ext, m *UserTimes) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userTimesOp) UpdateWithMap(user_id int64, key_id int, m map[string]interface{}) error {
+func (op *userTimesOp) UpdateWithMap(user_id int, key_id int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, user_id, key_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int64, key_id int, m map[string]interface{}) error {
+func (op *userTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m map[string]interface{}) error {
 
 	sql := `update user_times set %s where 1=1 and user_id=? and key_id=? ;`
 
@@ -179,12 +179,12 @@ func (i *UserTimes) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userTimesOp) Delete(user_id int64, key_id int) error {
+func (op *userTimesOp) Delete(user_id int, key_id int) error {
 	return op.DeleteTx(db.DB, user_id, key_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userTimesOp) DeleteTx(ext sqlx.Ext, user_id int64, key_id int) error {
+func (op *userTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
 	sql := `delete from user_times where 1=1
         and user_id=?
         and key_id=?

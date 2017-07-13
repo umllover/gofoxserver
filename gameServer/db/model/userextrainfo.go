@@ -16,11 +16,11 @@ import (
 
 // +gen *
 type Userextrainfo struct {
-	UserId          int64 `db:"UserId" json:"UserId"`                   //
-	MbPayTotal      int   `db:"MbPayTotal" json:"MbPayTotal"`           // 手机充值总额
-	MbVipLevel      int   `db:"MbVipLevel" json:"MbVipLevel"`           // 手机VIP等级
-	PayMbVipUpgrade int   `db:"PayMbVipUpgrade" json:"PayMbVipUpgrade"` // 手机VIP升级，所需充值数（vip最高级时该值为0）
-	MbTicket        int   `db:"MbTicket" json:"MbTicket"`               // 手机兑换券数量
+	UserId          int `db:"UserId" json:"UserId"`                   //
+	MbPayTotal      int `db:"MbPayTotal" json:"MbPayTotal"`           // 手机充值总额
+	MbVipLevel      int `db:"MbVipLevel" json:"MbVipLevel"`           // 手机VIP等级
+	PayMbVipUpgrade int `db:"PayMbVipUpgrade" json:"PayMbVipUpgrade"` // 手机VIP升级，所需充值数（vip最高级时该值为0）
+	MbTicket        int `db:"MbTicket" json:"MbTicket"`               // 手机兑换券数量
 }
 
 type userextrainfoOp struct{}
@@ -29,7 +29,7 @@ var UserextrainfoOp = &userextrainfoOp{}
 var DefaultUserextrainfo = &Userextrainfo{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userextrainfoOp) Get(UserId int64) (*Userextrainfo, bool) {
+func (op *userextrainfoOp) Get(UserId int) (*Userextrainfo, bool) {
 	obj := &Userextrainfo{}
 	sql := "select * from userextrainfo where UserId=? "
 	err := db.DB.Get(obj, sql,
@@ -149,12 +149,12 @@ func (op *userextrainfoOp) UpdateTx(ext sqlx.Ext, m *Userextrainfo) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userextrainfoOp) UpdateWithMap(UserId int64, m map[string]interface{}) error {
+func (op *userextrainfoOp) UpdateWithMap(UserId int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserId, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userextrainfoOp) UpdateWithMapTx(ext sqlx.Ext, UserId int64, m map[string]interface{}) error {
+func (op *userextrainfoOp) UpdateWithMapTx(ext sqlx.Ext, UserId int, m map[string]interface{}) error {
 
 	sql := `update userextrainfo set %s where 1=1 and UserId=? ;`
 
@@ -180,12 +180,12 @@ func (i *Userextrainfo) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userextrainfoOp) Delete(UserId int64) error {
+func (op *userextrainfoOp) Delete(UserId int) error {
 	return op.DeleteTx(db.DB, UserId)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userextrainfoOp) DeleteTx(ext sqlx.Ext, UserId int64) error {
+func (op *userextrainfoOp) DeleteTx(ext sqlx.Ext, UserId int) error {
 	sql := `delete from userextrainfo where 1=1
         and UserId=?
         `
