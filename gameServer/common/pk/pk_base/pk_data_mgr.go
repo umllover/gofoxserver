@@ -96,7 +96,7 @@ func (r *RoomData) SetScoreTimes(scoreTimes int) {
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
-	log.Debug("pk data mgr init")
+	//log.Debug("pk data mgr init")
 	room.CellScore = room.PkBase.Temp.CellScore
 }
 

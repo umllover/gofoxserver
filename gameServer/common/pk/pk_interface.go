@@ -36,10 +36,6 @@ type DataManager interface {
 	// 其它操作，各个游戏自己有自己的游戏指令
 	OtherOperation(args []interface{})
 
-	// 明牌
-	ShowCard(u *user.User)
-	// 托管
-	Trustee(u *user.User)
 }
 
 type LogicManager interface {
