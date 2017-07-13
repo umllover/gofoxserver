@@ -4,6 +4,8 @@ import (
 	"mj/common/msg"
 	. "mj/gameServer/common/mj"
 
+	"fmt"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -83,9 +85,9 @@ func (lg *BaseLogic) IsValidCard(card int) bool {
 //混乱扑克
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	//混乱准备
+	cbBufferCount := int(len(cbCardBuffer))
 	cbBufferCount := len(cbCardBuffer)
 	cbCardDataTemp := util.CopySlicInt(OriDataArray)
-
 	//混乱扑克
 	var cbRandCount int
 	var cbPosition int
@@ -98,6 +100,15 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
+	log.Debug("cbRandCount:%d", cbRandCount)
+	testq := 0
+	for _, v := range cbCardBuffer {
+		if v >= 0x31 && v <= 0x37 {
+			fmt.Printf("%x ", v)
+			testq++
+		}
+	}
+	log.Debug("+++++++++ %d", testq)
 
 	return
 }

@@ -19,6 +19,8 @@ import (
 
 	"encoding/json"
 
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -41,8 +43,13 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestOutCard(t *testing.T) {
-	args := []interface{}{u1, 0x11}
-	room.OutCard(args)
+	//args := []interface{}{u1, 0x11}
+	time.Sleep(3 * time.Second)
+	//data1, data2 := room.DataMgr.OnZhuaHua(u1.ChairId)
+	//log.Debug("中华：%v", data1)
+	//log.Debug("不中华：%v", data2)
+	a := []int{}
+	room.DataMgr.CalHuPaiScore(a)
 	Wg.Wait()
 }
 
@@ -134,7 +141,7 @@ func init() {
 	}
 	setCfg := map[string]interface{}{
 		"ZhuaHua":    0,
-		"WithZiCard": true,
+		"WithZiCard": false,
 		"ScoreType":  33,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
@@ -181,7 +188,6 @@ func init() {
 		userg.Users[i] = u
 		u.ChairId = i
 	}
-
 }
 
 func newTestUser(uid int) *user.User {
