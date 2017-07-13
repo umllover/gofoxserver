@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 	"time"
-	"runtime"
 )
 
 // levels
@@ -131,6 +131,10 @@ func Export(logger *Logger) {
 	if logger != nil {
 		gLogger = logger
 	}
+}
+
+func GetBaseLogger() *log.Logger {
+	return gLogger.baseLogger
 }
 
 func Debug(format string, a ...interface{}) {
