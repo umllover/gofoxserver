@@ -2,7 +2,6 @@ package room
 
 import (
 	"mj/common/msg"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 
 	"github.com/lovelly/leaf/log"
@@ -132,16 +131,16 @@ func (lg *ZP_Logic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 }
 
 //分析扑克
-func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) {
+func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*mj_base.TagAnalyseItem) (bool, []*mj_base.TagAnalyseItem) {
 	cbWeaveCount := len(WeaveItem)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
-	//GetCardWordArray(cbCardIndex)  测试代码
+	GetCardWordArray(cbCardIndex)
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		//log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
@@ -157,7 +156,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
 			if cbCardIndex[i] == 2 {
 				//变量定义
-				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
+				analyseItem := &mj_base.TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 				for i := range analyseItem.CardData {
 					analyseItem.CardData[i] = make([]int, 4)
 				}
@@ -257,7 +256,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 				//组合类型
 				if cbCardEye != 0 {
 					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
+					analyseItem := &mj_base.TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
 						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 					}
@@ -310,11 +309,11 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 }
 
 //吃胡分析
-func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard, ChiHuRight, MaxCount int, b4HZHu bool) (int, []*TagAnalyseItem) {
+func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard, ChiHuRight, MaxCount int, b4HZHu bool) (int, []*mj_base.TagAnalyseItem) {
 
 	//变量定义
 	cbChiHuKind := int(WIK_NULL)
-	TagAnalyseItemArray := make([]*TagAnalyseItem, 0) //
+	TagAnalyseItemArray := make([]*mj_base.TagAnalyseItem, 0) //
 
 	//构造扑克
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
@@ -324,9 +323,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	if cbCurrentCard == 0 {
 		return WIK_NULL, nil
 	}
-
-	//记录卡牌
-	lg.HuOfCard = cbCurrentCard
 
 	//插入扑克
 	if cbCurrentCard != 0 {

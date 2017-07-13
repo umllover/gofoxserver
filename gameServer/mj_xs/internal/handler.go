@@ -2,7 +2,7 @@ package internal
 
 import (
 	"mj/common/msg"
-	"mj/common/msg/mj_xs_msg"
+	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/user"
 	"reflect"
 
@@ -22,13 +22,13 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OutCard{}, HZOutCard)
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OperateCard{}, OperateCard)
+	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
+	handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
 
 }
 
 func HZOutCard(args []interface{}) {
-	recvMsg := args[0].(*mj_xs_msg.C2G_MJXS_OutCard)
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_HZOutCard)
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 
@@ -36,10 +36,11 @@ func HZOutCard(args []interface{}) {
 	if r != nil {
 		r.GetChanRPC().Go("OutCard", user, recvMsg.CardData)
 	}
+
 }
 
 func OperateCard(args []interface{}) {
-	recvMsg := args[0].(*mj_xs_msg.C2G_MJXS_OperateCard)
+	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_OperateCard)
 	agent := args[1].(gate.Agent)
 	user := agent.UserData().(*user.User)
 

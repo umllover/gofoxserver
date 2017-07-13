@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	. "mj/common/cost"
 
+	"os"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -46,7 +48,6 @@ var Server struct {
 	ConsulAddr        string
 
 	ConnAddrs       map[string]string
-	AuthServerUrl   string
 	PendingWriteNum int
 	PrivatePort     int
 	NodeId          int
@@ -57,6 +58,8 @@ func ServerName() string {
 }
 
 func init() {
+	w, _ := os.Getwd()
+	fmt.Println("1111111111 ", w)
 	data, err := ioutil.ReadFile("./hallServer.json")
 	if err != nil {
 		log.Fatal("%v", err)

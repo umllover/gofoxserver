@@ -1,35 +1,48 @@
 package cluster
 
 import (
-	"github.com/lovelly/leaf/log"
+	"bytes"
+	"log"
+
 	nsq "github.com/nsqio/go-nsq"
-
-	"sync"
+	"github.com/segmentio/go-queue"
 )
 
-var (
-	clientsMutex sync.Mutex
-	clients      = make(map[string]*NsqClient)
-)
-
-type NsqClient struct {
-	Addr       string
-	ServerName string
+type cluster_conf interface {
+	getNsqAddress() string
+	getConCurrency() int
+	getLookupAddress() string
+	getTopic() string
+	getChannel() string
 }
 
-func AddClient(c *NsqClient) {
-	log.Debug("at cluster AddClient %s, %s", c.ServerName, c.Addr)
-	clientsMutex.Lock()
-	defer clientsMutex.Unlock()
+func Start(cfg cluster_conf) {
+	done := make(chan bool)
+	b := new(bytes.Buffer)
+	l := log.New(b, "", 0)
 
-	clients[c.ServerName] = c
+	c := queue.NewConsumer("events", "ingestion")
+	c.SetLogger(l, nsq.LogLevelDebug)
+
+	c.Set("nsqd", ":5001")
+	c.Set("nsqds", []interface{}{":5001"})
+	c.Set("concurrency", 5)
+	c.Set("max_attempts", 10)
+	c.Set("max_in_flight", 150)
+	c.Set("default_requeue_delay", "15s")
+
+	err := c.Start(nsq.HandlerFunc(func(msg *nsq.Message) error {
+		done <- true
+		return nil
+	}))
+
+	//assert.Equal(t, nil, err)
+
+	go func() {
+		p, err := nsq.NewProducer(":5001", nsq.NewConfig())
+		p.Publish("events", []byte("hello"))
+	}()
+
+	<-done
+	//assert.Equal(t, nil, c.Stop())
 }
-
-func RemoveClient(serverName string) {
-	_, ok := clients[serverName]
-	if ok {
-		log.Debug("at cluster _removeClient %s", serverName)
-		delete(clients, serverName)
-	}
-}
-

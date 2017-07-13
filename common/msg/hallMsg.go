@@ -12,7 +12,6 @@ type C2L_Login struct {
 	Accounts     string
 	MachineID    string
 	MobilePhone  string
-	SessionKey   string
 }
 
 //注册消息

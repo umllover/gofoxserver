@@ -3,7 +3,6 @@ package mj_base
 import (
 	"mj/common/msg"
 	"mj/common/utils"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -41,7 +40,6 @@ type DataManager interface {
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
 	ClearBanCard(ChairId int)                                        //清除出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
-	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
 
 	GetResumeUser() int
 	GetGangStatus() int
@@ -72,7 +70,6 @@ type LogicManager interface {
 	SwitchToCardData(cbCardIndex int) int
 	SwitchToCardIndex(cbCardData int) int
 	IsValidCard(card int) bool
-	GetHuOfCard() int //记录胡的那张牌
 
 	GetCardColor(cbCardData int) int
 	GetCardValue(cbCardData int) int

@@ -52,8 +52,6 @@ type WeaveItem struct {
 	ProvideUser int   //供应用户
 	CardData    []int //麻将数据
 	PublicCard  bool  //公开标志
-	OperateUser int   //操作用户  这个字段不一定有数据
-	ActionMask  int   //动作掩码  这个字段不一定有数据
 }
 
 //积分信息
