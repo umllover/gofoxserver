@@ -108,7 +108,7 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 			testq++
 		}
 	}
-	log.Debug("+++++++++ %d", testq)
+	//log.Debug("+++++++++ %d", testq)
 
 	return
 }

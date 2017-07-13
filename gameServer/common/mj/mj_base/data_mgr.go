@@ -900,7 +900,7 @@ func (room *RoomData) StartDispatchCard() {
 	}
 
 	room.MinusHeadCount++
-	log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
+	//log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
