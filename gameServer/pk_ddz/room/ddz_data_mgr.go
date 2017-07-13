@@ -483,7 +483,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	r.TurnCardStatus[u.ChairId] = len(r.TurnCardData[u.ChairId]) - 1
 
 	// 从手牌删除数据
-	r.HandCardData[u.ChairId], _ = r.PkBase.LogicMgr.RemoveCardList(cardData, r.HandCardData[u.ChairId])
+	//r.HandCardData[u.ChairId], _ = r.PkBase.LogicMgr.RemoveCardList(cardData, r.HandCardData[u.ChairId])
 
 	// 发送给所有玩家
 	DataOutCard := pk_ddz_msg.G2C_DDZ_OutCard{}

@@ -90,6 +90,16 @@ func (lg *BaseLogic) SetParamToLogic(args interface{}) {
 
 }
 
-func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool){
-	return nil, true
+func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
+	return nil,false
 }
+
+func (lg *BaseLogic)CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
+	return false
+}
+
+func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int  {
+ 	return 0
+}
+
+
