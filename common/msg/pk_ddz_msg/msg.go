@@ -139,9 +139,9 @@ type G2C_DDZ_OutCard struct {
 
 //放弃出牌
 type G2C_DDZ_PassCard struct {
-	TurnOver     int //一轮结束
-	CurrentUser  int //当前玩家
-	PassCardUser int //放弃玩家
+	TurnOver     bool //一轮结束
+	CurrentUser  int  //当前玩家
+	PassCardUser int  //放弃玩家
 }
 
 //游戏结束

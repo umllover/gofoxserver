@@ -8,7 +8,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg/pk_sss_msg"
 
-	"mj/gameServer/common/pk"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -77,8 +76,9 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 }
 func (room *sss_data_mgr) ComputeChOut() {
-	userMgr := room.PkBase.UserMgr
+	/*userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
+
 	userMgr.ForEachUser(func(u *user.User) {
 		if room.SpecialTypeTable[u] == false {
 			bCardData := make([]int, 5)
@@ -270,6 +270,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 			}
 		}
 	})
+	*/
 }
 
 func (room *sss_data_mgr) ComputeResult() {

@@ -12,8 +12,9 @@ const (
 	CALLSCORE_MAX     = 3      // 允许叫分的最大值
 
 	// 用户出牌状态
-	OUTCARD_OUTING = 0XFFFF // 出牌中
-	OUTCARD_PASS   = 0XFFFE // 不出
+	OUTCARD_OUTING   = 0XFFFF // 出牌中
+	OUTCARD_PASS     = 0XFFFE // 不出
+	OUTCARD_MAXCOUNT = 10000  // 最大出牌次数
 
 	// 游戏类型
 	GAME_TYPE_INVALID = 255 // 无效类型

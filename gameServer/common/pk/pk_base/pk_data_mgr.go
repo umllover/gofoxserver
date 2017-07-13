@@ -95,6 +95,7 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
+	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始
@@ -151,3 +152,8 @@ func (room *RoomData) OtherOperation(args []interface{}) {
 func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }
+
+func (r *RoomData) ShowCard(u *user.User) {
+}
+
+func (r *RoomData) Trustee(u *user.User) {}

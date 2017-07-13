@@ -50,12 +50,11 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
-	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
-	RemoveCardList(cbRemoveCard []int, cbCardData []int) bool
-	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComperWithOther bool) bool
+	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数
+	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool
 }
 
 ////////////////////////////////////////////

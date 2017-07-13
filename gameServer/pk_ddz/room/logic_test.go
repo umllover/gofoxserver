@@ -28,10 +28,11 @@ import (
 )
 
 var (
-	room *DDZ_Entry //Pk_base
-	u1   *user.User
-	u2   *user.User
-	u3   *user.User
+	room   *DDZ_Entry //Pk_base
+	ddzMrg *ddz_data_mgr
+	u1     *user.User
+	u2     *user.User
+	u3     *user.User
 )
 
 var Wg sync.WaitGroup
@@ -52,27 +53,60 @@ func TestCallScore(t *testing.T) {
 		CallScore: 1,
 	}
 
-	args := []interface{}{data, u2}
+	args := []interface{}{data, u1}
+	room.CallScore(args)
+
+	data.CallScore = 2
+	args = []interface{}{data, u2}
 	room.CallScore(args)
 
 	data.CallScore = 3
 	args = []interface{}{data, u3}
 	room.CallScore(args)
 
-	Wg.Wait()
+	//Wg.Wait()
 }
 
-//
-//func TestOutCard(t *testing.T) {
-//	log.Debug("测试出牌")
-//	data := &pk_ddz_msg.C2G_DDZ_OutCard{
-//		CardData: []int{1, 2, 3},
-//	}
-//
-//	args := []interface{}{data, u2}
-//	room.OutCard(args)
-//	Wg.Wait()
-//}
+func TestTrustee(t *testing.T) {
+	log.Debug("测试托管")
+	data := &pk_ddz_msg.C2G_DDZ_TRUSTEE{
+		Trustee: true,
+	}
+
+	args := []interface{}{data, u1}
+	room.CTrustee(args)
+
+	args = []interface{}{data, u2}
+	room.CTrustee(args)
+
+	args = []interface{}{data, u3}
+	room.CTrustee(args)
+}
+
+func TestOutCard(t *testing.T) {
+	log.Debug("测试出牌")
+	data := &pk_ddz_msg.C2G_DDZ_OutCard{
+		CardData: []int{ddzMrg.HandCardData[2][len(ddzMrg.HandCardData[2])-1]},
+	}
+
+	args := []interface{}{data, u3}
+	room.OutCard(args)
+
+	//reader := bufio.NewReader(os.Stdin)
+	//line, _ := reader.ReadString('a')
+	////line, _ = reader.ReadString('\n')
+	//log.Debug("1111%s", line)
+
+	//cardData, _, _ := reader.ReadLine()
+	//log.Debug("sfd%v", cardData)
+
+	//fmt.Print("请输入Í∑Í要打的牌")
+	//reader := bufio.NewReader(os.Stdin)
+	//
+	//cardData, _, _ := reader.ReadLine()
+	//fmt.Printf("dfsdfsd%s", cardData)
+	//Wg.Wait()
+}
 
 //func TestGameLogic_OutCard(t *testing.T) {
 //	user := room.GetUserByChairId(0)
@@ -203,6 +237,7 @@ func init() {
 		MaxPlayerCnt: 3,
 		KindId:       29,
 		ServiceId:    1,
+		Num:          1,
 	}
 
 	setCfg := map[string]interface{}{
@@ -224,14 +259,14 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewDDZEntry(info)
-	datag := NewDDZDataMgr(info, u1.Id, pk_base.IDX_DDZ, "", temp, r)
-	if datag == nil {
+	ddzMrg = NewDDZDataMgr(info, u1.Id, pk_base.IDX_DDZ, "", temp, r)
+	if ddzMrg == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
 	}
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  _roombase,
-		DataMgr:  datag,
+		DataMgr:  ddzMrg,
 		UserMgr:  userg,
 		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ, info),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
