@@ -41,8 +41,8 @@ func createRoom(args []interface{}) (interface{}, error) {
 	user := ag.UserData().(*user.User)
 	room := &ChatRoom{members: make(map[int]gate.Agent), memChatIndex: make(map[int]int)}
 	room.members[user.Id] = ag
-	room.memChatIndex[user.Id] = 0
 	roomList[roomID] = room
+	room.memChatIndex[user.Id] = 0
 	user.ChatRoomId = roomID
 	roomID++
 	return roomID, nil

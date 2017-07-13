@@ -15,5 +15,4 @@ func RegisterHandler(r *ZP_base) {
 	r.GetChanRPC().Register("SetChaHua", r.ChaHuaMsg)
 	r.GetChanRPC().Register("SetBuHua", r.OnUserReplaceCardMsg)
 	r.GetChanRPC().Register("SetTingCard", r.OnUserListenCardMsg)
-	r.GetChanRPC().Register("UserTrustee", r.OnRecUserTrustee)
 }

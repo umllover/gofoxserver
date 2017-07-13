@@ -90,13 +90,12 @@ func (room *RoomData) SetCellScore(cellScore int) {
 }
 
 // 设置倍数
-func (r *RoomData) SetScoreTimes(scoreTimes int) {
-	r.ScoreTimes = scoreTimes
+func (room *RoomData) SetScoreTimes(scoreTimes int) {
+	room.ScoreTimes = scoreTimes
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
-	//log.Debug("pk data mgr init")
 	room.CellScore = room.PkBase.Temp.CellScore
 }
 

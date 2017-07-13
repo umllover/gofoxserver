@@ -2,12 +2,11 @@ package room
 
 import (
 	. "mj/common/cost"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
-	"mj/common/msg/mj_zp_msg"
+	"mj/common/msg/mj_hz_msg"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -43,7 +42,6 @@ func (room *ZP_base) OutCard(args []interface{}) {
 
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
-		log.Error("u.ChairId:%d  room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
 		log.Error("zpmj at OnUserOutCard not self out ")
 		retcode = ErrNotSelfOut
 		return
@@ -66,12 +64,9 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
 		log.Error("zpmj at OnUserOutCard not have card ")
-		log.Error("user:%d card:%d", u.ChairId, CardData)
 		retcode = ErrNotFoudCard
 		return
 	}
-
-	//todo.记录出牌用户
 
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
@@ -83,11 +78,7 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	u.UserLimit &= ^LimitPeng
 	u.UserLimit &= ^LimitGang
 
-	var bSysOut bool
-	if len(args) == 3 {
-		bSysOut = args[2].(bool)
-	}
-	room.DataMgr.NotifySendCard(u, CardData, bSysOut)
+	room.DataMgr.NotifySendCard(u, CardData, false)
 
 	//响应判断
 	bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, CardData, EstimatKind_OutCard)
@@ -115,10 +106,8 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 	}()
 
 	if room.DataMgr.GetCurrentUser() == INVALID_CHAIR {
-
 		//效验状态
 		if !room.DataMgr.HasOperator(u.ChairId, OperateCode) {
-			log.Debug("user:%d,OperateCode:%d,OperateCard：%v", u.ChairId, OperateCode, OperateCard)
 			retcode = ErrNoOperator
 			return
 		}
@@ -151,8 +140,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
 
 		//删除扑克
-		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) == false {
-			log.Error("at UserOperateCard RemoveCardByOP error")
+		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) {
 			return
 		}
 
@@ -163,10 +151,8 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			}
 		}
 	} else {
-
 		//扑克效验
 		if (OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])) {
-			log.Error("OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])")
 			return
 		}
 
@@ -176,16 +162,15 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		//执行动作
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
-			log.Debug("有暗杠")
 			cbGangKind := room.DataMgr.AnGang(u, OperateCode, OperateCard)
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {
-				log.Debug("执行暗杠")
 				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, OperateCard[0], EstimatKind_GangCard)
 			}
 
 			//发送扑克
+
 			if !bAroseAction {
 				if room.DataMgr.DispatchCardData(u.ChairId, true) > 0 {
 					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
@@ -213,7 +198,7 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 
 	room.UserMgr.SetUsetTrustee(wChairID, true)
 
-	room.UserMgr.SendMsgAll(&mj_zp_msg.G2C_ZPMJ_Trustee{
+	room.UserMgr.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
 		Trustee: bTrustee,
 		ChairID: wChairID,
 	})

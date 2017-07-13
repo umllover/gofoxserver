@@ -35,7 +35,6 @@ type DataManager interface {
 
 	// 其它操作，各个游戏自己有自己的游戏指令
 	OtherOperation(args []interface{})
-
 }
 
 type LogicManager interface {
@@ -46,8 +45,6 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
-
-
 
 	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 
