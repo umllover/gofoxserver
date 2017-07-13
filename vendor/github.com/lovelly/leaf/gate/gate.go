@@ -191,7 +191,7 @@ func (a *agent) Run() {
 			err = a.chanRPC.Call0("handleMsgData", data)
 		}
 		if err != nil {
-			log.Error("handle message: %v", err)
+			log.Debug("handle message: %v", err)
 			break
 		}
 	}

@@ -24,7 +24,9 @@ func init() {
 	// c 2 s
 	handlerC2S(&nn_tb_msg.C2G_TBNN_CallScore{}, TBNNCallScore)
 	handlerC2S(&nn_tb_msg.C2G_TBNN_AddScore{}, TBNNAddScore)
+	//handlerC2S(&nn_tb_msg.C2G_TBNN_CallBanker{}, TBNNCallBanker)
 	handlerC2S(&nn_tb_msg.C2G_TBNN_OpenCard{}, TBNNOpenCard)
+	//handlerC2S(&nn_tb_msg.C2G_TBNN_QIANG{}, TBNNQiang)
 }
 
 

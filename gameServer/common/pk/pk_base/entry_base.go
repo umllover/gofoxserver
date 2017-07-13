@@ -41,9 +41,7 @@ type Entry_base struct {
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
-	log.Debug("new pk base %d %d", info.KindId, info.ServiceId)
 	if !ok1 {
-		log.Error("at NewPKBase not foud config .... ")
 		return nil
 	}
 
@@ -158,7 +156,6 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
-		log.Debug("all user are ready start game")
 		//派发初始扑克
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
