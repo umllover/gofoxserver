@@ -13,6 +13,6 @@ func SendMsgToThisNodeUser(uid int64, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)
 }
 
-func SendMsgToUser(uid int, funcName string, data interface{}) {
+func SendMsgToUser(uid int64, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToUser", uid, funcName, data)
 }
