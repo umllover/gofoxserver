@@ -9,7 +9,7 @@ import (
 	"mj/gameServer/user"
 )
 
-func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -27,7 +27,7 @@ func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOptio
 type RoomData struct {
 	id         int
 	Name       string //房间名字
-	CreateUser int    //创建房间的人
+	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
 	ConfigIdx  int //配置文件索引
 
@@ -54,7 +54,7 @@ func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
-func (room *RoomData) CanOperatorRoom(uid int) bool {
+func (room *RoomData) CanOperatorRoom(uid int64) bool {
 	if uid == room.CreateUser {
 		return true
 	}
@@ -135,6 +135,16 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 
 }
 
+// 明牌
+func (room *RoomData) ShowCard(u *user.User) {
+
+}
+
+// 托管
+func (room *RoomData) Trustee(u *user.User, t bool) {
+
+}
+
 // 其它操作，各个游戏自己有自己的游戏指令
 func (room *RoomData) OtherOperation(args []interface{}) {
 
@@ -142,3 +152,4 @@ func (room *RoomData) OtherOperation(args []interface{}) {
 func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }
+

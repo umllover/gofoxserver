@@ -2,12 +2,13 @@ package room
 
 import (
 	"mj/common/msg/mj_hz_msg"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 )
 
-func NewHZDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
+func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
 	d := new(hz_data)
 	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)
 	return d
@@ -52,7 +53,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 
 	isWin := false
 	for chairId, v := range room.UserAction {
-		if v&mj_base.WIK_CHI_HU != 0 && chairId == CenterUser {
+		if v&WIK_CHI_HU != 0 && chairId == CenterUser {
 			isWin = true
 		}
 	}

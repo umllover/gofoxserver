@@ -6,25 +6,29 @@ import (
 
 func init() {
 	msg.Processor.Register(&C2G_MJZP_SetChaHua{})
-	msg.Processor.Register(&C2G_MJZP_OperateNotify{})
 	msg.Processor.Register(&C2G_MJZP_ReplaceCard{})
 	msg.Processor.Register(&C2G_MJZP_ListenCard{})
 	msg.Processor.Register(&C2G_ZPMJ_OutCard{})
 	msg.Processor.Register(&C2G_ZPMJ_OperateCard{})
+	msg.Processor.Register(&C2G_MJZP_Trustee{})
 
 	msg.Processor.Register(&G2C_MJZP_NotifiChaHua{})
 	msg.Processor.Register(&G2C_MJZP_ReplaceCard{})
 	msg.Processor.Register(&G2C_MJZP_ListenCard{})
 	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 	msg.Processor.Register(&G2C_ZPMG_GameStart{})
-	msg.Processor.Register(&C2G_MJZP_Trustee{})
 	msg.Processor.Register(&G2C_ZPMJ_Trustee{})
 	msg.Processor.Register(&G2C_ZPMJ_OutCard{})
 	msg.Processor.Register(&G2C_ZPMJ_OperateResult{})
 	msg.Processor.Register(&G2C_ZPMJ_SendCard{})
 	msg.Processor.Register(&G2C_ZPMJ_StatusPlay{})
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
+	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
+}
 
+type G2C_MJZP_OperateNotify struct {
+	ActionMask int //动作掩码
+	ActionCard int //动作扑克
 }
 
 //通知插花
@@ -68,12 +72,6 @@ type G2C_MJZP_ListenCard struct {
 	HuCardData  []int //胡牌数据
 }
 
-//操作提示
-type C2G_MJZP_OperateNotify struct {
-	ActionMask int //动作掩码
-	ActionCard int //动作扑克
-}
-
 // 出牌
 type C2G_ZPMJ_OutCard struct {
 	CardData int
@@ -93,15 +91,15 @@ type G2C_ZPMJ_GameConclude struct {
 	Revenue   []int //税收积分
 	GangScore []int //本局杠输赢分
 	//结束信息
-	ProvideUser  int         //供应用户
-	ProvideCard  int         //供应扑克
-	SendCardData int         //最后发牌
-	ChiHuKind    []int       //胡牌类型
-	ChiHuRight   []int       //胡牌类型
-	LeftUser     int         //玩家逃跑
-	LianZhuang   int         //连庄
-	ScoreKind    [35]int     //得分类型
-	ZhuaHua      [16]HuaUser //用户抓花
+	ProvideUser  int          //供应用户
+	ProvideCard  int          //供应扑克
+	SendCardData int          //最后发牌
+	ChiHuKind    []int        //胡牌类型
+	ChiHuRight   []int        //胡牌类型
+	LeftUser     int          //玩家逃跑
+	LianZhuang   int          //连庄
+	ScoreKind    [35]int      //得分类型
+	ZhuaHua      [16]*HuaUser //用户抓花
 	//type HuaUser struct {
 	//	chairID int
 	//	card    int
@@ -129,7 +127,7 @@ type G2C_ZPMG_GameStart struct {
 
 //托管
 type C2G_MJZP_Trustee struct {
-	Trustee int //1：托管 0：取消托管
+	Trustee bool //1：托管 0：取消托管
 }
 
 //用户出牌
@@ -171,12 +169,13 @@ type G2C_ZPMJ_StatusPlay struct {
 	CreateTime      int64 //开始时间
 
 	//游戏变量
-	CellScore   int     //单元积分
-	BankerUser  int     //庄家用户
-	CurrentUser int     //当前用户
-	MagicIndex  int     //财神索引
-	ChaHuaCnt   [][]int //插花数
-	BuHuaCnt    [][]int //补花数
+	CellScore   int   //单元积分
+	BankerUser  int   //庄家用户
+	CurrentUser int   //当前用户
+	MagicIndex  int   //财神索引
+	ChaHuaCnt   []int //插花数
+	BuHuaCnt    []int //补花数
+	ZhuaHuaCnt  int   //抓花数
 
 	//规则
 	PlayerCount int //玩家人数

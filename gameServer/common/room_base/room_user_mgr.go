@@ -64,7 +64,7 @@ func (r *RoomUserMgr) GetMaxPlayerCnt() int {
 	return r.UserCnt
 }
 
-func (r *RoomUserMgr) IsInRoom(userId int) bool {
+func (r *RoomUserMgr) IsInRoom(userId int64) bool {
 	for _, u := range r.Users {
 		if u == nil {
 			continue
@@ -83,7 +83,7 @@ func (r *RoomUserMgr) GetUserByChairId(chairId int) *user.User {
 	return r.Users[chairId]
 }
 
-func (r *RoomUserMgr) GetUserByUid(userId int) (*user.User, int) {
+func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 	for i, u := range r.Users {
 		if u == nil {
 			continue
@@ -211,7 +211,7 @@ func (r *RoomUserMgr) SendOnlookers(data interface{}) {
 	}
 }
 
-func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int, data interface{}) {
+func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int64, data interface{}) {
 	for _, u := range r.Users {
 		log.Debug("SendMsgAllNoSelf %v ", (u != nil && u.Id != selfid))
 		if u != nil && u.Id != selfid {

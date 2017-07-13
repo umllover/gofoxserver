@@ -2,6 +2,9 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	. "mj/gameServer/common/mj"
+
+	"fmt"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -40,6 +43,7 @@ type BaseLogic struct {
 	CardDataArray []int //扑克数据
 	MagicIndex    int   //钻牌索引
 	ReplaceCard   int   //替换金牌的牌
+	HuOfCard      int   //胡的牌
 	SwitchToIdx   func(int) int
 	CheckValid    func(int) bool
 	SwitchToCard  func(int) int
@@ -84,7 +88,6 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	cbBufferCount := int(len(cbCardBuffer))
 	cbCardDataTemp := make([]int, cbBufferCount)
 	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
-
 	//混乱扑克
 	var cbRandCount int
 	var cbPosition int
@@ -97,20 +100,32 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
+	log.Debug("cbRandCount:%d", cbRandCount)
+	testq := 0
+	for _, v := range cbCardBuffer {
+		if v >= 0x31 && v <= 0x37 {
+			fmt.Printf("%x ", v)
+			testq++
+		}
+	}
+	log.Debug("+++++++++ %d", testq)
 
 	return
 }
 
 //删除扑克
 func (lg *BaseLogic) RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool {
+	log.Debug("删除卡牌：%v", cbRemoveCard)
 	//参数校验
 	for _, card := range cbRemoveCard {
 		//效验扑克
-		if lg.CheckValid(card) {
+		if lg.CheckValid(card) == false {
+			log.Debug("效验扑克CheckValid")
 			return false
 		}
 
 		if cbCardIndex[lg.SwitchToIdx(card)] <= 0 {
+			log.Debug("效验扑克cbCardIndex[lg.SwitchToIdx(card)] <= 0")
 			return false
 		}
 	}
@@ -125,6 +140,7 @@ func (lg *BaseLogic) RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool {
 
 //删除扑克
 func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
+	log.Debug("用户卡牌数据：%v", cbCardIndex)
 	//删除扑克
 	cbRemoveIndex := lg.SwitchToIdx(cbRemoveCard)
 	//效验扑克
@@ -138,7 +154,7 @@ func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
 		cbCardIndex[cbRemoveIndex]--
 		return true
 	}
-
+	log.Debug("删除扑克用户卡牌数据：%v", cbCardIndex)
 	return false
 }
 
@@ -260,6 +276,9 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	if cbCurrentCard == 0 {
 		return WIK_NULL, nil
 	}
+
+	//记录胡的牌
+	lg.HuOfCard = cbCurrentCard
 
 	//插入扑克
 	if cbCurrentCard != 0 {
@@ -647,4 +666,8 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 	}
 
 	return cbEatKind
+}
+
+func (lg *BaseLogic) GetHuOfCard() int {
+	return lg.HuOfCard
 }

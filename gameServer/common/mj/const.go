@@ -1,4 +1,4 @@
-package mj_base
+package mj
 
 const (
 

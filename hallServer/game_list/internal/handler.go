@@ -139,12 +139,13 @@ func NotifyNewRoom(args []interface{}) {
 	}
 
 	roomInfo := args[0].(*msg.RoomInfo)
-	roomInfo.Players = make(map[int]*msg.PlayerBrief)
-	roomInfo.MachPlayer = make(map[int]struct{})
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int64]struct{})
 	addRoom(roomInfo)
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
+	recvMsg.Players = make( map[int64]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -198,7 +199,7 @@ func UpdateRoom(args []interface{}) {
 		room.CurCnt = len(room.Players)
 		center.SendMsgToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
-		id := info.Data["UID"].(int)
+		id := info.Data["UID"].(int64)
 		status := info.Data["Status"].(int)
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)

@@ -10,7 +10,7 @@ import (
 type DataManager interface {
 	InitRoom(UserCnt int)
 	GetRoomId() int
-	CanOperatorRoom(uid int) bool
+	CanOperatorRoom(uid int64) bool
 
 	// 游戏开始
 	BeforeStartGame(UserCnt int)
@@ -29,6 +29,11 @@ type DataManager interface {
 	CallScore(u *user.User, scoreTimes int)
 	AddScore(u *user.User, score int)
 	OpenCard(u *user.User, cardType int, cardData []int)
+
+	// 明牌
+	ShowCard(u *user.User)
+	// 托管
+	Trustee(u *user.User, trustee bool)
 
 	//十三水
 	ShowSSSCard(u *user.User, Dragon bool, SpecialType bool, SpecialData []int, FrontCard []int, MidCard []int, BackCard []int)

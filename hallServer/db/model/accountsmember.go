@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"mj/hallServer/db"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
+
+	"time"
 )
 
 //This file is generate by scripts,don't edit it
@@ -17,7 +18,7 @@ import (
 
 // +gen *
 type Accountsmember struct {
-	UserID         int        `db:"UserID" json:"UserID"`                 // 用户标识
+	UserID         int64      `db:"UserID" json:"UserID"`                 // 用户标识
 	MemberOrder    int8       `db:"MemberOrder" json:"MemberOrder"`       // 会员标识
 	UserRight      int        `db:"UserRight" json:"UserRight"`           // 用户权限
 	MemberOverDate *time.Time `db:"MemberOverDate" json:"MemberOverDate"` // 会员期限
@@ -29,7 +30,7 @@ var AccountsmemberOp = &accountsmemberOp{}
 var DefaultAccountsmember = &Accountsmember{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *accountsmemberOp) Get(UserID int) (*Accountsmember, bool) {
+func (op *accountsmemberOp) Get(UserID int64) (*Accountsmember, bool) {
 	obj := &Accountsmember{}
 	sql := "select * from accountsmember where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -147,12 +148,12 @@ func (op *accountsmemberOp) UpdateTx(ext sqlx.Ext, m *Accountsmember) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+func (op *accountsmemberOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
 
 	sql := `update accountsmember set %s where 1=1 and UserID=? ;`
 
@@ -178,12 +179,12 @@ func (i *Accountsmember) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *accountsmemberOp) Delete(UserID int) error {
+func (op *accountsmemberOp) Delete(UserID int64) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *accountsmemberOp) DeleteTx(ext sqlx.Ext, UserID int) error {
+func (op *accountsmemberOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
 	sql := `delete from accountsmember where 1=1
         and UserID=?
         `

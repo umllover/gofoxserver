@@ -16,7 +16,7 @@ func NewUserHandle(a gate.Agent) gate.UserHandler {
 	return internal.NewUserHandle(a)
 }
 
-func GetUser(uid int) *user.User {
+func GetUser(uid int64) *user.User {
 	return internal.GetUser(uid)
 }
 

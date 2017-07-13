@@ -23,8 +23,8 @@ type Module interface {
 type TimerManager interface {
 	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
-	StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func())
-	StopOfflineTimer(uid int)
+	StartKickoutTimer(Skeleton *module.Skeleton, uid int64, cb func())
+	StopOfflineTimer(uid int64)
 
 	GetTimeLimit() int
 	GetPlayCount() int
@@ -46,7 +46,7 @@ type UserManager interface {
 	RoomDissume()
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
-	SendMsgAllNoSelf(selfid int, data interface{})
+	SendMsgAllNoSelf(selfid int64, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
 	SendDataToHallUser(chiairID int, funcName string, data interface{})
 	SendMsgToHallServerAll(funcName string, data interface{})
@@ -56,7 +56,7 @@ type UserManager interface {
 	GetMaxPlayerCnt() int
 	GetUserInfoByChairId(int) interface{}
 	GetUserByChairId(int) *user.User
-	GetUserByUid(userId int) (*user.User, int)
+	GetUserByUid(userId int64) (*user.User, int)
 	SetUsetTrustee(chairId int, isTruste bool)
 	IsTrustee(chairId int) bool
 	GetTrustees() []bool

@@ -12,6 +12,7 @@ type C2L_Login struct {
 	Accounts     string
 	MachineID    string
 	MobilePhone  string
+	SessionKey   string
 }
 
 //注册消息
@@ -86,7 +87,7 @@ type C2L_DrawSahreAward struct {
 
 //设置推荐人
 type C2L_SetElect struct {
-	ElectUid int //推荐人id
+	ElectUid int64 //推荐人id
 }
 
 /////////// l 2 c /////////////////////////
@@ -100,7 +101,7 @@ type L2C_LogonFailure struct {
 type L2C_LogonSuccess struct {
 	FaceID     int8   `json:"wFaceID"`      //头像标识
 	Gender     int8   `json:"cbGender"`     //用户性别
-	UserID     int    `json:"dwUserID"`     //用户 I D
+	UserID     int64    `json:"dwUserID"`     //用户 I D
 	Spreader   int    `json:"szSpreader"`   //推荐人用户标识
 	GameID     int    `json:"dwGameID"`     //游戏 I D
 	Experience int    `json:"dwExperience"` //经验数值
@@ -141,7 +142,7 @@ type L2C_ServerListFinish struct{}
 //个人资料
 type L2C_UserIndividual struct {
 	//用户信息
-	UserID      int    //用户 I D
+	UserID      int64    //用户 I D
 	NickName    string //昵称
 	Accounts    string //账号
 	WinCount    int    //赢数
