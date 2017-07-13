@@ -5,7 +5,6 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
@@ -275,7 +274,6 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
 		log.Error("at OnUserOutCard not self out ")
-		log.Error("u.ChairId:%d,room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
 		retcode = ErrNotSelfOut
 		return
 	}
@@ -316,33 +314,23 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 //插花
 func (room *Mj_base) ChaHuaMsg(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_SetChaHua)
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_SetChaHua)
 	room.DataMgr.GetChaHua(u, getData.SetCount)
 }
 
 //补花
 func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
 	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
 }
 
 //用户听牌
 func (room *Mj_base) OnUserListenCardMsg(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ListenCard)
+	u := args[0].(*user.User)
+	getData := args[1].(*mj_zp_msg.C2G_MJZP_ListenCard)
 	room.DataMgr.OnUserListenCard(u, getData.ListenCard)
-}
-
-//用户托管
-func (room *Mj_base) OnRecUserTrustee(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_Trustee)
-	ok := room.OnUserTrustee(u.ChairId, getData.Trustee)
-	if !ok {
-		log.Error("at OnRecUserTrustee user.chairid:", u.ChairId)
-	}
 }
 
 // 吃碰杠胡各种操作
@@ -391,8 +379,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		room.DataMgr.WeaveCard(cbTargetAction, wTargetUser)
 
 		//删除扑克
-		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) == false {
-			log.Error("at UserOperateCard RemoveCardByOP error")
+		if room.DataMgr.RemoveCardByOP(wTargetUser, cbTargetAction) {
 			return
 		}
 
@@ -483,7 +470,7 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		return false
 	}
 
-	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
+	room.UserMgr.SetUsetTrustee(wChairID, true)
 
 	room.UserMgr.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
 		Trustee: bTrustee,

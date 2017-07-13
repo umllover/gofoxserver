@@ -6,11 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"fmt"
-
 	"github.com/gorilla/websocket"
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/util"
 )
 
 type WebsocketConnSet map[*websocket.Conn]struct{}
@@ -114,14 +111,7 @@ func (wsConn *WSConn) RemoteAddr() net.Addr {
 // goroutine not safe
 func (wsConn *WSConn) ReadMsg() ([]byte, error) {
 	_, b, err := wsConn.conn.ReadMessage()
-	if err != nil {
-		return b, err
-	}
-	str, err := util.DesDecrypt(b, []byte("mqjx@mqc"))
-	if err != nil {
-		return b, errors.New(fmt.Sprintf("at ws ReadMsg msg DesDecrypt error :%s", err.Error()))
-	}
-	return str, err
+	return b, err
 }
 
 // args must not be modified by the others goroutines
@@ -147,12 +137,7 @@ func (wsConn *WSConn) WriteMsg(args ...[]byte) error {
 
 	// don't copy
 	if len(args) == 1 {
-		str, err := util.DesEncrypt(args[0], []byte("mqjx@mqc"))
-		if err != nil {
-			return errors.New(fmt.Sprintf("at ws write msg DesEncrypt error :%s", err.Error()))
-		}
-
-		wsConn.doWrite(str)
+		wsConn.doWrite(args[0])
 		return nil
 	}
 
@@ -163,12 +148,8 @@ func (wsConn *WSConn) WriteMsg(args ...[]byte) error {
 		copy(msg[l:], args[i])
 		l += len(args[i])
 	}
-	str, err := util.DesEncrypt(msg, []byte("mqjx@mqc"))
-	if err != nil {
-		return errors.New(fmt.Sprintf("at ws write msg DesEncrypt error :%s", err.Error()))
-	}
 
-	wsConn.doWrite(str)
+	wsConn.doWrite(msg)
 
 	return nil
 }

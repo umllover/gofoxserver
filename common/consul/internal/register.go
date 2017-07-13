@@ -98,7 +98,7 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 
-		if v.ServiceAddress == list[0] && v.ServicePort == tcpPort {
+		if v.Address == list[0] && v.ServicePort == tcpPort {
 			log.Fatal("check regist faild at buildRoomSvrConfig 22 %v", consulSvrId)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
