@@ -23,7 +23,7 @@ type Goods struct {
 	GivePresent       int        `db:"give_present" json:"give_present"`               // 赠送
 	SpecialOfferBegin *time.Time `db:"special_offer_begin" json:"special_offer_begin"` // 特价开始时间
 	SpecialOfferEnd   *time.Time `db:"special_offer_end" json:"special_offer_end"`     // 特价结束时间
-	Type              string     `db:"type" json:"type"`                               // 类别
+	GoodsType         string     `db:"goods_type" json:"goods_type"`                   // 类别
 }
 
 var DefaultGoods = Goods{}
