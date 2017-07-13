@@ -121,6 +121,7 @@ type G2C_StatusFree struct {
 	PlayerCount     int   //玩家人数
 	MaCount         int   //码数
 	CountLimit      int   //局数限制
+	ZhuaHuaCnt      int   //抓花数
 }
 
 //游戏状态 游戏已经开始了发送的结构

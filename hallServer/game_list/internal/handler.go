@@ -145,6 +145,7 @@ func NotifyNewRoom(args []interface{}) {
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
+	recvMsg.Players = make( map[int64]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {

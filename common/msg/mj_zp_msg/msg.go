@@ -91,15 +91,15 @@ type G2C_ZPMJ_GameConclude struct {
 	Revenue   []int //税收积分
 	GangScore []int //本局杠输赢分
 	//结束信息
-	ProvideUser  int         //供应用户
-	ProvideCard  int         //供应扑克
-	SendCardData int         //最后发牌
-	ChiHuKind    []int       //胡牌类型
-	ChiHuRight   []int       //胡牌类型
-	LeftUser     int         //玩家逃跑
-	LianZhuang   int         //连庄
-	ScoreKind    [35]int     //得分类型
-	ZhuaHua      [16]HuaUser //用户抓花
+	ProvideUser  int          //供应用户
+	ProvideCard  int          //供应扑克
+	SendCardData int          //最后发牌
+	ChiHuKind    []int        //胡牌类型
+	ChiHuRight   []int        //胡牌类型
+	LeftUser     int          //玩家逃跑
+	LianZhuang   int          //连庄
+	ScoreKind    [35]int      //得分类型
+	ZhuaHua      [16]*HuaUser //用户抓花
 	//type HuaUser struct {
 	//	chairID int
 	//	card    int

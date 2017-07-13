@@ -25,7 +25,7 @@ func init() {
 	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OutCard{}, ZPOutCard)
 	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
 	handlerC2S(&mj_zp_msg.C2G_MJZP_SetChaHua{}, SetChaHua)
-	handlerC2S(&mj_zp_msg.G2C_MJZP_ReplaceCard{}, SetBuHua)
+	handlerC2S(&mj_zp_msg.C2G_MJZP_ReplaceCard{}, SetBuHua)
 	handlerC2S(&mj_zp_msg.C2G_MJZP_ListenCard{}, SetTingCard)
 	handlerC2S(&mj_zp_msg.C2G_MJZP_Trustee{}, Trustee)
 }

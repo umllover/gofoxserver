@@ -66,9 +66,12 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
 		log.Error("zpmj at OnUserOutCard not have card ")
+		log.Error("user:%d card:%d", u.ChairId, CardData)
 		retcode = ErrNotFoudCard
 		return
 	}
+
+	//todo.记录出牌用户
 
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
@@ -115,6 +118,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 
 		//效验状态
 		if !room.DataMgr.HasOperator(u.ChairId, OperateCode) {
+			log.Debug("user:%d,OperateCode:%d,OperateCard：%v", u.ChairId, OperateCode, OperateCard)
 			retcode = ErrNoOperator
 			return
 		}

@@ -259,14 +259,14 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 
 //检测是否可以做某个操作
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
-	if OperateCode == WIK_NULL {
-		return false
-	}
+
 	if room.UserAction[ChairId] == WIK_NULL {
+		log.Error("room.UserAction[ChairId] == WIK_NULL")
 		return false
 	}
 
-	if (room.UserAction[ChairId] & OperateCode) == 0 {
+	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
+		log.Error("OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0)")
 		return false
 	}
 
@@ -391,6 +391,7 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 			Wrave.CardData[3] = cbTargetCard
 		}
 	}
+	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
 func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
@@ -1708,20 +1709,19 @@ func (room *RoomData) IsHunYiSe(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //清一色
-func (room *RoomData) IsQingYiSe(pAnalyseItem *TagAnalyseItem, bQuanFan *bool) int {
+func (room *RoomData) IsQingYiSe(pAnalyseItem *TagAnalyseItem) (int, bool) {
 	cardColor := pAnalyseItem.CardEye & MASK_COLOR
 	for _, v := range pAnalyseItem.CenterCard {
 		if v&MASK_COLOR != cardColor {
-			return 0
+			return 0, false
 		}
 	}
 
 	if 0x30 == cardColor {
-		*bQuanFan = true
+		return CHR_QING_YI_SE, true
 	} else {
-		*bQuanFan = false
+		return CHR_QING_YI_SE, false
 	}
-	return CHR_QING_YI_SE
 }
 
 //花一色

@@ -21,8 +21,9 @@ type Goods struct {
 	LeftCnt           int        `db:"left_cnt" json:"left_cnt"`                       // 剩余数量
 	SpecialOffer      int        `db:"special_offer" json:"special_offer"`             // 特价
 	GivePresent       int        `db:"give_present" json:"give_present"`               // 赠送
-	SpecialOfferBegin *time.Time `db:"special_offer_begin" json:"special_offer_begin"` // 特价结束时间
+	SpecialOfferBegin *time.Time `db:"special_offer_begin" json:"special_offer_begin"` // 特价开始时间
 	SpecialOfferEnd   *time.Time `db:"special_offer_end" json:"special_offer_end"`     // 特价结束时间
+	GoodsType         string     `db:"goods_type" json:"goods_type"`                   // 类别
 }
 
 var DefaultGoods = Goods{}
