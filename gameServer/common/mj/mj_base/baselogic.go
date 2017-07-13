@@ -2,6 +2,7 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	"mj/common/utils"
 	. "mj/gameServer/common/mj"
 
 	"fmt"
@@ -85,9 +86,9 @@ func (lg *BaseLogic) IsValidCard(card int) bool {
 //混乱扑克
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	//混乱准备
-	cbBufferCount := int(len(cbCardBuffer))
-	cbCardDataTemp := make([]int, cbBufferCount)
-	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
+	cbBufferCount := int(len(cbCardBuffer)) //144
+	log.Debug("count =========================== %d", cbBufferCount)
+	cbCardDataTemp := util.CopySlicInt(OriDataArray)
 	//混乱扑克
 	var cbRandCount int
 	var cbPosition int
@@ -95,11 +96,12 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		if cbRandCount >= cbBufferCount {
 			break
 		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbPosition, _ = utils.RandInt(0, cbBufferCount-cbRandCount)
 		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
+	log.Debug("count =========================== 111 %d", cbBufferCount)
 	log.Debug("cbRandCount:%d", cbRandCount)
 	testq := 0
 	for _, v := range cbCardBuffer {

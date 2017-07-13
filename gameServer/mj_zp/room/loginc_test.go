@@ -1,7 +1,9 @@
 package room
 
 import (
+	"encoding/json"
 	. "mj/common/cost"
+	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -9,16 +11,9 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
-	"testing"
-
-	"mj/gameServer/common/mj/mj_base"
-
-	"sync"
-
 	"os"
-
-	"encoding/json"
-
+	"sync"
+	"testing"
 	"time"
 
 	"github.com/lovelly/leaf/chanrpc"
@@ -105,7 +100,7 @@ func TestAnalyseCard(t *testing.T) {
 
 func init() {
 	Wg.Add(1)
-	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
+	conf.Init("./gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
