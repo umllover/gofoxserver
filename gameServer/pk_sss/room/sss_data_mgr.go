@@ -17,8 +17,7 @@ import (
 const (
 	GAME_START = 1002 // 游戏开始
 )
-
-func NewDataMgr(id int, uid int, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
 	return d
@@ -28,6 +27,7 @@ type sss_data_mgr struct {
 	*pk_base.RoomData
 
 	//游戏变量
+
 	bCardData               []int                  //牌的总数
 	m_bUserCardData         map[*user.User][]int   //玩家扑克
 	m_bSegmentCard          map[*user.User][][]int //分段扑克
@@ -46,6 +46,7 @@ type sss_data_mgr struct {
 	LeftCardCount int                  //剩下拍的数量
 	OpenCardMap   map[*user.User][]int //摊牌数据
 	//比较结果
+
 	m_bCompareResult        map[*user.User][]int //每一道比较结果
 	m_bShootState           [][]*user.User       //打枪(0赢的玩家,1输的玩家)
 	m_bThreeKillResult      []int                //全垒打加减分
@@ -56,6 +57,7 @@ type sss_data_mgr struct {
 	m_nXShoot               int                  //几家打枪
 
 	// 游戏状态
+
 	GameStatus        int
 	BtCardSpecialData []int
 }
@@ -63,6 +65,7 @@ type sss_data_mgr struct {
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")
+
 
 	room.m_bCompareDouble = make(map[*user.User]int, UserCnt)
 	room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
@@ -529,6 +532,7 @@ func (room *sss_data_mgr) BeforeStartGame(UserCnt int) {
 func (room *sss_data_mgr) StartGameing() {
 	room.StartDispatchCard()
 }
+
 func (room *sss_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	room.LeftCardCount -= 1
 	return room.bCardData[room.LeftCardCount]
@@ -545,6 +549,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
+
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
 			room.m_bUserCardData[u][i] = room.GetOneCard()
 		}

@@ -16,9 +16,9 @@ import (
 
 // +gen *
 type Usertoken struct {
-	UserID   int `db:"UserID" json:"UserID"`     //
-	Currency int `db:"Currency" json:"Currency"` // 游戏豆
-	RoomCard int `db:"RoomCard" json:"RoomCard"` // 房卡数
+	UserID   int64 `db:"UserID" json:"UserID"`     //
+	Currency int   `db:"Currency" json:"Currency"` // 游戏豆
+	RoomCard int   `db:"RoomCard" json:"RoomCard"` // 房卡数
 }
 
 type usertokenOp struct{}
@@ -27,7 +27,7 @@ var UsertokenOp = &usertokenOp{}
 var DefaultUsertoken = &Usertoken{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *usertokenOp) Get(UserID int) (*Usertoken, bool) {
+func (op *usertokenOp) Get(UserID int64) (*Usertoken, bool) {
 	obj := &Usertoken{}
 	sql := "select * from usertoken where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -143,12 +143,12 @@ func (op *usertokenOp) UpdateTx(ext sqlx.Ext, m *Usertoken) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *usertokenOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+func (op *usertokenOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *usertokenOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+func (op *usertokenOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
 
 	sql := `update usertoken set %s where 1=1 and UserID=? ;`
 
@@ -174,12 +174,12 @@ func (i *Usertoken) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *usertokenOp) Delete(UserID int) error {
+func (op *usertokenOp) Delete(UserID int64) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *usertokenOp) DeleteTx(ext sqlx.Ext, UserID int) error {
+func (op *usertokenOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
 	sql := `delete from usertoken where 1=1
         and UserID=?
         `

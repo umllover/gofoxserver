@@ -1,6 +1,7 @@
 package pk_base
 
 import (
+	"strconv"
 	"time"
 
 	"mj/common/msg"
@@ -8,7 +9,7 @@ import (
 	"mj/gameServer/user"
 )
 
-func NewDataMgr(id int, uid int, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -24,7 +25,7 @@ func NewDataMgr(id int, uid int, ConfigIdx int, name string, temp *base.GameServ
 
 //当一张桌子理解
 type RoomData struct {
-	id         int64
+	id         int
 	Name       string //房间名字
 	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
@@ -64,7 +65,7 @@ func (room *RoomData) GetCurrentUser() int {
 	return room.CurrentUser
 }
 
-func (room *RoomData) GetRoomId() int64 {
+func (room *RoomData) GetRoomId() int {
 	return room.id
 }
 
@@ -77,7 +78,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.CellScore,                                                //游戏底分
 		IniScore:          0,                                                             //room.IniSource,                                                //初始分数
-		ServerID:          room.id,                                                       //房间编号
+		ServerID:          strconv.Itoa(room.id),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	})
@@ -89,13 +90,12 @@ func (room *RoomData) SetCellScore(cellScore int) {
 }
 
 // 设置倍数
-func (room *RoomData) SetScoreTimes(scoreTimes int) {
-	room.ScoreTimes = scoreTimes
+func (r *RoomData) SetScoreTimes(scoreTimes int) {
+	r.ScoreTimes = scoreTimes
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
-	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始
@@ -144,16 +144,3 @@ func (room *RoomData) ShowCard(u *user.User) {
 func (room *RoomData) Trustee(u *user.User, t bool) {
 
 }
-
-// 其它操作，各个游戏自己有自己的游戏指令
-func (room *RoomData) OtherOperation(args []interface{}) {
-
-}
-func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
-
-}
-
-func (r *RoomData) ShowCard(u *user.User) {
-}
-
-func (r *RoomData) Trustee(u *user.User) {}

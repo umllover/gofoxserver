@@ -17,7 +17,7 @@ import (
 
 // +gen *
 type Gamescoreinfo struct {
-	UserID           int        `db:"UserID" json:"UserID"`                     // 用户 ID
+	UserID           int64      `db:"UserID" json:"UserID"`                     // 用户 ID
 	Score            int64      `db:"Score" json:"Score"`                       // 用户积分（货币）
 	Revenue          int64      `db:"Revenue" json:"Revenue"`                   // 游戏税收
 	InsureScore      int64      `db:"InsureScore" json:"InsureScore"`           // 银行金币
@@ -41,7 +41,7 @@ var GamescoreinfoOp = &gamescoreinfoOp{}
 var DefaultGamescoreinfo = &Gamescoreinfo{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *gamescoreinfoOp) Get(UserID int) (*Gamescoreinfo, bool) {
+func (op *gamescoreinfoOp) Get(UserID int64) (*Gamescoreinfo, bool) {
 	obj := &Gamescoreinfo{}
 	sql := "select * from gamescoreinfo where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -183,12 +183,12 @@ func (op *gamescoreinfoOp) UpdateTx(ext sqlx.Ext, m *Gamescoreinfo) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *gamescoreinfoOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+func (op *gamescoreinfoOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *gamescoreinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+func (op *gamescoreinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
 
 	sql := `update gamescoreinfo set %s where 1=1 and UserID=? ;`
 
@@ -214,12 +214,12 @@ func (i *Gamescoreinfo) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *gamescoreinfoOp) Delete(UserID int) error {
+func (op *gamescoreinfoOp) Delete(UserID int64) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *gamescoreinfoOp) DeleteTx(ext sqlx.Ext, UserID int) error {
+func (op *gamescoreinfoOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
 	sql := `delete from gamescoreinfo where 1=1
         and UserID=?
         `
