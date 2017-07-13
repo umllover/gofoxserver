@@ -1727,6 +1727,7 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem) int {
 		}
 	}
 
+	log.Debug("#####,room.CurrentUser:%d len:%d", room.CurrentUser, len(room.FlowerCnt))
 	if room.FlowerCnt[room.CurrentUser] > 0 {
 		return CHR_HUA_YI_SE
 	}
