@@ -86,7 +86,7 @@ type RoomData struct {
 	CurrentUser     int                //当前操作用户
 	Ting            []bool             //是否听牌
 	BankerUser      int                //庄家用户
-	FlowerCnt       []int              //补花数
+	FlowerCnt       [4]int             //补花数
 
 	BanUser    [4]int    //是否出牌禁忌
 	BanCardCnt [4][9]int //禁忌卡牌
@@ -261,7 +261,7 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
-		log.Error("room.UserAction[ChairId] == WIK_NULL")
+		log.Error("room.UserAction[ChairId] == WIK_NULL ChairId:%d", ChairId)
 		return false
 	}
 
@@ -820,7 +820,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
 	}
-	room.FlowerCnt = make([]int, UserCnt)
+	room.FlowerCnt = [4]int{}
 	room.ChiHuKind = make([]int, UserCnt)
 	room.ChiPengCount = make([]int, UserCnt)
 	room.GangCard = make([]bool, UserCnt) //杠牌状态
@@ -1012,7 +1012,7 @@ func (room *RoomData) CheckZiMo() {
 	//听牌判断
 	Count := 0
 	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
-	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[room.BankerUser] == false {
 		Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
 		HuData.OutCardCount = Count
@@ -1733,6 +1733,7 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem) int {
 		}
 	}
 
+	log.Debug("#####,room.CurrentUser:%d len:%d", room.CurrentUser, len(room.FlowerCnt))
 	if room.FlowerCnt[room.CurrentUser] > 0 {
 		return CHR_HUA_YI_SE
 	}
@@ -1880,5 +1881,12 @@ func (room *RoomData) IsPingHu() int {
 
 func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
+	return
+}
+
+//其他
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//清理定时器
+func (room *RoomData) StopOperateCardTimer(u *user.User) {
 	return
 }

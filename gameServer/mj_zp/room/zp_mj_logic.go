@@ -137,11 +137,10 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
-	//GetCardWordArray(cbCardIndex)  测试代码
-
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		//log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		GetCardWordArray(cbCardIndex) //todo,测试代码
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v,%d %v ", cbCardCount, MaxCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
@@ -270,6 +269,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 
 					//设置牌型
 					for i := 0; i < cbLessKindItem; i++ {
+						//log.Debug("@@@@@@@@ len1:%d len2:%d len3:%d", i, i+cbWeaveCount, len(analyseItem.IsAnalyseGet)) //todo,测试代码
 						analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
 						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
 						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
