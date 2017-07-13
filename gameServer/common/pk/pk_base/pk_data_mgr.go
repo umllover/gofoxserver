@@ -54,6 +54,10 @@ func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
+func (room *RoomData) GetCreater() int {
+	return room.CreateUser
+}
+
 func (room *RoomData) CanOperatorRoom(uid int) bool {
 	if uid == room.CreateUser {
 		return true

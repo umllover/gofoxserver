@@ -92,6 +92,10 @@ type RoomData struct {
 	BanCardCnt [4][9]int //禁忌卡牌
 }
 
+func (room *RoomData) GetCreater() int {
+	return room.CreateUser
+}
+
 func (room *RoomData) GetCfg() *MJ_CFG {
 	return GetCfg(room.ConfigIdx)
 }

@@ -24,6 +24,10 @@
     "StatsDbUsername":"root",
     "StatsDbPassword":"hfwl@2017",
 
+    "NsqdAddrs":["",""],
+    "NsqLookupdAddrs":["",""],
+    "PdrNsqdAddr":"192.168.1.144",
+
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
     "ValidKind":"389,28,391",

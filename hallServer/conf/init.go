@@ -45,6 +45,10 @@ var Server struct {
 	StatsDbPassword   string
 	ConsulAddr        string
 
+	NsqdAddrs       []string
+	NsqLookupdAddrs []string
+	PdrNsqdAddr     string
+
 	ConnAddrs       map[string]string
 	AuthServerUrl   string
 	PendingWriteNum int
@@ -53,7 +57,11 @@ var Server struct {
 }
 
 func ServerName() string {
-	return fmt.Sprintf(HallPrefix+"_%d", Server.NodeId)
+	return fmt.Sprintf(HallPrefixFmt, Server.NodeId)
+}
+
+func ServerNsqCahnnel() string {
+	return fmt.Sprintf("HallChannel_%d", Server.NodeId)
 }
 
 func init() {

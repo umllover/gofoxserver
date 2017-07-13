@@ -48,6 +48,7 @@ type DataManager interface {
 	GetUserCardIndex(ChairId int) []int
 	GetCurrentUser() int //当前出牌用户
 	GetRoomId() int
+	GetCreater() int
 	GetProvideUser() int
 	IsActionDone() bool
 

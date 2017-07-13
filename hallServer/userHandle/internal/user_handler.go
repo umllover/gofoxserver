@@ -275,47 +275,20 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	if recvMsg.JoinGamePeopleCount != 0 {
-		if recvMsg.JoinGamePeopleCount > template.MaxPlayer || recvMsg.JoinGamePeopleCount < template.MaxPlayer {
-			retCode = ErrParamError
-			return
-		}
-	}
-
 	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
 		return
 	}
 
-	if recvMsg.PayType == SELF_PAY_TYPE {
-		if !player.SubCurrency(feeTemp.TableFee) {
-			retCode = NotEnoughFee
-			return
-		}
-
-		record := &model.TokenRecord{}
-		record.UserId = player.Id
-		record.RoomId = rid
-		record.Amount = feeTemp.TableFee
-		record.TokenType = SELF_PAY_TYPE
-		record.KindID = template.KindID
-		record.ServerId = template.ServerID
-		if !player.AddRecord(record) {
-			retCode = ErrServerError
-			player.AddCurrency(feeTemp.TableFee)
-			return
-		}
-	}
-
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
 	info.UserId = player.Id
 	info.PayType = recvMsg.PayType
-	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
+	info.MaxPlayerCnt = template.MaxPlayer
 	info.RoomId = rid
 	info.NodeId = nodeId
-	info.Num = recvMsg.DrawCountLimit
+	info.Num = template.MaxPlayer
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
 	by, err := json.Marshal(recvMsg.OtherInfo)
@@ -333,6 +306,22 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 
 	player.AddRooms(info)
 
+	roomInfo := &msg.RoomInfo{}
+	roomInfo.KindID = info.KindId
+	roomInfo.ServerID = info.ServiceId
+	roomInfo.RoomID = info.RoomId
+	roomInfo.NodeID = info.NodeId
+	roomInfo.SvrHost = host
+	roomInfo.PayType = info.PayType
+	roomInfo.CreateTime = time.Now().Unix()
+	roomInfo.CreateUserId = player.Id
+	roomInfo.IsPublic = recvMsg.Public
+	roomInfo.MachPlayer = make(map[int]struct{})
+	roomInfo.Players = make(map[int]*msg.PlayerBrief)
+	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
+	roomInfo.PayCnt = info.Num
+	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
+
 	//回给客户端的消息
 	retMsg.TableID = rid
 	retMsg.DrawCountLimit = info.Num
@@ -344,14 +333,17 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 
 func (m *UserModule) SrarchTableResult(args []interface{}) {
 	roomInfo := args[0].(*msg.RoomInfo)
-	u := m.a.UserData().(*user.User)
+	player := m.a.UserData().(*user.User)
 	retMsg := &msg.L2C_SearchResult{}
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
+			if roomInfo.CreateUserId == player.Id {
+				//todo  delte room
+			}
+			player.WriteMsg(RenderErrorMessage(retcode))
 		} else {
-			u.WriteMsg(retMsg)
+			player.WriteMsg(retMsg)
 		}
 	}()
 
@@ -376,30 +368,31 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / roomInfo.MaxCnt
-
-		if !u.SubCurrency(monrey) {
-			retcode = NotEnoughFee
-			return
-		}
-		record := &model.TokenRecord{}
-		record.UserId = u.Id
-		record.RoomId = roomInfo.RoomID
-		record.Amount = monrey
-		record.TokenType = AA_PAY_TYPE
-		record.KindID = template.KindID
-		if !u.AddRecord(record) {
-			retcode = ErrServerError
-			u.AddCurrency(monrey)
-			return
-		}
+		monrey = feeTemp.TableFee / roomInfo.MaxPlayerCnt
 	}
 
-	u.KindID = roomInfo.KindID
-	u.ServerID = roomInfo.ServerID
-	model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
-		"KindID":   u.KindID,
-		"ServerID": u.ServerID,
+	if !player.SubCurrency(feeTemp.TableFee) {
+		retcode = NotEnoughFee
+		return
+	}
+
+	record := &model.TokenRecord{}
+	record.UserId = player.Id
+	record.RoomId = roomInfo.RoomID
+	record.Amount = monrey
+	record.TokenType = AA_PAY_TYPE
+	record.KindID = template.KindID
+	if !player.AddRecord(record) {
+		retcode = ErrServerError
+		player.AddCurrency(monrey)
+		return
+	}
+
+	player.KindID = roomInfo.KindID
+	player.ServerID = roomInfo.ServerID
+	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"KindID":   player.KindID,
+		"ServerID": player.ServerID,
 	})
 
 	retMsg.TableID = roomInfo.RoomID

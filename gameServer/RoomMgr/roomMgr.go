@@ -23,7 +23,6 @@ var (
 )
 
 func AddRoom(r IRoom) bool {
-	cluster.Broadcast(HallPrefix, "notifyNewRoom", r.GetBirefInfo())
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	if _, ok := Rooms[r.GetRoomId()]; ok {

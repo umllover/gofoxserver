@@ -80,7 +80,7 @@ func (m *MatchModule) Match() {
 			if bk {
 				break
 			}
-			for i := len(r.MachPlayer); i < r.MaxCnt; i++ {
+			for i := len(r.MachPlayer); i < r.MaxPlayerCnt; i++ {
 				if li.Len() < 1 {
 					bk = true
 					break

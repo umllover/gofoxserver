@@ -1,17 +1,19 @@
 package gob
 
 import (
+	"bytes"
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"reflect"
+	"sync"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
-	"reflect"
-	"bytes"
 )
 
 type Processor struct {
-	msgInfo  map[string]*MsgInfo
+	msgInfo map[string]*MsgInfo
 }
 
 type Buffer struct {
@@ -19,25 +21,27 @@ type Buffer struct {
 }
 
 type Encoder struct {
-	buffer *Buffer
-	coder  *gob.Encoder
+	buffer   *Buffer
+	coder    *gob.Encoder
+	encMutex sync.Mutex
 }
 
 func NewEncoder() *Encoder {
 	buff := &Buffer{}
 	coder := gob.NewEncoder(buff)
-	return &Encoder{buff, coder}
+	return &Encoder{buffer: buff, coder: coder}
 }
 
 type Decoder struct {
-	buffer *Buffer
-	coder  *gob.Decoder
+	buffer   *Buffer
+	coder    *gob.Decoder
+	decMutex sync.Mutex
 }
 
 func NewDecoder() *Decoder {
 	buff := &Buffer{}
 	coder := gob.NewDecoder(buff)
-	return &Decoder{buff, coder}
+	return &Decoder{buffer: buff, coder: coder}
 }
 
 type MsgInfo struct {
@@ -162,6 +166,8 @@ func (p *Processor) Route(msg interface{}, userData interface{}) error {
 
 // goroutine safe
 func (p *Processor) Unmarshal(dec *Decoder, data []byte) (interface{}, error) {
+	dec.decMutex.Lock()
+	defer dec.decMutex.Unlock()
 	var msgID string
 	dec.buffer.Buffer = bytes.NewBuffer(data)
 	err := dec.coder.Decode(&msgID)
@@ -187,6 +193,8 @@ func (p *Processor) Unmarshal(dec *Decoder, data []byte) (interface{}, error) {
 
 // goroutine safe
 func (p *Processor) Marshal(enc *Encoder, msg interface{}) ([][]byte, error) {
+	enc.encMutex.Lock()
+	defer enc.encMutex.Unlock()
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
 		return nil, errors.New("json message pointer required")

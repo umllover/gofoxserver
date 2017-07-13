@@ -10,6 +10,7 @@ import (
 type DataManager interface {
 	InitRoom(UserCnt int)
 	GetRoomId() int
+	GetCreater() int
 	CanOperatorRoom(uid int) bool
 
 	// 游戏开始

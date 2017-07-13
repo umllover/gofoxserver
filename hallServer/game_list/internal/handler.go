@@ -3,18 +3,17 @@ package internal
 import (
 	"fmt"
 	"math"
-	"mj/common/cost"
+	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/hallServer/center"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/id_generate"
+	"mj/hallServer/user"
 	"reflect"
 	"strconv"
 	"strings"
-
-	"mj/hallServer/center"
-	"mj/hallServer/user"
 
 	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/gate"
@@ -56,14 +55,15 @@ func init() {
 	handleRpc("NewServerAgent", NewServerAgent)
 	handleRpc("CloseServerAgent", CloseServerAgent)
 
-	handleRpc("notifyNewRoom", NotifyNewRoom)
-	handleRpc("notifyDelRoom", NotifyDelRoom)
-	handleRpc("updateRoomInfo", UpdateRoom)
+	handleRpc("notifyNewRoom", notifyNewRoom)
+	handleRpc("addyNewRoom", addyNewRoom)
+	handleRpc("notifyDelRoom", notifyDelRoom)
+	handleRpc("updateRoomInfo", updateRoom)
 
-	handleRpc("SvrverFaild", ServerFaild)
-	handleRpc("SendPlayerBrief", SendPlayerBrief)
+	handleRpc("SvrverFaild", serverFaild)
+	handleRpc("SendPlayerBrief", sendPlayerBrief)
 
-	handleRpc("GetMatchRooms", GetMatchRooms)
+	handleRpc("GetMatchRooms", getMatchRooms)
 }
 
 ////// c2s
@@ -74,14 +74,14 @@ func SrarchTable(args []interface{}) {
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			agent.WriteMsg(cost.RenderErrorMessage(retcode))
+			agent.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
 
 	roomInfo := getRoomInfo(recvMsg.TableID)
 	if roomInfo == nil {
 		log.Error("at SrarchTable not foud room, %v", recvMsg)
-		retcode = cost.ErrNoFoudRoom
+		retcode = ErrNoFoudRoom
 		return
 	}
 
@@ -133,7 +133,8 @@ func updateGameInfo(args []interface{}) {
 
 }
 
-func NotifyNewRoom(args []interface{}) {
+//别的服通知的增加的房间
+func notifyNewRoom(args []interface{}) {
 	for _, v := range args {
 		log.Debug("at NotifyNewRoom === %v", v)
 	}
@@ -144,8 +145,21 @@ func NotifyNewRoom(args []interface{}) {
 	addRoom(roomInfo)
 }
 
+//本服增加创建的房间
+func addyNewRoom(args []interface{}) {
+	for _, v := range args {
+		log.Debug("at NotifyNewRoom === %v", v)
+	}
+
+	roomInfo := args[0].(*msg.RoomInfo)
+	roomInfo.Players = make(map[int]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int]struct{})
+	addRoom(roomInfo)
+	center.BroadcastToHall("notifyNewRoom", roomInfo)
+}
+
 func addRoom(recvMsg *msg.RoomInfo) {
-	recvMsg.Players = make( map[int]*msg.PlayerBrief)
+	recvMsg.Players = make(map[int]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -161,7 +175,7 @@ func addRoom(recvMsg *msg.RoomInfo) {
 	m[KindListInc] = recvMsg.RoomID
 }
 
-func NotifyDelRoom(args []interface{}) {
+func notifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
 	roomId := args[0].(int)
 	delRoom(roomId)
@@ -182,7 +196,7 @@ func delRoom(roomId int) {
 	}
 }
 
-func UpdateRoom(args []interface{}) {
+func updateRoom(args []interface{}) {
 	info := args[0].(*msg.UpdateRoomInfo)
 	room, ok := roomList[info.RoomId]
 	if !ok {
@@ -197,16 +211,16 @@ func UpdateRoom(args []interface{}) {
 		pinfo := info.Data["info"].(*msg.PlayerBrief)
 		room.Players[pinfo.UID] = pinfo
 		room.CurCnt = len(room.Players)
-		center.SendMsgToThisNodeUser(pinfo.UID, "JoinRoom", room)
+		center.SendToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
 		id := info.Data["UID"].(int)
 		status := info.Data["Status"].(int)
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
 		if status == 0 { //返回钱
-			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
+			center.SendToThisNodeUser(id, "restoreToken", info.RoomId)
 		}
-		center.SendMsgToThisNodeUser(id, "LeaveRoom", info.RoomId)
+		center.SendToThisNodeUser(id, "LeaveRoom", info.RoomId)
 	}
 
 }
@@ -322,7 +336,7 @@ func GetSvrByNodeID(nodeid int) string {
 	return ""
 }
 
-func ServerFaild(args []interface{}) {
+func serverFaild(args []interface{}) {
 	svrId := args[0].(string)
 	list := strings.Split(svrId, "_")
 	if len(list) < 2 {
@@ -343,7 +357,7 @@ func ServerFaild(args []interface{}) {
 	}
 }
 
-func SendPlayerBrief(args []interface{}) {
+func sendPlayerBrief(args []interface{}) {
 	roomId := args[0].(int)
 	u := args[1].(*user.User)
 	retMsg := &msg.L2C_RoomPlayerBrief{}
@@ -356,13 +370,13 @@ func SendPlayerBrief(args []interface{}) {
 	u.WriteMsg(retMsg)
 }
 
-func GetMatchRooms(args []interface{}) (interface{}, error) {
+func getMatchRooms(args []interface{}) (interface{}, error) {
 	ret := make(map[int][]*msg.RoomInfo)
 	for _, v := range roomList {
 		if !v.IsPublic {
 			continue
 		}
-		if v.MaxCnt >= len(v.MachPlayer) {
+		if v.MaxPlayerCnt >= len(v.MachPlayer) {
 			continue
 		}
 		ret[v.KindID] = append(ret[v.KindID], v)

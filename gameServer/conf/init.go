@@ -47,6 +47,10 @@ var Server struct {
 	StatsDbUsername string
 	StatsDbPassword string
 
+	NsqdAddrs       []string
+	NsqLookupdAddrs []string
+	PdrNsqdAddr     string
+
 	ConsulAddr      string
 	ListenAddr      string
 	ConnAddrs       map[string]string
@@ -59,7 +63,11 @@ var Server struct {
 var ValidKind = map[int]bool{}
 
 func ServerName() string {
-	return fmt.Sprintf(GamePrefix+"_%d", Server.NodeId)
+	return fmt.Sprintf(GamePrefixFmt, Server.NodeId)
+}
+
+func ServerNsqCahnnel() string {
+	return fmt.Sprintf("HallChannel_%d", Server.NodeId)
 }
 
 func Init(filePaths ...string) {
