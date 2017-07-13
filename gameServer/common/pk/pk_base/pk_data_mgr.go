@@ -1,7 +1,6 @@
 package pk_base
 
 import (
-	"strconv"
 	"time"
 
 	"mj/common/msg"
@@ -9,7 +8,7 @@ import (
 	"mj/gameServer/user"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -25,7 +24,7 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameSe
 
 //当一张桌子理解
 type RoomData struct {
-	id         int
+	id         int64
 	Name       string //房间名字
 	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
@@ -65,7 +64,7 @@ func (room *RoomData) GetCurrentUser() int {
 	return room.CurrentUser
 }
 
-func (room *RoomData) GetRoomId() int {
+func (room *RoomData) GetRoomId() int64 {
 	return room.id
 }
 
@@ -78,7 +77,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.CellScore,                                                //游戏底分
 		IniScore:          0,                                                             //room.IniSource,                                                //初始分数
-		ServerID:          strconv.Itoa(room.id),                                         //房间编号
+		ServerID:          room.id,                                                       //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	})
@@ -152,4 +151,3 @@ func (room *RoomData) OtherOperation(args []interface{}) {
 func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }
-
