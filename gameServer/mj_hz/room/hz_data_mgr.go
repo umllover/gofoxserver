@@ -8,7 +8,7 @@ import (
 	"mj/gameServer/user"
 )
 
-func NewHZDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
+func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
 	d := new(hz_data)
 	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)
 	return d

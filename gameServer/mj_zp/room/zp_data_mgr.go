@@ -47,7 +47,7 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
+func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
 	r.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)

@@ -20,7 +20,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
+func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -38,7 +38,7 @@ func NewDataMgr(id, uid, configIdx int, name string, temp *base.GameServiceOptio
 type RoomData struct {
 	id         int
 	Name       string //房间名字
-	CreateUser int    //创建房间的人
+	CreateUser int64  //创建房间的人
 	MjBase     *Mj_base
 	ConfigIdx  int //配置索引
 
@@ -96,7 +96,7 @@ func (room *RoomData) GetCfg() *MJ_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
-func (room *RoomData) CanOperatorRoom(uid int) bool {
+func (room *RoomData) CanOperatorRoom(uid int64) bool {
 	if uid == room.CreateUser {
 		return true
 	}

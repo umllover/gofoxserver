@@ -21,24 +21,24 @@ func NewRoomTimerMgr(payCnt int, temp *base.GameServiceOption) *RoomTimerMgr {
 	r.TimeLimit = temp.TimeAfterBeginTime
 	r.TimeOutCard = temp.OutCardTime
 	r.TimeOperateCard = temp.OperateCardTime
-	r.KickOut = make(map[int]*timer.Timer)
+	r.KickOut = make(map[int64]*timer.Timer)
 	r.OfflineKickotTime = temp.TimeOffLineCount
 	r.TimeLimitNotBegin = temp.TimeNotBeginGame
 	return r
 }
 
 type RoomTimerMgr struct {
-	EndTime           *timer.Timer         //开局为加入的超时
-	ChaHuaTime        *timer.Timer         //插花超时
-	KickOut           map[int]*timer.Timer //即将被踢出的超时定时器
-	TimeLimit         int                  //一局玩多久
-	TimeLimitNotBegin int                  //创建房间后多久没开始
-	TimeOutCard       int                  //出牌时间
-	TimeOperateCard   int                  //操作时间
-	PlayCount         int                  //已玩局数
-	MaxPlayCnt        int                  //玩家主动设置的最大局数
-	CreateTime        int64                //创建时间
-	OfflineKickotTime int                  //离线超时时间
+	EndTime           *timer.Timer           //开局为加入的超时
+	ChaHuaTime        *timer.Timer           //插花超时
+	KickOut           map[int64]*timer.Timer //即将被踢出的超时定时器
+	TimeLimit         int                    //一局玩多久
+	TimeLimitNotBegin int                    //创建房间后多久没开始
+	TimeOutCard       int                    //出牌时间
+	TimeOperateCard   int                    //操作时间
+	PlayCount         int                    //已玩局数
+	MaxPlayCnt        int                    //玩家主动设置的最大局数
+	CreateTime        int64                  //创建时间
+	OfflineKickotTime int                    //离线超时时间
 }
 
 func (room *RoomTimerMgr) GetTimeOperateCard() int {
@@ -93,7 +93,7 @@ func (room *RoomTimerMgr) StartPlayingTimer(Skeleton *module.Skeleton, cb func()
 }
 
 //玩家离线超时
-func (room *RoomTimerMgr) StartKickoutTimer(Skeleton *module.Skeleton, uid int, cb func()) {
+func (room *RoomTimerMgr) StartKickoutTimer(Skeleton *module.Skeleton, uid int64, cb func()) {
 	if room.OfflineKickotTime != 0 {
 		log.Debug("StartKickoutTimer : %d ", room.OfflineKickotTime)
 		room.KickOut[uid] = Skeleton.AfterFunc(time.Duration(room.OfflineKickotTime)*time.Second, cb)
@@ -103,7 +103,7 @@ func (room *RoomTimerMgr) StartKickoutTimer(Skeleton *module.Skeleton, uid int, 
 }
 
 //关闭离线超时
-func (room *RoomTimerMgr) StopOfflineTimer(uid int) {
+func (room *RoomTimerMgr) StopOfflineTimer(uid int64) {
 	timer, ok := room.KickOut[uid]
 	if ok {
 		timer.Stop()

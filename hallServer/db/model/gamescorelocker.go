@@ -17,7 +17,7 @@ import (
 
 // +gen *
 type Gamescorelocker struct {
-	UserID       int        `db:"UserID" json:"UserID"`             // 用户索引
+	UserID       int64      `db:"UserID" json:"UserID"`             // 用户索引
 	KindID       int        `db:"KindID" json:"KindID"`             // 房间索引
 	ServerID     int        `db:"ServerID" json:"ServerID"`         // 游戏标识
 	HallNodeID   int        `db:"HallNodeID" json:"HallNodeID"`     //
@@ -34,7 +34,7 @@ var GamescorelockerOp = &gamescorelockerOp{}
 var DefaultGamescorelocker = &Gamescorelocker{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *gamescorelockerOp) Get(UserID int) (*Gamescorelocker, bool) {
+func (op *gamescorelockerOp) Get(UserID int64) (*Gamescorelocker, bool) {
 	obj := &Gamescorelocker{}
 	sql := "select * from gamescorelocker where UserID=? "
 	err := db.DB.Get(obj, sql,
@@ -162,12 +162,12 @@ func (op *gamescorelockerOp) UpdateTx(ext sqlx.Ext, m *Gamescorelocker) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *gamescorelockerOp) UpdateWithMap(UserID int, m map[string]interface{}) error {
+func (op *gamescorelockerOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *gamescorelockerOp) UpdateWithMapTx(ext sqlx.Ext, UserID int, m map[string]interface{}) error {
+func (op *gamescorelockerOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
 
 	sql := `update gamescorelocker set %s where 1=1 and UserID=? ;`
 
@@ -193,12 +193,12 @@ func (i *Gamescorelocker) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *gamescorelockerOp) Delete(UserID int) error {
+func (op *gamescorelockerOp) Delete(UserID int64) error {
 	return op.DeleteTx(db.DB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *gamescorelockerOp) DeleteTx(ext sqlx.Ext, UserID int) error {
+func (op *gamescorelockerOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
 	sql := `delete from gamescorelocker where 1=1
         and UserID=?
         `

@@ -9,7 +9,7 @@ var (
 	ChanRPC = internal.ChanRPC
 )
 
-func SendMsgToThisNodeUser(uid int, funcName string, data interface{}) {
+func SendMsgToThisNodeUser(uid int64, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)
 }
 

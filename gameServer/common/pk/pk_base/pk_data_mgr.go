@@ -9,7 +9,7 @@ import (
 	"mj/gameServer/user"
 )
 
-func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -27,7 +27,7 @@ func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOptio
 type RoomData struct {
 	id         int
 	Name       string //房间名字
-	CreateUser int    //创建房间的人
+	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
 	ConfigIdx  int //配置文件索引
 
@@ -54,7 +54,7 @@ func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
-func (room *RoomData) CanOperatorRoom(uid int) bool {
+func (room *RoomData) CanOperatorRoom(uid int64) bool {
 	if uid == room.CreateUser {
 		return true
 	}

@@ -24,18 +24,18 @@ type User struct {
 	Times     map[int]int64 //永久次数
 	DayTimes  map[int]int64 //每日次数
 	WeekTimes map[int]int64 //周次数
-	Id        int
+	Id        int64
 	sync.RWMutex
 }
 
-func NewUser(UserId int) *User {
+func NewUser(UserId int64) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
 	u.Records = make(map[int]*model.TokenRecord)
 	return u
 }
 
-func (u *User) GetUid() int {
+func (u *User) GetUid() int64 {
 	return u.Id
 }
 

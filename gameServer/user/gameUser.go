@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	gate.Agent
-	Id           int    //唯一id
+	Id           int64    //唯一id
 	NickName     string //名字
 	RoomId       int    // roomId 就是tableid
 	Status       int    //当前游戏状态
@@ -40,11 +40,11 @@ type User struct {
 	mu           sync.RWMutex
 }
 
-func NewUser(UserId int) *User {
+func NewUser(UserId int64) *User {
 	return &User{Id: UserId}
 }
 
-func (u *User) GetUid() int {
+func (u *User) GetUid() int64 {
 	return u.Id
 }
 

@@ -16,9 +16,9 @@ import (
 
 // +gen *
 type UserSpread struct {
-	UserId    int `db:"user_id" json:"user_id"`       //
-	SpreadUid int `db:"spread_uid" json:"spread_uid"` // 被我领取的推广人id
-	Status    int `db:"status" json:"status"`         // 是否领取了这个人的奖励
+	UserId    int64 `db:"user_id" json:"user_id"`       //
+	SpreadUid int   `db:"spread_uid" json:"spread_uid"` // 被我领取的推广人id
+	Status    int   `db:"status" json:"status"`         // 是否领取了这个人的奖励
 }
 
 type userSpreadOp struct{}
@@ -27,7 +27,7 @@ var UserSpreadOp = &userSpreadOp{}
 var DefaultUserSpread = &UserSpread{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userSpreadOp) Get(user_id int, spread_uid int) (*UserSpread, bool) {
+func (op *userSpreadOp) Get(user_id int64, spread_uid int) (*UserSpread, bool) {
 	obj := &UserSpread{}
 	sql := "select * from user_spread where user_id=? and spread_uid=? "
 	err := db.DB.Get(obj, sql,
@@ -144,12 +144,12 @@ func (op *userSpreadOp) UpdateTx(ext sqlx.Ext, m *UserSpread) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userSpreadOp) UpdateWithMap(user_id int, spread_uid int, m map[string]interface{}) error {
+func (op *userSpreadOp) UpdateWithMap(user_id int64, spread_uid int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, user_id, spread_uid, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userSpreadOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, spread_uid int, m map[string]interface{}) error {
+func (op *userSpreadOp) UpdateWithMapTx(ext sqlx.Ext, user_id int64, spread_uid int, m map[string]interface{}) error {
 
 	sql := `update user_spread set %s where 1=1 and user_id=? and spread_uid=? ;`
 
@@ -175,12 +175,12 @@ func (i *UserSpread) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userSpreadOp) Delete(user_id int, spread_uid int) error {
+func (op *userSpreadOp) Delete(user_id int64, spread_uid int) error {
 	return op.DeleteTx(db.DB, user_id, spread_uid)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userSpreadOp) DeleteTx(ext sqlx.Ext, user_id int, spread_uid int) error {
+func (op *userSpreadOp) DeleteTx(ext sqlx.Ext, user_id int64, spread_uid int) error {
 	sql := `delete from user_spread where 1=1
         and user_id=?
         and spread_uid=?

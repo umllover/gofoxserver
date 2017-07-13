@@ -13,7 +13,7 @@ import (
 
 var (
 	skeleton  = base.NewSkeleton()
-	Users     = make(map[int]*user.User) //key is userId
+	Users     = make(map[int64]*user.User) //key is userId
 	UsersLock sync.RWMutex
 )
 
@@ -40,21 +40,21 @@ func (m *MgrModule) ForEachUser(f func(u *user.User)) {
 	}
 }
 
-func GetUser(uid int) *user.User {
+func GetUser(uid int64) *user.User {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	u, _ := Users[uid]
 	return u
 }
 
-func HasUser(uid int) bool {
+func HasUser(uid int64) bool {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	_, ok := Users[uid]
 	return ok
 }
 
-func AddUser(uid int, u *user.User) {
+func AddUser(uid int64, u *user.User) {
 	log.Debug("AddUser: %d ===", uid)
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
@@ -62,7 +62,7 @@ func AddUser(uid int, u *user.User) {
 	Users[uid] = u
 }
 
-func DelUser(uid int) {
+func DelUser(uid int64) {
 	log.Debug("deluser %d ===", uid)
 	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
