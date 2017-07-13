@@ -476,6 +476,8 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int)  {
 		CardData:cardData,
 		CardType:cardType,
 	}
+	log.Debug("open card info %v", openCardInfo)
+
 	r.OpenCardMap[u] = openCardInfo
 
 	// 广播亮牌
