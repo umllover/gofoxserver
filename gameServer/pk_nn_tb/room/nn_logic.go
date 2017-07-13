@@ -444,6 +444,8 @@ func (lg *nntb_logic) CompareCard(firstData []int, nextData []int)  bool {
 
 	// 先比牌型
 	if firstType!= nextType {
+		log.Debug("compare card type not same first type : %d, %v, next type %d, %v",
+			firstType, firstData, nextType, nextData)
 		return firstType>nextType
 	} else {
 		// 牌型一样比点数跟花色 最多只需比到第三张的花色（共同用到两张公共牌）；

@@ -30,7 +30,7 @@
 
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
-    "ValidKind":"391,389,39",
+    "ValidKind":"391,389,39,28",
     "PrivatePort":7002,
     "NodeId": 37
 }
