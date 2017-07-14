@@ -18,8 +18,6 @@ import (
 
 	"mj/common/msg/mj_zp_msg"
 
-	"mj/gameServer/RoomMgr"
-
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -55,11 +53,11 @@ func TestOutCard(t *testing.T) {
 	data.OperateCard = append(data.OperateCard, 5)
 	data.OperateCode = 64
 
-	RoomMgr.AddRoom(u1.RoomId)
-	r := RoomMgr.GetRoom(u1.RoomId)
-	if r != nil {
-		r.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
-	}
+	//RoomMgr.AddRoom(int64(u1.RoomId))
+	//r := RoomMgr.GetRoom(u1.RoomId)
+	//if r != nil {
+	//	r.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
+	//}
 	//C2G_ZPMJ_OperateCard
 	Wg.Wait()
 }

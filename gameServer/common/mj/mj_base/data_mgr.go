@@ -1010,30 +1010,31 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 
 func (room *RoomData) CheckZiMo() {
 	//听牌判断
-	Count := 0
-	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
-	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-	if room.Ting[room.BankerUser] == false {
-		Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
-		HuData.OutCardCount = Count
-		if Count > 0 {
-			room.UserAction[room.BankerUser] |= WIK_LISTEN
-			for i := 0; i < room.GetCfg().MaxCount; i++ {
-				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
-						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j]))
-					}
-				} else {
-					break
-				}
-			}
-			OwnerUser.WriteMsg(HuData)
-		}
-	}
+	//Count := 0
+	//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+	//HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	//if room.Ting[room.BankerUser] == false {
+	//	Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+	//	HuData.OutCardCount = Count
+	//	if Count > 0 {
+	//		room.UserAction[room.BankerUser] |= WIK_LISTEN
+	//		for i := 0; i < room.GetCfg().MaxCount; i++ {
+	//			if HuData.HuCardCount[i] > 0 {
+	//				for j := 0; j < HuData.HuCardCount[i]; j++ {
+	//					HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j]))
+	//				}
+	//			} else {
+	//				break
+	//			}
+	//		}
+	//		OwnerUser.WriteMsg(HuData)
+	//	}
+	//}
 }
 
+//向客户端发牌
 func (room *RoomData) SendGameStart() {
-
+	log.Debug("向客户端发牌1：%v", room.CardIndex) //todo,向客户端发牌
 	//构造变量
 	GameStart := &mj_zp_msg.G2C_ZPMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
@@ -1047,6 +1048,7 @@ func (room *RoomData) SendGameStart() {
 		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
 		u.WriteMsg(GameStart)
 	})
+	log.Debug("向客户端发牌2：%v", room.CardIndex)
 }
 
 //正常结束房间

@@ -430,3 +430,16 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 
 	return cbOutCount
 }
+
+//扑克转换
+func (lg *ZP_Logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
+	//转换扑克
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+		if cbCardIndex[i] != 0 {
+			for j := 0; j < cbCardIndex[i]; j++ { //牌展开
+				cbCardData = append(cbCardData, lg.SwitchToCard(i))
+			}
+		}
+	}
+	return cbCardData
+}
