@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mj/common/consul"
 	"mj/common/cost"
+	"mj/common/msg"
 	"mj/hallServer/conf"
 	"mj/hallServer/user"
 	"strconv"
@@ -27,10 +28,9 @@ func handleRpc(id interface{}, f interface{}) {
 func init() {
 	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
 	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
-	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
+	handleRpc("S2S_NotifyOtherNodeLogin", S2S_NotifyOtherNodeLogin)
+	handleRpc("S2S_NotifyOtherNodelogout", S2S_NotifyOtherNodelogout)
 
-	handleRpc("SendMsgToUser", GoMsgToUser)
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
 	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
 	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
@@ -43,55 +43,39 @@ func init() {
 
 //玩家在本服节点登录
 func SelfNodeAddPlayer(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
-	cluster.Broadcast(cost.HallPrefix, "NotifyOtherNodeLogin", uid, conf.ServerName())
+	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodeLogin{
+		Uid:        uid,
+		ServerName: conf.ServerName(),
+	})
 }
 
 //本服玩家登出
 func SelfNodeDelPlayer(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	delete(Users, uid)
-	cluster.Broadcast(cost.HallPrefix, "NotifyOtherNodelogout", uid)
+	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodelogout{
+		Uid: uid,
+	})
 }
 
 //玩家在别的节点登录了
-func NotifyOtherNodeLogin(args []interface{}) {
-	uid := args[0].(int)
+func S2S_NotifyOtherNodeLogin(args []interface{}) {
+	uid := args[0].(int64)
 	ServerName := args[1].(string)
 	OtherUsers[uid] = ServerName
 }
 
 //玩家在别的节点登出了
-func NotifyOtherNodelogout(args []interface{}) {
-	uid := args[0].(int)
+func S2S_NotifyOtherNodelogout(args []interface{}) {
+	uid := args[0].(int64)
 	delete(OtherUsers, uid)
 }
 
-//发消息给别的玩家
-func GoMsgToUser(args []interface{}) {
-	uid := args[0].(int)
-	FuncName := args[1].(string)
-	ch, ok := Users[uid]
-	if ok {
-		ch.Go(FuncName, args[2:]...)
-		return
-	}
-
-	ServerName, ok1 := OtherUsers[uid]
-	if ServerName == conf.ServerName() {
-		log.Error("self server user not login .... ")
-		return
-	}
-
-	if ok1 {
-		cluster.Go(ServerName, "SendMsgToUser", args...)
-	}
-}
-
 func SendMsgToSelfNotdeUser(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
@@ -110,7 +94,7 @@ func HanldeFromGameMsg(args []interface{}) {
 }
 
 func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	log.Debug("at GetPlayerInfo uid:%d", uid)
 	ch, chok := Users[uid]
 	if !chok {

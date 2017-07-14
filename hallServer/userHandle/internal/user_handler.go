@@ -191,7 +191,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 		retcode = InsertAccountError
 		return
 	}
-	accInfo.UserID = int(lastid)
+	accInfo.UserID = int64(lastid)
 
 	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
@@ -316,8 +316,8 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.CreateTime = time.Now().Unix()
 	roomInfo.CreateUserId = player.Id
 	roomInfo.IsPublic = recvMsg.Public
-	roomInfo.MachPlayer = make(map[int]struct{})
-	roomInfo.Players = make(map[int]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int64]struct{})
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
 	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
@@ -510,7 +510,7 @@ func loadUser(u *user.User) bool {
 	return true
 }
 
-func createUser(UserID int, accountData *model.Accountsinfo) (*user.User, bool) {
+func createUser(UserID int64, accountData *model.Accountsinfo) (*user.User, bool) {
 	U := user.NewUser(UserID)
 	U.Accountsmember = &model.Accountsmember{
 		UserID: UserID,

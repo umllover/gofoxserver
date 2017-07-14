@@ -13,8 +13,8 @@ import (
 var (
 	skeleton   = base.NewSkeleton()
 	ChanRPC    = skeleton.ChanRPCServer
-	Users      = make(map[int]*chanrpc.Server) //本服玩家
-	OtherUsers = make(map[int]string)          //其他服登录的玩家  key is uid， values is NodeId
+	Users      = make(map[int64]*chanrpc.Server) //本服玩家
+	OtherUsers = make(map[int64]string)          //其他服登录的玩家  key is uid， values is NodeId
 )
 
 type Module struct {

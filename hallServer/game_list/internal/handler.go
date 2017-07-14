@@ -10,10 +10,11 @@ import (
 	"mj/hallServer/db/model"
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
-	"reflect"
 	"strconv"
 
 	"time"
+
+	rgst "mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -21,6 +22,7 @@ import (
 )
 
 var (
+	reg          = rgst.NewRegister(ChanRPC)
 	gameLists    = make(map[int]*ServerInfo)   //k1 NodeID,
 	roomList     = make(map[int]*msg.RoomInfo) // key1 is roomId
 	roomKindList = make(map[int]map[int]int)   //key1 is kind Id key2 incId
@@ -33,38 +35,23 @@ type ServerInfo struct {
 	list  map[int]*msg.TagGameServer //key is KindID
 }
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
-	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
-	handlerC2S(&msg.C2L_GetRoomList{}, GetRoomList)
+	reg.RegisterC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
+	reg.RegisterC2S(&msg.C2L_GetRoomList{}, GetRoomList)
 
-	handleRpc("sendGameList", sendGameList)
-	handleRpc("updateGameInfo", updateGameInfo)
-	handleRpc("delGameList", delGameList)
-	handleRpc("CloseServerAgent", CloseServerAgent)
+	reg.RegisterRpc("sendGameList", sendGameList)
+	reg.RegisterRpc("updateGameInfo", updateGameInfo)
+	reg.RegisterRpc("delGameList", delGameList)
+	reg.RegisterRpc("CloseServerAgent", CloseServerAgent)
+	reg.RegisterRpc("addyNewRoom", addyNewRoom)
+	reg.RegisterRpc("notifyDelRoom", notifyDelRoom)
+	reg.RegisterRpc("NewServerAgent", NewServerAgent)
+	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
+	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
+	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
 
-	handleRpc("notifyNewRoom", notifyNewRoom)
-	handleRpc("addyNewRoom", addyNewRoom)
-	handleRpc("notifyDelRoom", notifyDelRoom)
-	handleRpc("updateRoomInfo", updateRoom)
-
-	handleRpc("NewServerAgent", NewServerAgent)
-	handleRpc("FaildServerAgent", FaildServerAgent)
-
-	handleRpc("SendPlayerBrief", sendPlayerBrief)
-
-	handleRpc("GetMatchRooms", getMatchRooms)
+	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
+	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
 	center.SetGameListRpc(ChanRPC)
 }
@@ -143,8 +130,8 @@ func notifyNewRoom(args []interface{}) {
 	}
 
 	roomInfo := args[0].(*msg.RoomInfo)
-	roomInfo.Players = make(map[int]*msg.PlayerBrief)
-	roomInfo.MachPlayer = make(map[int]struct{})
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int64]struct{})
 	addRoom(roomInfo)
 }
 
@@ -155,14 +142,14 @@ func addyNewRoom(args []interface{}) {
 	}
 
 	roomInfo := args[0].(*msg.RoomInfo)
-	roomInfo.Players = make(map[int]*msg.PlayerBrief)
-	roomInfo.MachPlayer = make(map[int]struct{})
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int64]struct{})
 	addRoom(roomInfo)
-	center.BroadcastToHall("notifyNewRoom", roomInfo)
+	center.BroadcastToHall(roomInfo)
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
-	recvMsg.Players = make(map[int]*msg.PlayerBrief)
+	recvMsg.Players = make(map[int64]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -216,7 +203,7 @@ func updateRoom(args []interface{}) {
 		room.CurCnt = len(room.Players)
 		center.SendToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
-		id := info.Data["UID"].(int)
+		id := info.Data["UID"].(int64)
 		status := info.Data["Status"].(int)
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
@@ -244,7 +231,7 @@ func NewServerAgent(args []interface{}) {
 			return
 		}
 		ltimes++
-		data, err := cluster.TimeOutCall1(serverName, "GetKindList", 5)
+		data, err := cluster.TimeOutCall1(serverName, 5, &msg.S2S_GetKindList{})
 		if err == nil {
 			log.Debug("data === %v", data)
 			ret := data.([]*msg.TagGameServer)
@@ -258,7 +245,7 @@ func NewServerAgent(args []interface{}) {
 				log.Debug("add sverInfo %v", v)
 			}
 		} else {
-			log.Debug("GetKindList error:%s", err.Error())
+			log.Debug("S2S_GetKindList error:%s", err.Error())
 			skeleton.AfterFunc(3*time.Second, HandleListData)
 		}
 	}
@@ -270,7 +257,7 @@ func NewServerAgent(args []interface{}) {
 			return
 		}
 		rtimes++
-		data, err := cluster.TimeOutCall1(serverName, "GetRooms", 5)
+		data, err := cluster.TimeOutCall1(serverName, 5, &msg.S2S_GetRooms{})
 		if err == nil {
 			log.Debug("data ======= %v", data)
 			ret := data.([]*msg.RoomInfo)
@@ -284,7 +271,7 @@ func NewServerAgent(args []interface{}) {
 				log.Debug("add room %v", v)
 			}
 		} else {
-			log.Debug("GetRooms error:%s", err.Error())
+			log.Debug("S2S_GetRooms error:%s", err.Error())
 			skeleton.AfterFunc(3*time.Second, HandlerRoomData)
 		}
 	}

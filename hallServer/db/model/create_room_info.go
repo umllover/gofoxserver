@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"mj/hallServer/db"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
+
+	"time"
 )
 
 //This file is generate by scripts,don't edit it
@@ -17,7 +18,7 @@ import (
 
 // +gen *
 type CreateRoomInfo struct {
-	UserId       int        `db:"user_id" json:"user_id"`               // 用户索引
+	UserId       int64      `db:"user_id" json:"user_id"`               // 用户索引
 	RoomName     string     `db:"room_name" json:"room_name"`           //
 	KindId       int        `db:"kind_id" json:"kind_id"`               // 房间索引
 	ServiceId    int        `db:"service_id" json:"service_id"`         // 游戏标识

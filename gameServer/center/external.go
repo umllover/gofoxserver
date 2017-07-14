@@ -18,33 +18,28 @@ func SendToThisNodeUser(uid int, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)
 }
 
-//发送消息给其他gameSvr服务器上的玩家
-func SendToUser(uid int, funcName string, data interface{}) {
-	ChanRPC.Go("SendMsgToUser", uid, funcName, data)
-}
-
 //发送消息给游戏服
-func SendMsgToGame(svrid int, funcName string, data ...interface{}) {
-	cluster.Go(GetGameSvrName(svrid), funcName, data...)
+func SendMsgToGame(svrid int, data interface{}) {
+	cluster.Go(GetGameSvrName(svrid), data)
 }
 
-func BroadcastToGame(funcName string, data ...interface{}) {
-	cluster.Broadcast(GamePrefix, funcName, data...)
+func BroadcastToGame(data interface{}) {
+	cluster.Broadcast(GamePrefix, data)
 }
 
-func AsynCallGame(svrid int, chanAsynRet chan *chanrpc.RetInfo, funcName string, data ...interface{}) {
-	cluster.AsynCall(GetGameSvrName(svrid), chanAsynRet, funcName, data...)
+func AsynCallGame(svrid int, chanAsynRet chan *chanrpc.RetInfo, data interface{}, cb interface{}) {
+	cluster.AsynCall(GetGameSvrName(svrid), chanAsynRet, data, cb)
 }
 
 //发消息给大厅
-func SendMsgToHall(svrid int, funcName string, data ...interface{}) {
-	cluster.Go(GetHallSvrName(svrid), funcName, data...)
+func SendMsgToHall(svrid int, data interface{}) {
+	cluster.Go(GetHallSvrName(svrid), data)
 }
 
-func BroadcastToHall(funcName string, data ...interface{}) {
-	cluster.Broadcast(HallPrefix, funcName, data...)
+func BroadcastToHall(data interface{}) {
+	cluster.Broadcast(HallPrefix, data)
 }
 
-func AsynCallHall(svrid int, chanAsynRet chan *chanrpc.RetInfo, funcName string, data ...interface{}) {
-	cluster.AsynCall(GetHallSvrName(svrid), chanAsynRet, funcName, data...)
+func AsynCallHall(svrid int, chanAsynRet chan *chanrpc.RetInfo, data interface{}, cb interface{}) {
+	cluster.AsynCall(GetHallSvrName(svrid), chanAsynRet, data, cb)
 }

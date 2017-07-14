@@ -1,13 +1,13 @@
 package RoomMgr
 
 import (
-	. "mj/common/cost"
 	"mj/common/msg"
 	"sync"
 
+	"mj/hallServer/center"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 type IRoom interface {
@@ -41,14 +41,14 @@ func GetRoom(id int) IRoom {
 }
 
 func DelRoom(id int) {
-	cluster.Broadcast(HallPrefix, "notifyDelRoom", id)
+	center.BroadcastToHall(msg.S2S_notifyDelRoom{RoomID: id})
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	delete(Rooms, id)
 }
 
 func UpdateRoomToHall(data interface{}) {
-	cluster.Broadcast(HallPrefix, "updateRoomInfo", data)
+	center.BroadcastToHall(data)
 }
 
 // 此函数有风险， 请注意 调用函数内不用mgrLock 锁， 此函数消耗也大， 请勿随意调用

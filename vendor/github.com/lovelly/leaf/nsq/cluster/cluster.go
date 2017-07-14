@@ -44,28 +44,28 @@ func RemoveClient(serverName string) {
 	}
 }
 
-func Broadcast(serverName string, id interface{}, args interface{}) {
+func Broadcast(serverName string, args interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
 		return
 	}
-	msg := &S2S_NsqMsg{MsgID: id, CallType: callBroadcast, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{CallType: callBroadcast, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 }
 
-func Go(serverName string, id interface{}, args ...interface{}) {
+func Go(serverName string, args ...interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
 		return
 	}
-	msg := &S2S_NsqMsg{MsgID: id, ReqType: NsqMsgTypeReq, CallType: callNotForResult, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{ReqType: NsqMsgTypeReq, CallType: callNotForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 }
 
 //timeOutCall 会丢弃执行结果
-func TimeOutCall1(serverName string, id interface{}, t time.Duration, args ...interface{}) (interface{}, error) {
+func TimeOutCall1(serverName string, t time.Duration, args interface{}) (interface{}, error) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -75,7 +75,7 @@ func TimeOutCall1(serverName string, id interface{}, t time.Duration, args ...in
 
 	request := &RequestInfo{chanRet: chanSyncRet}
 	requestID := registerRequest(request)
-	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, MsgID: id, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 	select {
 	case ri := <-chanSyncRet:
@@ -84,11 +84,11 @@ func TimeOutCall1(serverName string, id interface{}, t time.Duration, args ...in
 	case <-time.After(time.Second * t):
 		log.Debug("3333333333333333333")
 		popRequest(requestID)
-		return nil, errors.New(fmt.Sprintf("time out at TimeOutCall1 function: %v", id))
+		return nil, errors.New(fmt.Sprintf("time out at TimeOutCall1 msg: %v", args))
 	}
 }
 
-func Call0(serverName string, id interface{}, args interface{}) error {
+func Call0(serverName string, args interface{}) error {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -98,14 +98,14 @@ func Call0(serverName string, id interface{}, args interface{}) error {
 
 	request := &RequestInfo{chanRet: chanSyncRet}
 	requestID := registerRequest(request)
-	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, MsgID: id, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 
 	ri := <-chanSyncRet
 	return ri.Err
 }
 
-func Call1(serverName string, id interface{}, args interface{}) (interface{}, error) {
+func Call1(serverName string, args interface{}) (interface{}, error) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -115,14 +115,14 @@ func Call1(serverName string, id interface{}, args interface{}) (interface{}, er
 
 	request := &RequestInfo{chanRet: chanSyncRet}
 	requestID := registerRequest(request)
-	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, MsgID: id, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 
 	ri := <-chanSyncRet
 	return ri.Ret, ri.Err
 }
 
-func CallN(serverName string, id interface{}, args interface{}) ([]interface{}, error) {
+func CallN(serverName string, args interface{}) ([]interface{}, error) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -132,14 +132,14 @@ func CallN(serverName string, id interface{}, args interface{}) ([]interface{}, 
 
 	request := &RequestInfo{chanRet: chanSyncRet}
 	requestID := registerRequest(request)
-	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, MsgID: id, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 
 	ri := <-chanSyncRet
 	return chanrpc.Assert(ri.Ret), ri.Err
 }
 
-func AsynCall(serverName string, chanAsynRet chan *chanrpc.RetInfo, id interface{}, args interface{}, cb interface{}) {
+func AsynCall(serverName string, chanAsynRet chan *chanrpc.RetInfo, args interface{}, cb interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("AsynCall Marshal error:%s", err.Error())
@@ -155,11 +155,11 @@ func AsynCall(serverName string, chanAsynRet chan *chanrpc.RetInfo, id interface
 	case func([]interface{}, error):
 		callType = callForResult
 	default:
-		panic(fmt.Sprintf("%v asyn call definition of callback function is invalid", id))
+		panic(fmt.Sprintf("%v asyn call definition of callback function is invalid", args))
 	}
 
 	request := &RequestInfo{cb: cb, chanRet: chanAsynRet}
 	requestID := registerRequest(request)
-	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, MsgID: id, CallType: callType, SrcServerName: SelfName, DstServerName: serverName, Args: string(bstr[0])}
+	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callType, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 }

@@ -10,8 +10,8 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -31,7 +31,7 @@ type RoomUserMgr struct {
 	Kind        int //模板表第一类型
 	ServerId    int //模板表第二类型 注意 非房间id
 	PayType     int //支付类型
-	Public      bool
+	Public      int
 	EendTime    int64              //结束时间
 	UserCnt     int                //可以容纳的用户数量
 	PlayerCount int                //当前用户人数
@@ -76,7 +76,7 @@ func (r *RoomUserMgr) GetMaxPlayerCnt() int {
 	return r.UserCnt
 }
 
-func (r *RoomUserMgr) IsInRoom(userId int) bool {
+func (r *RoomUserMgr) IsInRoom(userId int64) bool {
 	for _, u := range r.Users {
 		if u == nil {
 			continue
@@ -95,7 +95,7 @@ func (r *RoomUserMgr) GetUserByChairId(chairId int) *user.User {
 	return r.Users[chairId]
 }
 
-func (r *RoomUserMgr) GetUserByUid(userId int) (*user.User, int) {
+func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 	for i, u := range r.Users {
 		if u == nil {
 			continue
@@ -223,7 +223,7 @@ func (r *RoomUserMgr) SendOnlookers(data interface{}) {
 	}
 }
 
-func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int, data interface{}) {
+func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int64, data interface{}) {
 	for _, u := range r.Users {
 		log.Debug("SendMsgAllNoSelf %v ", (u != nil && u.Id != selfid))
 		if u != nil && u.Id != selfid {

@@ -17,19 +17,18 @@ import (
 
 // +gen *
 type CreateRoomInfo struct {
-	UserId       int        `db:"user_id" json:"user_id"`         // 用户索引
-	RoomName     string     `db:"room_name" json:"room_name"`     //
-	KindId       int        `db:"kind_id" json:"kind_id"`         // 房间索引
-	ServiceId    int        `db:"service_id" json:"service_id"`   // 游戏标识
-	CreateTime   *time.Time `db:"create_time" json:"create_time"` // 录入日期
-	NodeId       int        `db:"node_id" json:"node_id"`         // 在哪个服务器上
-	RoomId       int        `db:"room_id" json:"room_id"`         // 房间id
-	Num          int        `db:"num" json:"num"`                 // 局数
-	Public       bool
-	Status       int    `db:"status" json:"status"`                 //
-	MaxPlayerCnt int    `db:"max_player_cnt" json:"max_player_cnt"` // 最多几个玩家进入
-	PayType      int    `db:"pay_type" json:"pay_type"`             // 支付方式 1是全服 2是AA
-	OtherInfo    string `db:"other_info" json:"other_info"`         // 其他配置 json格式
+	UserId       int64      `db:"user_id" json:"user_id"`               // 用户索引
+	RoomName     string     `db:"room_name" json:"room_name"`           //
+	KindId       int        `db:"kind_id" json:"kind_id"`               // 房间索引
+	ServiceId    int        `db:"service_id" json:"service_id"`         // 游戏标识
+	CreateTime   *time.Time `db:"create_time" json:"create_time"`       // 录入日期
+	NodeId       int        `db:"node_id" json:"node_id"`               // 在哪个服务器上
+	RoomId       int        `db:"room_id" json:"room_id"`               // 房间id
+	Num          int        `db:"num" json:"num"`                       // 局数
+	Status       int        `db:"status" json:"status"`                 //
+	MaxPlayerCnt int        `db:"max_player_cnt" json:"max_player_cnt"` // 最多几个玩家进入
+	PayType      int        `db:"pay_type" json:"pay_type"`             // 支付方式 1是全服 2是AA
+	OtherInfo    string     `db:"other_info" json:"other_info"`         // 其他配置 json格式
 }
 
 type createRoomInfoOp struct{}

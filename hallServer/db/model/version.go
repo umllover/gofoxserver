@@ -16,8 +16,8 @@ import (
 
 // +gen *
 type Version struct {
-	Ver int `db:"ver" json:"ver"` //
 	Id  int `db:"id" json:"id"`   //
+	Ver int `db:"ver" json:"ver"` //
 }
 
 type versionOp struct{}
@@ -95,10 +95,10 @@ func (op *versionOp) Insert(m *Version) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *versionOp) InsertTx(ext sqlx.Ext, m *Version) (int64, error) {
-	sql := "insert into version(ver,id) values(?,?)"
+	sql := "insert into version(id,ver) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.Ver,
 		m.Id,
+		m.Ver,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)

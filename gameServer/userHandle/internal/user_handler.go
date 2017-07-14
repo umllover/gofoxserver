@@ -434,7 +434,7 @@ func loadUser(u *client.User) bool {
 
 	log.Debug("get user data == %v", info)
 
-	u.Id = info["Id"].(int)
+	u.Id = info["Id"].(int64)
 	u.NickName = info["NickName"].(string)
 	u.Currency = info["Currency"].(int)
 	u.RoomCard = info["RoomCard"].(int)

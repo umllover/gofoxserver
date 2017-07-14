@@ -20,7 +20,7 @@ import (
 type MachPlayer struct {
 	ch      *chanrpc.Server
 	EndTime int64
-	Uid     int
+	Uid     int64
 }
 
 var (
@@ -45,10 +45,10 @@ func (m *MatchModule) OnDestroy() {
 
 }
 
-func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
+func (m *MatchModule) S2S_GetRooms() map[int][]*msg.RoomInfo {
 	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRooms", 5)
 	if err != nil {
-		//log.Error("at GetRooms error:%s", err.Error())
+		//log.Error("at S2S_GetRooms error:%s", err.Error())
 		return make(map[int][]*msg.RoomInfo)
 	}
 	return rooms.(map[int][]*msg.RoomInfo)
@@ -57,7 +57,7 @@ func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
 func (m *MatchModule) Match() {
 	now := time.Now().Unix()
 	defer m.Skeleton.AfterFunc(2*time.Second, m.Match)
-	for kind, v := range m.GetRooms() {
+	for kind, v := range m.S2S_GetRooms() {
 		li := MatchList[kind]
 		if li.Len() < 1 {
 			continue

@@ -7,6 +7,8 @@ import (
 	"mj/gameServer/conf"
 	"sync"
 
+	"reflect"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/network/json"
@@ -56,11 +58,10 @@ func SetRoute(id interface{}, server *chanrpc.Server) {
 type S2S_NsqMsg struct {
 	RequestID     int64
 	ReqType       int
-	MsgID         interface{}
 	CallType      uint8
 	SrcServerName string
 	DstServerName string
-	Args          string
+	Args          []byte
 	Err           string
 }
 
@@ -73,7 +74,21 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 		return
 	}
 
-	msgID := recvMsg.MsgID
+	msg, err := Processor.Unmarshal(recvMsg.Args)
+	if err != nil && recvMsg.CallType == callForResult {
+		sendMsg.Err = fmt.Sprintf("%v Unmarshal msg error:%s", conf.ServerName, err.Error())
+		Publish(sendMsg)
+		return
+	}
+
+	msgType := reflect.TypeOf(msg)
+	if (msgType == nil || msgType.Kind() != reflect.Ptr) && recvMsg.CallType == callForResult {
+		sendMsg.Err = fmt.Sprintf("json message pointer required")
+		Publish(sendMsg)
+		return
+	}
+
+	msgID := msgType.Elem().Name()
 	client, ok := routeMap[msgID]
 	if !ok {
 		err := fmt.Sprintf("%v msg is not set route", msgID)
@@ -91,7 +106,7 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 		sendMsgFunc := func(ret *chanrpc.RetInfo) {
 			data, err := Processor.Marshal(ret.Ret)
 			if err != nil {
-				sendMsg.Args = string(data[0])
+				sendMsg.Args = data[0]
 			} else {
 				log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
 			}
@@ -118,12 +133,17 @@ func handleResponseMsg(msg *S2S_NsqMsg) {
 		return
 	}
 
-	ret := &chanrpc.RetInfo{Ret: msg.Args, Cb: request.cb}
+	ret := &chanrpc.RetInfo{Cb: request.cb}
+	retMsg, err := Processor.Unmarshal(msg.Args)
+	if err != nil {
+		ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
+		return
+	}
+	ret.Ret = retMsg
 	if msg.Err != "" {
 		ret.Err = errors.New(msg.Err)
 	}
 	request.chanRet <- ret
-
 }
 
 func registerRequest(request *RequestInfo) int64 {

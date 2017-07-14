@@ -27,12 +27,12 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	//rpc
-	handleRpc("GetKindList", GetKindList)
-	handleRpc("GetRooms", GetRooms)
+	handleRpc("S2S_GetKindList", S2S_GetKindList)
+	handleRpc("S2S_GetRooms", S2S_GetRooms)
 }
 
 ///// rpc
-func GetKindList(args []interface{}) (interface{}, error) {
+func S2S_GetKindList(args []interface{}) (interface{}, error) {
 	ip, port := conf.GetServerAddrAndPort()
 
 	ret := make([]*msg.TagGameServer, 0)
@@ -62,15 +62,15 @@ func GetKindList(args []interface{}) (interface{}, error) {
 		}
 	}
 
-	//log.Debug("at GetKindList ==== %v", ret)
+	//log.Debug("at S2S_GetKindList ==== %v", ret)
 	return ret, nil
 }
 
-func GetRooms(args []interface{}) (interface{}, error) {
+func S2S_GetRooms(args []interface{}) (interface{}, error) {
 	rooms := make([]*msg.RoomInfo, 0)
 	RoomMgr.ForEachRoom(func(r RoomMgr.IRoom) {
 		rooms = append(rooms, r.GetBirefInfo())
 	})
-	log.Debug("at GetRooms ==== %v", rooms)
+	log.Debug("at S2S_GetRooms ==== %v", rooms)
 	return rooms, nil
 }

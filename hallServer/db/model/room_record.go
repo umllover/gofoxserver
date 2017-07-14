@@ -1,12 +1,13 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
+
+	"errors"
 )
 
 //This file is generate by scripts,don't edit it
@@ -18,7 +19,7 @@ import (
 type RoomRecord struct {
 	RoomId   int    `db:"room_id" json:"room_id"`     //
 	KindId   int    `db:"kind_id" json:"kind_id"`     //
-	UserId   int    `db:"user_id" json:"user_id"`     // 创建房间的玩家id
+	UserId   int64  `db:"user_id" json:"user_id"`     // 创建房间的玩家id
 	Status   int    `db:"status" json:"status"`       // 游戏状态
 	RoomName string `db:"room_name" json:"room_name"` // 房间名字
 	JionUser string `db:"jion_user" json:"jion_user"` // 进入的玩家id

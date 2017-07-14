@@ -121,7 +121,6 @@ func Publish(msg *S2S_NsqMsg) error {
 		return errors.New("server is close at Publish")
 	}
 	prolock.Unlock()
-
 	publishChan <- msg
 	return nil
 }
@@ -176,7 +175,7 @@ func NewNsqHandler() *nsqHandler {
 // HandleMessage - Handles an NSQ message.
 func (h *nsqHandler) HandleMessage(message *nsq.Message) error {
 	log.Debug("Cluster IN ==== ")
-	data, err := Processor.Unmarshal( message.Body)
+	data, err := Processor.Unmarshal(message.Body)
 	fmt.Println("2222222222222222222222", data)
 	if err != nil {
 		log.Error("handler msg error:%s", err.Error())
