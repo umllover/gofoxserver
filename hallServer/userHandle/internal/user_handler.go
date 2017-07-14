@@ -8,6 +8,7 @@ import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
+	"mj/hallServer/db/model/stats"
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
@@ -377,10 +378,17 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
 		monrey = feeTemp.TableFee / roomInfo.MaxCnt
+		activity, suc := stats.ActivityOp.Get("roomcard")
+		nosub := false
+		if suc == true && time.Now().After(activity.ActivityBegin) && time.Now().Before(activity.ActivityEnd) {
+			nosub = true
+		}
 
-		if !u.SubCurrency(monrey) {
-			retcode = NotEnoughFee
-			return
+		if !nosub {
+			if !u.SubCurrency(monrey) {
+				retcode = NotEnoughFee
+				return
+			}
 		}
 		record := &model.TokenRecord{}
 		record.UserId = u.Id
@@ -681,6 +689,7 @@ func (m *UserModule) leaveRoom(args []interface{}) {
 }
 
 func (m *UserModule) joinRoom(args []interface{}) {
+
 	room := args[0].(*msg.RoomInfo)
 	u := m.a.UserData().(*user.User)
 	log.Debug("at hall server joinRoom uid:%v", u.Id)

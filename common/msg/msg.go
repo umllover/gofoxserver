@@ -34,6 +34,7 @@ func init() {
 	Processor.Register(&L2C_ActivityInfo{})
 	Processor.Register(&C2L_SetElect{})
 	Processor.Register(&L2C_SetElectResult{})
+	Processor.Register(&L2C_RspTradeShopInfo{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})

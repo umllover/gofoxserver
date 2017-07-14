@@ -90,6 +90,16 @@ type C2L_SetElect struct {
 	ElectUid int //推荐人id
 }
 
+//客户端请求你商店信息
+type C2L_ReqShopInfo struct {
+	UserId int
+}
+
+type C2L_TradeGoods struct {
+	ShopID int
+	PType  int
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
@@ -210,4 +220,13 @@ type L2C_DrawSahreAwardResult struct {
 //设置推荐人结果
 type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
+}
+
+//会给客户端的消息
+type L2C_RspShopInfo struct {
+	Items []*ShopItem
+}
+
+type L2C_RspTradeShopInfo struct {
+	Items []*TradeShopItem
 }

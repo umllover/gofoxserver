@@ -14,6 +14,7 @@ import (
 	"mj/hallServer/gate"
 	"mj/hallServer/http_service"
 	"mj/hallServer/race_msg"
+	"mj/hallServer/shop"
 	"mj/hallServer/userHandle"
 	"os"
 
@@ -64,6 +65,7 @@ func main() {
 		race_msg.Module,
 		match_room.Module,
 		times_mgr.Module,
+		shop.Module,
 	)
 }
 

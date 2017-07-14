@@ -158,4 +158,6 @@ func (u *User) DelGameLockInfo() {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
 }
+func (u *User) SetVip() {
 
+}
