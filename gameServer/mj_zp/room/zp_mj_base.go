@@ -195,9 +195,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
-
-	//清除操作定时
-	room.DataMgr.StopOperateCardTimer(u)
 }
 
 //抓花
