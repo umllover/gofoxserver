@@ -448,20 +448,20 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	//todo,测试手牌
-	var temp []int
-	temp = make([]int, 42)
-	temp[0] = 3
-	temp[1] = 3
-	temp[2] = 3
-	temp[3] = 3
-	temp[4] = 3
-	temp[5] = 1
-	temp[8] = 1
-	room.SendCardData = 0x05
-	room.CardIndex[0] = temp
-	GetCardWordArray(room.CardIndex[0])
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	////todo,测试手牌
+	//var temp []int
+	//temp = make([]int, 42)
+	//temp[0] = 3
+	//temp[1] = 3
+	//temp[2] = 3
+	//temp[3] = 3
+	//temp[4] = 3
+	//temp[5] = 1
+	//temp[8] = 1
+	//room.SendCardData = 0x05
+	//room.CardIndex[0] = temp
+	//GetCardWordArray(room.CardIndex[0])
+	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1672,30 +1672,31 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		gcr := &mj_base.TagGangCardResult{}
 		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
-		if room.Ting[wTargetUser] == false {
-			HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-			for k := 0; k < room.GetCfg().MaxCount; k++ {
-				HuData.HuCardData[k] = make([]int, 28)
-				HuData.HuCardRemainingCount[k] = make([]int, 28)
-			}
-
-			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
-			HuData.OutCardCount = cbCount
-			if cbCount > 0 {
-				room.UserAction[wTargetUser] |= WIK_LISTEN
-				for i := 0; i < room.GetCfg().MaxCount; i++ {
-					if HuData.HuCardCount[i] > 0 {
-						for j := 0; j < HuData.HuCardCount[i]; j++ {
-							HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j])
-						}
-					} else {
-						break
-					}
-				}
-				u := room.MjBase.UserMgr.GetUserByChairId(wTargetUser)
-				u.WriteMsg(HuData)
-			}
-		}
+		//听牌判断
+		//if room.Ting[wTargetUser] == false {
+		//	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+		//	for k := 0; k < room.GetCfg().MaxCount; k++ {
+		//		HuData.HuCardData[k] = make([]int, 28)
+		//		HuData.HuCardRemainingCount[k] = make([]int, 28)
+		//	}
+		//
+		//	cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+		//	HuData.OutCardCount = cbCount
+		//	if cbCount > 0 {
+		//		room.UserAction[wTargetUser] |= WIK_LISTEN
+		//		for i := 0; i < room.GetCfg().MaxCount; i++ {
+		//			if HuData.HuCardCount[i] > 0 {
+		//				for j := 0; j < HuData.HuCardCount[i]; j++ {
+		//					HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j])
+		//				}
+		//			} else {
+		//				break
+		//			}
+		//		}
+		//		u := room.MjBase.UserMgr.GetUserByChairId(wTargetUser)
+		//		u.WriteMsg(HuData)
+		//	}
+		//}
 		OperateResult.ActionMask |= room.UserAction[wTargetUser]
 	}
 
@@ -1794,32 +1795,32 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//听牌判断
-	HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-	for i := 0; i < room.GetCfg().MaxCount; i++ {
-		HuData.HuCardData[i] = make([]int, 28)
-		HuData.HuCardRemainingCount[i] = make([]int, 28)
-	}
-
-	if room.Ting[wCurrentUser] == false {
-		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
-		room.TingCnt[wCurrentUser] = int(cbCount)
-		HuData.OutCardCount = int(cbCount)
-		if cbCount > 0 {
-			room.UserAction[wCurrentUser] |= WIK_LISTEN
-
-			for i := 0; i < room.GetCfg().MaxCount; i++ {
-				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
-						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j]))
-					}
-				} else {
-					break
-				}
-			}
-
-			u.WriteMsg(HuData)
-		}
-	}
+	//HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	//for i := 0; i < room.GetCfg().MaxCount; i++ {
+	//	HuData.HuCardData[i] = make([]int, 28)
+	//	HuData.HuCardRemainingCount[i] = make([]int, 28)
+	//}
+	//
+	//if room.Ting[wCurrentUser] == false {
+	//	cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+	//	room.TingCnt[wCurrentUser] = int(cbCount)
+	//	HuData.OutCardCount = int(cbCount)
+	//	if cbCount > 0 {
+	//		room.UserAction[wCurrentUser] |= WIK_LISTEN
+	//
+	//		for i := 0; i < room.GetCfg().MaxCount; i++ {
+	//			if HuData.HuCardCount[i] > 0 {
+	//				for j := 0; j < HuData.HuCardCount[i]; j++ {
+	//					HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j]))
+	//				}
+	//			} else {
+	//				break
+	//			}
+	//		}
+	//
+	//		u.WriteMsg(HuData)
+	//	}
+	//}
 
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 	//构造数据
