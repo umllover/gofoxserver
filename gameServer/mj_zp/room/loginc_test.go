@@ -203,7 +203,7 @@ func init() {
 
 func newTestUser(uid int64) *user.User {
 	u := new(user.User)
-	u.Id = uid
+	u.Id = int64(uid)
 	u.RoomId = 1
 	if uid != 1 {
 		u.Status = US_READY

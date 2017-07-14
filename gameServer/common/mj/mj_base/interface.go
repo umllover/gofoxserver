@@ -30,7 +30,7 @@ type DataManager interface {
 	NormalEnd()                                                      //正常结束
 	DismissEnd()                                                     //解散结束
 	GetTrusteeOutCard(wChairID int) int                              //获取托管的牌
-	CanOperatorRoom(uid int64) bool                                    //能否操作房间
+	CanOperatorRoom(uid int64) bool                                  //能否操作房间
 	SendStatusReady(u *user.User)                                    //发送准备
 	GetChaHua(u *user.User, setCount int)                            //获取插花
 	OnUserReplaceCard(u *user.User, CardData int) bool               //替换牌
