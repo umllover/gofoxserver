@@ -3,6 +3,7 @@ package room
 import (
 	"encoding/json"
 	. "mj/common/cost"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
@@ -14,9 +15,9 @@ import (
 	"os"
 	"sync"
 	"testing"
-	"time"
 
 	"mj/common/msg/mj_zp_msg"
+	"time"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -40,11 +41,7 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestOutCard(t *testing.T) {
-	//args := []interface{}{u1, 0x11}
-	time.Sleep(6 * time.Second)
-	//data1, data2 := room.DataMgr.OnZhuaHua(u1.ChairId)
-	//log.Debug("中华：%v", data1)
-	//log.Debug("不中华：%v", data2)
+	time.Sleep(3 * time.Second)
 	a := []int{}
 	room.DataMgr.CalHuPaiScore(a)
 	data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
@@ -52,13 +49,10 @@ func TestOutCard(t *testing.T) {
 	data.OperateCard = append(data.OperateCard, 0)
 	data.OperateCard = append(data.OperateCard, 5)
 	data.OperateCode = 64
+	if room != nil {
+		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
+	}
 
-	//RoomMgr.AddRoom(int64(u1.RoomId))
-	//r := RoomMgr.GetRoom(u1.RoomId)
-	//if r != nil {
-	//	r.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
-	//}
-	//C2G_ZPMJ_OperateCard
 	Wg.Wait()
 }
 
@@ -134,6 +128,7 @@ func init() {
 	if !ok {
 		return
 	}
+	temp.OutCardTime = 2
 
 	info := &model.CreateRoomInfo{
 		RoomId:       777777,
@@ -181,6 +176,8 @@ func init() {
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
+	RegisterHandler(r)
+	RoomMgr.AddRoom(r)
 	room = r
 
 	var userCnt = 4

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"mj/hallServer/db"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -16,10 +17,10 @@ import (
 
 // +gen *
 type Activity struct {
-	ActivityName  string `db:"activity_name" json:"activity_name"`   // 活动名
-	ActivityType  int    `db:"activity_type" json:"activity_type"`   // 活动类别
-	ActivityBegin None   `db:"activity_begin" json:"activity_begin"` // 活动开始时间
-	ActivityEnd   None   `db:"activity_end" json:"activity_end"`     // 活动开始时间
+	ActivityName  string     `db:"activity_name" json:"activity_name"`   // 活动名
+	ActivityType  int        `db:"activity_type" json:"activity_type"`   // 活动类别
+	ActivityBegin *time.Time `db:"activity_begin" json:"activity_begin"` // 活动开始时间
+	ActivityEnd   *time.Time `db:"activity_end" json:"activity_end"`     // 活动开始时间
 }
 
 type activityOp struct{}
