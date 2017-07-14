@@ -105,7 +105,7 @@ func TestAnalyseCard(t *testing.T) {
 
 func init() {
 	Wg.Add(1)
-	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
+	conf.Init("./gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
@@ -177,7 +177,7 @@ func init() {
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser((int64)(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -190,7 +190,7 @@ func init() {
 	}
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

@@ -1,8 +1,9 @@
 package mj_base
 
 import (
+	"fmt"
 	. "mj/common/cost"
-	. "mj/gameServer/mj"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -11,8 +12,6 @@ import (
 	"mj/gameServer/user"
 	"net"
 	"testing"
-
-	"fmt"
 
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
@@ -105,9 +104,8 @@ func init() {
 	r.Init(cfg)
 	room = r
 	var userCnt = 4
-
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser((int64)(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -120,7 +118,7 @@ func init() {
 	}
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1
