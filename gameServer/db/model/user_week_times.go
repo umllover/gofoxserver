@@ -17,7 +17,7 @@ import (
 
 // +gen *
 type UserWeekTimes struct {
-	UserId     int        `db:"user_id" json:"user_id"`         //
+	UserId     int64      `db:"user_id" json:"user_id"`         //
 	KeyId      int        `db:"key_id" json:"key_id"`           //
 	V          int64      `db:"v" json:"v"`                     //
 	CreateTime *time.Time `db:"create_time" json:"create_time"` //
@@ -29,7 +29,7 @@ var UserWeekTimesOp = &userWeekTimesOp{}
 var DefaultUserWeekTimes = &UserWeekTimes{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userWeekTimesOp) Get(user_id int, key_id int) (*UserWeekTimes, bool) {
+func (op *userWeekTimesOp) Get(user_id int64, key_id int) (*UserWeekTimes, bool) {
 	obj := &UserWeekTimes{}
 	sql := "select * from user_week_times where user_id=? and key_id=? "
 	err := db.DB.Get(obj, sql,
@@ -148,12 +148,12 @@ func (op *userWeekTimesOp) UpdateTx(ext sqlx.Ext, m *UserWeekTimes) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userWeekTimesOp) UpdateWithMap(user_id int, key_id int, m map[string]interface{}) error {
+func (op *userWeekTimesOp) UpdateWithMap(user_id int64, key_id int, m map[string]interface{}) error {
 	return op.UpdateWithMapTx(db.DB, user_id, key_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userWeekTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, key_id int, m map[string]interface{}) error {
+func (op *userWeekTimesOp) UpdateWithMapTx(ext sqlx.Ext, user_id int64, key_id int, m map[string]interface{}) error {
 
 	sql := `update user_week_times set %s where 1=1 and user_id=? and key_id=? ;`
 
@@ -179,12 +179,12 @@ func (i *UserWeekTimes) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userWeekTimesOp) Delete(user_id int, key_id int) error {
+func (op *userWeekTimesOp) Delete(user_id int64, key_id int) error {
 	return op.DeleteTx(db.DB, user_id, key_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userWeekTimesOp) DeleteTx(ext sqlx.Ext, user_id int, key_id int) error {
+func (op *userWeekTimesOp) DeleteTx(ext sqlx.Ext, user_id int64, key_id int) error {
 	sql := `delete from user_week_times where 1=1
         and user_id=?
         and key_id=?

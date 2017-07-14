@@ -32,7 +32,7 @@ func init() {
 
 //玩家在本服节点登录
 func SelfNodeAddPlayer(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
 	//cluster.Broadcast(cost.HallPrefix,"NotifyOtherNodeLogin", uid, conf.ServerName())
@@ -40,27 +40,27 @@ func SelfNodeAddPlayer(args []interface{}) {
 
 //本服玩家登出
 func SelfNodeDelPlayer(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	delete(Users, uid)
 	//cluster.Broadcast(cost.HallPrefix,"NotifyOtherNodelogout", uid)
 }
 
 //玩家在别的节点登录了
 func NotifyOtherNodeLogin(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	ServerName := args[1].(string)
 	OtherUsers[uid] = ServerName
 }
 
 //玩家在别的节点登出了
 func NotifyOtherNodelogout(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	delete(OtherUsers, uid)
 }
 
 //发消息给别的玩家
 func GoMsgToUser(args []interface{}) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
@@ -79,14 +79,14 @@ func GoMsgToUser(args []interface{}) {
 	}
 }
 
-func SendMsgToSelfNotdeUser(args []interface{})  {
-	uid := args[0].(int)
+func SendMsgToSelfNotdeUser(args []interface{}) {
+	uid := args[0].(int64)
 	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
 		ch.Go(FuncName, args[2:]...)
 		return
-	}else {
+	} else {
 
 	}
 	log.Debug("at SendMsgToSelfNotdeUser player not in node")
@@ -104,7 +104,7 @@ func AsyncCallUser(args []interface{}) {
 }
 
 func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int)
+	uid := args[0].(int64)
 	log.Debug("at GetPlayerInfo uid:%d", uid)
 	ch, chok := Users[uid]
 	if !chok {

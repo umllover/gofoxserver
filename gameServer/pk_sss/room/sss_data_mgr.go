@@ -17,7 +17,7 @@ const (
 	GAME_START = 1002 // 游戏开始
 )
 
-func NewDataMgr(id, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
 	return d

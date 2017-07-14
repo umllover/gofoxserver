@@ -1,7 +1,10 @@
 package room
 
 import (
+	"encoding/json"
 	. "mj/common/cost"
+	"mj/gameServer/RoomMgr"
+	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -9,15 +12,12 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
+	"os"
+	"sync"
 	"testing"
 
-	"mj/gameServer/common/mj/mj_base"
-
-	"sync"
-
-	"os"
-
-	"encoding/json"
+	"mj/common/msg/mj_zp_msg"
+	"time"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -41,8 +41,18 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestOutCard(t *testing.T) {
-	args := []interface{}{u1, 0x11}
-	room.OutCard(args)
+	time.Sleep(3 * time.Second)
+	a := []int{}
+	room.DataMgr.CalHuPaiScore(a)
+	data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCard = append(data.OperateCard, 0)
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCode = 64
+	if room != nil {
+		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
+	}
+
 	Wg.Wait()
 }
 
@@ -98,7 +108,7 @@ func TestAnalyseCard(t *testing.T) {
 
 func init() {
 	Wg.Add(1)
-	conf.Init("C:/gopath/src/mj/gameServer/gameApp/gameServer.json")
+	conf.Init("./gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
@@ -118,6 +128,7 @@ func init() {
 	if !ok {
 		return
 	}
+	temp.OutCardTime = 2
 
 	info := &model.CreateRoomInfo{
 		RoomId:       777777,
@@ -134,7 +145,7 @@ func init() {
 	}
 	setCfg := map[string]interface{}{
 		"ZhuaHua":    0,
-		"WithZiCard": true,
+		"WithZiCard": false,
 		"ScoreType":  33,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
@@ -165,12 +176,14 @@ func init() {
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
 	r.Init(cfg)
+	RegisterHandler(r)
+	RoomMgr.AddRoom(r)
 	room = r
 
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser(int64(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -181,10 +194,9 @@ func init() {
 		userg.Users[i] = u
 		u.ChairId = i
 	}
-
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

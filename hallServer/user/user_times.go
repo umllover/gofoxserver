@@ -210,7 +210,7 @@ func (u *User) SendActivityInfo() {
 	u.WriteMsg(retMsg)
 }
 
-func updateTimes(table_name string, uid int, k int, v int64) bool {
+func updateTimes(table_name string, uid int64, k int, v int64) bool {
 	sql := fmt.Sprintf("insert into %s values(%d,%s,%d) on duplicate key update v=%d;", table_name, uid, k, v, v)
 	_, err := db.DB.Exec(sql)
 	if err != nil {
@@ -220,7 +220,7 @@ func updateTimes(table_name string, uid int, k int, v int64) bool {
 	return true
 }
 
-func ClearTimes(table_name string, id int) {
+func ClearTimes(table_name string, id int64) {
 	sql := fmt.Sprintf("delete from %s where user_id=%d;", id)
 	_, err := db.DB.Exec(sql)
 	if err != nil {

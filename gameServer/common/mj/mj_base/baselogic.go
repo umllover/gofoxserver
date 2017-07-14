@@ -2,6 +2,7 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	"mj/common/utils"
 	. "mj/gameServer/common/mj"
 
 	"github.com/lovelly/leaf/log"
@@ -84,9 +85,7 @@ func (lg *BaseLogic) IsValidCard(card int) bool {
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	//混乱准备
 	cbBufferCount := int(len(cbCardBuffer))
-	cbCardDataTemp := make([]int, cbBufferCount)
-	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
-
+	cbCardDataTemp := util.CopySlicInt(OriDataArray)
 	//混乱扑克
 	var cbRandCount int
 	var cbPosition int
@@ -94,12 +93,11 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		if cbRandCount >= cbBufferCount {
 			break
 		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbPosition, _ = utils.RandInt(0, cbBufferCount-cbRandCount)
 		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
-
 	return
 }
 
@@ -296,7 +294,6 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 }
 
 func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *TagGangCardResult) int {
-
 	//设置变量
 	cbActionMask := WIK_NULL
 	cbWeaveCount := len(WeaveItem)

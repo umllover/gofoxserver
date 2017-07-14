@@ -21,7 +21,7 @@ import (
 type MachPlayer struct {
 	ch      *chanrpc.Server
 	EndTime int64
-	Uid     int
+	Uid     int64
 }
 
 var (

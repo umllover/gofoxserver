@@ -14,7 +14,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDDZDataMgr(info *model.CreateRoomInfo, uid, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
+func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
 

@@ -2,7 +2,6 @@ package internal
 
 import (
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/user"
 	"reflect"
 
@@ -22,7 +21,7 @@ func handlerC2S(m interface{}, h interface{}) {
 
 func init() {
 	// c 2 s
-	handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, SSSShowCard)
+	//handlerC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, SSSShowCard)
 	//handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
 
 }

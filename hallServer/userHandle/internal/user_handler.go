@@ -192,7 +192,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 		retcode = InsertAccountError
 		return
 	}
-	accInfo.UserID = int(lastid)
+	accInfo.UserID = int64(lastid)
 
 	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
@@ -525,7 +525,7 @@ func loadUser(u *user.User) bool {
 	return true
 }
 
-func createUser(UserID int, accountData *model.Accountsinfo) (*user.User, bool) {
+func createUser(UserID int64, accountData *model.Accountsinfo) (*user.User, bool) {
 	U := user.NewUser(UserID)
 	U.Accountsmember = &model.Accountsmember{
 		UserID: UserID,

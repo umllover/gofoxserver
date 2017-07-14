@@ -12,7 +12,7 @@ import (
 
 var (
 	skeleton  = base.NewSkeleton()
-	Users     = make(map[int]*user.User) //key is userId
+	Users     = make(map[int64]*user.User) //key is userId
 	UsersLock sync.RWMutex
 )
 
@@ -38,21 +38,21 @@ func (m *MgrModule) OnDestroy() {
 	log.Debug("at server close offline user ")
 }
 
-func getUser(uid int) (*user.User, bool) {
+func getUser(uid int64) (*user.User, bool) {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	u, ok := Users[uid]
 	return u, ok
 }
 
-func AddUser(uid int, u *user.User) {
+func AddUser(uid int64, u *user.User) {
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
 	Users[uid] = u
 }
 
-func DelUser(uid int) {
+func DelUser(uid int64) {
 	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
