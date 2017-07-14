@@ -149,7 +149,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 }
 
 func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
-	log.Debug("###################### BeforeStartGame")
 	room.InitRoom(UserCnt)
 }
 
