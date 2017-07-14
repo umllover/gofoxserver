@@ -16,6 +16,10 @@ import (
 	"testing"
 	"time"
 
+	"mj/common/msg/mj_zp_msg"
+
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
@@ -39,12 +43,24 @@ func TestGameStart_1(t *testing.T) {
 
 func TestOutCard(t *testing.T) {
 	//args := []interface{}{u1, 0x11}
-	time.Sleep(3 * time.Second)
+	time.Sleep(6 * time.Second)
 	//data1, data2 := room.DataMgr.OnZhuaHua(u1.ChairId)
 	//log.Debug("中华：%v", data1)
 	//log.Debug("不中华：%v", data2)
 	a := []int{}
 	room.DataMgr.CalHuPaiScore(a)
+	data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCard = append(data.OperateCard, 0)
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCode = 64
+
+	RoomMgr.AddRoom(u1.RoomId)
+	r := RoomMgr.GetRoom(u1.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
+	}
+	//C2G_ZPMJ_OperateCard
 	Wg.Wait()
 }
 
@@ -172,7 +188,7 @@ func init() {
 	var userCnt = 4
 
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser(int64(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -185,7 +201,7 @@ func init() {
 	}
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

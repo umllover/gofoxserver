@@ -11,8 +11,8 @@ import (
 
 func GetCardWordArray(index []int) bool {
 	CardWordArray := []string{
-		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
 		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
 		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
 		"东", "南", "西", "北", "中", "发", "白",
 		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
@@ -338,7 +338,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
-		log.Debug("len(TagAnalyseItemArray) > 0 ")
 		log.Debug("#####有胡牌")
 		ChiHuRight |= CHR_PING_HU
 	}

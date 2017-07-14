@@ -113,7 +113,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			u.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
-
+	log.Debug("吃碰杠胡各种操作 user:%d", room.DataMgr.GetCurrentUser())
 	if room.DataMgr.GetCurrentUser() == INVALID_CHAIR {
 
 		//效验状态
@@ -136,8 +136,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
-			//记录放弃操作
-			room.DataMgr.RecordBanCard(OperateCode, u.ChairId)
 		}
 
 		//胡牌操作
@@ -197,9 +195,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
-
-	//清除操作定时
-	room.DataMgr.StopOperateCardTimer(u)
 }
 
 //抓花
