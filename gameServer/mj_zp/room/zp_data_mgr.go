@@ -143,6 +143,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.OperateCard = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.OperateCard[i] = make([]int, 60)
+		room.MjBase.UserMgr.SetUsetTrustee(i, false)
 	}
 	log.Debug("len1 OperateCard: %d %d", len(room.OperateCard), len(room.OperateCard[1]))
 	room.PerformAction = make([]int, UserCnt)
@@ -412,7 +413,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 			room.CardIndex[u.ChairId][setIndex]++
 		}
-		log.Debug("ChairId:%d", u.ChairId)
 	})
 
 	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
@@ -441,7 +441,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	//todo,测试手牌
+	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
 	//
@@ -450,7 +450,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[2] = 3 //三张三同
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 2
+	//temp[5] = 1
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x04
@@ -884,6 +884,7 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 	room.ProvideCard = room.SendCardData
 
 	//特殊胡牌类型
+	room.CurrentUser = u.ChairId
 	room.SpecialCardKind(AnalyseItem, u.ChairId)
 	return
 }
@@ -904,6 +905,7 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 		room.ChiHuKind[wChiHuUser] = chihuKind
 
 		//特殊胡牌类型
+		room.CurrentUser = wChiHuUser
 		room.SpecialCardKind(AnalyseItem, wChiHuUser)
 
 		//插入扑克
@@ -1907,75 +1909,75 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 
 //出牌定时
 func (room *ZP_RoomData) OutCardTimer(u *user.User) {
-	//stop
-	if room.OutCardTime != nil {
-		log.Debug("停出牌定时 %d", u.ChairId)
-		room.OutCardTime.Stop()
-	}
-
-	room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
-		log.Debug("出牌定时 %d", u.ChairId)
-		card := room.SendCardData
-		for j := 0; j < room.GetCfg().MaxIdx; j++ {
-			if room.CardIndex[u.ChairId][j] > 0 {
-				card = room.MjBase.LogicMgr.SwitchToCardData(j)
-				break
-			}
-		}
-		log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-		room.MjBase.OutCard([]interface{}{u, card, true})
-	})
+	////stop
+	//if room.OutCardTime != nil {
+	//	log.Debug("停出牌定时 %d", u.ChairId)
+	//	room.OutCardTime.Stop()
+	//}
+	//
+	//room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+	//	log.Debug("出牌定时 %d", u.ChairId)
+	//	card := room.SendCardData
+	//	for j := 0; j < room.GetCfg().MaxIdx; j++ {
+	//		if room.CardIndex[u.ChairId][j] > 0 {
+	//			card = room.MjBase.LogicMgr.SwitchToCardData(j)
+	//			break
+	//		}
+	//	}
+	//	log.Debug("用户%d超时打牌：%x", u.ChairId, card)
+	//	room.MjBase.OutCard([]interface{}{u, card, true})
+	//})
 }
 
 //吃碰完定时
 func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
-	//stop
-	if room.OutCardTime != nil {
-		log.Debug("停出牌定时 %d", u.ChairId)
-		room.OutCardTime.Stop()
-	}
-
-	room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
-		log.Debug("出牌定时 %d", u.ChairId)
-		card := room.SendCardData
-		if !room.MjBase.LogicMgr.IsValidCard(card) {
-			for j := 0; j < room.GetCfg().MaxIdx; j++ {
-				if room.CardIndex[u.ChairId][j] > 0 {
-					card = room.MjBase.LogicMgr.SwitchToCardData(j)
-					break
-				}
-			}
-		}
-		log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-		//room.MjBase.OutCard([]interface{}{u, card, true})
-		room.MjBase.OnUserTrustee(u.ChairId, true)
-	})
+	////stop
+	//if room.OutCardTime != nil {
+	//	log.Debug("停出牌定时 %d", u.ChairId)
+	//	room.OutCardTime.Stop()
+	//}
+	//
+	//room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
+	//	log.Debug("出牌定时 %d", u.ChairId)
+	//	card := room.SendCardData
+	//	if !room.MjBase.LogicMgr.IsValidCard(card) {
+	//		for j := 0; j < room.GetCfg().MaxIdx; j++ {
+	//			if room.CardIndex[u.ChairId][j] > 0 {
+	//				card = room.MjBase.LogicMgr.SwitchToCardData(j)
+	//				break
+	//			}
+	//		}
+	//	}
+	//	log.Debug("用户%d超时打牌：%x", u.ChairId, card)
+	//	//room.MjBase.OutCard([]interface{}{u, card, true})
+	//	room.MjBase.OnUserTrustee(u.ChairId, true)
+	//})
 }
 
 //操作定时
 func (room *ZP_RoomData) OperateCardTimer(u *user.User) {
-	chairID := u.ChairId
-
-	if room.OutCardTime != nil {
-		log.Debug("OperateCardTimer停出牌定时 %d", u.ChairId)
-		room.OutCardTime.Stop()
-	}
-	if room.OperateTime[chairID] != nil {
-		log.Debug("停吃碰杠定时器 %d", u.ChairId)
-		room.OperateTime[chairID].Stop()
-	}
-
-	operateTimer := room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
-		log.Debug("吃碰杠定时器 %d", u.ChairId)
-		if room.UserAction[chairID] != WIK_LISTEN {
-			operateCard := []int{0, 0, 0}
-			room.MjBase.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
-		} else {
-			room.OnUserListenCard(u, false)
-		}
-		//room.MjBase.OnUserTrustee(chairID, true)
-	})
-	room.OperateTime[chairID] = operateTimer
+	//chairID := u.ChairId
+	//
+	//if room.OutCardTime != nil {
+	//	log.Debug("OperateCardTimer停出牌定时 %d", u.ChairId)
+	//	room.OutCardTime.Stop()
+	//}
+	//if room.OperateTime[chairID] != nil {
+	//	log.Debug("停吃碰杠定时器 %d", u.ChairId)
+	//	room.OperateTime[chairID].Stop()
+	//}
+	//
+	//operateTimer := room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
+	//	log.Debug("吃碰杠定时器 %d", u.ChairId)
+	//	if room.UserAction[chairID] != WIK_LISTEN {
+	//		operateCard := []int{0, 0, 0}
+	//		room.MjBase.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
+	//	} else {
+	//		room.OnUserListenCard(u, false)
+	//	}
+	//	//room.MjBase.OnUserTrustee(chairID, true)
+	//})
+	//room.OperateTime[chairID] = operateTimer
 }
 
 //清理定时器
