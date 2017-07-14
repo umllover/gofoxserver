@@ -41,6 +41,7 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestOutCard(t *testing.T) {
+	Wg.Add(1)
 	time.Sleep(3 * time.Second)
 	a := []int{}
 	room.DataMgr.CalHuPaiScore(a)
