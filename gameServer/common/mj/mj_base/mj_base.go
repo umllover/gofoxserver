@@ -275,7 +275,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
 		log.Error("at OnUserOutCard not self out ")
-		log.Error("u.ChairId:%d,room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
+		log.Error("u.ChairId:%d, room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
 		retcode = ErrNotSelfOut
 		return
 	}
