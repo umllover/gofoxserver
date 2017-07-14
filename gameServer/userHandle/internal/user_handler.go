@@ -10,37 +10,35 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/kindList"
 	client "mj/gameServer/user"
-	"reflect"
 
-	"github.com/lovelly/leaf/nsq/cluster"
+	"mj/common/register"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-//注册 客户端消息调用
-func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
-	m.ChanRPC.Register(reflect.TypeOf(msg), h)
-}
-
 func RegisterHandler(m *UserModule) {
+	reg := register.NewRegister(m.ChanRPC)
 	//注册rpc 消息
-	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
-	m.ChanRPC.Register("NewAgent", m.NewAgent)
-	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
-	m.ChanRPC.Register("WriteUserScore", m.WriteUserScore)
-	m.ChanRPC.Register("LeaveRoom", m.LeaveRoom)
-	m.ChanRPC.Register("ForceClose", m.ForceClose)
+	reg.RegisterRpc("handleMsgData", m.handleMsgData)
+	reg.RegisterRpc("NewAgent", m.NewAgent)
+	reg.RegisterRpc("CloseAgent", m.CloseAgent)
+	reg.RegisterRpc("WriteUserScore", m.WriteUserScore)
+	reg.RegisterRpc("LeaveRoom", m.LeaveRoom)
+	reg.RegisterRpc("ForceClose", m.ForceClose)
+
 	//c2s
-	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
-	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
-	handlerC2S(m, &msg.C2G_UserSitdown{}, m.UserSitdown)
-	handlerC2S(m, &msg.C2G_GameOption{}, m.SetGameOption)
-	handlerC2S(m, &msg.C2G_UserStandup{}, m.UserStandup)
-	handlerC2S(m, &msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
-	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
-	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
-	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
-	handlerC2S(m, &msg.C2G_LoadRoom{}, m.LoadRoom)
+	reg.RegisterC2S(&msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
+	reg.RegisterC2S(&msg.C2G_REQUserInfo{}, m.GetUserInfo)
+	reg.RegisterC2S(&msg.C2G_UserSitdown{}, m.UserSitdown)
+	reg.RegisterC2S(&msg.C2G_GameOption{}, m.SetGameOption)
+	reg.RegisterC2S(&msg.C2G_UserStandup{}, m.UserStandup)
+	reg.RegisterC2S(&msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
+	reg.RegisterC2S(&msg.C2G_UserReady{}, m.UserReady)
+	reg.RegisterC2S(&msg.C2G_GR_UserChairReq{}, m.UserChairReq)
+	reg.RegisterC2S(&msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
+	reg.RegisterC2S(&msg.C2G_LoadRoom{}, m.LoadRoom)
 
 }
 
@@ -420,37 +418,36 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 /////////////////////////////// help 函数
 ///////
 func loadUser(u *client.User) bool {
-	data, err := cluster.Call1(u.HallNodeName, "GetPlayerInfo", u.Id)
+	data, err := cluster.Call1(u.HallNodeName, &msg.S2S_GetPlayerInfo{Uid: u.Id})
 	if err != nil {
 		log.Error("get room data error :%v", err.Error())
 		return false
 	}
 
-	info, ok := data.(map[string]interface{})
+	info, ok := data.(*msg.S2S_GetPlayerInfoResult)
 	if !ok {
 		log.Error("loadUser data is error")
 		return false
 	}
 
 	log.Debug("get user data == %v", info)
-
-	u.Id = info["Id"].(int64)
-	u.NickName = info["NickName"].(string)
-	u.Currency = info["Currency"].(int)
-	u.RoomCard = info["RoomCard"].(int)
-	u.FaceID = info["FaceID"].(int8)
-	u.CustomID = info["CustomID"].(int)
-	u.HeadImgUrl = info["HeadImgUrl"].(string)
-	u.Experience = info["Experience"].(int)
-	u.Gender = info["Gender"].(int8)
-	u.WinCount = info["WinCount"].(int)
-	u.LostCount = info["LostCount"].(int)
-	u.DrawCount = info["DrawCount"].(int)
-	u.FleeCount = info["FleeCount"].(int)
-	u.UserRight = info["UserRight"].(int)
-	u.Score = info["Score"].(int64)
-	u.Revenue = info["Revenue"].(int64)
-	u.InsureScore = info["InsureScore"].(int64)
-	u.MemberOrder = info["MemberOrder"].(int8)
+	u.Id = info.Id
+	u.NickName = info.NickName
+	u.Currency = info.Currency
+	u.RoomCard = info.RoomCard
+	u.FaceID = info.FaceID
+	u.CustomID = info.CustomID
+	u.HeadImgUrl = info.HeadImgUrl
+	u.Experience = info.Experience
+	u.Gender = info.Gender
+	u.WinCount = info.WinCount
+	u.LostCount = info.LostCount
+	u.DrawCount = info.DrawCount
+	u.FleeCount = info.FleeCount
+	u.UserRight = info.UserRight
+	u.Score = info.Score
+	u.Revenue = info.Revenue
+	u.InsureScore = info.InsureScore
+	u.MemberOrder = info.MemberOrder
 	return true
 }

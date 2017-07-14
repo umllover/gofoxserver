@@ -1,15 +1,11 @@
 package cluster
 
 import (
+	"errors"
 	"sync"
 
-	"github.com/lovelly/leaf/network/gob"
-
-	"errors"
-
-	"fmt"
-
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/network/gob"
 	"github.com/nsqio/go-nsq"
 )
 
@@ -74,8 +70,8 @@ func Start(cfg *Cluster_config) {
 		log.Fatal("start nsq client error:%s", err.Error())
 	}
 
-	//loglv := getLogLovel(cfg.LogLv)
-	//producer.SetLogger(log.GetBaseLogger(), loglv)
+	loglv := getLogLovel(cfg.LogLv)
+	producer.SetLogger(log.GetBaseLogger(), loglv)
 	err = producer.Ping()
 	if err != nil {
 		log.Fatal("ping nsq client error:%s", err.Error())
@@ -90,7 +86,7 @@ func Start(cfg *Cluster_config) {
 			log.Fatal(" nsq NewConsumer error:%s", err.Error())
 		}
 
-		//consumer.SetLogger(log.GetBaseLogger(), loglv)
+		consumer.SetLogger(log.GetBaseLogger(), loglv)
 		consumer.AddHandler(NewNsqHandler())
 		consumers = append(consumers, consumer)
 		if len(cfg.CsmNsqdAddrs) > 0 {
@@ -160,7 +156,6 @@ func publishLoop() {
 				continue
 			}
 			safePulishg(msg)
-			return
 		}
 	}
 }
@@ -174,9 +169,7 @@ func NewNsqHandler() *nsqHandler {
 
 // HandleMessage - Handles an NSQ message.
 func (h *nsqHandler) HandleMessage(message *nsq.Message) error {
-	log.Debug("Cluster IN ==== ")
 	data, err := Processor.Unmarshal(message.Body)
-	fmt.Println("2222222222222222222222", data)
 	if err != nil {
 		log.Error("handler msg error:%s", err.Error())
 		return nil
@@ -186,10 +179,10 @@ func (h *nsqHandler) HandleMessage(message *nsq.Message) error {
 		log.Debug("Unmarshal error ")
 		return nil
 	}
-	fmt.Println("333333333333333", msg)
-	if msg.CallType == callBroadcast && msg.SrcServerName == SelfName {
-		return nil
-	}
+	log.Debug("Cluster IN ==== %s", string(msg.Args))
+	//if msg.CallType == callBroadcast && msg.SrcServerName == SelfName {
+	//	return nil
+	//}
 
 	switch msg.ReqType {
 	case NsqMsgTypeReq:
@@ -217,7 +210,7 @@ func safePulishg(msg *S2S_NsqMsg) {
 		log.Error("error at Publish data is ni")
 		return
 	}
-	log.Debug("Cluster OUT ==== ")
+	log.Debug("Cluster OUT ==== err:%v, data:%s", msg.Err, string(msg.Args))
 	err = producer.Publish(msg.DstServerName, data[0])
 	if err != nil {
 		log.Error("Publish msg error : %v ", msg)

@@ -2,24 +2,14 @@ package internal
 
 import (
 	"mj/common/msg"
-	"reflect"
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
-	handlerC2S(&msg.C2L_QuickMatch{}, QuickMatch)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterC2S(&msg.C2L_QuickMatch{}, QuickMatch)
 }
 
 func QuickMatch(args []interface{}) {

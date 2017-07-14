@@ -4,7 +4,7 @@ import (
 	"mj/common/msg"
 	"sync"
 
-	"mj/hallServer/center"
+	"mj/gameServer/center"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"

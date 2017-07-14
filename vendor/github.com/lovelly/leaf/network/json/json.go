@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 )
@@ -38,14 +40,14 @@ func NewProcessor() *Processor {
 func (p *Processor) Register(msg interface{}) string {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
-		log.Fatal("json message pointer required")
+		log.Fatal("json message pointer required", string(debug.Stack()))
 	}
 	msgID := msgType.Elem().Name()
 	if msgID == "" {
-		log.Fatal("unnamed json message")
+		log.Fatal("unnamed json message", string(debug.Stack()))
 	}
 	if _, ok := p.msgInfo[msgID]; ok {
-		log.Fatal("message %v is already registered", msgID)
+		log.Fatal("message %v is already registered %s", msgID,string(debug.Stack()))
 	}
 
 	i := new(MsgInfo)
@@ -63,7 +65,7 @@ func (p *Processor) SetRouter(msg interface{}, msgRouter *chanrpc.Server) {
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]
 	if !ok {
-		log.Fatal("message %v not registered", msgID)
+		log.Fatal("message %v not registered, %s", msgID, string(debug.Stack()))
 	}
 
 	i.msgRouter = msgRouter

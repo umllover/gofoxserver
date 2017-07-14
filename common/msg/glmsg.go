@@ -55,11 +55,46 @@ type S2S_NotifyOtherNodelogout struct {
 type S2S_GetKindList struct {
 }
 
+type S2S_KindListResult struct {
+	Data []*TagGameServer
+}
+
 //获取游戏服的所有房间
 type S2S_GetRooms struct {
+}
+
+type S2S_GetRoomsResult struct {
+	Data []*RoomInfo
 }
 
 //通知大厅游戏解散
 type S2S_notifyDelRoom struct {
 	RoomID int //房间id
+}
+
+//去大厅获取玩家信息
+type S2S_GetPlayerInfo struct {
+	Uid int64
+}
+
+//获取玩家信息结果
+type S2S_GetPlayerInfoResult struct {
+	Id          int64
+	NickName    string
+	Currency    int
+	RoomCard    int
+	FaceID      int8
+	CustomID    int
+	HeadImgUrl  string
+	Experience  int
+	Gender      int8
+	WinCount    int
+	LostCount   int
+	DrawCount   int
+	FleeCount   int
+	UserRight   int
+	Score       int64
+	Revenue     int64
+	InsureScore int64
+	MemberOrder int8
 }

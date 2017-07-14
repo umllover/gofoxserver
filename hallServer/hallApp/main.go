@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"mj/common"
 	"mj/common/consul"
 	"mj/hallServer/center"
 	"mj/hallServer/conf"
@@ -46,7 +45,6 @@ func main() {
 		db.RefreshInTime()
 	}
 
-	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})

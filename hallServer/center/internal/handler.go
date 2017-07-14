@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 
+	"mj/common/register"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -19,24 +21,18 @@ var (
 	GamelistRpc *chanrpc.Server
 )
 
-//中心模块 ， 投递消息给别的玩家， 或者别的服务器上的玩家
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
 func init() {
-	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
-	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("S2S_NotifyOtherNodeLogin", S2S_NotifyOtherNodeLogin)
-	handleRpc("S2S_NotifyOtherNodelogout", S2S_NotifyOtherNodelogout)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
+	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
+	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
+	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("ServerFaild", serverFaild)
+	reg.RegisterRpc("ServerStart", serverStart)
 
-	handleRpc("GetPlayerInfo", GetPlayerInfo)
-	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
-
-	handleRpc("ServerFaild", serverFaild)
-	handleRpc("ServerStart", serverStart)
+	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 
 	consul.SetHookRpc(ChanRPC)
 }
@@ -62,16 +58,17 @@ func SelfNodeDelPlayer(args []interface{}) {
 }
 
 //玩家在别的节点登录了
-func S2S_NotifyOtherNodeLogin(args []interface{}) {
-	uid := args[0].(int64)
-	ServerName := args[1].(string)
-	OtherUsers[uid] = ServerName
+func NotifyOtherNodeLogin(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodeLogin)
+	OtherUsers[recvMsg.Uid] = recvMsg.ServerName
+	log.Debug("user %d login on %s", recvMsg.Uid, recvMsg.ServerName)
 }
 
 //玩家在别的节点登出了
-func S2S_NotifyOtherNodelogout(args []interface{}) {
-	uid := args[0].(int64)
-	delete(OtherUsers, uid)
+func NotifyOtherNodelogout(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodelogout)
+	log.Debug("user %d logout on %s", recvMsg.Uid, OtherUsers[recvMsg.Uid])
+	delete(OtherUsers, recvMsg.Uid)
 }
 
 func SendMsgToSelfNotdeUser(args []interface{}) {
@@ -94,9 +91,9 @@ func HanldeFromGameMsg(args []interface{}) {
 }
 
 func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int64)
-	log.Debug("at GetPlayerInfo uid:%d", uid)
-	ch, chok := Users[uid]
+	recvMsg := args[0].(*msg.S2S_GetPlayerInfo)
+	log.Debug("at GetPlayerInfo uid:%d", recvMsg.Uid)
+	ch, chok := Users[recvMsg.Uid]
 	if !chok {
 		return nil, errors.New("not foud user ch")
 	}
@@ -110,25 +107,25 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		return nil, errors.New("user data error")
 	}
 
-	gu := map[string]interface{}{
-		"Id":          u.Id,
-		"NickName":    u.NickName,
-		"Currency":    u.Currency,
-		"RoomCard":    u.RoomCard,
-		"FaceID":      u.FaceID,
-		"CustomID":    u.CustomID,
-		"HeadImgUrl":  u.HeadImgUrl,
-		"Experience":  u.Experience,
-		"Gender":      u.Gender,
-		"WinCount":    u.WinCount,
-		"LostCount":   u.LostCount,
-		"DrawCount":   u.DrawCount,
-		"FleeCount":   u.FleeCount,
-		"UserRight":   u.Accountsmember.UserRight,
-		"Score":       u.Score,
-		"Revenue":     u.Revenue,
-		"InsureScore": u.InsureScore,
-		"MemberOrder": u.MemberOrder,
+	gu := &msg.S2S_GetPlayerInfoResult{
+		Id:          u.Id,
+		NickName:    u.NickName,
+		Currency:    u.Currency,
+		RoomCard:    u.RoomCard,
+		FaceID:      u.FaceID,
+		CustomID:    u.CustomID,
+		HeadImgUrl:  u.HeadImgUrl,
+		Experience:  u.Experience,
+		Gender:      u.Gender,
+		WinCount:    u.WinCount,
+		LostCount:   u.LostCount,
+		DrawCount:   u.DrawCount,
+		FleeCount:   u.FleeCount,
+		UserRight:   u.Accountsmember.UserRight,
+		Score:       u.Score,
+		Revenue:     u.Revenue,
+		InsureScore: u.InsureScore,
+		MemberOrder: u.MemberOrder,
 	}
 	return gu, nil
 }

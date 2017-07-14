@@ -11,43 +11,40 @@ import (
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
-	"reflect"
 	"time"
 
 	"encoding/json"
+
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
-//注册 客户端消息调用
-func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
-	m.ChanRPC.Register(reflect.TypeOf(msg), h)
-}
-
 func RegisterHandler(m *UserModule) {
+	reg := register.NewRegister(m.ChanRPC)
 	//注册rpc 消息
-	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
-	m.ChanRPC.Register("NewAgent", m.NewAgent)
-	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
-	m.ChanRPC.Register("GetUser", m.GetUser)
-	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
-	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
-	m.ChanRPC.Register("restoreToken", m.restoreToken)
-	m.ChanRPC.Register("matchResult", m.matchResult)
-	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
-	m.ChanRPC.Register("JoinRoom", m.joinRoom)
-	m.ChanRPC.Register("Recharge", m.Recharge)
+	reg.RegisterRpc("handleMsgData", m.handleMsgData)
+	reg.RegisterRpc("NewAgent", m.NewAgent)
+	reg.RegisterRpc("CloseAgent", m.CloseAgent)
+	reg.RegisterRpc("GetUser", m.GetUser)
+	reg.RegisterRpc("SrarchTableResult", m.SrarchTableResult)
+	reg.RegisterRpc("RoomCloseInfo", m.RoomCloseInfo)
+	reg.RegisterRpc("restoreToken", m.restoreToken)
+	reg.RegisterRpc("matchResult", m.matchResult)
+	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
+	reg.RegisterRpc("JoinRoom", m.joinRoom)
+	reg.RegisterRpc("Recharge", m.Recharge)
 
 	//c2s
-	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
-	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
-	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
-	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
-	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
-	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
-	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
-	handlerC2S(m, &msg.C2L_SetElect{}, m.SetElect)
+	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
+	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
+	reg.RegisterC2S(&msg.C2L_User_Individual{}, m.GetUserIndividual)
+	reg.RegisterC2S(&msg.C2L_CreateTable{}, m.CreateRoom)
+	reg.RegisterC2S(&msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
+	reg.RegisterC2S(&msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
+	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
+	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
 }
 
 //连接进来的通知
@@ -278,6 +275,16 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
+		return
+	}
+
+	monrey := feeTemp.TableFee
+	if recvMsg.PayType == AA_PAY_TYPE {
+		monrey = feeTemp.TableFee / template.MaxPlayer
+	}
+
+	if !player.EnoughCurrency(monrey) {
+		retCode = NotEnoughFee
 		return
 	}
 

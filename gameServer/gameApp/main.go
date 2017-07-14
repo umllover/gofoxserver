@@ -1,7 +1,6 @@
 package main
 
 import (
-	"mj/common"
 	"mj/common/consul"
 	"mj/gameServer/Chat"
 	"mj/gameServer/center"
@@ -36,7 +35,6 @@ func main() {
 		os.Exit(0)
 	}
 	Init()
-	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})

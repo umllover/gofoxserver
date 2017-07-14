@@ -27,7 +27,6 @@ func handleRpc(id interface{}, f interface{}) {
 
 func AddServerInfo(args []interface{}) {
 	svrInfo := args[0].(map[string]*CacheInfo)
-	log.Debug("at AddServerInfo  ====================== %v , %v, %v", args, caches, svrInfo)
 	for id, svr := range caches {
 		if _, ok := svrInfo[id]; !ok {
 			SvrFaild(svr)

@@ -12,8 +12,6 @@ import (
 	"mj/hallServer/user"
 	"strconv"
 
-	"time"
-
 	rgst "mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
@@ -223,19 +221,11 @@ func NewServerAgent(args []interface{}) {
 	serverName := args[0].(string)
 	log.Debug("at NewServerAgent :%s", serverName)
 
-	var ltimes, rtimes int
-	var HandleListData func()
-	var HandlerRoomData func()
-	HandleListData = func() {
-		if ltimes > 3 {
-			return
-		}
-		ltimes++
-		data, err := cluster.TimeOutCall1(serverName, 5, &msg.S2S_GetKindList{})
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), &msg.S2S_GetKindList{}, func(data interface{}, err error) {
 		if err == nil {
 			log.Debug("data === %v", data)
-			ret := data.([]*msg.TagGameServer)
-			for _, v := range ret {
+			ret := data.(*msg.S2S_KindListResult)
+			for _, v := range ret.Data {
 				if Test {
 					if v.NodeID != conf.Server.NodeId {
 						continue
@@ -246,22 +236,14 @@ func NewServerAgent(args []interface{}) {
 			}
 		} else {
 			log.Debug("S2S_GetKindList error:%s", err.Error())
-			skeleton.AfterFunc(3*time.Second, HandleListData)
 		}
-	}
+	})
 
-	skeleton.AfterFunc(3*time.Second, HandleListData)
-
-	HandlerRoomData = func() {
-		if rtimes > 3 {
-			return
-		}
-		rtimes++
-		data, err := cluster.TimeOutCall1(serverName, 5, &msg.S2S_GetRooms{})
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), &msg.S2S_GetRooms{}, func(data interface{}, err error) {
 		if err == nil {
 			log.Debug("data ======= %v", data)
-			ret := data.([]*msg.RoomInfo)
-			for _, v := range ret {
+			ret := data.(*msg.S2S_GetRoomsResult)
+			for _, v := range ret.Data {
 				if Test {
 					if v.NodeID != conf.Server.NodeId {
 						continue
@@ -272,11 +254,8 @@ func NewServerAgent(args []interface{}) {
 			}
 		} else {
 			log.Debug("S2S_GetRooms error:%s", err.Error())
-			skeleton.AfterFunc(3*time.Second, HandlerRoomData)
 		}
-	}
-
-	skeleton.AfterFunc(3*time.Second, HandlerRoomData)
+	})
 }
 
 func CloseServerAgent(args []interface{}) {

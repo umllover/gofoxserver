@@ -24,7 +24,7 @@ type Module struct {
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
 	cfg := &cluster.Cluster_config{
-		LogLv:              "Debug",
+		LogLv:              "Error",
 		Channel:            conf.ServerNsqCahnnel(),
 		Csmtopics:          []string{cost.HallPrefix, conf.ServerName()}, //需要订阅的主题
 		CsmNsqdAddrs:       conf.Server.NsqdAddrs,

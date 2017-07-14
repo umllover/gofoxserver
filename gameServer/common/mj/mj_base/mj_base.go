@@ -218,8 +218,8 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
 	BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
-	BirefInf.Players = make(map[int]*msg.PlayerBrief)
-	BirefInf.MachPlayer = make(map[int]struct{})
+	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
+	BirefInf.MachPlayer = make(map[int64]struct{})
 	return BirefInf
 
 }

@@ -1,33 +1,23 @@
 package internal
 
 import (
-	"mj/common/msg"
 	"mj/common/msg/mj_zp_msg"
 	"mj/gameServer/user"
-	"reflect"
+
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	// c 2 s
-	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OutCard{}, ZPOutCard)
-	handlerC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
-	handlerC2S(&mj_zp_msg.C2G_MJZP_SetChaHua{}, SetChaHua)
-	handlerC2S(&mj_zp_msg.C2G_MJZP_ReplaceCard{}, SetBuHua)
-	handlerC2S(&mj_zp_msg.C2G_MJZP_ListenCard{}, SetTingCard)
-	handlerC2S(&mj_zp_msg.C2G_MJZP_Trustee{}, Trustee)
+	reg.RegisterC2S(&mj_zp_msg.C2G_ZPMJ_OutCard{}, ZPOutCard)
+	reg.RegisterC2S(&mj_zp_msg.C2G_ZPMJ_OperateCard{}, OperateCard)
+	reg.RegisterC2S(&mj_zp_msg.C2G_MJZP_SetChaHua{}, SetChaHua)
+	reg.RegisterC2S(&mj_zp_msg.C2G_MJZP_ReplaceCard{}, SetBuHua)
+	reg.RegisterC2S(&mj_zp_msg.C2G_MJZP_ListenCard{}, SetTingCard)
+	reg.RegisterC2S(&mj_zp_msg.C2G_MJZP_Trustee{}, Trustee)
 }
 
 func ZPOutCard(args []interface{}) {

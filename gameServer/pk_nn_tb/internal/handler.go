@@ -1,34 +1,23 @@
 package internal
 
 import (
-	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/user"
-	"reflect"
+
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	// c 2 s
-	handlerC2S(&nn_tb_msg.C2G_TBNN_CallScore{}, TBNNCallScore)
-	handlerC2S(&nn_tb_msg.C2G_TBNN_AddScore{}, TBNNAddScore)
-	//handlerC2S(&nn_tb_msg.C2G_TBNN_CallBanker{}, TBNNCallBanker)
-	handlerC2S(&nn_tb_msg.C2G_TBNN_OpenCard{}, TBNNOpenCard)
-	//handlerC2S(&nn_tb_msg.C2G_TBNN_QIANG{}, TBNNQiang)
+	reg.RegisterC2S(&nn_tb_msg.C2G_TBNN_CallScore{}, TBNNCallScore)
+	reg.RegisterC2S(&nn_tb_msg.C2G_TBNN_AddScore{}, TBNNAddScore)
+	//reg.RegisterC2S((&nn_tb_msg.C2G_TBNN_CallBanker{}, TBNNCallBanker)
+	reg.RegisterC2S(&nn_tb_msg.C2G_TBNN_OpenCard{}, TBNNOpenCard)
+	//reg.RegisterC2S((&nn_tb_msg.C2G_TBNN_QIANG{}, TBNNQiang)
 }
-
 
 func TBNNCallScore(args []interface{}) {
 	agent := args[1].(gate.Agent)
@@ -50,6 +39,7 @@ func TBNNAddScore(args []interface{}) {
 	}
 
 }
+
 /*
 func TBNNCallBanker(args []interface{}) {
 	agent := args[1].(gate.Agent)
@@ -73,7 +63,6 @@ func TBNNOpenCard(args []interface{}) {
 
 }
 
-
 /*
 func TBNNQiang(args []interface{}) {
 	agent := args[1].(gate.Agent)
@@ -85,5 +74,3 @@ func TBNNQiang(args []interface{}) {
 	}
 }
 */
-
-

@@ -55,7 +55,7 @@ func (r *RoomUserMgr) GetPayType() int {
 }
 
 func (r *RoomUserMgr) IsPublic() bool {
-	return r.Public
+	return r.Public == 1
 }
 
 func (r *RoomUserMgr) IsTrustee(chairId int) bool {

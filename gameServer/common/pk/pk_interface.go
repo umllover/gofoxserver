@@ -11,7 +11,7 @@ type DataManager interface {
 	InitRoom(UserCnt int)
 	GetRoomId() int
 	CanOperatorRoom(uid int64) bool
-
+	GetCreater() int64
 	// 游戏开始
 	BeforeStartGame(UserCnt int)
 	StartGameing()

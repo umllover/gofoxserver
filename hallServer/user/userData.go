@@ -81,6 +81,16 @@ func (u *User) GetRoomCnt() int {
 	return len(u.Rooms)
 }
 
+func (u *User) EnoughCurrency(sub int) bool {
+	u.Lock()
+	defer u.Unlock()
+	if u.Currency < sub {
+		return false
+	}
+
+	return true
+}
+
 //扣砖石
 func (u *User) SubCurrency(sub int) bool {
 	u.Lock()
@@ -158,4 +168,3 @@ func (u *User) DelGameLockInfo() {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
 }
-

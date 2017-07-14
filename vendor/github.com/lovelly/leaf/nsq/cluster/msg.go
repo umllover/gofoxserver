@@ -44,15 +44,16 @@ func init() {
 	gob.Register(&S2S_NsqMsg{})
 
 	Processor.Register(&S2S_NsqMsg{})
+	Processor.Register(&chanrpc.RetInfo{})
 }
 
-func SetRoute(id interface{}, server *chanrpc.Server) {
-	_, ok := routeMap[id]
+func SetRouter(msgID interface{}, server *chanrpc.Server) {
+	_, ok := routeMap[msgID]
 	if ok {
-		panic(fmt.Sprintf("function id %v: already set route", id))
+		panic(fmt.Sprintf("function id %v: already set route", msgID))
 	}
 
-	routeMap[id] = server.Open(0)
+	routeMap[msgID] = server.Open(0)
 }
 
 type S2S_NsqMsg struct {
@@ -101,14 +102,15 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 		return
 	}
 
-	args := []interface{}{recvMsg.Args}
+	args := []interface{}{msg}
 	if recvMsg.CallType == callForResult {
 		sendMsgFunc := func(ret *chanrpc.RetInfo) {
 			data, err := Processor.Marshal(ret.Ret)
-			if err != nil {
+			if err == nil {
 				sendMsg.Args = data[0]
 			} else {
 				log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
+				sendMsg.Err = err.Error()
 			}
 
 			if ret.Err != nil {
@@ -136,6 +138,7 @@ func handleResponseMsg(msg *S2S_NsqMsg) {
 	ret := &chanrpc.RetInfo{Cb: request.cb}
 	retMsg, err := Processor.Unmarshal(msg.Args)
 	if err != nil {
+		log.Error("handleResponseMsg Unmarshal msg error:%s", err.Error())
 		ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
 		return
 	}

@@ -92,7 +92,7 @@ type RoomData struct {
 	BanCardCnt [4][9]int //禁忌卡牌
 }
 
-func (room *RoomData) GetCreater() int {
+func (room *RoomData) GetCreater() int64 {
 	return room.CreateUser
 }
 

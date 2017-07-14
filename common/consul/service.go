@@ -29,7 +29,6 @@ func watchServices(client *api.Client, serverName string, status []string) {
 
 		//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v", lastIndex, meta.LastIndex, serverName, checks)
 		newSvrs := servicesConfig(client, passingServices(checks, status))
-		log.Debug("%v, %v", len(newSvrs) > 0, len(checks) < 1)
 		if len(newSvrs) > 0 || len(checks) < 1 {
 			ChanRPC.Go("AddServerInfo", newSvrs)
 		}

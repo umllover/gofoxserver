@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 )
@@ -108,7 +110,7 @@ func Call0(serverName string, args interface{}) error {
 func Call1(serverName string, args interface{}) (interface{}, error) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
-		log.Error("CallN Marshal error:%s", err.Error())
+		log.Error("CallN Marshal error:%s, %s", err.Error(), string(debug.Stack()))
 		return nil, err
 	}
 	chanSyncRet := make(chan *chanrpc.RetInfo, 1)

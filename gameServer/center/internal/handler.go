@@ -8,29 +8,25 @@ import (
 	"mj/gameServer/conf"
 	"mj/gameServer/user"
 
+	"mj/common/register"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-//中心模块 ， 投递消息给别的玩家， 或者别的服务器上的玩家
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
 func init() {
-	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
-	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("S2S_NotifyOtherNodeLogin", S2S_NotifyOtherNodeLogin)
-	handleRpc("S2S_NotifyOtherNodelogout", S2S_NotifyOtherNodelogout)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
+	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
+	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
+	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("ServerFaild", serverFaild)
+	reg.RegisterRpc("ServerStart", serverStart)
 
-	handleRpc("GetPlayerInfo", GetPlayerInfo)
-	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
-
-	handleRpc("ServerFaild", serverFaild)
-	handleRpc("ServerStart", serverStart)
+	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 }
 
 //玩家在本服节点登录
@@ -54,16 +50,17 @@ func SelfNodeDelPlayer(args []interface{}) {
 }
 
 //玩家在别的节点登录了
-func S2S_NotifyOtherNodeLogin(args []interface{}) {
-	uid := args[0].(int64)
-	ServerName := args[1].(string)
-	OtherUsers[uid] = ServerName
+func NotifyOtherNodeLogin(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodeLogin)
+	OtherUsers[recvMsg.Uid] = recvMsg.ServerName
+	log.Debug("user %d login on %s", recvMsg.Uid, recvMsg.ServerName)
 }
 
 //玩家在别的节点登出了
-func S2S_NotifyOtherNodelogout(args []interface{}) {
-	uid := args[0].(int64)
-	delete(OtherUsers, uid)
+func NotifyOtherNodelogout(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodelogout)
+	log.Debug("user %d logout on %s", recvMsg.Uid, OtherUsers[recvMsg.Uid])
+	delete(OtherUsers, recvMsg.Uid)
 }
 
 func SendMsgToSelfNotdeUser(args []interface{}) {

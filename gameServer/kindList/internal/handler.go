@@ -5,37 +5,26 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
-	"reflect"
 
 	"mj/gameServer/RoomMgr"
 
+	"mj/common/register"
+
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	//rpc
-	handleRpc("S2S_GetKindList", S2S_GetKindList)
-	handleRpc("S2S_GetRooms", S2S_GetRooms)
+	reg.RegisterS2S(&msg.S2S_GetKindList{}, GetKindList)
+	reg.RegisterS2S(&msg.S2S_GetRooms{}, GetRooms)
 }
 
 ///// rpc
-func S2S_GetKindList(args []interface{}) (interface{}, error) {
+func GetKindList(args []interface{}) (interface{}, error) {
 	ip, port := conf.GetServerAddrAndPort()
 
-	ret := make([]*msg.TagGameServer, 0)
+	ret := &msg.S2S_KindListResult{}
 	for kind, v := range modules {
 		templates, ok := base.GameServiceOptionCache.GetKey1(kind)
 		if !ok {
@@ -58,7 +47,7 @@ func S2S_GetKindList(args []interface{}) (interface{}, error) {
 			svrInfo.ServerName = template.RoomName
 			svrInfo.SurportType = 0
 			svrInfo.TableCount = v.GetTableCount()
-			ret = append(ret, svrInfo)
+			ret.Data = append(ret.Data, svrInfo)
 		}
 	}
 
@@ -66,10 +55,10 @@ func S2S_GetKindList(args []interface{}) (interface{}, error) {
 	return ret, nil
 }
 
-func S2S_GetRooms(args []interface{}) (interface{}, error) {
-	rooms := make([]*msg.RoomInfo, 0)
+func GetRooms(args []interface{}) (interface{}, error) {
+	rooms := &msg.S2S_GetRoomsResult{}
 	RoomMgr.ForEachRoom(func(r RoomMgr.IRoom) {
-		rooms = append(rooms, r.GetBirefInfo())
+		rooms.Data = append(rooms.Data, r.GetBirefInfo())
 	})
 	log.Debug("at S2S_GetRooms ==== %v", rooms)
 	return rooms, nil
