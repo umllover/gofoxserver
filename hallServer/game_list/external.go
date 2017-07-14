@@ -2,8 +2,6 @@ package game_list
 
 import (
 	"mj/hallServer/game_list/internal"
-
-	"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -12,7 +10,7 @@ var (
 )
 
 func init() {
-	cluster.AgentChanRPC = ChanRPC
+	//cluster.AgentChanRPC = ChanRPC
 }
 
 func GetSvrByKind(kindId int) (string, int) {

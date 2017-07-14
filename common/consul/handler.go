@@ -1,18 +1,14 @@
-package internal
+package consul
 
 import (
-	"regexp"
-
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
 )
 
 var (
-	caches        map[string]*CacheInfo
-	SelfId        string
-	InitiativeSvr []string //需要注定去连接的类型
-	HookChanRpc   *chanrpc.Server
+	caches      map[string]*CacheInfo
+	SelfId      string
+	HookChanRpc *chanrpc.Server
 )
 
 func init() {
@@ -31,46 +27,40 @@ func handleRpc(id interface{}, f interface{}) {
 
 func AddServerInfo(args []interface{}) {
 	svrInfo := args[0].(map[string]*CacheInfo)
-	for id, _ := range caches {
+	log.Debug("at AddServerInfo  ====================== %v , %v, %v", args, caches, svrInfo)
+	for id, svr := range caches {
 		if _, ok := svrInfo[id]; !ok {
-			SvrFaild(id)
+			SvrFaild(svr)
 		}
 	}
 	for id, svr := range svrInfo {
-		if _, ok := caches[id]; !ok && svr.Csid != SelfId && len(InitiativeSvr) > 0 {
-			for _, v := range InitiativeSvr {
-				rok, err := regexp.MatchString(v, svr.Csid)
-				if err != nil {
-					log.Error("at AddServerInfo Error:%s", err.Error())
-					continue
-				}
-				if rok {
-					cluster.AddClient(svr.Csid, svr.Host)
-				}
+		if _, ok := caches[id]; !ok && svr.Csid != SelfId {
+			if HookChanRpc != nil {
+				HookChanRpc.Go("ServerStart", svr)
 			}
 		}
 	}
 
 	caches = svrInfo
 }
+
 func NotifySvrFaild(args []interface{}) {
 	log.Debug("at SvrFaild ==== %v", args)
 	faildInfo := args[0].(map[string]string)
 	for id, _ := range faildInfo {
-		if _, ok := caches[id]; ok {
-			SvrFaild(id)
+		if svr, ok := caches[id]; ok {
+			SvrFaild(svr)
 		} else {
 			log.Debug("no foud old svr %v", caches)
 		}
 	}
 }
 
-func SvrFaild(id string) {
-	log.Debug(" SvrFaild ==== :%s", id)
-	delete(caches, id)
-	cluster.RemoveClient(id)
+func SvrFaild(svr *CacheInfo) {
+	log.Debug(" SvrFaild ==== :%s", svr.Csid)
+	delete(caches, svr.Csid)
 	if HookChanRpc != nil {
-		HookChanRpc.Go("ServerFaild", id)
+		HookChanRpc.Go("ServerFaild", svr)
 	}
 }
 

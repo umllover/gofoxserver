@@ -61,7 +61,7 @@ func ServerName() string {
 }
 
 func ServerNsqCahnnel() string {
-	return fmt.Sprintf("HallChannel_%d", Server.NodeId)
+	return fmt.Sprintf(HallCahnnelFmt, Server.NodeId)
 }
 
 func init() {
@@ -163,7 +163,7 @@ func (c *ConsulConfig) GetNodeID() int {
 }
 
 func (c *ConsulConfig) GetSvrName() string {
-	return HallPrefix
+	return ServerName()
 }
 func (c *ConsulConfig) GetWatchSvrName() string {
 	return GamePrefix

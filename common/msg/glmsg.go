@@ -39,3 +39,8 @@ type UpdateRoomInfo struct {
 	OpName string
 	Data   map[string]interface{}
 }
+
+type NotifyOtherNodeLogin struct {
+	Uid        int64
+	ServerName string
+}

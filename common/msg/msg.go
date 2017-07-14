@@ -1,9 +1,7 @@
 package msg
 
 import (
-	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
-	//"github.com/lovelly/leaf/cluster"
 )
 
 var (

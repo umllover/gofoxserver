@@ -7,6 +7,8 @@ import (
 
 	"errors"
 
+	"fmt"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/nsqio/go-nsq"
 )
@@ -16,16 +18,11 @@ var (
 	consumers   []*nsq.Consumer
 	proclose    bool
 	prolock     sync.Mutex
-	publishChan = make(chan *NsqRequest, 10000)
-	encoder     *gob.Encoder
-	decoder     *gob.Decoder
+	publishChan = make(chan *S2S_NsqMsg, 10000)
+	encoder     = gob.NewEncoder()
+	decoder     = gob.NewDecoder()
 	SelfName    string
 )
-
-type NsqRequest struct {
-	Topc string
-	Data []byte
-}
 
 type Cluster_config struct {
 	LogLv              string
@@ -62,17 +59,23 @@ func Start(cfg *Cluster_config) {
 		log.Fatal("at nsq start selfname is nil")
 	}
 
+	if len(cfg.CsmNsqdAddrs) < 1 && len(cfg.CsmNsqLookupdAddrs) < 1 {
+		log.Fatal("CsmNsqdAddrs and CsmNsqLookupdAddrs is nil")
+	}
+
 	var err error
 	SelfName = cfg.SelfName
 	nsqcfg := nsq.NewConfig()
 	nsqcfg.UserAgent = cfg.PdrUserAgent
 	nsqcfg.MaxInFlight = cfg.PdrMaxInFlight
+
+	log.Debug("at Start Nsq Connect to PdrNsqdAddr %s", cfg.PdrNsqdAddr)
 	if producer, err = nsq.NewProducer(cfg.PdrNsqdAddr, nsqcfg); err != nil {
 		log.Fatal("start nsq client error:%s", err.Error())
 	}
 
-	loglv := getLogLovel(cfg.LogLv)
-	producer.SetLogger(log.GetBaseLogger(), loglv)
+	//loglv := getLogLovel(cfg.LogLv)
+	//producer.SetLogger(log.GetBaseLogger(), loglv)
 	err = producer.Ping()
 	if err != nil {
 		log.Fatal("ping nsq client error:%s", err.Error())
@@ -87,49 +90,54 @@ func Start(cfg *Cluster_config) {
 			log.Fatal(" nsq NewConsumer error:%s", err.Error())
 		}
 
-		consumer.SetLogger(log.GetBaseLogger(), loglv)
-		consumer.AddHandler(&nsqHandler{})
+		//consumer.SetLogger(log.GetBaseLogger(), loglv)
+		consumer.AddHandler(NewNsqHandler())
 		consumers = append(consumers, consumer)
-		if err = consumer.ConnectToNSQDs(cfg.CsmNsqdAddrs); err != nil {
-			return
-		}
-		if err = consumer.ConnectToNSQLookupds(cfg.CsmNsqLookupdAddrs); err != nil {
-			return
+		if len(cfg.CsmNsqdAddrs) > 0 {
+			if err = consumer.ConnectToNSQDs(cfg.CsmNsqdAddrs); err != nil {
+				log.Fatal(" ERROR:%s", err.Error())
+			}
 		}
 
+		if len(cfg.CsmNsqLookupdAddrs) > 0 {
+			if err = consumer.ConnectToNSQLookupds(cfg.CsmNsqLookupdAddrs); err != nil {
+				log.Fatal(" ERROR:%s", err.Error())
+			}
+		}
 	}
 
 	go publishLoop()
 }
 
-func Publish(topc string, msg interface{}) error {
+func Publish(msg *S2S_NsqMsg) error {
+	if msg.DstServerName == "" {
+		log.Error("at Publish topc is nil === ")
+		return errors.New("at Publish topc is ni")
+	}
 	prolock.Lock()
 	if proclose {
 		prolock.Unlock()
+		log.Error("server is close at Publish")
 		return errors.New("server is close at Publish")
 	}
 	prolock.Unlock()
 
-	data, err := Processor.Marshal(encoder, msg)
-	if err != nil {
-		return err
-	}
-
-	if len(data) < 1 {
-		return errors.New("error at Publish data is nil")
-	}
-	publishChan <- &NsqRequest{Topc: topc, Data: data[0]}
+	publishChan <- msg
 	return nil
 }
 
 func Stop() {
 	prolock.Lock()
+	if proclose {
+		return
+	}
 	proclose = true
 	prolock.Unlock()
 	for _, v := range consumers {
 		v.Stop()
 	}
 	producer.Stop()
+	log.Debug("at Nsq close @@@@@@@@@@@@@@@@@@@@@@")
 	close(publishChan)
 }
 
@@ -140,23 +148,16 @@ func isClose() bool {
 }
 
 func publishLoop() {
-	defer func() {
-		prolock.Lock()
-		proclose = true
-		prolock.Unlock()
-		producer.Stop()
-		close(publishChan)
-	}()
-
-	var msg *NsqRequest
-	var open bool
+	log.Debug("start publishLoop ... ")
 	for {
 		select {
-		case msg, open = <-publishChan:
+		case msg, open := <-publishChan:
 			if !open {
+				log.Debug("at publishLoop return  ")
 				return
 			}
 			if msg == nil {
+				log.Debug("at publishLoop msg is nil ... ")
 				continue
 			}
 			safePulishg(msg)
@@ -168,41 +169,59 @@ func publishLoop() {
 type nsqHandler struct {
 }
 
+func NewNsqHandler() *nsqHandler {
+	return &nsqHandler{}
+}
+
 // HandleMessage - Handles an NSQ message.
 func (h *nsqHandler) HandleMessage(message *nsq.Message) error {
-	defer func() {
-		message.Requeue(-1)
-		message.Finish()
-	}()
-	message.DisableAutoResponse()
-	data, err := Processor.Unmarshal(decoder, message.Body)
+	log.Debug("Cluster IN ==== ")
+	data, err := Processor.Unmarshal( message.Body)
+	fmt.Println("2222222222222222222222", data)
 	if err != nil {
-		log.Error("handler msg error:%s, data:%s", err.Error(), string(message.Body))
+		log.Error("handler msg error:%s", err.Error())
 		return nil
 	}
-	msg := data.(*S2S_NsqMsg)
-	if msg.CallType == callBroadcast && msg.ServerName == SelfName {
+	msg, ok := data.(*S2S_NsqMsg)
+	if !ok {
+		log.Debug("Unmarshal error ")
 		return nil
 	}
+	fmt.Println("333333333333333", msg)
+	if msg.CallType == callBroadcast && msg.SrcServerName == SelfName {
+		return nil
+	}
+
 	switch msg.ReqType {
 	case NsqMsgTypeReq:
 		handleRequestMsg(msg)
 	case NsqMsgTypeRsp:
 		handleResponseMsg(msg)
 	}
-	Processor.Route(data, nil)
 	return nil
 }
 
-func safePulishg(msg *NsqRequest) {
+func safePulishg(msg *S2S_NsqMsg) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error("Publish msg recover error : %s, topc :%s ", string(msg.Data), msg.Topc)
+			log.Error("Publish msg recover error : %s, topc :%v ", msg)
 		}
 	}()
-	err := producer.Publish(msg.Topc, msg.Data)
+
+	data, err := Processor.Marshal(msg)
 	if err != nil {
-		log.Error("Publish msg error : %s, topc :%s ", string(msg.Data), msg.Topc)
+		log.Error("Marshal error at Publish :%s", err.Error())
+		return
+	}
+
+	if len(data) < 1 {
+		log.Error("error at Publish data is ni")
+		return
+	}
+	log.Debug("Cluster OUT ==== ")
+	err = producer.Publish(msg.DstServerName, data[0])
+	if err != nil {
+		log.Error("Publish msg error : %v ", msg)
 	}
 }
 

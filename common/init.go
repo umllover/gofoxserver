@@ -17,4 +17,5 @@ func Init() {
 	gob.Register(&msg.RoomEndInfo{})
 	gob.Register(&msg.UpdateRoomInfo{})
 	gob.Register(&msg.PlayerBrief{})
+
 }

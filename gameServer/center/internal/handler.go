@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"mj/common/consul"
 	"mj/common/cost"
 	"mj/gameServer/conf"
 	"mj/gameServer/user"
@@ -27,6 +28,9 @@ func init() {
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
 	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
 	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+
+	handleRpc("ServerFaild", serverFaild)
+	handleRpc("ServerStart", serverStart)
 }
 
 //玩家在本服节点登录
@@ -135,4 +139,18 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		"MemberOrder": u.MemberOrder,
 	}
 	return gu, nil
+}
+
+//新的节点启动了
+func serverStart(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s on line", svr.Csid)
+	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
+}
+
+//节点关闭了
+func serverFaild(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s off line", svr.Csid)
+	cluster.RemoveClient(svr.Csid)
 }

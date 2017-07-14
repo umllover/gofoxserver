@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -13,11 +12,12 @@ import (
 	"mj/hallServer/user"
 	"reflect"
 	"strconv"
-	"strings"
 
-	"github.com/lovelly/leaf/cluster"
+	"time"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 var (
@@ -52,7 +52,6 @@ func init() {
 	handleRpc("sendGameList", sendGameList)
 	handleRpc("updateGameInfo", updateGameInfo)
 	handleRpc("delGameList", delGameList)
-	handleRpc("NewServerAgent", NewServerAgent)
 	handleRpc("CloseServerAgent", CloseServerAgent)
 
 	handleRpc("notifyNewRoom", notifyNewRoom)
@@ -60,10 +59,14 @@ func init() {
 	handleRpc("notifyDelRoom", notifyDelRoom)
 	handleRpc("updateRoomInfo", updateRoom)
 
-	handleRpc("SvrverFaild", serverFaild)
+	handleRpc("NewServerAgent", NewServerAgent)
+	handleRpc("FaildServerAgent", FaildServerAgent)
+
 	handleRpc("SendPlayerBrief", sendPlayerBrief)
 
 	handleRpc("GetMatchRooms", getMatchRooms)
+
+	center.SetGameListRpc(ChanRPC)
 }
 
 ////// c2s
@@ -232,43 +235,61 @@ func getRoomInfo(tableId int) *msg.RoomInfo {
 func NewServerAgent(args []interface{}) {
 	serverName := args[0].(string)
 	log.Debug("at NewServerAgent :%s", serverName)
-	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
-		if err != nil {
-			log.Error("GetKindList error:%s", err.Error())
+
+	var ltimes, rtimes int
+	var HandleListData func()
+	var HandlerRoomData func()
+	HandleListData = func() {
+		if ltimes > 3 {
 			return
 		}
-
-		ret := data.([]*msg.TagGameServer)
-
-		for _, v := range ret {
-			if Test {
-				if v.NodeID != conf.Server.NodeId {
-					continue
+		ltimes++
+		data, err := cluster.TimeOutCall1(serverName, "GetKindList", 5)
+		if err == nil {
+			log.Debug("data === %v", data)
+			ret := data.([]*msg.TagGameServer)
+			for _, v := range ret {
+				if Test {
+					if v.NodeID != conf.Server.NodeId {
+						continue
+					}
 				}
+				addGameList(v)
+				log.Debug("add sverInfo %v", v)
 			}
-			addGameList(v)
-			log.Debug("add sverInfo %v", v)
+		} else {
+			log.Debug("GetKindList error:%s", err.Error())
+			skeleton.AfterFunc(3*time.Second, HandleListData)
 		}
-	})
+	}
 
-	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetRooms", func(data interface{}, err error) {
-		if err != nil {
-			log.Error("GetKindList error:%s", err.Error())
+	skeleton.AfterFunc(3*time.Second, HandleListData)
+
+	HandlerRoomData = func() {
+		if rtimes > 3 {
 			return
 		}
-
-		ret := data.([]*msg.RoomInfo)
-
-		for _, v := range ret {
-			if Test {
-				if v.NodeID != conf.Server.NodeId {
-					continue
+		rtimes++
+		data, err := cluster.TimeOutCall1(serverName, "GetRooms", 5)
+		if err == nil {
+			log.Debug("data ======= %v", data)
+			ret := data.([]*msg.RoomInfo)
+			for _, v := range ret {
+				if Test {
+					if v.NodeID != conf.Server.NodeId {
+						continue
+					}
 				}
+				addRoom(v)
+				log.Debug("add room %v", v)
 			}
-			addRoom(v)
-			log.Debug("add room %v", v)
+		} else {
+			log.Debug("GetRooms error:%s", err.Error())
+			skeleton.AfterFunc(3*time.Second, HandlerRoomData)
 		}
-	})
+	}
+
+	skeleton.AfterFunc(3*time.Second, HandlerRoomData)
 }
 
 func CloseServerAgent(args []interface{}) {
@@ -308,7 +329,7 @@ func GetSvrByKind(kindId int) (string, int) {
 		}
 
 		if Test {
-			fmt.Println(v.list[kindId].NodeID, conf.Server.NodeId)
+			log.Debug("node id =%d,  self node id =%d", v.list[kindId].NodeID, conf.Server.NodeId)
 			if v.list[kindId].NodeID == conf.Server.NodeId {
 				minv = v
 				break
@@ -336,20 +357,8 @@ func GetSvrByNodeID(nodeid int) string {
 	return ""
 }
 
-func serverFaild(args []interface{}) {
-	svrId := args[0].(string)
-	list := strings.Split(svrId, "_")
-	if len(list) < 2 {
-		log.Error("at ServerFaild param error ")
-		return
-	}
-
-	id, err := strconv.Atoi(list[1])
-	if err != nil {
-		log.Error("at ServerFaild param error : %s", err.Error())
-		return
-	}
-
+func FaildServerAgent(args []interface{}) {
+	id := args[0].(int)
 	for roomId, v := range roomList {
 		if v.NodeID == id {
 			delete(roomList, roomId)

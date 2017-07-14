@@ -45,13 +45,14 @@ func main() {
 	base.LoadBaseData()
 	kindList.Init()
 
-	modules := []module.Module{center.Module}
+	modules := []module.Module{}
 	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
-	modules = append(modules, consul.Module)
 	modules = append(modules, Chat.Module)
 	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, kindList.GetModules()...)
+
+	modules = append(modules, consul.Module)
 	leaf.Run(modules...)
 }
 

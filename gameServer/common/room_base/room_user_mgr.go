@@ -10,7 +10,7 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/log"
 )
 

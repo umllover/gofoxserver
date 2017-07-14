@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 type IRoom interface {

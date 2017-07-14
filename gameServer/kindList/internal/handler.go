@@ -9,8 +9,8 @@ import (
 
 	"mj/gameServer/RoomMgr"
 
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 ////注册rpc 消息
@@ -62,7 +62,7 @@ func GetKindList(args []interface{}) (interface{}, error) {
 		}
 	}
 
-	log.Debug("at GetKindList ==== %v", ret)
+	//log.Debug("at GetKindList ==== %v", ret)
 	return ret, nil
 }
 

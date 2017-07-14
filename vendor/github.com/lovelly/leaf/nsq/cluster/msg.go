@@ -1,15 +1,15 @@
 package cluster
 
 import (
-	"auth_server/module/log"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"mj/gameServer/conf"
-
 	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/network/gob"
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/network/json"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 
 var (
 	routeMap        = map[interface{}]*chanrpc.Client{}
-	Processor       = gob.NewProcessor()
+	Processor       = json.NewProcessor()
 	RequestInfoLock sync.Mutex
 	requestID       int64
 	requestMap      = make(map[int64]*RequestInfo)
@@ -34,6 +34,14 @@ var (
 type RequestInfo struct {
 	cb      interface{}
 	chanRet chan *chanrpc.RetInfo
+}
+
+func init() {
+	gob.Register(map[string]string{})
+	gob.Register(map[string]interface{}{})
+	gob.Register(&S2S_NsqMsg{})
+
+	Processor.Register(&S2S_NsqMsg{})
 }
 
 func SetRoute(id interface{}, server *chanrpc.Server) {
@@ -46,20 +54,22 @@ func SetRoute(id interface{}, server *chanrpc.Server) {
 }
 
 type S2S_NsqMsg struct {
-	RequestID  int64
-	ReqType    int
-	MsgID      interface{}
-	CallType   uint8
-	ServerName string
-	Args       []interface{}
-	Err        string
+	RequestID     int64
+	ReqType       int
+	MsgID         interface{}
+	CallType      uint8
+	SrcServerName string
+	DstServerName string
+	Args          string
+	Err           string
 }
 
 func handleRequestMsg(recvMsg *S2S_NsqMsg) {
-	sendMsg := &S2S_NsqMsg{ReqType: NsqMsgTypeRsp, RequestID: recvMsg.RequestID}
+	log.Debug("at ********************　handleRequestMsg")
+	sendMsg := &S2S_NsqMsg{ReqType: NsqMsgTypeRsp, DstServerName: recvMsg.SrcServerName, RequestID: recvMsg.RequestID}
 	if isClose() && recvMsg.CallType == callForResult {
 		sendMsg.Err = fmt.Sprintf("%v server is closing", conf.ServerName)
-		Publish(recvMsg.ServerName, sendMsg)
+		Publish(sendMsg)
 		return
 	}
 
@@ -71,19 +81,25 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 
 		if recvMsg.CallType == callForResult {
 			sendMsg.Err = err
-			Publish(recvMsg.ServerName, sendMsg)
+			Publish(sendMsg)
 		}
 		return
 	}
 
-	args := recvMsg.Args
+	args := []interface{}{recvMsg.Args}
 	if recvMsg.CallType == callForResult {
 		sendMsgFunc := func(ret *chanrpc.RetInfo) {
-			sendMsg.Args = []interface{}{ret.Ret}
+			data, err := Processor.Marshal(ret.Ret)
+			if err != nil {
+				sendMsg.Args = string(data[0])
+			} else {
+				log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
+			}
+
 			if ret.Err != nil {
 				sendMsg.Err = ret.Err.Error()
 			}
-			Publish(recvMsg.ServerName, sendMsg)
+			Publish(sendMsg)
 		}
 
 		args = append(args, sendMsgFunc)
@@ -95,17 +111,19 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 }
 
 func handleResponseMsg(msg *S2S_NsqMsg) {
+	log.Debug("at ********************　handleResponseMsg")
 	request := popRequest(msg.RequestID)
 	if request == nil {
-		log.Error("%v: request id %v is not exist", msg.ServerName, msg.RequestID)
+		log.Error("%v: request id %v is not exist", msg.SrcServerName, msg.RequestID)
 		return
 	}
 
-	ret := &chanrpc.RetInfo{Ret: msg.Args[0], Cb: request.cb}
+	ret := &chanrpc.RetInfo{Ret: msg.Args, Cb: request.cb}
 	if msg.Err != "" {
 		ret.Err = errors.New(msg.Err)
 	}
 	request.chanRet <- ret
+
 }
 
 func registerRequest(request *RequestInfo) int64 {

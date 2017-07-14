@@ -13,6 +13,10 @@ var (
 	ChanRPC = internal.ChanRPC
 )
 
+func SetGameListRpc(rpc *chanrpc.Server) {
+	internal.GamelistRpc = rpc
+}
+
 //发送消息给本服服务器上的玩家
 func SendToThisNodeUser(uid int, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)

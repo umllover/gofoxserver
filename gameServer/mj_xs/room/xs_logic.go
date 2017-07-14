@@ -1,10 +1,10 @@
 package room
 
 import (
-	"auth_server/module/log"
 	"mj/common/msg"
 	. "mj/gameServer/common/mj/mj_base"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
 

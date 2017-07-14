@@ -14,7 +14,6 @@ import (
 	"sort"
 
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -49,7 +48,7 @@ func (m *MatchModule) OnDestroy() {
 func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
 	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRooms", 5)
 	if err != nil {
-		log.Error("at GetRooms error:%s", err.Error())
+		//log.Error("at GetRooms error:%s", err.Error())
 		return make(map[int][]*msg.RoomInfo)
 	}
 	return rooms.(map[int][]*msg.RoomInfo)

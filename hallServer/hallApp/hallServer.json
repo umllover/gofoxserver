@@ -2,9 +2,9 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 
-	"WSAddr": "192.168.1.88:20001",
-    "HttpAddr":"192.168.1.88:40001",
-    "ListenAddr": "192.168.1.188:30001",
+	"WSAddr": "192.168.1.141:20001",
+    "HttpAddr":"192.168.1.141:40001",
+    "ListenAddr": "192.168.1.141:30001",
     "WatchAddr":"127.0.0.1:7001",
 	"MaxConnNum": 20000,
 
@@ -29,12 +29,12 @@
     "StatsDbUsername":"root",
     "StatsDbPassword":"hfwl@2017",
 
-    "NsqdAddrs":["",""],
-    "NsqLookupdAddrs":["",""],
-    "PdrNsqdAddr":"192.168.1.144",
+    "NsqdAddrs":["192.168.1.36:4150"],
+    "NsqLookupdAddrs":[],
+    "PdrNsqdAddr":"192.168.1.36:4150",
 
-    "ConsulAddr":"192.168.1.144:8500",
+    "ConsulAddr":"192.168.1.141:8500",
 	"PendingWriteNum": 100,
     "PrivatePort":7001,
-    "NodeId": 822
+    "NodeId": 1
 }

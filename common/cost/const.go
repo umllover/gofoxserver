@@ -139,10 +139,12 @@ const (
 //////////////////////////////////////////////
 //标识前缀
 const (
-	HallPrefix    = "HallSvr"    //房间服
-	GamePrefix    = "GameSvr"    //游戏服
-	HallPrefixFmt = "HallSvr_%d" //房间服
-	GamePrefixFmt = "GameSvr_%d" //游戏服
+	HallPrefix     = "HallSvr"        //房间服
+	GamePrefix     = "GameSvr"        //游戏服
+	HallPrefixFmt  = "HallSvr_%d"     //房间服
+	GamePrefixFmt  = "GameSvr_%d"     //游戏服
+	GameChannelFmt = "GameChannel_%d" //nsq channel
+	HallCahnnelFmt = "HallCahnnel_%d" //nsq channel
 )
 
 func GetGameSvrTopc(id int) string {

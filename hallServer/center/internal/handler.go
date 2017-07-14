@@ -2,13 +2,20 @@ package internal
 
 import (
 	"errors"
+	"mj/common/consul"
 	"mj/common/cost"
 	"mj/hallServer/conf"
 	"mj/hallServer/user"
+	"strconv"
+	"strings"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
+)
+
+var (
+	GamelistRpc *chanrpc.Server
 )
 
 //中心模块 ， 投递消息给别的玩家， 或者别的服务器上的玩家
@@ -27,6 +34,11 @@ func init() {
 	handleRpc("GetPlayerInfo", GetPlayerInfo)
 	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
 	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+
+	handleRpc("ServerFaild", serverFaild)
+	handleRpc("ServerStart", serverStart)
+
+	consul.SetHookRpc(ChanRPC)
 }
 
 //玩家在本服节点登录
@@ -135,4 +147,31 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		"MemberOrder": u.MemberOrder,
 	}
 	return gu, nil
+}
+
+//新的节点启动了
+func serverStart(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s on line", svr.Csid)
+	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
+	GamelistRpc.Go("NewServerAgent", svr.Csid)
+}
+
+//节点关闭了
+func serverFaild(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s off line", svr.Csid)
+	list := strings.Split(svr.Csid, "_")
+	if len(list) < 2 {
+		log.Error("at ServerFaild param error ")
+		return
+	}
+
+	id, err := strconv.Atoi(list[1])
+	if err != nil {
+		log.Error("at ServerFaild param error : %s", err.Error())
+		return
+	}
+	cluster.RemoveClient(svr.Csid)
+	GamelistRpc.Go("FaildServerAgent", id)
 }

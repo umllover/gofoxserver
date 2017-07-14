@@ -12,7 +12,7 @@ import (
 	client "mj/gameServer/user"
 	"reflect"
 
-	"github.com/lovelly/leaf/cluster"
+	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )

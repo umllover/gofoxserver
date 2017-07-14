@@ -85,7 +85,6 @@ func (lg *BaseLogic) IsValidCard(card int) bool {
 //混乱扑克
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	//混乱准备
-	cbBufferCount := int(len(cbCardBuffer))
 	cbBufferCount := len(cbCardBuffer)
 	cbCardDataTemp := util.CopySlicInt(OriDataArray)
 	//混乱扑克
