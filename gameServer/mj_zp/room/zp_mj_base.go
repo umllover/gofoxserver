@@ -212,7 +212,7 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		return false
 	}
 
-	room.UserMgr.SetUsetTrustee(wChairID, true)
+	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
 
 	room.UserMgr.SendMsgAll(&mj_zp_msg.G2C_ZPMJ_Trustee{
 		Trustee: bTrustee,
@@ -227,35 +227,14 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 			}
 			u := room.UserMgr.GetUserByChairId(wChairID)
 			card := room.LogicMgr.SwitchToCardData(cardindex)
-
-			//删除扑克
-			if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), card) {
-				log.Error("at OnUserOutCard not have card ")
-				return false
-			}
-
-			u.UserLimit &= ^LimitChiHu
-			u.UserLimit &= ^LimitPeng
-			u.UserLimit &= ^LimitGang
-
-			room.DataMgr.NotifySendCard(u, card, false)
-
-			//响应判断
-			bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, card, EstimatKind_OutCard)
-
-			//派发扑克
-			if !bAroseAction {
-				if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
-					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
-				}
-			}
+			room.OutCard([]interface{}{u, card, true})
 		} else if room.DataMgr.GetCurrentUser() == INVALID_CHAIR && !room.DataMgr.IsActionDone() {
-			//operatecard := make([]int, 3)
 			u := room.UserMgr.GetUserByChairId(wChairID)
 			if u == nil {
 				return false
 			}
-			//room.Operater(u, operatecard, WIK_NULL, false)
+			operateCard := []int{0, 0, 0}
+			room.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
 		}
 	}
 	return true
