@@ -93,12 +93,12 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 
 	for _, v := range svcs {
 		if v.ServiceID == svrName {
-			log.Fatal("check regist faild at buildRoomSvrConfig 11 %v", svrName)
+			log.Fatal("cluster have start %v , old server info:%v", svrName, v)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 
 		if v.ServiceAddress == list[0] && v.ServicePort == tcpPort {
-			log.Fatal("check regist faild at buildRoomSvrConfig 22 %v", svrName)
+			log.Fatal("cluster have start %v ..., old server info:%v", svrName, v)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 	}

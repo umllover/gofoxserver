@@ -17,6 +17,8 @@ import (
 
 	"time"
 
+	"fmt"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -157,7 +159,7 @@ func delRoom(roomId int) {
 	if ri != nil {
 		m, ok := roomKindList[ri.KindID]
 		if ok {
-			delete(m, ri.Idx)
+			delete(m, roomId)
 		} else {
 			log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
 		}
@@ -348,15 +350,20 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 	kind := args[0].(int)
 	ret := make([]*msg.RoomInfo, 0)
 
+	log.Debug("at GetMatchRoomsByKind === %v", roomKindList)
+	log.Debug("at GetMatchRoomsByKind rooms  === %v", roomList)
 	for roomID, _ := range roomKindList[kind] {
 		v := roomList[roomID]
 		if v == nil {
+			fmt.Println("111111111111")
 			continue
 		}
 		if !v.IsPublic {
+			fmt.Println("222222222222")
 			continue
 		}
-		if v.MaxPlayerCnt >= len(v.MachPlayer) {
+		if v.MaxPlayerCnt <= len(v.MachPlayer) {
+			fmt.Println("3333333333333 %d", v.MaxPlayerCnt)
 			continue
 		}
 		ret = append(ret, v)

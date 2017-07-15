@@ -25,8 +25,11 @@ func init() {
 func QuickMatch(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_QuickMatch)
 	agent := args[1].(gate.Agent)
+	player := agent.UserData().(*user.User)
+
 	limitTime := common.GetGlobalVarInt(MATCH_TIMEOUT)
-	DefaultMachModule.AddMatchPlayer(recvMsg.KindID, &MachPlayer{ch: agent.ChanRPC(), EndTime: time.Now().Unix() + int64(limitTime)})
+	matchPlayer := &MachPlayer{Uid: player.Id, ch: agent.ChanRPC(), EndTime: time.Now().Unix() + int64(limitTime)}
+	DefaultMachModule.AddMatchPlayer(recvMsg.KindID, matchPlayer)
 	agent.WriteMsg(&msg.L2C_QuickMatchOk{MatchTime: limitTime})
 }
 

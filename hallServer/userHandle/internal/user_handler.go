@@ -319,6 +319,12 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = template.MaxPlayer
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
+	if recvMsg.Public {
+		info.Public = 1
+	} else {
+		info.Public = 0
+	}
+
 	by, err := json.Marshal(recvMsg.OtherInfo)
 	if err != nil {
 		log.Error("at CreateRoom json.Marshal(recvMsg.OtherInfo) error:%s", err.Error())
@@ -701,6 +707,7 @@ func (m *UserModule) matchResult(args []interface{}) {
 	if ret {
 		r := args[1].(*msg.RoomInfo)
 		retMsg.TableID = r.RoomID
+		retMsg.ServerIP = r.SvrHost
 	} else {
 		retMsg.TableID = INVALID_TABLE
 	}

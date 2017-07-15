@@ -50,10 +50,11 @@ func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
 }
 
 func (m *MatchModule) GetRoomsByKind(kind int) []*msg.RoomInfo {
-	log.Debug("beginc S2S_GetRoomsByKind %d", kind)
+	log.Debug("beginc GetRoomsByKind %d", kind)
 	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRoomsByKind", 5, kind)
-	log.Debug("end S2S_GetRoomsByKind %d， rooms:%v", kind, rooms)
+	log.Debug("end GetRoomsByKind %d， rooms:%v", kind, rooms)
 	if err != nil {
+		log.Debug("at GetRoomsByKind error:%s", err.Error())
 		return []*msg.RoomInfo{}
 	}
 	return rooms.([]*msg.RoomInfo)
