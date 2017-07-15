@@ -5,7 +5,6 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/Chat"
 	"mj/gameServer/RoomMgr"
-	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -127,14 +126,6 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 		return false
 	}
 
-	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
-		"GameNodeID": conf.Server.NodeId,
-		"EnterIP":    conf.Server.WSAddr,
-	})
-
-	if err != nil {
-		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
-	}
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
@@ -143,12 +134,10 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 		RoomId: r.id,
 		OpName: "AddPlayerId",
 		Data: map[string]interface{}{
-			"info": &msg.PlayerBrief{
-				UID:     u.Id,
-				Name:    u.NickName,
-				HeadUrl: u.HeadImgUrl,
-				Icon:    u.IconID,
-			},
+			"UID":     u.Id,
+			"Name":    u.NickName,
+			"HeadUrl": u.HeadImgUrl,
+			"Icon":    u.IconID,
 		},
 	})
 	return true

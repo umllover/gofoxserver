@@ -24,9 +24,8 @@ import (
 
 type ZP_RoomData struct {
 	*mj_base.RoomData
-	ChaHuaTime  *timer.Timer   //插花定时器
-	OutCardTime *timer.Timer   //出牌定时器
-	OperateTime []*timer.Timer //操作定时器
+	ChaHuaTime  *timer.Timer //插花定时器
+	OutCardTime *timer.Timer //出牌定时器
 
 	ZhuaHuaCnt int  //抓花个数
 	WithZiCard bool //带字牌

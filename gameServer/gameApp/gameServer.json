@@ -31,6 +31,6 @@
     "ConsulAddr":"192.168.1.141:8500",
 	"PendingWriteNum": 100,
     "ValidKind":"389,28,391",
-    "PrivatePort":7002,
+    "WatchAddr":"127.0.0.1:7002",
     "NodeId": 1
 }

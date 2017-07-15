@@ -105,10 +105,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	//if accountData.PasswordID != recvMsg.Password {
-	//	sendErrFunc("password is error")
-	//	return
-	//}
+	if accountData.LogonPass != recvMsg.LogonPass {
+		retcode = ErrPasswd
+		return
+	}
 
 	player := user.NewUser(accountData.UserID)
 	player.Id = accountData.UserID
@@ -116,6 +116,25 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if !lok {
 		retcode = LoadUserInfoError
 		return
+	}
+
+	if player.Roomid != 0 {
+		_, have := game_list.ChanRPC.Call1("HaseRoom", player.Roomid)
+		if have != nil {
+			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
+			player.KindID = 0
+			player.ServerID = 0
+			player.GameNodeID = 0
+			player.EnterIP = ""
+			player.Roomid = 0
+			model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+				"KindID":     0,
+				"ServerID":   0,
+				"GameNodeID": 0,
+				"EnterIP":    "",
+				"roomid":     0,
+			})
+		}
 	}
 
 	player.Agent = agent
@@ -397,9 +416,16 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	player.KindID = roomInfo.KindID
 	player.ServerID = roomInfo.ServerID
+	player.Roomid = roomInfo.RoomID
+	player.GameNodeID = roomInfo.NodeID
+	player.EnterIP = host
+
 	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
-		"KindID":   player.KindID,
-		"ServerID": player.ServerID,
+		"KindID":     player.KindID,
+		"ServerID":   player.ServerID,
+		"GameNodeID": roomInfo.NodeID,
+		"EnterIP":    host,
+		"roomid":     roomInfo.RoomID,
 	})
 
 	retMsg.TableID = roomInfo.RoomID

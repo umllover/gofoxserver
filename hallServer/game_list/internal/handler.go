@@ -14,6 +14,10 @@ import (
 
 	rgst "mj/common/register"
 
+	"errors"
+
+	"time"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -47,6 +51,7 @@ func init() {
 	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
 	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
+	reg.RegisterRpc("HaseRoom", HaseRoom)
 
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
 	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
@@ -113,8 +118,10 @@ func sendGameList(args []interface{}) {
 		}
 	}
 	agent.WriteMsg(&list)
-	finish := &msg.L2C_ServerListFinish{}
-	agent.WriteMsg(finish)
+	skeleton.AfterFunc(1*time.Second, func() {
+		agent.WriteMsg(&msg.L2C_ServerListFinish{})
+	})
+
 }
 
 func updateGameInfo(args []interface{}) {
@@ -194,15 +201,20 @@ func updateRoom(args []interface{}) {
 
 	switch info.OpName {
 	case "CurPayCnt":
-		room.CurPayCnt = info.Data["CurPayCnt"].(int)
+		room.CurPayCnt = int(info.Data["CurPayCnt"].(float64))
 	case "AddPlayerId":
-		pinfo := info.Data["info"].(*msg.PlayerBrief)
+		pinfo := &msg.PlayerBrief{
+			UID:     int64(info.Data["UID"].(float64)),
+			Name:    info.Data["Name"].(string),
+			HeadUrl: info.Data["HeadUrl"].(string),
+			Icon:    int(info.Data["Icon"].(float64)),
+		}
 		room.Players[pinfo.UID] = pinfo
 		room.CurCnt = len(room.Players)
 		center.SendToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
-		id := info.Data["UID"].(int64)
-		status := info.Data["Status"].(int)
+		id := int64(info.Data["UID"].(float64))
+		status := int(info.Data["Status"].(float64))
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
 		if status == 0 { //返回钱
@@ -357,4 +369,13 @@ func getMatchRooms(args []interface{}) (interface{}, error) {
 		ret[v.KindID] = append(ret[v.KindID], v)
 	}
 	return ret, nil
+}
+
+func HaseRoom(args []interface{}) (interface{}, error) {
+	id := args[0].(int)
+	_, ok := roomList[id]
+	if ok {
+		return nil, nil
+	}
+	return nil, errors.New("no room")
 }

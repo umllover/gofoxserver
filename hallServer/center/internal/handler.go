@@ -126,6 +126,7 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		Revenue:     u.Revenue,
 		InsureScore: u.InsureScore,
 		MemberOrder: u.MemberOrder,
+		RoomId :u.Roomid,
 	}
 	return gu, nil
 }

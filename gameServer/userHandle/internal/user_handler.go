@@ -13,7 +13,8 @@ import (
 
 	"mj/common/register"
 
-	"github.com/lovelly/leaf/gate"
+	"encoding/json"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 )
@@ -145,7 +146,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			return
 		}
 		user.ChairId = INVALID_CHAIR
-		user.RoomId = INVALID_CHAIR
 	} else {
 		log.Debug("old user ====== %d  %d ", user.KindID, user.RoomId)
 		if user.KindID != 0 && user.RoomId != 0 {
@@ -232,29 +232,28 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 }
 
 func (m *UserModule) UserSitdown(args []interface{}) {
-	user := m.a.UserData().(*client.User)
+	player := m.a.UserData().(*client.User)
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+	if player.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", player.Id)
 		return
 	}
 
 	roomid := recvMsg.TableID
-	if recvMsg.TableID == INVALID_CHAIR {
-		roomid = user.RoomId
-	}
-	r := RoomMgr.GetRoom(roomid)
+	r := RoomMgr.GetRoom(recvMsg.TableID)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
-		return
+		if player.RoomId != 0 {
+			roomid = player.RoomId
+			m.LoadRoom([]interface{}{&msg.C2G_LoadRoom{RoomID: player.RoomId}})
+			r = RoomMgr.GetRoom(player.RoomId)
+		}
+		if r == nil {
+			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", player.Id, roomid)
+			return
+		}
 	}
 
-	r.GetChanRPC().Go("Sitdown", args[0], user)
+	r.GetChanRPC().Go("Sitdown", recvMsg.ChairID, player)
 }
 
 func (m *UserModule) SetGameOption(args []interface{}) {
@@ -352,13 +351,13 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 func (m *UserModule) LoadRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_LoadRoom)
 	retMsg := &msg.G2C_LoadRoomOk{}
-	agent := args[1].(gate.Agent)
+	player := m.a.UserData().(*client.User)
 	retCode := -1
 	defer func() {
 		if retCode != 0 {
-			agent.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			player.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		} else {
-			agent.WriteMsg(retMsg)
+			player.WriteMsg(retMsg)
 		}
 	}()
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
@@ -370,6 +369,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 		return
 	}
 
+	b, _ := json.Marshal(info)
+	log.Debug("at LoadRoom Info == %v", string(b))
 	if info.Status != 0 {
 		retCode = ErrDoubleCreaterRoom
 		return
@@ -381,9 +382,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 		return
 	}
 
-	u := m.a.UserData().(*client.User)
 	log.Debug("begin CreateRoom.....")
-	ok1 := mod.CreateRoom(info, u)
+	ok1 := mod.CreateRoom(info, player)
 	if !ok1 {
 		retCode = ErrCreaterError
 		return
@@ -449,5 +449,6 @@ func loadUser(u *client.User) bool {
 	u.Revenue = info.Revenue
 	u.InsureScore = info.InsureScore
 	u.MemberOrder = info.MemberOrder
+	u.RoomId = info.RoomId
 	return true
 }

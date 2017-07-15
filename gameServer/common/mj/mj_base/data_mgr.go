@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
 )
 
@@ -90,6 +91,9 @@ type RoomData struct {
 
 	BanUser    [4]int    //是否出牌禁忌
 	BanCardCnt [4][9]int //禁忌卡牌
+
+	//timer
+	OperateTime []*timer.Timer //操作定时器
 }
 
 func (room *RoomData) GetCreater() int64 {

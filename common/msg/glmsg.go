@@ -97,4 +97,5 @@ type S2S_GetPlayerInfoResult struct {
 	Revenue     int64
 	InsureScore int64
 	MemberOrder int8
+	RoomId      int
 }

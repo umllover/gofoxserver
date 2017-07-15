@@ -18,7 +18,6 @@ var Server struct {
 	TCPAddr     string
 	ListenAddr  string
 	HttpAddr    string
-	WatchAddr   string
 	MaxConnNum  int
 	ConsolePort int
 	ProfilePath string
@@ -52,7 +51,7 @@ var Server struct {
 	ConnAddrs       map[string]string
 	AuthServerUrl   string
 	PendingWriteNum int
-	PrivatePort     int
+	WatchAddr       string
 	NodeId          int
 }
 

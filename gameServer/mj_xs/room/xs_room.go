@@ -30,11 +30,17 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewXSEntry(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewXSDataMgr(info.RoomId, u.Id, mj_base.IDX_XSMJ, "", temp, r),
-		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		DataMgr:  NewXSDataMgr(info.RoomId, u.Id, mj_base.IDX_XSMJ, "", temp, r, info.OtherInfo),
+		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewXSlogic(mj_base.IDX_XSMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}
+
+	if cfg.BaseMgr == nil || cfg.DataMgr == nil || cfg.UserMgr == nil || cfg.LogicMgr == nil || cfg.TimerMgr == nil {
+		log.Debug("at CreaterRoom mermber faild uid:%d", info.KindId, info.ServiceId, u.Id)
+		return nil
+	}
+
 	r.Init(cfg)
 	if r == nil {
 		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
