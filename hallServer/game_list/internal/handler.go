@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/center"
@@ -25,10 +24,9 @@ import (
 
 var (
 	reg          = rgst.NewRegister(ChanRPC)
-	gameLists    = make(map[int]*ServerInfo)   //k1 NodeID,
-	roomList     = make(map[int]*msg.RoomInfo) // key1 is roomId
-	roomKindList = make(map[int]map[int]int)   //key1 is kind Id key2 incId
-	KindListInc  = 0
+	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
+	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
+	roomKindList = make(map[int]map[int]struct{}) //key1 is kind Id key2 incId
 	Test         = false
 )
 
@@ -38,7 +36,6 @@ type ServerInfo struct {
 }
 
 func init() {
-	reg.RegisterC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
 	reg.RegisterC2S(&msg.C2L_GetRoomList{}, GetRoomList)
 
 	reg.RegisterRpc("sendGameList", sendGameList)
@@ -51,6 +48,8 @@ func init() {
 	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
 	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
+	reg.RegisterRpc("GetMatchRoomsByKind", GetMatchRoomsByKind)
+	reg.RegisterRpc("GetRoomsByRoomId", GetRoomsByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
 
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
@@ -60,47 +59,27 @@ func init() {
 }
 
 ////// c2s
-//玩家请求查找房间
-func SrarchTable(args []interface{}) {
-	recvMsg := args[0].(*msg.C2L_SearchServerTable)
-	agent := args[1].(gate.Agent)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			agent.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-
-	roomInfo := getRoomInfo(recvMsg.TableID)
-	if roomInfo == nil {
-		log.Error("at SrarchTable not foud room, %v", recvMsg)
-		retcode = ErrNoFoudRoom
-		return
-	}
-
-	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
-	return
-}
 
 func GetRoomList(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_GetRoomList)
-	retMsg := msg.L2C_GetRoomList{}
+	retMsg := &msg.L2C_GetRoomList{}
 	retMsg.Lists = make([]*msg.RoomInfo, common.ListsMaxCnt)
 	agent := args[1].(gate.Agent)
 	defer func() {
 		agent.WriteMsg(retMsg)
 	}()
 
-	curIdx := recvMsg.PageId * common.PackCount
-	if curIdx > KindListInc {
-		curIdx = 0
+	if recvMsg.Num > common.GetGlobalVarInt(MAX_SHOW_ENTRY) {
+		return
 	}
+
 	m, ok := roomKindList[recvMsg.KindID]
 
+	idx := 0
 	if ok {
-		for idx, roomID := range m {
-			if idx <= curIdx {
-				continue
+		for roomID, _ := range m {
+			if idx >= recvMsg.Num {
+				break
 			}
 			retMsg.Lists[retMsg.Count] = roomList[roomID]
 			retMsg.Count++
@@ -158,16 +137,10 @@ func addRoom(recvMsg *msg.RoomInfo) {
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
-		m = make(map[int]int)
+		m = make(map[int]struct{})
 		roomKindList[recvMsg.KindID] = m
 	}
-
-	if int32(KindListInc) >= math.MaxInt32 {
-		KindListInc = 0
-	}
-	KindListInc++
-	recvMsg.Idx = KindListInc
-	m[KindListInc] = recvMsg.RoomID
+	m[recvMsg.RoomID] = struct{}{}
 }
 
 func notifyDelRoom(args []interface{}) {
@@ -367,6 +340,35 @@ func getMatchRooms(args []interface{}) (interface{}, error) {
 			continue
 		}
 		ret[v.KindID] = append(ret[v.KindID], v)
+	}
+	return ret, nil
+}
+
+func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
+	kind := args[0].(int)
+	ret := make([]*msg.RoomInfo, 0)
+
+	for roomID, _ := range roomKindList[kind] {
+		v := roomList[roomID]
+		if v == nil {
+			continue
+		}
+		if !v.IsPublic {
+			continue
+		}
+		if v.MaxPlayerCnt >= len(v.MachPlayer) {
+			continue
+		}
+		ret = append(ret, v)
+	}
+	return ret, nil
+}
+
+func GetRoomsByRoomId(args []interface{}) (interface{}, error) {
+	roomid := args[0].(int)
+	ret, ok := roomList[roomid]
+	if !ok {
+		return nil, errors.New("not foud")
 	}
 	return ret, nil
 }

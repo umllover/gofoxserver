@@ -32,6 +32,8 @@ func init() {
 	Processor.Register(&L2C_ActivityInfo{})
 	Processor.Register(&C2L_SetElect{})
 	Processor.Register(&L2C_SetElectResult{})
+	Processor.Register(&L2C_GetRoomList{})
+	Processor.Register(&L2C_QuickMatchOk{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})

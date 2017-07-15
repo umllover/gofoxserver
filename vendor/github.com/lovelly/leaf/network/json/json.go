@@ -60,7 +60,7 @@ func (p *Processor) Register(msg interface{}) string {
 func (p *Processor) SetRouter(msg interface{}, msgRouter *chanrpc.Server) {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
-		log.Fatal("json message pointer required")
+		log.Fatal("json message pointer required", string(debug.Stack()))
 	}
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]
@@ -75,7 +75,7 @@ func (p *Processor) SetRouter(msg interface{}, msgRouter *chanrpc.Server) {
 func (p *Processor) SetHandler(msg interface{}, msgHandler MsgHandler) {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
-		log.Fatal("json message pointer required")
+		log.Fatal("json message pointer required", string(debug.Stack()))
 	}
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]
@@ -90,7 +90,7 @@ func (p *Processor) SetHandler(msg interface{}, msgHandler MsgHandler) {
 func (p *Processor) SetRawHandler(msg interface{}, msgRawHandler MsgHandler) {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
-		log.Fatal("json message pointer required")
+		log.Fatal("json message pointer required", string(debug.Stack()))
 	}
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]

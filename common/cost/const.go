@@ -188,4 +188,6 @@ func GetHallSvrName(sververId int) string {
 const (
 	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
 	MAX_ELECT_AWARD      = "MAX_ELECT_AWARD"
+	MAX_SHOW_ENTRY       = "MAX_SHOW_ENTRY"
+	MATCH_TIMEOUT        = "MATCH_TIMEOUT"
 )

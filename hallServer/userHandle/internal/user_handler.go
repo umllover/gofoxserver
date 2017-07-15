@@ -17,6 +17,8 @@ import (
 
 	"mj/common/register"
 
+	"mj/hallServer/match_room"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -346,6 +348,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
+	roomInfo.RoomName = info.RoomName
 	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
 
 	//回给客户端的消息
@@ -365,8 +368,9 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	defer func() {
 		if retcode != 0 {
 			if roomInfo.CreateUserId == player.Id {
-				//todo  delte room
+				//todo  delte room ???
 			}
+			match_room.ChanRPC.Go("delMatchPlayer", player.Id, roomInfo)
 			player.WriteMsg(RenderErrorMessage(retcode))
 		} else {
 			player.WriteMsg(retMsg)
@@ -692,11 +696,13 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := msg.L2C_SearchResult{}
+	retMsg := &msg.L2C_SearchResult{}
 	u := m.a.UserData().(*user.User)
 	if ret {
 		r := args[1].(*msg.RoomInfo)
 		retMsg.TableID = r.RoomID
+	} else {
+		retMsg.TableID = INVALID_TABLE
 	}
 	u.WriteMsg(retMsg)
 }

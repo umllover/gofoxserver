@@ -1,19 +1,15 @@
 package internal
 
 import (
+	"container/list"
+	"mj/common/msg"
 	"mj/gameServer/base"
-
+	"mj/hallServer/game_list"
+	"sort"
 	"time"
 
-	"container/list"
-
-	"mj/common/msg"
-
-	"mj/hallServer/game_list"
-
-	"sort"
-
 	"github.com/lovelly/leaf/chanrpc"
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -45,36 +41,61 @@ func (m *MatchModule) OnDestroy() {
 
 }
 
-func (m *MatchModule) S2S_GetRooms() map[int][]*msg.RoomInfo {
+func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
 	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRooms", 5)
 	if err != nil {
-		//log.Error("at S2S_GetRooms error:%s", err.Error())
 		return make(map[int][]*msg.RoomInfo)
 	}
 	return rooms.(map[int][]*msg.RoomInfo)
 }
 
+func (m *MatchModule) GetRoomsByKind(kind int) []*msg.RoomInfo {
+	log.Debug("beginc S2S_GetRoomsByKind %d", kind)
+	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRoomsByKind", 5, kind)
+	log.Debug("end S2S_GetRoomsByKind %d， rooms:%v", kind, rooms)
+	if err != nil {
+		return []*msg.RoomInfo{}
+	}
+	return rooms.([]*msg.RoomInfo)
+}
+
+func (m *MatchModule) GetRoomsByRoomId(RoomId int) *msg.RoomInfo {
+	log.Debug("beginc GetRoomsByRoomId %d", RoomId)
+	rooms, err := game_list.ChanRPC.TimeOutCall1("GetRoomsByRoomId", 5, RoomId)
+	log.Debug("end GetRoomsByRoomId %d", RoomId)
+	if err != nil {
+		return nil
+	}
+	return rooms.(*msg.RoomInfo)
+}
+
 func (m *MatchModule) Match() {
 	now := time.Now().Unix()
 	defer m.Skeleton.AfterFunc(2*time.Second, m.Match)
-	for kind, v := range m.S2S_GetRooms() {
-		li := MatchList[kind]
+	if len(MatchList) < 1 {
+		return
+	}
+
+	for kindid, li := range MatchList {
 		if li.Len() < 1 {
 			continue
 		}
-		if len(v) > 1 {
-			sort.Slice(v, func(i, j int) bool {
-				if v[i].CurCnt > v[j].CurCnt {
-					return true
-				} else if v[i].CurCnt == v[j].CurCnt && v[i].CreateTime < v[j].CreateTime {
-					return true
-				}
-				return false
-			})
 
+		rooms := m.GetRoomsByKind(kindid)
+		if len(rooms) < 1 {
+			continue
 		}
 
-		for _, r := range v {
+		sort.Slice(rooms, func(i, j int) bool {
+			if rooms[i].CurCnt > rooms[j].CurCnt {
+				return true
+			} else if rooms[i].CurCnt == rooms[j].CurCnt && rooms[i].CreateTime < rooms[j].CreateTime {
+				return true
+			}
+			return false
+		})
+
+		for _, r := range rooms {
 			bk := false
 			if bk {
 				break
@@ -88,6 +109,7 @@ func (m *MatchModule) Match() {
 				li.Remove(v1)
 				player := v1.Value.(*MachPlayer)
 				r.MachPlayer[player.Uid] = struct{}{}
+				log.Debug("player %d match ok ", player.Uid)
 				player.ch.Go("matchResult", true, r)
 			}
 		}
@@ -98,6 +120,7 @@ func (m *MatchModule) Match() {
 		for e := li.Front(); e != nil; e = e.Next() {
 			player := e.Value.(*MachPlayer)
 			if player.EndTime < now {
+				log.Debug("player %d match tmie out ", player.Uid)
 				li.Remove(e)
 				player.ch.Go("matchResult", false, nil)
 			}

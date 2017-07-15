@@ -21,11 +21,13 @@ type RoomInfo struct {
 	CurPayCnt    int                    //已玩局数
 	CreateTime   int64                  //创建时间
 	CreateUserId int64                  //房间房间的人
-	Idx          int                    //服务器标识用的字段
+	RoomName     string                 //房间名字
 	IsPublic     bool                   //是否公开匹配
 	Players      map[int64]*PlayerBrief //玩家id
 	SvrHost      string                 //哪个ip上的房间
-	MachPlayer   map[int64]struct{}
+
+	//服务器标记字段
+	MachPlayer map[int64]struct{}
 }
 
 ///通知大厅房间结束
