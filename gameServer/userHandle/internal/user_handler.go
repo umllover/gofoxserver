@@ -100,7 +100,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	defer func() {
 		if retcode != 0 {
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
-			agent.WriteMsg(&msg.G2C_LogonFailur{ResultCode: retcode, DescribeString: str})
+			agent.WriteMsg(&msg.G2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
 
 		}
@@ -355,7 +355,7 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 	retCode := -1
 	defer func() {
 		if retCode != 0 {
-			player.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			player.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		} else {
 			player.WriteMsg(retMsg)
 		}

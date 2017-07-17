@@ -105,7 +105,7 @@ func (room *xs_data) AfterStartGame() {
 //发送开始
 func (room *xs_data) SendGameStart() {
 	//构造变量
-	GameStart := &mj_xs_msg.G2C_MJXS_GameStart{}
+	GameStart := &mj_xs_msg.G2C_GameStart{}
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.SunWindCount = 0
@@ -123,7 +123,7 @@ func (room *xs_data) SendGameStart() {
 
 //发送操作结果
 func (room *xs_data) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
-	OperateResult := &mj_xs_msg.G2C_MJXS_OperateResult{}
+	OperateResult := &mj_xs_msg.G2C_OperateResult{}
 	OperateResult.ProvideUser = wrave.ProvideUser
 	OperateResult.OperateCode = wrave.WeaveKind
 	OperateResult.OperateCard = wrave.CenterCard

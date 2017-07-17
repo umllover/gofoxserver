@@ -23,7 +23,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	retCode := 0
 	defer func() {
 		if retCode != 0 {
-			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			u.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 

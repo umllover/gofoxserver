@@ -176,9 +176,9 @@ func (a *agent) Run() {
 			}
 			break
 		}
-		userId := 0
+		var userId int64
 		var ok bool
-		if userId, ok = a.userData.(int); ok {
+		if userId, ok = a.userData.(int64); ok {
 		} else if user, ok1 := a.userData.(IdUser); ok1 {
 			userId = user.GetUid()
 		}
@@ -208,9 +208,9 @@ func (a *agent) WriteMsg(msg interface{}) {
 			return
 		}
 
-		userId := 0
+		var userId int64
 		var ok bool
-		if userId, ok = a.userData.(int); ok {
+		if userId, ok = a.userData.(int64); ok {
 		} else if user, ok1 := a.userData.(IdUser); ok1 {
 			userId = user.GetUid()
 		}
