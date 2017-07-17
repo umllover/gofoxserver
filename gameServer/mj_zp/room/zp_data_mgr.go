@@ -783,10 +783,10 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 	log.Debug("记录分饼")
 	room.FollowCard = append(room.FollowCard, cbCenterCard)
 
-	count := len(room.FollowCard)
+	count := len(room.FollowCard) % 4
 	if count == 0 {
 		begin := count - 4
-		for i := begin; i < count; i++ {
+		for i := begin; i < len(room.FollowCard); i++ {
 			if room.FollowCard[i] != cbCenterCard {
 				room.IsFollowCard = true //取消跟牌
 				return false

@@ -113,7 +113,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			u.WriteMsg(RenderErrorMessage(retcode))
 		}
 	}()
-	log.Debug("吃碰杠胡各种操作 user:%d", room.DataMgr.GetCurrentUser())
+
 	if room.DataMgr.GetCurrentUser() == INVALID_CHAIR {
 
 		//效验状态
