@@ -23,7 +23,7 @@ import (
 
 func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
 	r := new(RoomData)
-	r.id = id
+	r.ID = id
 	if name == "" {
 		r.Name = temp.RoomName
 	} else {
@@ -37,7 +37,7 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 
 //当一张桌子理解
 type RoomData struct {
-	id         int
+	ID         int
 	Name       string //房间名字
 	CreateUser int64  //创建房间的人
 	MjBase     *Mj_base
@@ -128,7 +128,7 @@ func (room *RoomData) GetResumeUser() int {
 }
 
 func (room *RoomData) GetRoomId() int {
-	return room.id
+	return room.ID
 }
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
@@ -139,7 +139,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		PlayTime:          int(room.MjBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.Source,                                                   //游戏底分
 		IniScore:          room.IniSource,                                                //初始分数
-		ServerID:          strconv.Itoa(room.id),                                         //房间编号
+		ServerID:          strconv.Itoa(room.ID),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	})
