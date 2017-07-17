@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"auth_server/module/log"
+	"github.com/lovelly/leaf/log"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"

@@ -1,7 +1,6 @@
 package room
 
-import (
-	"encoding/json"
+import (	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_xs_msg"
