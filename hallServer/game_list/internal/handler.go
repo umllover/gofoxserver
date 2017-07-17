@@ -145,7 +145,7 @@ func NotifyNewRoom(args []interface{}) {
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
-	recvMsg.Players = make( map[int64]*msg.PlayerBrief)
+	recvMsg.Players = make(map[int64]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
@@ -159,6 +159,7 @@ func addRoom(recvMsg *msg.RoomInfo) {
 	KindListInc++
 	recvMsg.Idx = KindListInc
 	m[KindListInc] = recvMsg.RoomID
+	log.Debug("addRoom ok, RoomID = %d", recvMsg.RoomID)
 }
 
 func NotifyDelRoom(args []interface{}) {
