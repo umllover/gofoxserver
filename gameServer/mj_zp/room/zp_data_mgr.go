@@ -158,7 +158,6 @@ func (room *ZP_RoomData) StartGameing() {
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
-		//room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(1)*time.Second, func() { //todo,测试代码
 		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
 			log.Debug("超时插花")
 			for i := 0; i < 4; i++ {
@@ -450,7 +449,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[2] = 3 //三张三同
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 1
+	//temp[5] = 2
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x04
@@ -631,7 +630,7 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	GameConclude.SendCardData = room.SendCardData
 	GameConclude.LeftUser = INVALID_CHAIR
-	room.ChiHuKind = make([]int, UserCnt)
+	//room.ChiHuKind = make([]int, UserCnt)
 	//结束信息
 	for i := 0; i < UserCnt; i++ {
 		GameConclude.ChiHuKind[i] = room.ChiHuKind[i]
@@ -702,10 +701,10 @@ func (room *ZP_RoomData) NormalEnd() {
 
 //进行抓花
 func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
-	log.Debug("进行抓花 user:%d", CenterUser)
 
 	count := room.ZhuaHuaCnt
 	if count == 0 {
+		log.Debug("抓花0")
 		return
 	}
 
@@ -1396,7 +1395,6 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 
 	//WinUser = append(WinUser, 0) //todo,测试代码
 	//WinCount = 1                 //todo,测试代码
-
 	for i := 0; i < UserCnt; i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%UserCnt] {
 			WinUser = append(WinUser, (room.BankerUser+i)%UserCnt)
@@ -1405,7 +1403,6 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			WinCount++
 		}
 	}
-
 	if WinCount > 0 {
 		//插花
 		tempZhuaHuaCnt := room.ZhuaHuaCnt
@@ -1420,6 +1417,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				}
 			}
 
+			//room.ZhuaHuaCnt = 10 //todo,测试代码
 			//进行抓花
 			ZhongCard, BuZhong := room.OnZhuaHua(v)
 			//抓花派位
@@ -1429,7 +1427,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
 						huaUser := mj_zp_msg.HuaUser{}
 						huaUser.Card = cardV
-						//log.Debug("中花：%d", cardV)
+						log.Debug("中花：%d", cardV)
 						huaUser.ChairID = v
 						huaUser.IsZhong = true
 						room.ZhuaHuaMap[randV] = &huaUser
@@ -1444,7 +1442,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 						huaUser := mj_zp_msg.HuaUser{}
 						huaUser.Card = cardV2
 						huaUser.ChairID = v
-						//log.Debug("不中花：%d", cardV2)
+						log.Debug("不中花：%d", cardV2)
 						huaUser.IsZhong = false
 						room.ZhuaHuaMap[randV] = &huaUser
 						break
@@ -1473,7 +1471,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				room.BankerUser = room.BankerUser + 1
 			}
 		} else {
-			if room.CurrentUser == room.BankerUser {
+			if WinUser[0] == room.BankerUser {
 				room.BankerUser = room.BankerUser
 			} else {
 				room.BankerUser += 1
