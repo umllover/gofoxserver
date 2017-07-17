@@ -522,8 +522,8 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	} else {
 		wrave.ProvideUser = room.ProvideUser
 	}
-
 	cbTargetCard := room.OperateCard[wTargetUser][0]
+	wrave.CardData = make([]int, 4)
 	wrave.CardData[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
