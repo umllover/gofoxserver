@@ -174,14 +174,15 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		//执行动作
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
-			log.Debug("有暗杠")
 			cbGangKind := room.DataMgr.AnGang(u, OperateCode, OperateCard)
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {
-				log.Debug("执行暗杠")
 				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, OperateCard[0], EstimatKind_GangCard)
 			}
+
+			//清除操作定时
+			room.DataMgr.StopOperateCardTimer(u)
 
 			//发送扑克
 			if !bAroseAction {
@@ -195,9 +196,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
-
-	//清除操作定时
-	room.DataMgr.StopOperateCardTimer(u)
 }
 
 //抓花

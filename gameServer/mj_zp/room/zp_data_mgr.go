@@ -631,7 +631,7 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
@@ -1867,7 +1867,7 @@ func (room *ZP_RoomData) DismissEnd() {
 
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
@@ -1934,10 +1934,12 @@ func (room *ZP_RoomData) OutCardTimer(u *user.User) {
 	//room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
 	//	log.Debug("出牌定时 %d", u.ChairId)
 	//	card := room.SendCardData
-	//	for j := 0; j < room.GetCfg().MaxIdx; j++ {
-	//		if room.CardIndex[u.ChairId][j] > 0 {
-	//			card = room.MjBase.LogicMgr.SwitchToCardData(j)
-	//			break
+	//	if !room.MjBase.LogicMgr.IsValidCard(card) {
+	//		for j := 0; j < room.GetCfg().MaxIdx; j++ {
+	//			if room.CardIndex[u.ChairId][j] > 0 {
+	//				card = room.MjBase.LogicMgr.SwitchToCardData(j)
+	//				break
+	//			}
 	//		}
 	//	}
 	//	log.Debug("用户%d超时打牌：%x", u.ChairId, card)
