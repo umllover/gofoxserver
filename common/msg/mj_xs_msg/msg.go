@@ -14,8 +14,6 @@ func init() {
 	msg.Processor.Register(&G2C_SendCard{})
 	msg.Processor.Register(&G2C_OperateResult{})
 	msg.Processor.Register(&G2C_OperateNotify{})
-	msg.Processor.Register(&G2C_StatusFree{})
-	msg.Processor.Register(&G2C_StatusPlay{})
 }
 
 //出操作
