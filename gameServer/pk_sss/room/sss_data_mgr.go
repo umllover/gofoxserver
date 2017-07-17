@@ -1,13 +1,13 @@
 package room
 
 import (
+	"mj/gameServer/common/pk"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
 	. "mj/common/cost"
 	"mj/common/msg/pk_sss_msg"
-
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -17,6 +17,7 @@ import (
 const (
 	GAME_START = 1002 // 游戏开始
 )
+
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
@@ -66,7 +67,11 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")
 
-
+	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
+	room.OpenCardMap = make(map[*user.User][]int, UserCnt)
+	room.Dragon = make(map[*user.User]bool, UserCnt)
+	room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
+	room.m_bUserCardData = make(map[*user.User][]int, UserCnt)
 	room.m_bCompareDouble = make(map[*user.User]int, UserCnt)
 	room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
 	room.m_bShootState = make([][]*user.User, UserCnt)
@@ -79,7 +84,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 }
 func (room *sss_data_mgr) ComputeChOut() {
-	/*userMgr := room.PkBase.UserMgr
+	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
 
 	userMgr.ForEachUser(func(u *user.User) {
@@ -273,7 +278,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 			}
 		}
 	})
-	*/
+
 }
 
 func (room *sss_data_mgr) ComputeResult() {
@@ -392,6 +397,7 @@ func (room *sss_data_mgr) ComputeResult() {
 //正常结束房间
 func (room *sss_data_mgr) NormalEnd() {
 
+	log.Debug("qqqq")
 	/*
 		//变量定义
 		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
@@ -551,13 +557,13 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	userMgr.ForEachUser(func(u *user.User) {
 
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
-			room.m_bUserCardData[u][i] = room.GetOneCard()
+			//room.m_bUserCardData[u][i] = 1//room.GetOneCard()
 		}
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
-		util.DeepCopy(&SendCard.AllHandCardData, &room.m_bUserCardData)
+		//util.DeepCopy(&SendCard.AllHandCardData, &room.m_bUserCardData)
 		SendCard.CellScore = room.CellScore
 		u.WriteMsg(SendCard)
 	})
@@ -571,7 +577,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 	room.SpecialTypeTable[u] = bSpecialType
 	room.Dragon[u] = bDragon
-	util.DeepCopy(&room.m_bSegmentCard, &room.m_bUserCardData)
+	//util.DeepCopy(&room.m_bSegmentCard, &room.m_bUserCardData)
 	// 广播摊牌
 	userMgr := room.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
@@ -588,8 +594,12 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		})
 	})
 
+	log.Debug("%d", bFrontCard)
+	log.Debug("%d", bMidCard)
+	log.Debug("%d", bBackCard)
 	room.OpenCardMap[u] = bFrontCard
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
+		log.Debug("%d", 11111111111)
 		room.PkBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
 	}
 

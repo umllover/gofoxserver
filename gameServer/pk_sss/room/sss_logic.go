@@ -5,6 +5,7 @@ import (
 
 	"mj/gameServer/common/pk"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
 
@@ -99,6 +100,31 @@ type sss_logic struct {
 	BtCardSpecialData []int
 }
 
+func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
+
+	log.Debug("%d", OriDataArray)
+	//混乱准备
+	cbBufferCount := int(len(cbCardBuffer))
+	cbCardDataTemp := make([]int, cbBufferCount)
+	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
+
+	log.Debug("%d", cbBufferCount)
+
+	//混乱扑克
+	var cbRandCount int
+	var cbPosition int
+	for {
+		if cbRandCount >= cbBufferCount {
+			break
+		}
+		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount-1)))
+		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
+		cbRandCount++
+		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
+	}
+	log.Debug("%d", cbCardBuffer)
+	return
+}
 func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData []int, bCardCount int) bool {
 	bDeleteCount := 0
 	bTempCardData := make([]int, 13)
