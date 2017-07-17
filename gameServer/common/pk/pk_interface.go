@@ -11,7 +11,7 @@ type DataManager interface {
 	InitRoom(UserCnt int)
 	GetRoomId() int
 	CanOperatorRoom(uid int64) bool
-	GetCreater() int64
+
 	// 游戏开始
 	BeforeStartGame(UserCnt int)
 	StartGameing()
@@ -33,7 +33,8 @@ type DataManager interface {
 	// 明牌
 	ShowCard(u *user.User)
 	// 托管
-	Trustee(u *user.User, trustee bool)
+	//ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int)
+	OtherOperation(args []interface{})
 }
 
 type LogicManager interface {
@@ -44,6 +45,14 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
+	GetCardTimes(cardType int) int
+
+
+	// 以下接口不通用
+	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
+	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
+	SetParamToLogic(args interface{}) // 设置算法必要参数
+	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool
 }
 
 ////////////////////////////////////////////

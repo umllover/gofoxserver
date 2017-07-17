@@ -71,10 +71,10 @@ const (
 	GAME_PLAYER = 3
 
 	// 游戏类型
-	GAME_TYPE_INVALID = 255 // 无效类型
+	/*GAME_TYPE_INVALID = 255 // 无效类型
 	GAME_TYPE_CLASSIC = 0   // 经典场
 	GAME_TYPE_HAPPY   = 1   // 欢乐场
-	GAME_TYPE_LZ      = 2   // 癞子场
+	GAME_TYPE_LZ      = 2   // 癞子场*/
 )
 
 type BaseLogic struct {

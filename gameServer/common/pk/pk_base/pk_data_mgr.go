@@ -20,6 +20,12 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameSe
 	r.CreateUser = uid
 	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
+	r.PlayerCount = temp.MaxPlayer
+	r.PlayCount = 0
+	r.InitScoreMap = make(map[int]int)
+	for i:=0;i<r.PlayerCount;i++ { //每个玩家初始积分1000
+		r.InitScoreMap[i] = 1000
+	}
 	return r
 }
 
@@ -36,6 +42,8 @@ type RoomData struct {
 
 	CellScore  int //底分
 	ScoreTimes int //倍数
+
+	InitScoreMap 	map[int]int 	// 初始积分
 
 	PlayCount   int //游戏局数
 	PlayerCount int //指定游戏人数，2-4
@@ -94,12 +102,13 @@ func (room *RoomData) SetCellScore(cellScore int) {
 }
 
 // 设置倍数
-func (r *RoomData) SetScoreTimes(scoreTimes int) {
-	r.ScoreTimes = scoreTimes
+func (room *RoomData) SetScoreTimes(scoreTimes int) {
+	room.ScoreTimes = scoreTimes
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
+	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始
@@ -139,12 +148,15 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 
 }
 
-// 明牌
-func (room *RoomData) ShowCard(u *user.User) {
+// 其它操作，各个游戏自己有自己的游戏指令
+func (room *RoomData) OtherOperation(args []interface{}) {
+
+}
+func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }
 
-// 托管
-func (room *RoomData) Trustee(u *user.User, t bool) {
-
+func (r *RoomData) ShowCard(u *user.User) {
 }
+
+func (r *RoomData) Trustee(u *user.User) {}

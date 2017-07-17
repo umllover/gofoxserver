@@ -25,12 +25,6 @@ func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name st
 	return d
 }
 
-const (
-	GAME_STATUS_FREE = 0
-	GAME_STATUS_CALL = 1
-	GAME_STATUS_PLAY = 2
-)
-
 type ddz_data_mgr struct {
 	*pk_base.RoomData
 	GameStatus int // 当前游戏状态
