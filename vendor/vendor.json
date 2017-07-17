@@ -15,6 +15,12 @@
 			"revisionTime": "2017-06-01T06:26:16Z"
 		},
 		{
+			"checksumSHA1": "p/8vSviYF91gFflhrt5vkyksroo=",
+			"path": "github.com/golang/snappy",
+			"revision": "553a641470496b2327abcac10b36396bd98e45c9",
+			"revisionTime": "2017-02-15T23:32:05Z"
+		},
+		{
 			"checksumSHA1": "hEnH6sgR83Qfx7UNnphNNlelmj0=",
 			"path": "github.com/gorilla/websocket",
 			"revision": "a91eba7f97777409bc2c443f5534d41dd20c5720",
@@ -149,6 +155,12 @@
 			"path": "github.com/mitchellh/go-homedir",
 			"revision": "825f72f5ef949f3205a995e5e584ef847f75f751",
 			"revisionTime": "2017-06-06T23:11:56Z"
+		},
+		{
+			"checksumSHA1": "+mrg4RcfFYM5aLo2r7ZYMv2jr/c=",
+			"path": "github.com/nsqio/go-nsq",
+			"revision": "973bf9a2952ff7e38071ae8392b73e4418503059",
+			"revisionTime": "2017-06-04T18:08:19Z"
 		},
 		{
 			"checksumSHA1": "YsB2DChSV9HxdzHaKATllAUKWSI=",

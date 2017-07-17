@@ -53,6 +53,8 @@ type UserManager interface {
 	SendCloseRoomToHall(data interface{})
 
 	GetCurPlayerCnt() int
+	GetPayType() int
+	IsPublic() bool
 	GetMaxPlayerCnt() int
 	GetUserInfoByChairId(int) interface{}
 	GetUserByChairId(int) *user.User

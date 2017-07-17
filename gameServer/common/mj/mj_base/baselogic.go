@@ -2,9 +2,8 @@ package mj_base
 
 import (
 	"mj/common/msg"
+	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-
-	"fmt"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -86,8 +85,7 @@ func (lg *BaseLogic) IsValidCard(card int) bool {
 func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 	//混乱准备
 	cbBufferCount := int(len(cbCardBuffer))
-	cbCardDataTemp := make([]int, cbBufferCount)
-	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
+	cbCardDataTemp := util.CopySlicInt(OriDataArray)
 	//混乱扑克
 	var cbRandCount int
 	var cbPosition int
@@ -95,21 +93,11 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		if cbRandCount >= cbBufferCount {
 			break
 		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbPosition, _ = utils.RandInt(0, cbBufferCount-cbRandCount)
 		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
-	log.Debug("cbRandCount:%d", cbRandCount)
-	testq := 0
-	for _, v := range cbCardBuffer {
-		if v >= 0x31 && v <= 0x37 {
-			fmt.Printf("%x ", v)
-			testq++
-		}
-	}
-	//log.Debug("+++++++++ %d", testq)
-
 	return
 }
 
@@ -306,7 +294,6 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 }
 
 func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *TagGangCardResult) int {
-
 	//设置变量
 	cbActionMask := WIK_NULL
 	cbWeaveCount := len(WeaveItem)
@@ -424,7 +411,7 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 }
 
 //分析扑克
-func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) { //todo , CTagAnalyseItemArray & TagAnalyseItemArray
+func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) {
 	cbWeaveCount := len(WeaveItem)
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)

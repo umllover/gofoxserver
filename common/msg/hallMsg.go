@@ -37,16 +37,14 @@ type C2L_Regist struct {
 
 //请求创建房间消息
 type C2L_CreateTable struct {
-	CellScore           int                    //底分设置
-	DrawCountLimit      int                    //局数限制
-	DrawTimeLimit       int                    //时间限制
-	JoinGamePeopleCount int                    //参与游戏的人数， 如果非0， 是玩家指定多少人玩
-	Password            string                 //密码设置
-	Kind                int                    //游戏类型
-	ServerId            int                    //子类型
-	PayType             int                    //1是自己付钱， 2是AA
-	RoomName            string                 //房间名字
-	OtherInfo           map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
+	DrawCountLimit int                    //局数限制
+	Password       string                 //密码设置
+	Kind           int                    //游戏类型
+	ServerId       int                    //子类型
+	PayType        int                    //1是自己付钱， 2是AA
+	Public         bool                   //是否公开
+	RoomName       string                 //房间名字
+	OtherInfo      map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
 }
 
 //查询房间信息
@@ -63,12 +61,17 @@ type C2L_User_Individual struct {
 //请求房间列表
 type C2L_GetRoomList struct {
 	KindID int //要查看哪个游戏类型
-	PageId int //获取第几页
+	Num    int //获取第几页
 }
 
 //请求匹配一个房间
 type C2L_QuickMatch struct {
-	KindID int //要匹配的游戏类型
+	KindID int //要匹配的游戏类型1
+}
+
+//服务器接收到了请求匹配的结果
+type L2C_QuickMatchOk struct {
+	MatchTime int //多少秒没收到结果后退出匹配, 间隔时间
 }
 
 //请求查看开放记录
@@ -101,7 +104,7 @@ type L2C_LogonFailure struct {
 type L2C_LogonSuccess struct {
 	FaceID     int8   `json:"wFaceID"`      //头像标识
 	Gender     int8   `json:"cbGender"`     //用户性别
-	UserID     int64    `json:"dwUserID"`     //用户 I D
+	UserID     int64  `json:"dwUserID"`     //用户 I D
 	Spreader   int    `json:"szSpreader"`   //推荐人用户标识
 	GameID     int    `json:"dwGameID"`     //游戏 I D
 	Experience int    `json:"dwExperience"` //经验数值
@@ -142,7 +145,7 @@ type L2C_ServerListFinish struct{}
 //个人资料
 type L2C_UserIndividual struct {
 	//用户信息
-	UserID      int64    //用户 I D
+	UserID      int64  //用户 I D
 	NickName    string //昵称
 	Accounts    string //账号
 	WinCount    int    //赢数

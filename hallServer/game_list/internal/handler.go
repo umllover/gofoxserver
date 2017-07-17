@@ -1,31 +1,34 @@
 package internal
 
 import (
-	"fmt"
-	"math"
-	"mj/common/cost"
+	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/hallServer/center"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/id_generate"
-	"reflect"
-	"strconv"
-	"strings"
-
-	"mj/hallServer/center"
 	"mj/hallServer/user"
+	"strconv"
 
-	"github.com/lovelly/leaf/cluster"
+	rgst "mj/common/register"
+
+	"errors"
+
+	"time"
+
+	"fmt"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 var (
-	gameLists    = make(map[int]*ServerInfo)   //k1 NodeID,
-	roomList     = make(map[int]*msg.RoomInfo) // key1 is roomId
-	roomKindList = make(map[int]map[int]int)   //key1 is kind Id key2 incId
-	KindListInc  = 0
+	reg          = rgst.NewRegister(ChanRPC)
+	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
+	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
+	roomKindList = make(map[int]map[int]struct{}) //key1 is kind Id key2 incId
 	Test         = false
 )
 
@@ -34,80 +37,51 @@ type ServerInfo struct {
 	list  map[int]*msg.TagGameServer //key is KindID
 }
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
-	handlerC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
-	handlerC2S(&msg.C2L_GetRoomList{}, GetRoomList)
+	reg.RegisterC2S(&msg.C2L_GetRoomList{}, GetRoomList)
 
-	handleRpc("sendGameList", sendGameList)
-	handleRpc("updateGameInfo", updateGameInfo)
-	handleRpc("delGameList", delGameList)
-	handleRpc("NewServerAgent", NewServerAgent)
-	handleRpc("CloseServerAgent", CloseServerAgent)
+	reg.RegisterRpc("sendGameList", sendGameList)
+	reg.RegisterRpc("updateGameInfo", updateGameInfo)
+	reg.RegisterRpc("delGameList", delGameList)
+	reg.RegisterRpc("CloseServerAgent", CloseServerAgent)
+	reg.RegisterRpc("addyNewRoom", addyNewRoom)
+	reg.RegisterRpc("notifyDelRoom", notifyDelRoom)
+	reg.RegisterRpc("NewServerAgent", NewServerAgent)
+	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
+	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
+	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
+	reg.RegisterRpc("GetMatchRoomsByKind", GetMatchRoomsByKind)
+	reg.RegisterRpc("GetRoomsByRoomId", GetRoomsByRoomId)
+	reg.RegisterRpc("HaseRoom", HaseRoom)
 
-	handleRpc("notifyNewRoom", NotifyNewRoom)
-	handleRpc("notifyDelRoom", NotifyDelRoom)
-	handleRpc("updateRoomInfo", UpdateRoom)
+	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
+	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
-	handleRpc("SvrverFaild", ServerFaild)
-	handleRpc("SendPlayerBrief", SendPlayerBrief)
-
-	handleRpc("GetMatchRooms", GetMatchRooms)
+	center.SetGameListRpc(ChanRPC)
 }
 
 ////// c2s
-//玩家请求查找房间
-func SrarchTable(args []interface{}) {
-	recvMsg := args[0].(*msg.C2L_SearchServerTable)
-	agent := args[1].(gate.Agent)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			agent.WriteMsg(cost.RenderErrorMessage(retcode))
-		}
-	}()
-
-	roomInfo := getRoomInfo(recvMsg.TableID)
-	if roomInfo == nil {
-		log.Error("at SrarchTable not foud room, %v", recvMsg)
-		retcode = cost.ErrNoFoudRoom
-		return
-	}
-
-	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
-	return
-}
 
 func GetRoomList(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_GetRoomList)
-	retMsg := msg.L2C_GetRoomList{}
+	retMsg := &msg.L2C_GetRoomList{}
 	retMsg.Lists = make([]*msg.RoomInfo, common.ListsMaxCnt)
 	agent := args[1].(gate.Agent)
 	defer func() {
 		agent.WriteMsg(retMsg)
 	}()
 
-	curIdx := recvMsg.PageId * common.PackCount
-	if curIdx > KindListInc {
-		curIdx = 0
+	if recvMsg.Num > common.GetGlobalVarInt(MAX_SHOW_ENTRY) {
+		return
 	}
+
 	m, ok := roomKindList[recvMsg.KindID]
 
+	idx := 0
 	if ok {
-		for idx, roomID := range m {
-			if idx <= curIdx {
-				continue
+		for roomID, _ := range m {
+			if idx >= recvMsg.Num {
+				break
 			}
 			retMsg.Lists[retMsg.Count] = roomList[roomID]
 			retMsg.Count++
@@ -125,15 +99,18 @@ func sendGameList(args []interface{}) {
 		}
 	}
 	agent.WriteMsg(&list)
-	finish := &msg.L2C_ServerListFinish{}
-	agent.WriteMsg(finish)
+	skeleton.AfterFunc(1*time.Second, func() {
+		agent.WriteMsg(&msg.L2C_ServerListFinish{})
+	})
+
 }
 
 func updateGameInfo(args []interface{}) {
 
 }
 
-func NotifyNewRoom(args []interface{}) {
+//别的服通知的增加的房间
+func notifyNewRoom(args []interface{}) {
 	for _, v := range args {
 		log.Debug("at NotifyNewRoom === %v", v)
 	}
@@ -144,25 +121,32 @@ func NotifyNewRoom(args []interface{}) {
 	addRoom(roomInfo)
 }
 
+//本服增加创建的房间
+func addyNewRoom(args []interface{}) {
+	for _, v := range args {
+		log.Debug("at NotifyNewRoom === %v", v)
+	}
+
+	roomInfo := args[0].(*msg.RoomInfo)
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
+	roomInfo.MachPlayer = make(map[int64]struct{})
+	addRoom(roomInfo)
+	center.BroadcastToHall(roomInfo)
+}
+
 func addRoom(recvMsg *msg.RoomInfo) {
 	recvMsg.Players = make(map[int64]*msg.PlayerBrief)
 	roomList[recvMsg.RoomID] = recvMsg
 	m, ok := roomKindList[recvMsg.KindID]
 	if !ok {
-		m = make(map[int]int)
+		m = make(map[int]struct{})
 		roomKindList[recvMsg.KindID] = m
 	}
-
-	if int32(KindListInc) >= math.MaxInt32 {
-		KindListInc = 0
-	}
-	KindListInc++
-	recvMsg.Idx = KindListInc
-	m[KindListInc] = recvMsg.RoomID
+	m[recvMsg.RoomID] = struct{}{}
 	log.Debug("addRoom ok, RoomID = %d", recvMsg.RoomID)
 }
 
-func NotifyDelRoom(args []interface{}) {
+func notifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
 	roomId := args[0].(int)
 	delRoom(roomId)
@@ -176,14 +160,14 @@ func delRoom(roomId int) {
 	if ri != nil {
 		m, ok := roomKindList[ri.KindID]
 		if ok {
-			delete(m, ri.Idx)
+			delete(m, roomId)
 		} else {
 			log.Error("at NotifyDelRoom not foud kind id %v", ri.KindID)
 		}
 	}
 }
 
-func UpdateRoom(args []interface{}) {
+func updateRoom(args []interface{}) {
 	info := args[0].(*msg.UpdateRoomInfo)
 	room, ok := roomList[info.RoomId]
 	if !ok {
@@ -193,21 +177,26 @@ func UpdateRoom(args []interface{}) {
 
 	switch info.OpName {
 	case "CurPayCnt":
-		room.CurPayCnt = info.Data["CurPayCnt"].(int)
+		room.CurPayCnt = int(info.Data["CurPayCnt"].(float64))
 	case "AddPlayerId":
-		pinfo := info.Data["info"].(*msg.PlayerBrief)
+		pinfo := &msg.PlayerBrief{
+			UID:     int64(info.Data["UID"].(float64)),
+			Name:    info.Data["Name"].(string),
+			HeadUrl: info.Data["HeadUrl"].(string),
+			Icon:    int(info.Data["Icon"].(float64)),
+		}
 		room.Players[pinfo.UID] = pinfo
 		room.CurCnt = len(room.Players)
-		center.SendMsgToThisNodeUser(pinfo.UID, "JoinRoom", room)
+		center.SendToThisNodeUser(pinfo.UID, "JoinRoom", room)
 	case "DelPlayerId":
-		id := info.Data["UID"].(int64)
-		status := info.Data["Status"].(int)
+		id := int64(info.Data["UID"].(float64))
+		status := int(info.Data["Status"].(float64))
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
 		if status == 0 { //返回钱
-			center.SendMsgToThisNodeUser(id, "restoreToken", info.RoomId)
+			center.SendToThisNodeUser(id, "restoreToken", info.RoomId)
 		}
-		center.SendMsgToThisNodeUser(id, "LeaveRoom", info.RoomId)
+		center.SendToThisNodeUser(id, "LeaveRoom", info.RoomId)
 	}
 
 }
@@ -219,41 +208,40 @@ func getRoomInfo(tableId int) *msg.RoomInfo {
 func NewServerAgent(args []interface{}) {
 	serverName := args[0].(string)
 	log.Debug("at NewServerAgent :%s", serverName)
-	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetKindList", func(data interface{}, err error) {
-		if err != nil {
-			log.Error("GetKindList error:%s", err.Error())
-			return
-		}
 
-		ret := data.([]*msg.TagGameServer)
-
-		for _, v := range ret {
-			if Test {
-				if v.NodeID != conf.Server.NodeId {
-					continue
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), &msg.S2S_GetKindList{}, func(data interface{}, err error) {
+		if err == nil {
+			log.Debug("data === %v", data)
+			ret := data.(*msg.S2S_KindListResult)
+			for _, v := range ret.Data {
+				if Test {
+					if v.NodeID != conf.Server.NodeId {
+						continue
+					}
 				}
+				addGameList(v)
+				log.Debug("add sverInfo %v", v)
 			}
-			addGameList(v)
-			log.Debug("add sverInfo %v", v)
+		} else {
+			log.Debug("S2S_GetKindList error:%s", err.Error())
 		}
 	})
 
-	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), "GetRooms", func(data interface{}, err error) {
-		if err != nil {
-			log.Error("GetKindList error:%s", err.Error())
-			return
-		}
-
-		ret := data.([]*msg.RoomInfo)
-
-		for _, v := range ret {
-			if Test {
-				if v.NodeID != conf.Server.NodeId {
-					continue
+	cluster.AsynCall(serverName, skeleton.GetChanAsynRet(), &msg.S2S_GetRooms{}, func(data interface{}, err error) {
+		if err == nil {
+			log.Debug("data ======= %v", data)
+			ret := data.(*msg.S2S_GetRoomsResult)
+			for _, v := range ret.Data {
+				if Test {
+					if v.NodeID != conf.Server.NodeId {
+						continue
+					}
 				}
+				addRoom(v)
+				log.Debug("add room %v", v)
 			}
-			addRoom(v)
-			log.Debug("add room %v", v)
+		} else {
+			log.Debug("S2S_GetRooms error:%s", err.Error())
 		}
 	})
 }
@@ -295,7 +283,7 @@ func GetSvrByKind(kindId int) (string, int) {
 		}
 
 		if Test {
-			fmt.Println(v.list[kindId].NodeID, conf.Server.NodeId)
+			log.Debug("node id =%d,  self node id =%d", v.list[kindId].NodeID, conf.Server.NodeId)
 			if v.list[kindId].NodeID == conf.Server.NodeId {
 				minv = v
 				break
@@ -323,20 +311,8 @@ func GetSvrByNodeID(nodeid int) string {
 	return ""
 }
 
-func ServerFaild(args []interface{}) {
-	svrId := args[0].(string)
-	list := strings.Split(svrId, "_")
-	if len(list) < 2 {
-		log.Error("at ServerFaild param error ")
-		return
-	}
-
-	id, err := strconv.Atoi(list[1])
-	if err != nil {
-		log.Error("at ServerFaild param error : %s", err.Error())
-		return
-	}
-
+func FaildServerAgent(args []interface{}) {
+	id := args[0].(int)
 	for roomId, v := range roomList {
 		if v.NodeID == id {
 			delete(roomList, roomId)
@@ -344,7 +320,7 @@ func ServerFaild(args []interface{}) {
 	}
 }
 
-func SendPlayerBrief(args []interface{}) {
+func sendPlayerBrief(args []interface{}) {
 	roomId := args[0].(int)
 	u := args[1].(*user.User)
 	retMsg := &msg.L2C_RoomPlayerBrief{}
@@ -357,16 +333,59 @@ func SendPlayerBrief(args []interface{}) {
 	u.WriteMsg(retMsg)
 }
 
-func GetMatchRooms(args []interface{}) (interface{}, error) {
+func getMatchRooms(args []interface{}) (interface{}, error) {
 	ret := make(map[int][]*msg.RoomInfo)
 	for _, v := range roomList {
 		if !v.IsPublic {
 			continue
 		}
-		if v.MaxCnt >= len(v.MachPlayer) {
+		if v.MaxPlayerCnt >= len(v.MachPlayer) {
 			continue
 		}
 		ret[v.KindID] = append(ret[v.KindID], v)
 	}
 	return ret, nil
+}
+
+func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
+	kind := args[0].(int)
+	ret := make([]*msg.RoomInfo, 0)
+
+	log.Debug("at GetMatchRoomsByKind === %v", roomKindList)
+	log.Debug("at GetMatchRoomsByKind rooms  === %v", roomList)
+	for roomID, _ := range roomKindList[kind] {
+		v := roomList[roomID]
+		if v == nil {
+			fmt.Println("111111111111")
+			continue
+		}
+		if !v.IsPublic {
+			fmt.Println("222222222222")
+			continue
+		}
+		if v.MaxPlayerCnt <= len(v.MachPlayer) {
+			fmt.Println("3333333333333 %d", v.MaxPlayerCnt)
+			continue
+		}
+		ret = append(ret, v)
+	}
+	return ret, nil
+}
+
+func GetRoomsByRoomId(args []interface{}) (interface{}, error) {
+	roomid := args[0].(int)
+	ret, ok := roomList[roomid]
+	if !ok {
+		return nil, errors.New("not foud")
+	}
+	return ret, nil
+}
+
+func HaseRoom(args []interface{}) (interface{}, error) {
+	id := args[0].(int)
+	_, ok := roomList[id]
+	if ok {
+		return nil, nil
+	}
+	return nil, errors.New("no room")
 }

@@ -10,37 +10,36 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/kindList"
 	client "mj/gameServer/user"
-	"reflect"
 
-	"github.com/lovelly/leaf/cluster"
-	"github.com/lovelly/leaf/gate"
+	"mj/common/register"
+
+	"encoding/json"
+
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-//注册 客户端消息调用
-func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
-	m.ChanRPC.Register(reflect.TypeOf(msg), h)
-}
-
 func RegisterHandler(m *UserModule) {
+	reg := register.NewRegister(m.ChanRPC)
 	//注册rpc 消息
-	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
-	m.ChanRPC.Register("NewAgent", m.NewAgent)
-	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
-	m.ChanRPC.Register("WriteUserScore", m.WriteUserScore)
-	m.ChanRPC.Register("LeaveRoom", m.LeaveRoom)
-	m.ChanRPC.Register("ForceClose", m.ForceClose)
+	reg.RegisterRpc("handleMsgData", m.handleMsgData)
+	reg.RegisterRpc("NewAgent", m.NewAgent)
+	reg.RegisterRpc("CloseAgent", m.CloseAgent)
+	reg.RegisterRpc("WriteUserScore", m.WriteUserScore)
+	reg.RegisterRpc("LeaveRoom", m.LeaveRoom)
+	reg.RegisterRpc("ForceClose", m.ForceClose)
+
 	//c2s
-	handlerC2S(m, &msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
-	handlerC2S(m, &msg.C2G_REQUserInfo{}, m.GetUserInfo)
-	handlerC2S(m, &msg.C2G_UserSitdown{}, m.UserSitdown)
-	handlerC2S(m, &msg.C2G_GameOption{}, m.SetGameOption)
-	handlerC2S(m, &msg.C2G_UserStandup{}, m.UserStandup)
-	handlerC2S(m, &msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
-	handlerC2S(m, &msg.C2G_UserReady{}, m.UserReady)
-	handlerC2S(m, &msg.C2G_GR_UserChairReq{}, m.UserChairReq)
-	handlerC2S(m, &msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
-	handlerC2S(m, &msg.C2G_LoadRoom{}, m.LoadRoom)
+	reg.RegisterC2S(&msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
+	reg.RegisterC2S(&msg.C2G_REQUserInfo{}, m.GetUserInfo)
+	reg.RegisterC2S(&msg.C2G_UserSitdown{}, m.UserSitdown)
+	reg.RegisterC2S(&msg.C2G_GameOption{}, m.SetGameOption)
+	reg.RegisterC2S(&msg.C2G_UserStandup{}, m.UserStandup)
+	reg.RegisterC2S(&msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
+	reg.RegisterC2S(&msg.C2G_UserReady{}, m.UserReady)
+	reg.RegisterC2S(&msg.C2G_GR_UserChairReq{}, m.UserChairReq)
+	reg.RegisterC2S(&msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
+	reg.RegisterC2S(&msg.C2G_LoadRoom{}, m.LoadRoom)
 
 }
 
@@ -100,7 +99,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	defer func() {
 		if retcode != 0 {
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
-			agent.WriteMsg(&msg.G2C_LogonFailur{ResultCode: retcode, DescribeString: str})
+			agent.WriteMsg(&msg.G2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
 
 		}
@@ -146,7 +145,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			return
 		}
 		user.ChairId = INVALID_CHAIR
-		user.RoomId = INVALID_CHAIR
 	} else {
 		log.Debug("old user ====== %d  %d ", user.KindID, user.RoomId)
 		if user.KindID != 0 && user.RoomId != 0 {
@@ -233,29 +231,28 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 }
 
 func (m *UserModule) UserSitdown(args []interface{}) {
-	user := m.a.UserData().(*client.User)
+	player := m.a.UserData().(*client.User)
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+	if player.KindID == 0 {
+		log.Error("at UserSitdown not foud module userid:%d", player.Id)
 		return
 	}
 
 	roomid := recvMsg.TableID
-	if recvMsg.TableID == INVALID_CHAIR {
-		roomid = user.RoomId
-	}
-	r := RoomMgr.GetRoom(roomid)
+	r := RoomMgr.GetRoom(recvMsg.TableID)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", user.Id, roomid)
-		return
+		if player.RoomId != 0 {
+			roomid = player.RoomId
+			m.LoadRoom([]interface{}{&msg.C2G_LoadRoom{RoomID: player.RoomId}})
+			r = RoomMgr.GetRoom(player.RoomId)
+		}
+		if r == nil {
+			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d", player.Id, roomid)
+			return
+		}
 	}
 
-	r.GetChanRPC().Go("Sitdown", args[0], user)
+	r.GetChanRPC().Go("Sitdown", recvMsg.ChairID, player)
 }
 
 func (m *UserModule) SetGameOption(args []interface{}) {
@@ -353,13 +350,13 @@ func (m *UserModule) UserChairReq(args []interface{}) {
 func (m *UserModule) LoadRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_LoadRoom)
 	retMsg := &msg.G2C_LoadRoomOk{}
-	agent := args[1].(gate.Agent)
+	player := m.a.UserData().(*client.User)
 	retCode := -1
 	defer func() {
 		if retCode != 0 {
-			agent.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			player.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		} else {
-			agent.WriteMsg(retMsg)
+			player.WriteMsg(retMsg)
 		}
 	}()
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
@@ -371,6 +368,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 		return
 	}
 
+	b, _ := json.Marshal(info)
+	log.Debug("at LoadRoom Info == %v", string(b))
 	if info.Status != 0 {
 		retCode = ErrDoubleCreaterRoom
 		return
@@ -382,9 +381,8 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 		return
 	}
 
-	u := m.a.UserData().(*client.User)
 	log.Debug("begin CreateRoom.....")
-	ok1 := mod.CreateRoom(info, u)
+	ok1 := mod.CreateRoom(info, player)
 	if !ok1 {
 		retCode = ErrCreaterError
 		return
@@ -419,37 +417,37 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 /////////////////////////////// help 函数
 ///////
 func loadUser(u *client.User) bool {
-	data, err := cluster.Call1(u.HallNodeName, "GetPlayerInfo", u.Id)
+	data, err := cluster.Call1(u.HallNodeName, &msg.S2S_GetPlayerInfo{Uid: u.Id})
 	if err != nil {
 		log.Error("get room data error :%v", err.Error())
 		return false
 	}
 
-	info, ok := data.(map[string]interface{})
+	info, ok := data.(*msg.S2S_GetPlayerInfoResult)
 	if !ok {
 		log.Error("loadUser data is error")
 		return false
 	}
 
 	log.Debug("get user data == %v", info)
-
-	u.Id = info["Id"].(int64)
-	u.NickName = info["NickName"].(string)
-	u.Currency = info["Currency"].(int)
-	u.RoomCard = info["RoomCard"].(int)
-	u.FaceID = info["FaceID"].(int8)
-	u.CustomID = info["CustomID"].(int)
-	u.HeadImgUrl = info["HeadImgUrl"].(string)
-	u.Experience = info["Experience"].(int)
-	u.Gender = info["Gender"].(int8)
-	u.WinCount = info["WinCount"].(int)
-	u.LostCount = info["LostCount"].(int)
-	u.DrawCount = info["DrawCount"].(int)
-	u.FleeCount = info["FleeCount"].(int)
-	u.UserRight = info["UserRight"].(int)
-	u.Score = info["Score"].(int64)
-	u.Revenue = info["Revenue"].(int64)
-	u.InsureScore = info["InsureScore"].(int64)
-	u.MemberOrder = info["MemberOrder"].(int8)
+	u.Id = info.Id
+	u.NickName = info.NickName
+	u.Currency = info.Currency
+	u.RoomCard = info.RoomCard
+	u.FaceID = info.FaceID
+	u.CustomID = info.CustomID
+	u.HeadImgUrl = info.HeadImgUrl
+	u.Experience = info.Experience
+	u.Gender = info.Gender
+	u.WinCount = info.WinCount
+	u.LostCount = info.LostCount
+	u.DrawCount = info.DrawCount
+	u.FleeCount = info.FleeCount
+	u.UserRight = info.UserRight
+	u.Score = info.Score
+	u.Revenue = info.Revenue
+	u.InsureScore = info.InsureScore
+	u.MemberOrder = info.MemberOrder
+	u.RoomId = info.RoomId
 	return true
 }

@@ -3,9 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"mj/common"
 	"mj/common/consul"
-	. "mj/common/cost"
 	"mj/hallServer/center"
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
@@ -47,12 +45,10 @@ func main() {
 		db.RefreshInTime()
 	}
 
-	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})
 	consul.SetSelfId(lconf.ServerName)
-	consul.AddinitiativeSvr(GamePrefix)
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	leaf.Run(

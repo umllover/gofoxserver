@@ -10,7 +10,7 @@ const (
 
 const (
 	ListsMaxCnt = 30 //房间列表一次多去的最多条数
-	PackCount   = 5  //一个多少条
+	PackCount   = 6  //一个多少条
 )
 
 const (

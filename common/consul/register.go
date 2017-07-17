@@ -1,8 +1,7 @@
-package internal
+package consul
 
 import (
 	"errors"
-	"fmt"
 	. "mj/common/cost"
 	"strconv"
 	"strings"
@@ -84,22 +83,22 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 		}
 	}
 
-	consulSvrId := fmt.Sprintf(svrName+"_%v", svrID)
+	svrNamePrefixs := strings.Split(svrName, "_")
 	q := &api.QueryOptions{RequireConsistent: true}
-	svcs, _, err := Cli.Catalog().Service(svrName, "", q)
+	svcs, _, err := Cli.Catalog().Service(svrNamePrefixs[0], "", q)
 	if err != nil {
-		log.Fatal("check regist faild at buildRoomSvrConfig %v", consulSvrId)
+		log.Fatal("check regist faild at buildRoomSvrConfig %v", svrName)
 		return nil, errors.New("check regist faild at buildRoomSvrConfig")
 	}
 
 	for _, v := range svcs {
-		if v.ServiceID == consulSvrId {
-			log.Fatal("check regist faild at buildRoomSvrConfig 11 %v", consulSvrId)
+		if v.ServiceID == svrName {
+			log.Fatal("cluster have start %v , old server info:%v", svrName, v)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 
 		if v.ServiceAddress == list[0] && v.ServicePort == tcpPort {
-			log.Fatal("check regist faild at buildRoomSvrConfig 22 %v", consulSvrId)
+			log.Fatal("cluster have start %v ..., old server info:%v", svrName, v)
 			return nil, errors.New("check regist faild at buildRoomSvrConfig")
 		}
 	}
@@ -112,7 +111,7 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 	strPort := strconv.Itoa(tcpPort)
 	tag = append(tag, strPort)
 	tag = append(tag, "50000")
-	if GamePrefix == svrName {
+	if GamePrefix == svrNamePrefixs[0] {
 		tag = append(tag, "this is game server")
 	} else {
 		tag = append(tag, "this is Hall server")
@@ -129,8 +128,8 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 	})
 
 	service := &api.AgentServiceRegistration{
-		ID:      consulSvrId,
-		Name:    svrName,
+		ID:      svrName,
+		Name:    svrNamePrefixs[0],
 		Address: list[0],
 		Port:    tcpPort,
 		Tags:    tag,

@@ -11,43 +11,42 @@ import (
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
-	"reflect"
 	"time"
 
 	"encoding/json"
+
+	"mj/common/register"
+
+	"mj/hallServer/match_room"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
 
-//注册 客户端消息调用
-func handlerC2S(m *UserModule, msg interface{}, h interface{}) {
-	m.ChanRPC.Register(reflect.TypeOf(msg), h)
-}
-
 func RegisterHandler(m *UserModule) {
+	reg := register.NewRegister(m.ChanRPC)
 	//注册rpc 消息
-	m.ChanRPC.Register("handleMsgData", m.handleMsgData)
-	m.ChanRPC.Register("NewAgent", m.NewAgent)
-	m.ChanRPC.Register("CloseAgent", m.CloseAgent)
-	m.ChanRPC.Register("GetUser", m.GetUser)
-	m.ChanRPC.Register("SrarchTableResult", m.SrarchTableResult)
-	m.ChanRPC.Register("RoomCloseInfo", m.RoomCloseInfo)
-	m.ChanRPC.Register("restoreToken", m.restoreToken)
-	m.ChanRPC.Register("matchResult", m.matchResult)
-	m.ChanRPC.Register("LeaveRoom", m.leaveRoom)
-	m.ChanRPC.Register("JoinRoom", m.joinRoom)
-	m.ChanRPC.Register("Recharge", m.Recharge)
+	reg.RegisterRpc("handleMsgData", m.handleMsgData)
+	reg.RegisterRpc("NewAgent", m.NewAgent)
+	reg.RegisterRpc("CloseAgent", m.CloseAgent)
+	reg.RegisterRpc("GetUser", m.GetUser)
+	reg.RegisterRpc("SrarchTableResult", m.SrarchTableResult)
+	reg.RegisterRpc("RoomCloseInfo", m.RoomCloseInfo)
+	reg.RegisterRpc("restoreToken", m.restoreToken)
+	reg.RegisterRpc("matchResult", m.matchResult)
+	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
+	reg.RegisterRpc("JoinRoom", m.joinRoom)
+	reg.RegisterRpc("Recharge", m.Recharge)
 
 	//c2s
-	handlerC2S(m, &msg.C2L_Login{}, m.handleMBLogin)
-	handlerC2S(m, &msg.C2L_Regist{}, m.handleMBRegist)
-	handlerC2S(m, &msg.C2L_User_Individual{}, m.GetUserIndividual)
-	handlerC2S(m, &msg.C2L_CreateTable{}, m.CreateRoom)
-	handlerC2S(m, &msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
-	handlerC2S(m, &msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
-	handlerC2S(m, &msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
-	handlerC2S(m, &msg.C2L_SetElect{}, m.SetElect)
+	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
+	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
+	reg.RegisterC2S(&msg.C2L_User_Individual{}, m.GetUserIndividual)
+	reg.RegisterC2S(&msg.C2L_CreateTable{}, m.CreateRoom)
+	reg.RegisterC2S(&msg.C2L_ReqCreatorRoomRecord{}, m.GetCreatorRecord)
+	reg.RegisterC2S(&msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
+	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
+	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
 }
 
 //连接进来的通知
@@ -107,10 +106,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	//if accountData.PasswordID != recvMsg.Password {
-	//	sendErrFunc("password is error")
-	//	return
-	//}
+	if accountData.LogonPass != recvMsg.LogonPass {
+		retcode = ErrPasswd
+		return
+	}
 
 	player := user.NewUser(accountData.UserID)
 	player.Id = accountData.UserID
@@ -118,6 +117,25 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if !lok {
 		retcode = LoadUserInfoError
 		return
+	}
+
+	if player.Roomid != 0 {
+		_, have := game_list.ChanRPC.Call1("HaseRoom", player.Roomid)
+		if have != nil {
+			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
+			player.KindID = 0
+			player.ServerID = 0
+			player.GameNodeID = 0
+			player.EnterIP = ""
+			player.Roomid = 0
+			model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+				"KindID":     0,
+				"ServerID":   0,
+				"GameNodeID": 0,
+				"EnterIP":    "",
+				"roomid":     0,
+			})
+		}
 	}
 
 	player.Agent = agent
@@ -274,49 +292,38 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	if recvMsg.JoinGamePeopleCount != 0 {
-		if recvMsg.JoinGamePeopleCount > template.MaxPlayer || recvMsg.JoinGamePeopleCount < template.MaxPlayer {
-			retCode = ErrParamError
-			return
-		}
-	}
-
 	rid, iok := id_generate.GenerateRoomId(nodeId)
 	if !iok {
 		retCode = RandRoomIdError
 		return
 	}
 
-	if recvMsg.PayType == SELF_PAY_TYPE {
-		if !player.SubCurrency(feeTemp.TableFee) {
-			retCode = NotEnoughFee
-			return
-		}
+	monrey := feeTemp.TableFee
+	if recvMsg.PayType == AA_PAY_TYPE {
+		monrey = feeTemp.TableFee / template.MaxPlayer
+	}
 
-		record := &model.TokenRecord{}
-		record.UserId = player.Id
-		record.RoomId = rid
-		record.Amount = feeTemp.TableFee
-		record.TokenType = SELF_PAY_TYPE
-		record.KindID = template.KindID
-		record.ServerId = template.ServerID
-		if !player.AddRecord(record) {
-			retCode = ErrServerError
-			player.AddCurrency(feeTemp.TableFee)
-			return
-		}
+	if !player.EnoughCurrency(monrey) {
+		retCode = NotEnoughFee
+		return
 	}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
 	info.UserId = player.Id
 	info.PayType = recvMsg.PayType
-	info.MaxPlayerCnt = recvMsg.JoinGamePeopleCount
+	info.MaxPlayerCnt = template.MaxPlayer
 	info.RoomId = rid
 	info.NodeId = nodeId
-	info.Num = recvMsg.DrawCountLimit
+	info.Num = template.MaxPlayer
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
+	if recvMsg.Public {
+		info.Public = 1
+	} else {
+		info.Public = 0
+	}
+
 	by, err := json.Marshal(recvMsg.OtherInfo)
 	if err != nil {
 		log.Error("at CreateRoom json.Marshal(recvMsg.OtherInfo) error:%s", err.Error())
@@ -332,6 +339,23 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 
 	player.AddRooms(info)
 
+	roomInfo := &msg.RoomInfo{}
+	roomInfo.KindID = info.KindId
+	roomInfo.ServerID = info.ServiceId
+	roomInfo.RoomID = info.RoomId
+	roomInfo.NodeID = info.NodeId
+	roomInfo.SvrHost = host
+	roomInfo.PayType = info.PayType
+	roomInfo.CreateTime = time.Now().Unix()
+	roomInfo.CreateUserId = player.Id
+	roomInfo.IsPublic = recvMsg.Public
+	roomInfo.MachPlayer = make(map[int64]struct{})
+	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
+	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
+	roomInfo.PayCnt = info.Num
+	roomInfo.RoomName = info.RoomName
+	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
+
 	//回给客户端的消息
 	retMsg.TableID = rid
 	retMsg.DrawCountLimit = info.Num
@@ -343,14 +367,18 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 
 func (m *UserModule) SrarchTableResult(args []interface{}) {
 	roomInfo := args[0].(*msg.RoomInfo)
-	u := m.a.UserData().(*user.User)
+	player := m.a.UserData().(*user.User)
 	retMsg := &msg.L2C_SearchResult{}
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
+			if roomInfo.CreateUserId == player.Id {
+				//todo  delte room ???
+			}
+			match_room.ChanRPC.Go("delMatchPlayer", player.Id, roomInfo)
+			player.WriteMsg(RenderErrorMessage(retcode))
 		} else {
-			u.WriteMsg(retMsg)
+			player.WriteMsg(retMsg)
 		}
 	}()
 
@@ -375,30 +403,38 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / roomInfo.MaxCnt
-
-		if !u.SubCurrency(monrey) {
-			retcode = NotEnoughFee
-			return
-		}
-		record := &model.TokenRecord{}
-		record.UserId = u.Id
-		record.RoomId = roomInfo.RoomID
-		record.Amount = monrey
-		record.TokenType = AA_PAY_TYPE
-		record.KindID = template.KindID
-		if !u.AddRecord(record) {
-			retcode = ErrServerError
-			u.AddCurrency(monrey)
-			return
-		}
+		monrey = feeTemp.TableFee / roomInfo.MaxPlayerCnt
 	}
 
-	u.KindID = roomInfo.KindID
-	u.ServerID = roomInfo.ServerID
-	model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
-		"KindID":   u.KindID,
-		"ServerID": u.ServerID,
+	if !player.SubCurrency(feeTemp.TableFee) {
+		retcode = NotEnoughFee
+		return
+	}
+
+	record := &model.TokenRecord{}
+	record.UserId = player.Id
+	record.RoomId = roomInfo.RoomID
+	record.Amount = monrey
+	record.TokenType = AA_PAY_TYPE
+	record.KindID = template.KindID
+	if !player.AddRecord(record) {
+		retcode = ErrServerError
+		player.AddCurrency(monrey)
+		return
+	}
+
+	player.KindID = roomInfo.KindID
+	player.ServerID = roomInfo.ServerID
+	player.Roomid = roomInfo.RoomID
+	player.GameNodeID = roomInfo.NodeID
+	player.EnterIP = host
+
+	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"KindID":     player.KindID,
+		"ServerID":   player.ServerID,
+		"GameNodeID": roomInfo.NodeID,
+		"EnterIP":    host,
+		"roomid":     roomInfo.RoomID,
 	})
 
 	retMsg.TableID = roomInfo.RoomID
@@ -665,11 +701,14 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := msg.L2C_SearchResult{}
+	retMsg := &msg.L2C_SearchResult{}
 	u := m.a.UserData().(*user.User)
 	if ret {
 		r := args[1].(*msg.RoomInfo)
 		retMsg.TableID = r.RoomID
+		retMsg.ServerIP = r.SvrHost
+	} else {
+		retMsg.TableID = INVALID_TABLE
 	}
 	u.WriteMsg(retMsg)
 }

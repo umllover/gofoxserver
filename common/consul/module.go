@@ -1,4 +1,4 @@
-package internal
+package consul
 
 import (
 	"mj/common/base"
@@ -14,11 +14,11 @@ var (
 	ChanRPC  = skeleton.ChanRPCServer
 )
 
-type Module struct {
+type ConsulModule struct {
 	*module.Skeleton
 }
 
-func (m *Module) OnInit() {
+func (m *ConsulModule) OnInit() {
 	log.Debug("at consul model OnInit")
 	m.Skeleton = skeleton
 	InitConsul("http")
@@ -35,7 +35,7 @@ func (m *Module) OnInit() {
 	}
 }
 
-func (m *Module) OnDestroy() {
+func (m *ConsulModule) OnDestroy() {
 	deregDeregister()
 	log.Debug("at consul model OnDestroy")
 }

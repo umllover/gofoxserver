@@ -24,6 +24,7 @@ func init() {
 	msg.Processor.Register(&G2C_ZPMJ_StatusPlay{})
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
 	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
+	msg.Processor.Register(&G2C_ZPMJ_HuData{})
 }
 
 type G2C_MJZP_OperateNotify struct {

@@ -8,14 +8,12 @@ func init() {
 	msg.Processor.Register(&C2G_MJXS_OperateCard{})
 	msg.Processor.Register(&C2G_MJXS_OutCard{})
 
-	msg.Processor.Register(&G2C_MJXS_GameStart{})
-	msg.Processor.Register(&G2C_MJXS_OutCard{})
-	msg.Processor.Register(&G2C_MJXS_GameEnd{})
-	msg.Processor.Register(&G2C_MJXS_SendCard{})
-	msg.Processor.Register(&G2C_MJXS_OperateResult{})
-	msg.Processor.Register(&G2C_MJXS_OperateNotify{})
-	msg.Processor.Register(&G2C_MJXS_StatusFree{})
-	msg.Processor.Register(&G2C_MJXS_StatusPlay{})
+	msg.Processor.Register(&G2C_GameStart{})
+	msg.Processor.Register(&G2C_OutCard{})
+	msg.Processor.Register(&G2C_GameConclude{})
+	msg.Processor.Register(&G2C_SendCard{})
+	msg.Processor.Register(&G2C_OperateResult{})
+	msg.Processor.Register(&G2C_OperateNotify{})
 }
 
 //出操作
@@ -30,7 +28,7 @@ type C2G_MJXS_OutCard struct {
 }
 
 //发送扑克
-type G2C_MJXS_GameStart struct {
+type G2C_GameStart struct {
 	SiceCount         int   //骰子点数
 	BankerUser        int   //庄家用户
 	CurrentUser       int   //当前用户
@@ -44,12 +42,12 @@ type G2C_MJXS_GameStart struct {
 	RepertoryCard     []int //所有牌
 }
 
-type G2C_MJXS_OutCard struct {
+type G2C_OutCard struct {
 	OutCardUser int //出牌用户
 	OutCardData int //出牌扑克
 }
 
-type G2C_MJXS_GameEnd struct { //游戏结束
+type G2C_GameConclude struct { //游戏结束
 	GameTax     int     //游戏税收
 	ChiHuCard   int     //吃胡扑克
 	ProvideUser int     //点炮用户
@@ -66,7 +64,7 @@ type G2C_MJXS_GameEnd struct { //游戏结束
 }
 
 //发送扑克
-type G2C_MJXS_SendCard struct {
+type G2C_SendCard struct {
 	CardData    int  //扑克数据
 	ActionMask  int  //动作掩码
 	CurrentUser int  //当前用户
@@ -74,28 +72,28 @@ type G2C_MJXS_SendCard struct {
 }
 
 //操作命令
-type G2C_MJXS_OperateResult struct {
-	OperateUser int    //操作用户
-	ProvideUser int    //供应用户
-	OperateCode int    //操作代码
+type G2C_OperateResult struct {
+	OperateUser int //操作用户
+	ProvideUser int //供应用户
+	OperateCode int //操作代码
 	OperateCard int //操作扑克
-	ActionMask  int    //操作码
+	ActionMask  int //操作码
 }
 
 //操作提示
-type G2C_MJXS_OperateNotify struct {
+type G2C_OperateNotify struct {
 	ResumeUser int //还原用户
 	ActionMask int //动作掩码
 	ActionCard int //动作扑克
 }
 
-type G2C_MJXS_StatusFree struct {
+type G2C_StatusFree struct {
 	CellScore  int //基础金币
 	BankerUser int //庄家用户
 }
 
 //游戏状态
-type G2C_MJXS_StatusPlay struct {
+type G2C_StatusPlay struct {
 	//游戏变量
 	CellScore         int //单元积分
 	SiceCount         int //骰子点数

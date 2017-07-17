@@ -28,7 +28,7 @@ func GetRequestCount() int {
 	return count
 }
 
-func SetRoute(id interface{}, server *chanrpc.Server) {
+func SetRouter(id interface{}, server *chanrpc.Server) {
 	_, ok := routeMap[id]
 	if ok {
 		panic(fmt.Sprintf("function id %v: already set route", id))

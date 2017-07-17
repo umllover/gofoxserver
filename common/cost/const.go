@@ -132,16 +132,28 @@ const (
 
 //自己支付
 const (
-	SELF_PAY_TYPE = 1
-	AA_PAY_TYPE   = 2
+	SELF_PAY_TYPE = 1 //自己付钱
+	AA_PAY_TYPE   = 2 //AA付钱
 )
 
 //////////////////////////////////////////////
 //标识前缀
 const (
-	HallPrefix = "HallSvr" //房间服
-	GamePrefix = "GameSvr"
+	HallPrefix     = "HallSvr"        //房间服
+	GamePrefix     = "GameSvr"        //游戏服
+	HallPrefixFmt  = "HallSvr_%d"     //房间服
+	GamePrefixFmt  = "GameSvr_%d"     //游戏服
+	GameChannelFmt = "GameChannel_%d" //nsq channel
+	HallCahnnelFmt = "HallCahnnel_%d" //nsq channel
 )
+
+func GetGameSvrTopc(id int) string {
+	return fmt.Sprintf(GamePrefixFmt, id)
+}
+
+func GetHallSvrTopc(id int) string {
+	return fmt.Sprintf(HallPrefixFmt, id)
+}
 
 func LOBYTE(w int) int {
 	return w & 0xFF
@@ -176,4 +188,6 @@ func GetHallSvrName(sververId int) string {
 const (
 	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
 	MAX_ELECT_AWARD      = "MAX_ELECT_AWARD"
+	MAX_SHOW_ENTRY       = "MAX_SHOW_ENTRY"
+	MATCH_TIMEOUT        = "MATCH_TIMEOUT"
 )

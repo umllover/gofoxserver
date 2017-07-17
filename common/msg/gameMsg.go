@@ -6,6 +6,12 @@ type C2G_LoadRoom struct {
 	RoomID int //房间id
 }
 
+//游戏服初始化房间失败
+type G2C_InitRoomFailure struct {
+	ErrorCode      int
+	DescribeString string
+}
+
 //手机登录
 type C2G_GR_LogonMobile struct {
 	GameID         int //游戏标识
@@ -85,7 +91,7 @@ type G2C_LogonFinish struct {
 }
 
 //登录失败
-type G2C_LogonFailur struct {
+type G2C_LogonFailure struct {
 	ResultCode     int
 	DescribeString string
 }

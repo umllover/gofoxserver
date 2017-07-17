@@ -110,7 +110,7 @@ func (server *WSServer) Start() {
 		log.Release("invalid PendingWriteNum, reset to %v", server.PendingWriteNum)
 	}
 	if server.MaxMsgLen <= 0 {
-		server.MaxMsgLen = 4096
+		server.MaxMsgLen = 65535
 		log.Release("invalid MaxMsgLen, reset to %v", server.MaxMsgLen)
 	}
 	if server.HTTPTimeout <= 0 {
