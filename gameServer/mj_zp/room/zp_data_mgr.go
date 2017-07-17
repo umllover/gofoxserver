@@ -785,7 +785,10 @@ func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
 
 	count := len(room.FollowCard) % 4
 	if count == 0 {
-		begin := count - 4
+		begin := 0
+		if len(room.FollowCard) > 8 {
+			begin = count - 4
+		}
 		for i := begin; i < len(room.FollowCard); i++ {
 			if room.FollowCard[i] != cbCenterCard {
 				room.IsFollowCard = true //取消跟牌
