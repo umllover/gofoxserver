@@ -139,7 +139,7 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		GetCardWordArray(cbCardIndex) //todo,测试代码
+		//GetCardWordArray(cbCardIndex) //todo,测试代码
 		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v,%d %v ", cbCardCount, MaxCount, (cbCardCount-2)%3)
 		return false, nil
 	}
@@ -339,7 +339,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
-		log.Debug("#####有胡牌")
 		ChiHuRight |= CHR_PING_HU
 	}
 
