@@ -1,6 +1,6 @@
 package room
 
-import "auth_server/module/log"
+import "github.com/lovelly/leaf/log"
 
 func GetCardWordArray(index []int) bool {
 	CardWordArray := []string{

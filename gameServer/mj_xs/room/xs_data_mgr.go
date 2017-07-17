@@ -39,7 +39,7 @@ type xs_data struct {
 
 func (room *xs_data) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom")
+	log.Debug("mjxs at InitRoom")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
