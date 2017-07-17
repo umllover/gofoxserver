@@ -1081,6 +1081,11 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 				log.Debug("自摸,%d", winScore[IDX_SUB_SCORE_ZM])
 			}
 		}
+		//无花字
+		kind = room.IsWuHuaZi(v, room.FlowerCnt)
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_WHZ] = 3
+		}
 	}
 	//单吊
 	if room.TingCnt[room.CurrentUser] == 1 {
@@ -1157,6 +1162,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 1
 			case IDX_SUB_SCORE_QGH:
 				winScore[k] = 4
+			case IDX_SUB_SCORE_WHZ:
+				winScore[k] = 4
 			}
 		}
 
@@ -1214,6 +1221,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 			case IDX_SUB_SCORE_ZM:
 				winScore[k] = 1
 			case IDX_SUB_SCORE_QGH:
+				winScore[k] = 8
+			case IDX_SUB_SCORE_WHZ:
 				winScore[k] = 8
 			}
 		}
