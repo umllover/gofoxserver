@@ -1,7 +1,6 @@
 package room
 
 import (
-	"auth_server/module/log"
 	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -10,6 +9,8 @@ import (
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+
+	"github.com/lovelly/leaf/log"
 
 	"github.com/lovelly/leaf/timer"
 )
