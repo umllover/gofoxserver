@@ -143,6 +143,7 @@ func addRoom(recvMsg *msg.RoomInfo) {
 		roomKindList[recvMsg.KindID] = m
 	}
 	m[recvMsg.RoomID] = struct{}{}
+	log.Debug("addRoom ok, RoomID = %d", recvMsg.RoomID)
 }
 
 func notifyDelRoom(args []interface{}) {

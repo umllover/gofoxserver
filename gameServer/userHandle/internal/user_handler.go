@@ -79,7 +79,6 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -294,7 +293,7 @@ func (m *UserModule) UserReady(args []interface{}) {
 		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
 		return
 	}
-
+	log.Debug("UserReady KindID=%d, RoomId=%d, userId=%d, ChairId=%d", user.KindID, user.RoomId, user.Id, user.ChairId)
 	r.GetChanRPC().Go("UserReady", args[0], user)
 
 }

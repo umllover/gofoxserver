@@ -530,8 +530,8 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	} else {
 		wrave.ProvideUser = room.ProvideUser
 	}
-
 	cbTargetCard := room.OperateCard[wTargetUser][0]
+	wrave.CardData = make([]int, 4)
 	wrave.CardData[0] = cbTargetCard
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
@@ -658,7 +658,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		}
 	})
 
-	log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
+	//log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
 	if bAroseAction {
 		//设置变量
@@ -748,11 +748,11 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		//胡牌判断
 		chr := 0
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
-		log.Debug("befer %v ", room.UserAction[wCurrentUser])
+		log.Debug("before %v ", room.UserAction[wCurrentUser])
 		huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
 			room.SendCardData, chr, room.GetCfg().MaxCount, false)
 		room.UserAction[wCurrentUser] |= huKind
-		log.Debug("afert %v ", room.UserAction[wCurrentUser])
+		log.Debug("after %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
@@ -840,6 +840,9 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.WeaveItemArray = make([][]*msg.WeaveItem, UserCnt)
 	room.ChiHuRight = make([]int, UserCnt)
 	room.HeapCardInfo = make([][]int, UserCnt)
+	room.IsResponse = make([]bool, UserCnt)
+	room.PerformAction = make([]int, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
 	}
@@ -908,7 +911,6 @@ func (room *RoomData) StartDispatchCard() {
 	}
 
 	room.MinusHeadCount++
-	//log.Debug("aaaaaaaaaa %d", room.LeftCardCount)
 	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
 	room.LeftCardCount--
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++

@@ -55,9 +55,8 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 	return nil
 }
 
-//连接关闭的同喜
+//连接关闭的通知
 func (m *UserModule) CloseAgent(args []interface{}) error {
-
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
 	u, ok := agent.UserData().(*user.User)
