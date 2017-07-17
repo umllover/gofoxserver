@@ -1,23 +1,20 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/common/register"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
+	"mj/hallServer/match_room"
 	"mj/hallServer/user"
 	"time"
-
-	"encoding/json"
-
-	"mj/common/register"
-
-	"mj/hallServer/match_room"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -47,6 +44,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
 	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
+	reg.RegisterRpc(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
 }
 
 //连接进来的通知
@@ -97,8 +95,23 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	})
 
 	if ok != nil || accountData == nil {
-		retcode = NotFoudAccout
-		return
+		if conf.Test {
+			retcode, _, accountData = RegistUser(&msg.C2L_Regist{
+				LogonPass:    recvMsg.LogonPass,
+				Accounts:     recvMsg.Accounts,
+				ModuleID:     recvMsg.ModuleID,
+				PlazaVersion: recvMsg.PlazaVersion,
+				MachineID:    recvMsg.MachineID,
+				MobilePhone:  recvMsg.MobilePhone,
+				NickName:     recvMsg.Accounts,
+			}, agent)
+			if retcode != 0 {
+				return
+			}
+		} else {
+			retcode = NotFoudAccout
+			return
+		}
 	}
 
 	if _, ok := Users[accountData.UserID]; ok {
@@ -123,18 +136,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		_, have := game_list.ChanRPC.Call1("HaseRoom", player.Roomid)
 		if have != nil {
 			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
-			player.KindID = 0
-			player.ServerID = 0
-			player.GameNodeID = 0
-			player.EnterIP = ""
-			player.Roomid = 0
-			model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
-				"KindID":     0,
-				"ServerID":   0,
-				"GameNodeID": 0,
-				"EnterIP":    "",
-				"roomid":     0,
-			})
+			player.DelGameLockInfo()
 		}
 	}
 
@@ -154,7 +156,7 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	retcode := 0
 	recvMsg := args[0].(*msg.C2L_Regist)
 	agent := args[1].(gate.Agent)
-	retMsg := &msg.L2C_LogonSuccess{}
+	retMsg := &msg.L2C_RegistResult{}
 	var accountData *model.Accountsinfo
 	defer func() {
 		if retcode != 0 {
@@ -169,20 +171,21 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 				model.UserextrainfoOp.Delete(accountData.UserID)
 				model.UsertokenOp.Delete(accountData.UserID)
 			}
-			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: "登录失败"})
+			agent.WriteMsg(RenderErrorMessage(retcode, "注册失败"))
 		} else {
 			agent.WriteMsg(retMsg)
 		}
 	}()
 
-	var ok error
-	accountData, ok = model.AccountsinfoOp.GetByMap(map[string]interface{}{
+	retcode, _, _ = RegistUser(recvMsg, agent)
+}
+
+func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *model.Accountsinfo) {
+	accountData, _ := model.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 	if accountData != nil {
-		log.Debug("errpr == %v", ok)
-		retcode = AlreadyExistsAccount
-		return
+		return AlreadyExistsAccount, nil, nil
 	}
 
 	//todo 名字排重等等等 验证
@@ -205,25 +208,15 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 
 	lastid, err := model.AccountsinfoOp.Insert(accInfo)
 	if err != nil {
-		retcode = InsertAccountError
-		return
+		log.Error("RegistUser err :%s", err.Error())
+		return InsertAccountError, nil, nil
 	}
 	accInfo.UserID = int64(lastid)
-
 	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
-		retcode = CreateUserError
-		return
+		return CreateUserError, nil, nil
 	}
-
-	player.HallNodeID = conf.Server.NodeId
-	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
-		"HallNodeID": conf.Server.NodeId,
-	})
-	player.Agent = agent
-	//AddUser(user.Id, user)
-	agent.SetUserData(player)
-	BuildClientMsg(retMsg, player, accInfo)
+	return 0, player, accInfo
 }
 
 //获取个人信息
@@ -411,16 +404,20 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	record := &model.TokenRecord{}
-	record.UserId = player.Id
-	record.RoomId = roomInfo.RoomID
-	record.Amount = monrey
-	record.TokenType = AA_PAY_TYPE
-	record.KindID = template.KindID
-	if !player.AddRecord(record) {
-		retcode = ErrServerError
-		player.AddCurrency(monrey)
-		return
+	if !player.HasRecord(roomInfo.RoomID) {
+		record := &model.TokenRecord{}
+		record.UserId = player.Id
+		record.RoomId = roomInfo.RoomID
+		record.Amount = monrey
+		record.TokenType = AA_PAY_TYPE
+		record.KindID = template.KindID
+		if !player.AddRecord(record) {
+			retcode = ErrServerError
+			player.AddCurrency(monrey)
+			return
+		}
+	} else { //已近口过钱了， 还来搜索房间
+		log.Debug("player %d double srach room: %d", player.Id, roomInfo.RoomID)
 	}
 
 	player.KindID = roomInfo.KindID
@@ -521,6 +518,7 @@ func loadUser(u *user.User) bool {
 		return false
 	}
 	for _, v := range rooms {
+		log.Debug("load creator room info ok ... %v", v)
 		u.Rooms[v.RoomId] = v
 	}
 
@@ -597,6 +595,11 @@ func createUser(UserID int64, accountData *model.Accountsinfo) (*user.User, bool
 
 	U.Usertoken = &model.Usertoken{
 		UserID: UserID,
+	}
+
+	if conf.Test {
+		U.Usertoken.Currency = 9999999
+		U.Usertoken.RoomCard = 1000000
 	}
 
 	U.Gamescorelocker = &model.Gamescorelocker{
@@ -678,6 +681,7 @@ func (m *UserModule) RoomCloseInfo(args []interface{}) {
 		}
 	}
 	player.DelRooms(info.RoomId)
+	player.DelGameLockInfo()
 	return
 }
 
@@ -742,4 +746,8 @@ func (m *UserModule) Recharge(args []interface{}) {
 			u.AddCurrency(goods.Diamond)
 		}
 	}
+}
+
+func (m *UserModule) DeleteRoom(args []interface{}) {
+
 }

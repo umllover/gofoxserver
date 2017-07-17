@@ -30,4 +30,5 @@ var (
 
 	// cluster conf
 	HeartBeatInterval = 5
+	Test              = false
 )

@@ -25,6 +25,7 @@ type RoomInfo struct {
 	IsPublic     bool                   //是否公开匹配
 	Players      map[int64]*PlayerBrief //玩家id
 	SvrHost      string                 //哪个ip上的房间
+	Status       int                    //房间状态
 
 	//服务器标记字段
 	MachPlayer map[int64]struct{}
@@ -32,8 +33,9 @@ type RoomInfo struct {
 
 ///通知大厅房间结束
 type RoomEndInfo struct {
-	RoomId int //房间id
-	Status int //0是没开始， 1是开始了
+	RoomId    int   //房间id
+	Status    int   //0是没开始， 1是开始了
+	CreateUid int64 //创建房间的人
 }
 
 type UpdateRoomInfo struct {

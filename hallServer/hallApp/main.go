@@ -74,5 +74,6 @@ func Init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	conf.Test = *Test
 	leaf.InitLog()
 }

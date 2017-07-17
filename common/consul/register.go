@@ -123,7 +123,7 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 	chs = append(chs, &api.AgentServiceCheck{ // http port check
 		TCP:      checkAddr,
 		Interval: "2s",
-		Timeout:  "5s",
+		Timeout:  "4s",
 		DeregisterCriticalServiceAfter: "5s",
 	})
 
