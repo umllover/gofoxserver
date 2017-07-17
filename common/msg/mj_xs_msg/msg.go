@@ -10,7 +10,6 @@ func init() {
 
 	msg.Processor.Register(&G2C_GameStart{})
 	msg.Processor.Register(&G2C_OutCard{})
-	msg.Processor.Register(&G2C_GameConclude{})
 	msg.Processor.Register(&G2C_SendCard{})
 	msg.Processor.Register(&G2C_OperateResult{})
 	msg.Processor.Register(&G2C_OperateNotify{})

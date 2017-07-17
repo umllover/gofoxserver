@@ -101,3 +101,7 @@ type S2S_GetPlayerInfoResult struct {
 	MemberOrder int8
 	RoomId      int
 }
+
+//结束消息， 各个游戏自己实现
+type G2C_GameConclude struct {
+}

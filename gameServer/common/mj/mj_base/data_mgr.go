@@ -1061,7 +1061,7 @@ func (room *RoomData) SendGameStart() {
 func (room *RoomData) NormalEnd() {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
@@ -1158,7 +1158,7 @@ func (room *RoomData) NormalEnd() {
 func (room *RoomData) DismissEnd() {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+	GameConclude := &mj_hz_msg.G2C_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)

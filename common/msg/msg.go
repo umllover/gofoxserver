@@ -68,6 +68,7 @@ func init() {
 	Processor.Register(&G2C_PersonalTableEnd{})
 	Processor.Register(&C2G_LoadRoom{})
 	Processor.Register(&G2C_LoadRoomOk{})
+	Processor.Register(&G2C_GameConclude{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

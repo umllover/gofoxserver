@@ -34,8 +34,6 @@ const (
 	OPEN_CARD_TIME  = 30
 )
 
-
-
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry) *nntb_data_mgr {
 	d := new(nntb_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
@@ -240,7 +238,7 @@ func (room *nntb_data_mgr) NormalEnd() {
 	/*
 		//变量定义
 		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+		GameConclude := &mj_hz_msg.G2C_GameConclude{}
 		GameConclude.ChiHuKind = make([]int, UserCnt)
 		GameConclude.CardCount = make([]int, UserCnt)
 		GameConclude.HandCardData = make([][]int, UserCnt)
@@ -339,7 +337,7 @@ func (room *nntb_data_mgr) DismissEnd() {
 	/*
 		//变量定义
 		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+		GameConclude := &mj_hz_msg.G2C_GameConclude{}
 		GameConclude.ChiHuKind = make([]int, UserCnt)
 		GameConclude.CardCount = make([]int, UserCnt)
 		GameConclude.HandCardData = make([][]int, UserCnt)
