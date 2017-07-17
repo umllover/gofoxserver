@@ -1,7 +1,7 @@
 package room
 
 import (
-	"auth_server/module/log"
+	"github.com/lovelly/leaf/log"
 	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
