@@ -1445,9 +1445,6 @@ func (room *RoomData) ClearBanCard(ChairId int) {
 
 //吃啥打啥
 func (room *RoomData) OutOfChiCardRule(CardData, ChairId int) bool {
-	if room.BanUser[ChairId]&LimitChi != 0 && room.BanCardCnt[ChairId][LimitChi] == CardData {
-		return false
-	}
 	return true
 }
 
@@ -1886,12 +1883,5 @@ func (room *RoomData) IsPingHu() int {
 
 func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
-	return
-}
-
-//其他
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//清理定时器
-func (room *RoomData) StopOperateCardTimer(u *user.User) {
 	return
 }

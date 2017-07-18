@@ -42,8 +42,6 @@ type DataManager interface {
 	ClearBanCard(ChairId int)                                        //清除出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
-	StopOperateCardTimer(u *user.User)                               //停止操作定时
-	CalHuPaiScore(EndScore []int)                                    //todo,测试代码
 
 	GetResumeUser() int
 	GetGangStatus() int
