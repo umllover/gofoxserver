@@ -52,7 +52,7 @@ type RoomData struct {
 	ProvideCard       int    //供应扑克
 	ResumeUser        int    //还原用户
 	ProvideUser       int    //供应用户
-	LeftCardCount     int    //剩下拍的数量
+	LeftCardCount     int    //剩下牌的数量
 	OutCardCount      int    //出牌数目
 	EndLeftCount      int    //荒庄牌数
 	LastCatchCardUser int    //最后一个摸牌的用户
@@ -495,7 +495,9 @@ func (room *RoomData) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
 	OperateResult := &mj_hz_msg.G2C_HZMJ_OperateResult{}
 	OperateResult.ProvideUser = wrave.ProvideUser
 	OperateResult.OperateCode = wrave.WeaveKind
-	OperateResult.OperateCard[0] = wrave.CenterCard
+	for i := 0; i < len(OperateResult.OperateCard); i++ {
+		OperateResult.OperateCard[i] = wrave.CardData[i]
+	}
 	if u != nil {
 		OperateResult.OperateUser = u.ChairId
 	} else {
@@ -600,7 +602,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 //响应判断
 func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int) bool {
-	log.Debug("at EstimateUserRespond ================= ")
+	log.Debug("EstimateUserRespond start")
 	//变量定义
 	bAroseAction := false
 
@@ -748,11 +750,11 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		//胡牌判断
 		chr := 0
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
-		log.Debug("before %v ", room.UserAction[wCurrentUser])
+		//log.Debug("before %v ", room.UserAction[wCurrentUser])
 		huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
 			room.SendCardData, chr, room.GetCfg().MaxCount, false)
 		room.UserAction[wCurrentUser] |= huKind
-		log.Debug("after %v ", room.UserAction[wCurrentUser])
+		//log.Debug("after %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
@@ -762,7 +764,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		}
 	}
 
-	log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
+	//log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
 	//听牌判断
 	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[wCurrentUser] == false {
@@ -921,6 +923,23 @@ func (room *RoomData) StartDispatchCard() {
 	if conf.Test {
 		room.RepalceCard()
 	}
+
+	/*	//TODO 测试用
+		for i := 0; i < 4; i++ {
+			if i == 0 {
+				room.CardIndex[i][7] = 3
+			} else {
+				room.CardIndex[i][7] = 0
+			}
+		}
+		newdata := make([]int, room.GetCfg().MaxRepertory)
+		for i := 0; i < len(room.RepertoryCard); i++ {
+			if room.RepertoryCard[i] != 8 {
+				newdata = append(newdata, room.RepertoryCard[i])
+			}
+		}
+		room.RepertoryCard = newdata*/
+
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
@@ -1297,7 +1316,7 @@ func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	} else {
 		room.MinusHeadCount++
 		cbIndexCard = room.GetCfg().MaxRepertory - room.MinusHeadCount
-		log.Debug("@@@@@@ cbIndexCard:%d len:%d len2:%d len3:%d", cbIndexCard, len(room.RepertoryCard), room.GetCfg().MaxRepertory, room.MinusHeadCount) //todo
+		//log.Debug("@@@@@@ cbIndexCard:%d len:%d len2:%d len3:%d", cbIndexCard, len(room.RepertoryCard), room.GetCfg().MaxRepertory, room.MinusHeadCount) //todo
 		cbSendCardData = room.RepertoryCard[cbIndexCard]
 	}
 
