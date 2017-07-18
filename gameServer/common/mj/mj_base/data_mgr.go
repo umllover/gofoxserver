@@ -1368,7 +1368,7 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 	if room.SendCardData != 0 {
 		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
 	} else {
-		for i := 0; i < room.GetCfg().MaxIdx; i++ {
+		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
 			if room.CardIndex[wChairID][i] > 0 {
 				cardindex = i
 				break

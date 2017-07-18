@@ -1797,7 +1797,13 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
 		for {
 			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
+				outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
+				outData.IsInitFlower = false
+				outData.ReplaceUser = wCurrentUser
+				outData.ReplaceCard = room.ProvideCard
 				room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+				outData.NewCard = room.ProvideCard
+				room.MjBase.UserMgr.SendMsgAll(outData)
 				room.FlowerCnt[wCurrentUser]++
 			} else {
 				break
@@ -2012,7 +2018,7 @@ func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
 		log.Debug("超时---出牌 %d", u.ChairId)
 		card := room.SendCardData
 		if !room.MjBase.LogicMgr.IsValidCard(card) {
-			for j := 0; j < room.GetCfg().MaxIdx; j++ {
+			for j := room.GetCfg().MaxIdx - 1; j > 0; j-- {
 				if room.CardIndex[u.ChairId][j] > 0 {
 					card = room.MjBase.LogicMgr.SwitchToCardData(j)
 					break
