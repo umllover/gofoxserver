@@ -68,6 +68,66 @@ func TestShowCard_1(t *testing.T) {
 	room.ShowSSsCard(args)
 }
 
+func TestShowCard_Special(t *testing.T) {
+	log.Debug("测试摊牌_特殊牌")
+	data := &pk_sss_msg.C2G_SSS_Open_Card{}
+	args := []interface{}{}
+	//至尊清龙
+	//data = &pk_sss_msg.C2G_SSS_Open_Card{
+	//	FrontCard:   []int{0x31, 0x32, 0x33},
+	//	MidCard:     []int{0x34, 0x35, 0x36, 0x37, 0x38},
+	//	BackCard:    []int{0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+	//	SpecialType: true,
+	//	SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+	//	Dragon:      false,
+	//}
+	//args = []interface{}{data, u1}
+	//room.ShowSSsCard(args)
+	//一条龙
+	//data = &pk_sss_msg.C2G_SSS_Open_Card{
+	//	FrontCard:   []int{0x01, 0x02, 0x03},
+	//	MidCard:     []int{0x34, 0x35, 0x36, 0x37, 0x38},
+	//	BackCard:    []int{0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+	//	SpecialType: true,
+	//	SpecialData: []int{0x01, 0x02, 0x03, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+	//	Dragon:      false,
+	//}
+	//args = []interface{}{data, u1}
+	//room.ShowSSsCard(args)
+	//十二皇族
+	//data = &pk_sss_msg.C2G_SSS_Open_Card{
+	//	FrontCard:   []int{0x0B, 0x0B, 0x0C},
+	//	MidCard:     []int{0x0D, 0x1B, 0x1C, 0x1D, 0x2B},
+	//	BackCard:    []int{0x2C, 0x2D, 0x3B, 0x3C, 0x3D},
+	//	SpecialType: true,
+	//	SpecialData: []int{0x0B, 0x0B, 0x0C, 0x0D, 0x1B, 0x1C, 0x1D, 0x2B, 0x2C, 0x2D, 0x3B, 0x3C, 0x3D},
+	//	Dragon:      false,
+	//}
+	//args = []interface{}{data, u1}
+	//room.ShowSSsCard(args)
+	//三同花顺
+	data = &pk_sss_msg.C2G_SSS_Open_Card{
+		FrontCard:   []int{0x01, 0x02, 0x03},
+		MidCard:     []int{0x13, 0x14, 0x15, 0x16, 0x17},
+		BackCard:    []int{0x27, 0x28, 0x29, 0x2A, 0x2B},
+		SpecialType: true,
+		SpecialData: []int{0x01, 0x02, 0x03, 0x13, 0x14, 0x15, 0x16, 0x17, 0x27, 0x28, 0x29, 0x2A, 0x2B},
+		Dragon:      false,
+	}
+	args = []interface{}{data, u1}
+	room.ShowSSsCard(args)
+	//三分天下
+	//全大
+	//全小
+	//凑一色
+	//四套冲三
+	//五对冲三
+	//六对半
+	//三顺子
+	//三同花
+
+}
+
 //
 //func TestOutCard(t *testing.T) {
 //	log.Debug("测试出牌")
@@ -181,6 +241,7 @@ func TestAnalyseCard(t *testing.T) {
 
 func init() {
 	Wg.Add(1)
+	//conf.Init("D:/go/src/mj/gameServer/gameApp/gameServer.json")
 	conf.Init("/new/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath

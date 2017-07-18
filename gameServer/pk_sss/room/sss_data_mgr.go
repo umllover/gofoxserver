@@ -69,6 +69,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间")
 
 	room.CbResult = make(map[*user.User][]int, UserCnt)
+	room.cbSpecialResult = make(map[*user.User]int, UserCnt)
 	room.PlayerCount = UserCnt
 	room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
 	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
@@ -84,6 +85,8 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.m_bToltalWinDaoShu = make([]int, UserCnt)
 	room.m_lGameScore = make([]int, UserCnt)
 	room.m_nXShoot = 0
+
+	room.BtCardSpecialData = make([]int, 13)
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 }
@@ -229,45 +232,60 @@ func (room *sss_data_mgr) ComputeChOut() {
 			}
 			log.Debug("%d   zzzzzzzzzz", ResultTemp)
 		} else {
+
+			//log.Debug("%d   GetSSSCardType", gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData))
+			//fmt.Println(room.BtCardSpecialData)
+			//fmt.Println(room.m_bUserCardData[u])
+
 			//至尊清龙
 			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 104
+				log.Debug("至尊清龙 %d", room.cbSpecialResult[u])
 			}
 			//一条龙
 			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 52
+				log.Debug("一条龙 %d", room.cbSpecialResult[u])
 			}
 			//十二皇族
 			if room.cbSpecialResult[u] == 0 && CT_TWELVE_KING == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 24
+				log.Debug("十二皇族 %d", room.cbSpecialResult[u])
 			}
 			//三同花顺
 			if room.cbSpecialResult[u] == 0 && CT_THREE_STRAIGHTFLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 36
+				log.Debug("三同花顺 %d", room.cbSpecialResult[u])
 			}
 			//三分天下
 			if room.cbSpecialResult[u] == 0 && CT_THREE_BOMB == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 32
+				log.Debug("三分天下 %d", room.cbSpecialResult[u])
 			}
 			//全大
 			if room.cbSpecialResult[u] == 0 && CT_ALL_BIG == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
+				log.Debug("全大 %d", room.cbSpecialResult[u])
 			}
 			//全小
 			if room.cbSpecialResult[u] == 0 && CT_ALL_SMALL == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
+				log.Debug("全小 %d", room.cbSpecialResult[u])
 			}
 			//凑一色
 			if room.cbSpecialResult[u] == 0 && CT_SAME_COLOR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
+				log.Debug("凑一色 %d", room.cbSpecialResult[u])
 			}
 			//四套冲三
 			if room.cbSpecialResult[u] == 0 && CT_FOUR_THREESAME == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 16
+				log.Debug("四套冲三 %d", room.cbSpecialResult[u])
 			}
 			//五对冲三
 			if room.cbSpecialResult[u] == 0 && CT_FIVEPAIR_THREE == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 5
+				log.Debug("五对冲三 %d", room.cbSpecialResult[u])
 			}
 			//六对半
 			if room.cbSpecialResult[u] == 0 && CT_SIXPAIR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
@@ -275,8 +293,10 @@ func (room *sss_data_mgr) ComputeChOut() {
 				if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 					CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
 					room.cbSpecialResult[u] = 8
+					log.Debug("六对半 后敦炸弹 中敦炸弹 %d", room.cbSpecialResult[u])
 				} else {
 					room.cbSpecialResult[u] = 6
+					log.Debug("六对半 %d", room.cbSpecialResult[u])
 				}
 			}
 			//三顺子
@@ -298,8 +318,10 @@ func (room *sss_data_mgr) ComputeChOut() {
 
 				if tagCardTypeHou.BStraightFlush || tagCardTypezhong.BStraightFlush {
 					room.cbSpecialResult[u] = 10
+					log.Debug("三顺子 后敦同花顺 中敦同花顺 %d", room.cbSpecialResult[u])
 				} else {
 					room.cbSpecialResult[u] = 6
+					log.Debug("三顺子 %d", room.cbSpecialResult[u])
 				}
 			}
 			//三同花
@@ -321,10 +343,14 @@ func (room *sss_data_mgr) ComputeChOut() {
 
 				if tagCardTypeHou.BStraightFlush || tagCardTypezhong.BStraightFlush {
 					room.cbSpecialResult[u] = 10
+					log.Debug("三同花 后敦同花顺 中敦同花顺 %d", room.cbSpecialResult[u])
 				} else {
 					room.cbSpecialResult[u] = 6
+					log.Debug("三同花 %d", room.cbSpecialResult[u])
 				}
+
 			}
+
 		}
 
 	})
@@ -635,6 +661,11 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	room.SpecialTypeTable[u] = bSpecialType
 	room.Dragon[u] = bDragon
 	room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)
+
+	room.m_bUserCardData[u] = make([]int, 0, 13)
+	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bFrontCard...)
+	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bMidCard...)
+	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bBackCard...)
 
 	btSpecialDataTemp := make([]int, 13)
 

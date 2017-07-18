@@ -568,7 +568,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 			Count2 = 0
 			Count3 = 0
 			Number = 0
-			RbtCardData = RbtCardData[:0]
+			RbtCardData = make([]int, 13)
 			util.DeepCopy(&btCardData, &cardData)
 
 			RbtCardData[Number] = btCardData[0]
@@ -583,23 +583,28 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 				if 3 == Flush && i == 12 {
 					Flush1 = true
 					Count1 = 3
-					util.DeepCopy(&btSpecialCard[10], RbtCardData)
+					//util.DeepCopy(&btSpecialCard[10], RbtCardData)
+					copy(btSpecialCard[10:], RbtCardData[:Count1])
 					lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-					RbtCardData = RbtCardData[:0]
+					//RbtCardData = RbtCardData[:0]
+					RbtCardData = make([]int, 13)
 					break
 				}
 				if 5 == Flush {
 					Flush1 = true
 					Count1 = 5
-					util.DeepCopy(&btSpecialCard[5], RbtCardData)
+					//util.DeepCopy(&btSpecialCard[5], RbtCardData)
+					copy(btSpecialCard[5:], RbtCardData[:Count1])
 					lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-					RbtCardData = RbtCardData[:0]
+					//RbtCardData = RbtCardData[:0]
+					RbtCardData = make([]int, 13)
 					break
 				}
 			}
 			if Flush1 {
 				Flush = 1
 				Number = 0
+
 				RbtCardData[Number] = btCardData[0]
 				Number++
 				SColor = lg.GetCardColor(btCardData[0])
@@ -863,8 +868,9 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 				Count2 = 0
 				Count3 = 0
 				Number = 0
-				RbtCardData = RbtCardData[:0]
-				util.DeepCopy(btCardData, cardData)
+				//RbtCardData = RbtCardData[:0]
+				RbtCardData = make([]int, 13)
+				util.DeepCopy(&btCardData, &cardData)
 				lg.SortCardList(btCardData, 13)
 				RbtCardData[Number] = btCardData[0]
 				Number++
@@ -898,7 +904,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 							Count1 = 3
 							util.DeepCopy(&btSpecialCard[10], RbtCardData)
 							lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-							RbtCardData = RbtCardData[:0]
+							//RbtCardData = RbtCardData[:0]
+							RbtCardData = make([]int, 13)
 							break
 
 						}
@@ -909,16 +916,19 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 							Count1 = 3
 							util.DeepCopy(&btSpecialCard[10], RbtCardData)
 							lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-							RbtCardData = RbtCardData[:0]
+							//RbtCardData = RbtCardData[:0]
+							RbtCardData = make([]int, 13)
 							break
 						}
 					}
 					if 5 == Straight {
 						Straight1 = true
 						Count1 = 5
-						util.DeepCopy(&btSpecialCard[5], RbtCardData)
+						//util.DeepCopy(&btSpecialCard[5], RbtCardData)
+						copy(btSpecialCard[5:], RbtCardData[:Count1])
 						lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-						RbtCardData = RbtCardData[:0]
+						//RbtCardData = RbtCardData[:0]
+						RbtCardData = make([]int, 13)
 						break
 
 					}
@@ -943,7 +953,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 								Count2 = 3
 								util.DeepCopy(&btSpecialCard[10], RbtCardData)
 								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								RbtCardData = RbtCardData[:0]
+								//RbtCardData = RbtCardData[:0]
+								RbtCardData = make([]int, 13)
 								break
 							}
 							Straight = 1
@@ -958,7 +969,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 								Count2 = 3
 								util.DeepCopy(&btSpecialCard[10], RbtCardData)
 								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								RbtCardData = RbtCardData[:0]
+								//RbtCardData = RbtCardData[:0]
+								RbtCardData = make([]int, 13)
 								break
 
 							}
@@ -966,9 +978,11 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 							if 3 == Straight && Count1 != 3 {
 								Straight2 = true
 								Count2 = 3
-								util.DeepCopy(&btSpecialCard[10], RbtCardData)
+								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
+								copy(btSpecialCard[10:], RbtCardData[:Count2])
 								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								RbtCardData = RbtCardData[:0]
+								//RbtCardData = RbtCardData[:0]
+								RbtCardData = make([]int, 13)
 								break
 
 							}
@@ -983,7 +997,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 							}
 
 							lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1)
-							RbtCardData = RbtCardData[:0]
+							//RbtCardData = RbtCardData[:0]
+							RbtCardData = make([]int, 13)
 							break
 						}
 					}
@@ -1027,7 +1042,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 						if 5 == Straight {
 							Straight3 = true
 							Count3 = 5
-							util.DeepCopy(&btSpecialCard[0], RbtCardData)
+							//util.DeepCopy(&btSpecialCard[0], RbtCardData)
+							copy(btSpecialCard[:], RbtCardData[:Count3])
 							lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1-Count2)
 							RbtCardData = RbtCardData[:0]
 							break
