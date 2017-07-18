@@ -42,7 +42,7 @@ type ZP_RoomData struct {
 
 	ZhuaHuaMap      [16]*mj_zp_msg.HuaUser   //插花数据
 	HuKindScore     [4][COUNT_KIND_SCORE]int //特殊胡牌分
-	ZhuaHuaScore    int                      //插花得分
+	ZhuaHuaScore    [4]int                   //插花得分
 	FollowCardScore []int                    //跟牌得分
 	SumScore        [4]int                   //游戏总分
 }
@@ -149,13 +149,13 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
 	room.LianZhuang = 0
-	room.ZhuaHuaScore = 0
 	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
 	room.BanCardCnt = [4][9]int{}
 	room.HuKindScore = [4][COUNT_KIND_SCORE]int{}
 	room.BanUser = [4]int{}
 	room.ZhuaHuaMap = [16]*mj_zp_msg.HuaUser{}
+	room.ZhuaHuaScore = [4]int{}
 
 	room.IsResponse = make([]bool, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
@@ -261,7 +261,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 
 	//是否花杠
 	if room.FlowerCnt[u.ChairId] == 8 {
-		room.MjBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
+		room.UserAction[u.ChairId] |= WIK_CHI_HU
 	}
 
 	//状态变量
@@ -768,11 +768,9 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 					BuZhong = append(BuZhong, cardData)
 				}
 			}
-			room.ZhuaHuaScore++ //todo,bug一炮多响
 		} else if cardColor >= 0 && cardColor <= 2 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
 				CardData = append(CardData, cardData)
-				room.ZhuaHuaScore++
 			} else {
 				BuZhong = append(BuZhong, cardData)
 			}
@@ -911,6 +909,10 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 	}
 	kind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
 	room.ChiHuKind[u.ChairId] = int(kind)
+
+	if room.FlowerCnt[u.ChairId] == 8 {
+		room.ChiHuKind[u.ChairId] = WIK_CHI_HU
+	}
 	room.ProvideCard = room.SendCardData
 
 	//特殊胡牌类型
@@ -1314,8 +1316,8 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		}
 		log.Debug("插花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_CH], room.SumScore[i])
 		//抓花
-		playerScore[IDX_SUB_SCORE_ZH] = room.ZhuaHuaScore
-		room.SumScore[i] += room.ZhuaHuaScore
+		playerScore[IDX_SUB_SCORE_ZH] = room.ZhuaHuaScore[i]
+		room.SumScore[i] += room.ZhuaHuaScore[i]
 		log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
 		//分饼
 		if room.BankerUser == i {
@@ -1468,6 +1470,8 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				for {
 					randV, randOk := utils.RandInt(0, 16)
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
+						room.ZhuaHuaScore[v]++
+
 						huaUser := mj_zp_msg.HuaUser{}
 						huaUser.Card = cardV
 						log.Debug("中花：%d", cardV)
@@ -1794,12 +1798,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		for {
 			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
 				room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
-
 				room.FlowerCnt[wCurrentUser]++
-				if room.FlowerCnt[wCurrentUser] == 8 {
-					u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
-					room.MjBase.OnEventGameConclude(wCurrentUser, u, GER_NORMAL)
-				}
 			} else {
 				break
 			}
@@ -1849,6 +1848,10 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
 			GangCardResult := &mj_base.TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
+		}
+
+		if room.FlowerCnt[wCurrentUser] == 8 {
+			room.UserAction[wCurrentUser] |= WIK_CHI_HU
 		}
 	}
 
