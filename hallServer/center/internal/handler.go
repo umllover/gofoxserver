@@ -12,6 +12,8 @@ import (
 
 	"mj/common/register"
 
+	"regexp"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -126,7 +128,7 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		Revenue:     u.Revenue,
 		InsureScore: u.InsureScore,
 		MemberOrder: u.MemberOrder,
-		RoomId :u.Roomid,
+		RoomId:      u.Roomid,
 	}
 	return gu, nil
 }
@@ -136,7 +138,9 @@ func serverStart(args []interface{}) {
 	svr := args[0].(*consul.CacheInfo)
 	log.Debug("%s on line", svr.Csid)
 	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
-	GamelistRpc.Go("NewServerAgent", svr.Csid)
+	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服启动
+		GamelistRpc.Go("NewServerAgent", svr.Csid)
+	}
 }
 
 //节点关闭了
@@ -155,5 +159,7 @@ func serverFaild(args []interface{}) {
 		return
 	}
 	cluster.RemoveClient(svr.Csid)
-	GamelistRpc.Go("FaildServerAgent", id)
+	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服关闭
+		GamelistRpc.Go("FaildServerAgent", id)
+	}
 }

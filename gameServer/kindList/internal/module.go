@@ -80,6 +80,7 @@ func Clears() {
 	ClearRoomId()
 	ClearLockerInfo(conf.Server.NodeId)
 	ClearCreaerInfo(conf.Server.NodeId)
+	ClearRecordInfo(conf.Server.NodeId)
 }
 
 func ClearRoomId() {
@@ -95,5 +96,11 @@ func ClearLockerInfo(nodeid int) {
 func ClearCreaerInfo(nodeid int) {
 	model.CreateRoomInfoOp.DeleteByMap(map[string]interface{}{
 		"node_id": nodeid,
+	})
+}
+
+func ClearRecordInfo(nodeid int) {
+	model.TokenRecordOp.DeleteByMap(map[string]interface{}{
+		"game_node_id": nodeid,
 	})
 }

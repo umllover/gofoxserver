@@ -35,6 +35,8 @@ func init() {
 	Processor.Register(&L2C_SetElectResult{})
 	Processor.Register(&L2C_GetRoomList{})
 	Processor.Register(&L2C_QuickMatchOk{})
+	Processor.Register(&C2L_DeleteRoom{})
+	Processor.Register(&L2C_DeleteRoomResult{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -68,6 +70,7 @@ func init() {
 	Processor.Register(&G2C_PersonalTableEnd{})
 	Processor.Register(&C2G_LoadRoom{})
 	Processor.Register(&G2C_LoadRoomOk{})
+	Processor.Register(&G2C_GameConclude{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

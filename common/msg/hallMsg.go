@@ -35,6 +35,11 @@ type C2L_Regist struct {
 	MobilePhone string //电话号码  //默认不获取本机号码
 }
 
+//注册消息
+type L2C_RegistResult struct {
+	Code int //非0位失败
+}
+
 //请求创建房间消息
 type C2L_CreateTable struct {
 	DrawCountLimit int                    //局数限制
@@ -45,6 +50,16 @@ type C2L_CreateTable struct {
 	Public         bool                   //是否公开
 	RoomName       string                 //房间名字
 	OtherInfo      map[string]interface{} //其他配置， 对应 key v 结构 客户端 {k1:v1,k2:v2}即可
+}
+
+//删除自己创建的房间
+type C2L_DeleteRoom struct {
+	RoomId int //房间id
+}
+
+//删除房间的结果
+type L2C_DeleteRoomResult struct {
+	Code int //非0 为删除失败的错误码
 }
 
 //查询房间信息
@@ -161,7 +176,7 @@ type L2C_UserIndividual struct {
 //返回房间列表
 type L2C_GetRoomList struct {
 	Lists []*RoomInfo //房间信息
-	Count int         //有多少条
+	Count int         //有多少条C2L_ReqCreatorRoomRecord
 }
 
 //查询房间的结果

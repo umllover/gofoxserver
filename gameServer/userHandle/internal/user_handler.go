@@ -417,7 +417,7 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 /////////////////////////////// help 函数
 ///////
 func loadUser(u *client.User) bool {
-	data, err := cluster.Call1(u.HallNodeName, &msg.S2S_GetPlayerInfo{Uid: u.Id})
+	data, err := cluster.TimeOutCall1(u.HallNodeName, 8, &msg.S2S_GetPlayerInfo{Uid: u.Id})
 	if err != nil {
 		log.Error("get room data error :%v", err.Error())
 		return false

@@ -65,7 +65,7 @@ func init() {
 func GetRoomList(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_GetRoomList)
 	retMsg := &msg.L2C_GetRoomList{}
-	retMsg.Lists = make([]*msg.RoomInfo, common.ListsMaxCnt)
+	retMsg.Lists = make([]*msg.RoomInfo, 0)
 	agent := args[1].(gate.Agent)
 	defer func() {
 		agent.WriteMsg(retMsg)
@@ -77,13 +77,17 @@ func GetRoomList(args []interface{}) {
 
 	m, ok := roomKindList[recvMsg.KindID]
 
-	idx := 0
 	if ok {
 		for roomID, _ := range m {
-			if idx >= recvMsg.Num {
+			if retMsg.Count >= recvMsg.Num {
 				break
 			}
-			retMsg.Lists[retMsg.Count] = roomList[roomID]
+
+			if roomList[roomID] == nil {
+				log.Debug("error at GetRoomList")
+				continue
+			}
+			retMsg.Lists = append(retMsg.Lists, roomList[roomID])
 			retMsg.Count++
 		}
 	}
@@ -156,7 +160,7 @@ func delRoom(roomId int) {
 	ri := roomList[roomId]
 	delete(roomList, roomId)
 	id_generate.DelRoomId(roomId)
-	model.CreateRoomInfoOp.Delete(roomId)
+	model.CreateRoomInfoOp.Delete(roomId) //todo
 	if ri != nil {
 		m, ok := roomKindList[ri.KindID]
 		if ok {
@@ -197,6 +201,9 @@ func updateRoom(args []interface{}) {
 			center.SendToThisNodeUser(id, "restoreToken", info.RoomId)
 		}
 		center.SendToThisNodeUser(id, "LeaveRoom", info.RoomId)
+	case "RoomInfo":
+		status := int(info.Data["Status"].(float64))
+		room.Status = status
 	}
 
 }
@@ -315,6 +322,10 @@ func FaildServerAgent(args []interface{}) {
 	id := args[0].(int)
 	for roomId, v := range roomList {
 		if v.NodeID == id {
+			for uid, _ := range v.MachPlayer { //房间因为服务器宕机关闭
+				///通知大厅房间结束
+				center.SendToThisNodeUser(uid, "RoomCloseInfo", &msg.RoomEndInfo{RoomId: roomId, Status: v.Status, CreateUid: v.CreateUserId})
+			}
 			delete(roomList, roomId)
 		}
 	}

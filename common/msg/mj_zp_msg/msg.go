@@ -15,7 +15,6 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_NotifiChaHua{})
 	msg.Processor.Register(&G2C_MJZP_ReplaceCard{})
 	msg.Processor.Register(&G2C_MJZP_ListenCard{})
-	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 	msg.Processor.Register(&G2C_ZPMG_GameStart{})
 	msg.Processor.Register(&G2C_ZPMJ_Trustee{})
 	msg.Processor.Register(&G2C_ZPMJ_OutCard{})
@@ -25,6 +24,7 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
 	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
 	msg.Processor.Register(&G2C_ZPMJ_HuData{})
+	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 }
 
 type G2C_MJZP_OperateNotify struct {
@@ -235,4 +235,22 @@ type HuaUser struct {
 	ChairID int  //椅子号
 	Card    int  //牌值
 	IsZhong bool //是否中花
+}
+
+//发送提示信息
+type G2C_PersonalTableTip struct {
+	TableOwnerUserID  int64  //桌主 I D
+	DrawCountLimit    int    //局数限制
+	DrawTimeLimit     int    //时间限制
+	PlayCount         int    //已玩局数
+	PlayTime          int    //已玩时间
+	CellScore         int    //游戏底分
+	IniScore          int    //初始分数
+	ServerID          string //房间编号
+	IsJoinGame        int    //是否参与游戏
+	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
+
+	ZhuaHua    int  //抓花数
+	WithZiCard bool //是否带大字
+	ScoreType  int  //得分类型
 }

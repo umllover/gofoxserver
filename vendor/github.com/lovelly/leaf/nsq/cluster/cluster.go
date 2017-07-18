@@ -43,6 +43,16 @@ func RemoveClient(serverName string) {
 	if ok {
 		log.Debug("at cluster _removeClient %s", serverName)
 		delete(clients, serverName)
+		ForEachRequest(func(id int64, request *RequestInfo) {
+			if request.serverName != serverName {
+				return
+			}
+			ret := &chanrpc.RetInfo{Ret: nil, Cb: request.cb}
+			ret.Err = fmt.Errorf("at call %s server is close", serverName)
+			request.chanRet <- ret
+			delete(requestMap, id)
+		})
+		log.Debug("at cluster _removeClient ok %s", serverName)
 	}
 }
 
@@ -75,7 +85,7 @@ func TimeOutCall1(serverName string, t time.Duration, args interface{}) (interfa
 	}
 	chanSyncRet := make(chan *chanrpc.RetInfo, 1)
 
-	request := &RequestInfo{chanRet: chanSyncRet}
+	request := &RequestInfo{chanRet: chanSyncRet, serverName: serverName}
 	requestID := registerRequest(request)
 	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
@@ -98,7 +108,7 @@ func Call0(serverName string, args interface{}) error {
 	}
 	chanSyncRet := make(chan *chanrpc.RetInfo, 1)
 
-	request := &RequestInfo{chanRet: chanSyncRet}
+	request := &RequestInfo{chanRet: chanSyncRet, serverName: serverName}
 	requestID := registerRequest(request)
 	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
@@ -115,7 +125,7 @@ func Call1(serverName string, args interface{}) (interface{}, error) {
 	}
 	chanSyncRet := make(chan *chanrpc.RetInfo, 1)
 
-	request := &RequestInfo{chanRet: chanSyncRet}
+	request := &RequestInfo{chanRet: chanSyncRet, serverName: serverName}
 	requestID := registerRequest(request)
 	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
@@ -132,7 +142,7 @@ func CallN(serverName string, args interface{}) ([]interface{}, error) {
 	}
 	chanSyncRet := make(chan *chanrpc.RetInfo, 1)
 
-	request := &RequestInfo{chanRet: chanSyncRet}
+	request := &RequestInfo{chanRet: chanSyncRet, serverName: serverName}
 	requestID := registerRequest(request)
 	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
@@ -160,7 +170,7 @@ func AsynCall(serverName string, chanAsynRet chan *chanrpc.RetInfo, args interfa
 		panic(fmt.Sprintf("%v asyn call definition of callback function is invalid", args))
 	}
 
-	request := &RequestInfo{cb: cb, chanRet: chanAsynRet}
+	request := &RequestInfo{cb: cb, chanRet: chanAsynRet, serverName: serverName}
 	requestID := registerRequest(request)
 	msg := &S2S_NsqMsg{RequestID: requestID, ReqType: NsqMsgTypeReq, CallType: callType, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)

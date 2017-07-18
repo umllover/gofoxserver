@@ -34,8 +34,9 @@ var (
 )
 
 type RequestInfo struct {
-	cb      interface{}
-	chanRet chan *chanrpc.RetInfo
+	serverName string
+	cb         interface{}
+	chanRet    chan *chanrpc.RetInfo
 }
 
 func init() {
@@ -156,6 +157,14 @@ func registerRequest(request *RequestInfo) int64 {
 	requestMap[reqID] = request
 	requestID += 1
 	return reqID
+}
+
+func ForEachRequest(f func(id int64, request *RequestInfo)) {
+	RequestInfoLock.Lock()
+	defer RequestInfoLock.Unlock()
+	for id, v := range requestMap {
+		f(id, v)
+	}
 }
 
 func popRequest(requestID int64) *RequestInfo {
