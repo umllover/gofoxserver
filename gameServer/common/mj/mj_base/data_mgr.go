@@ -173,7 +173,7 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	//游戏变量
 	StatusPlay.BankerUser = room.BankerUser
-	StatusPlay.CurrentUser = room.OutCardUser
+	StatusPlay.CurrentUser = room.CurrentUser
 	StatusPlay.CellScore = room.Source
 	StatusPlay.MagicIndex = room.MjBase.LogicMgr.GetMagicIndex()
 	StatusPlay.Trustee = room.MjBase.UserMgr.GetTrustees()
@@ -274,7 +274,7 @@ func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 	}
 
 	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
-		log.Error("OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0)")
+		log.Error("HasOperator return false, ChairId=%d, OperateCode=%d, UserAction=%v", ChairId, OperateCode, room.UserAction[ChairId])
 		return false
 	}
 
@@ -294,6 +294,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	if room.IsResponse[u.ChairId] {
 		return -1, u.ChairId
 	}
+
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
 	room.OperateCard[u.ChairId] = OperateCard
@@ -338,7 +339,6 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 		room.PerformAction = make([]int, userCnt)
 		return cbTargetAction, wTargetUser
 	}
-
 	//走到这里一定是所有人都响应完了
 	return cbTargetAction, wTargetUser
 }
