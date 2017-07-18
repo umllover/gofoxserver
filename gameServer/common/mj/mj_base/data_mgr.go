@@ -563,10 +563,11 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 			HuData.OutCardCount = cbCount
 			if cbCount > 0 {
 				room.UserAction[wTargetUser] |= WIK_LISTEN
+				log.Debug("user %d WIK_LISTEN, UserAction=%d", wTargetUser, room.UserAction[wTargetUser])
 				for i := 0; i < room.GetCfg().MaxCount; i++ {
 					if HuData.HuCardCount[i] > 0 {
 						for j := 0; j < HuData.HuCardCount[i]; j++ {
-							HuData.HuCardRemainingCount[i][j] = room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j])
+							HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j]))
 						}
 					} else {
 						break
