@@ -189,7 +189,6 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 				tg.WeaveKind = WIK_PENG
 				KindItem = append(KindItem, tg)
 				cbKindItemCount++
-				//log.Debug("同牌判断：%s", GetCardWord(i))
 			}
 
 			//连牌判断
@@ -205,7 +204,6 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 						tg.IsAnalyseGet = true
 						KindItem = append(KindItem, tg)
 						cbKindItemCount++
-						//log.Debug("连牌判断：%s %s %s", GetCardWord(i), GetCardWord(i+1), GetCardWord(i+2))
 					}
 				}
 			}

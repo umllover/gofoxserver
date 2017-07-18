@@ -1102,7 +1102,7 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			winScore[IDX_SUB_SCORE_WHZ] = 3
 		}
 		//字一色
-		kind := room.IsZiYiSe(v, room.FlowerCnt)
+		kind = room.IsZiYiSe(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_ZYS] = 12
 		}
