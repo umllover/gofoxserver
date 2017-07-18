@@ -1,13 +1,12 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"mj/hallServer/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
-
-	"errors"
 )
 
 //This file is generate by scripts,don't edit it

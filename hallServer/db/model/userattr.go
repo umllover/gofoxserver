@@ -31,7 +31,7 @@ type Userattr struct {
 	HeadImgUrl      string `db:"HeadImgUrl" json:"HeadImgUrl"`           // 头像
 	Gender          int8   `db:"Gender" json:"Gender"`                   // 性别
 	NickName        string `db:"NickName" json:"NickName"`               //
-	ElectUid        int64    `db:"elect_uid" json:"elect_uid"`             // 推举人id
+	ElectUid        int64  `db:"elect_uid" json:"elect_uid"`             // 推举人id
 }
 
 type userattrOp struct{}
