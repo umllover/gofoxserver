@@ -1,6 +1,8 @@
 package pk_base
 
 import (
+	"mj/gameServer/common/pk"
+
 	"github.com/lovelly/leaf/util"
 )
 
@@ -79,9 +81,6 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
-
-
-
 func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
 	return false
 }
@@ -94,15 +93,15 @@ func (lg *BaseLogic) SetParamToLogic(args interface{}) {
 }
 
 func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
-	return nil,false
+	return nil, false
 }
 
-func (lg *BaseLogic)CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
+func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
 	return false
 }
-
-func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int  {
- 	return 0
+func (lg *BaseLogic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	return nil
 }
-
-
+func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
+	return 0
+}

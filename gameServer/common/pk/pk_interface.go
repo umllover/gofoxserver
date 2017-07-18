@@ -2,6 +2,7 @@ package pk
 
 import (
 	"mj/common/utils"
+
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -19,6 +20,7 @@ type DataManager interface {
 
 	// 游戏结束
 	NormalEnd()
+	AfertEnd(a bool)
 	DismissEnd()
 
 	SendPersonalTableTip(*user.User)
@@ -52,6 +54,7 @@ type LogicManager interface {
 	GetCardType(cardData []int) int
 
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
+	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool

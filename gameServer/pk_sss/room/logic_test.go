@@ -19,11 +19,12 @@ import (
 
 	"mj/gameServer/common/pk/pk_base"
 
+	"mj/common/msg/pk_sss_msg"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"mj/common/msg/pk_sss_msg"
 )
 
 var (
@@ -42,14 +43,28 @@ func TestGameStart_1(t *testing.T) {
 func TestShowCard(t *testing.T) {
 	log.Debug("测试摊牌")
 	data := &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{22, 2, 3},
-		MidCard:     []int{4, 5, 6, 7, 8},
-		BackCard:    []int{9, 10, 11, 12, 13},
+		FrontCard:   []int{19, 34, 17},
+		MidCard:     []int{9, 42, 25, 53, 3},
+		BackCard:    []int{60, 57, 26, 61, 49},
 		SpecialType: false,
-
-		Dragon: true,
+		SpecialData: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+		Dragon:      true,
 	}
 	args := []interface{}{data, u2}
+	room.ShowSSsCard(args)
+}
+
+func TestShowCard_1(t *testing.T) {
+	log.Debug("测试摊牌")
+	data := &pk_sss_msg.C2G_SSS_Open_Card{
+		FrontCard:   []int{28, 24, 1},
+		MidCard:     []int{18, 2, 33, 21, 36},
+		BackCard:    []int{23, 7, 51, 6, 6},
+		SpecialType: false,
+		SpecialData: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+		Dragon:      true,
+	}
+	args := []interface{}{data, u1}
 	room.ShowSSsCard(args)
 }
 
@@ -191,7 +206,7 @@ func init() {
 
 	info := &model.CreateRoomInfo{
 		RoomId:       777777,
-		MaxPlayerCnt: 6,
+		MaxPlayerCnt: 2,
 		KindId:       30,
 		ServiceId:    1,
 	}
@@ -229,7 +244,7 @@ func init() {
 	r.Init(cfg)
 	room = r
 
-	var userCnt = 4
+	var userCnt = 2
 
 	for i := 1; i < userCnt; i++ {
 		u := newTestUser(int64(i) + 1)

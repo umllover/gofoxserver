@@ -1,4 +1,3 @@
-
 package pk_sss_msg
 
 import (
@@ -29,10 +28,9 @@ type G2C_SSS_StatusFree struct {
 
 //发送扑克
 type G2C_SSS_SendCard struct {
-	wCurrentUser    int     //当前玩家
-	AllHandCardData [][]int //所有玩家的扑克数据
-	bCardData       []int   //手上扑克
-	CellScore       int     //游戏底分
+	wCurrentUser int   //当前玩家
+	CardData     []int //手上扑克
+	CellScore    int   //游戏底分
 }
 
 //用户摊牌

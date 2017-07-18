@@ -7,6 +7,8 @@ import (
 	"mj/common/msg"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+
+	"github.com/lovelly/leaf/log"
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
@@ -54,6 +56,10 @@ func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
+// 其它操作，各个游戏自己有自己的游戏指令
+func (room *RoomData) OtherOperation(args []interface{}) {
+
+}
 func (room *RoomData) CanOperatorRoom(uid int64) bool {
 	if uid == room.CreateUser {
 		return true
@@ -108,6 +114,9 @@ func (room *RoomData) StartGameing() {
 func (room *RoomData) AfterStartGame() {
 
 }
+func (room *RoomData) AfertEnd(Forced bool) {
+	log.Debug("ggggggggggggg")
+}
 
 // 游戏结束
 func (room *RoomData) NormalEnd() {
@@ -142,5 +151,8 @@ func (room *RoomData) ShowCard(u *user.User) {
 
 // 托管
 func (room *RoomData) Trustee(u *user.User, t bool) {
+
+}
+func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }

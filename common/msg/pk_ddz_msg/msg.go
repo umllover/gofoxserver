@@ -112,6 +112,7 @@ type G2C_DDZ_StatusPlay struct {
 //发送扑克
 type G2C_DDZ_GameStart struct {
 	CallScoreUser int          // 叫分玩家
+	LiziCard      int          // 癞子牌
 	ShowCard      map[int]bool // 明牌信息
 	CardData      [][]int      // 扑克列表
 }

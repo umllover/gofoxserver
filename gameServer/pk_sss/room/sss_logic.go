@@ -102,13 +102,10 @@ type sss_logic struct {
 
 func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
-	log.Debug("%d", OriDataArray)
 	//混乱准备
 	cbBufferCount := int(len(cbCardBuffer))
 	cbCardDataTemp := make([]int, cbBufferCount)
 	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
-
-	log.Debug("%d", cbBufferCount)
 
 	//混乱扑克
 	var cbRandCount int
@@ -1045,11 +1042,16 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 	return CT_INVALID
 }
 func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
-	CardData := make([]int, 13)
+	CardData := make([]int, 5)
 	Type := new(pk.TagAnalyseType)
+	Type.CbOnePare = make([]int, 100)
+	Type.CbTwoPare = make([]int, 100)
+	Type.CbThreeSame = make([]int, 100)
+
 	util.DeepCopy(&CardData, &bCardData)
-	lg.SortCardList(CardData, 13)
-	Index := make([]int, 13)
+	log.Debug("%d   xxxxxxxxxxxxx", CardData)
+	lg.SortCardList(CardData, 5)
+	Index := make([]int, 5)
 	Number := 0
 	SameValueCount := 1
 	Num := make([]int, 8)
@@ -1067,7 +1069,12 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 
 			} else if SameValueCount == 2 {
 				Type.BOnePare = true
+
+				//util.DeepCopy(Type.CbOnePare[Num[0]],Index[SameValueCount-2])
 				Type.CbOnePare[Num[0]] = Index[SameValueCount-2]
+				//append(Type.CbOnePare[Num[0]], Index[SameValueCount-2])
+				//Type.CbOnePare[3] = Index[SameValueCount-2]
+				//Type.CbOnePare[1] = 1
 				Num[0]++
 				Type.CbOnePare[Num[0]] = Index[SameValueCount-1]
 				Num[0]++
@@ -1333,7 +1340,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	//ZeroMemory(Index,sizeof(Index));
 	lg.SortCardList(CardData, bCardCount)
 	cbCardData := make([]int, 13)
-	util.DeepCopy(&cbCardData, bCardData)
+	util.DeepCopy(&cbCardData, &bCardData)
 	lg.SortCardList(cbCardData, bCardCount)
 	SameColorCount := 1
 	bCardColor := lg.GetCardColor(CardData[0])
