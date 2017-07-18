@@ -51,12 +51,13 @@ type sss_data_mgr struct {
 
 	m_bCompareResult        map[*user.User][]int //每一道比较结果
 	m_bShootState           [][]*user.User       //打枪(0赢的玩家,1输的玩家)
-	m_bThreeKillResult      []int                //全垒打加减分
-	m_bToltalWinDaoShu      []int                //总共道数
+	m_bThreeKillResult      map[*user.User]int   //全垒打加减分
+	m_bToltalWinDaoShu      map[*user.User]int   //总共道数
 	m_bCompareDouble        map[*user.User]int   //打枪的道数
 	m_bSpecialCompareResult map[*user.User]int   //特殊牌型比较结果
-	m_lGameScore            []int                //游戏积分
+	m_lGameScore            map[*user.User]int   //游戏积分
 	m_nXShoot               int                  //几家打枪
+	m_lCellScore            int                  //单元底分
 
 	// 游戏状态
 
@@ -68,6 +69,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")
 
+	room.cbSpecialResult = make(map[*user.User]int, UserCnt)
 	room.CbResult = make(map[*user.User][]int, UserCnt)
 	room.PlayerCount = UserCnt
 	room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
@@ -80,9 +82,9 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
 	room.m_bShootState = make([][]*user.User, UserCnt)
 	room.m_bSpecialCompareResult = make(map[*user.User]int, UserCnt)
-	room.m_bThreeKillResult = make([]int, UserCnt)
-	room.m_bToltalWinDaoShu = make([]int, UserCnt)
-	room.m_lGameScore = make([]int, UserCnt)
+	room.m_bThreeKillResult = make(map[*user.User]int, UserCnt)
+	room.m_bToltalWinDaoShu = make(map[*user.User]int, UserCnt)
+	room.m_lGameScore = make(map[*user.User]int, UserCnt)
 	room.m_nXShoot = 0
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
@@ -182,7 +184,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 			//后敦两对
 			if CT_FIVE_TWO_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
 				log.Debug("12")
-				ResultTemp[2] = 1
+				ResultTemp[2] = 2
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦两对
@@ -224,53 +226,55 @@ func (room *sss_data_mgr) ComputeChOut() {
 			//前敦散牌
 			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
 				log.Debug("19")
-				ResultTemp[0] = 1
+				ResultTemp[0] = 3
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[0])
 			}
-			log.Debug("%d   zzzzzzzzzz", ResultTemp)
+
 		} else {
 			//至尊清龙
-			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+				log.Debug("20")
 				room.cbSpecialResult[u] = 104
 			}
 			//一条龙
-			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THIRTEEN == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+				log.Debug("21")
 				room.cbSpecialResult[u] = 52
 			}
 			//十二皇族
-			if room.cbSpecialResult[u] == 0 && CT_TWELVE_KING == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_TWELVE_KING == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 24
 			}
 			//三同花顺
-			if room.cbSpecialResult[u] == 0 && CT_THREE_STRAIGHTFLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THREE_STRAIGHTFLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 36
 			}
 			//三分天下
-			if room.cbSpecialResult[u] == 0 && CT_THREE_BOMB == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THREE_BOMB == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 32
 			}
 			//全大
-			if room.cbSpecialResult[u] == 0 && CT_ALL_BIG == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_ALL_BIG == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
 			}
 			//全小
-			if room.cbSpecialResult[u] == 0 && CT_ALL_SMALL == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_ALL_SMALL == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
 			}
 			//凑一色
-			if room.cbSpecialResult[u] == 0 && CT_SAME_COLOR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_SAME_COLOR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 10
 			}
 			//四套冲三
-			if room.cbSpecialResult[u] == 0 && CT_FOUR_THREESAME == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_FOUR_THREESAME == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 16
 			}
 			//五对冲三
-			if room.cbSpecialResult[u] == 0 && CT_FIVEPAIR_THREE == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_FIVEPAIR_THREE == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 5
 			}
 			//六对半
-			if room.cbSpecialResult[u] == 0 && CT_SIXPAIR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_SIXPAIR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				//后敦炸弹 中敦炸弹
 				if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 					CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
@@ -280,7 +284,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 				}
 			}
 			//三顺子
-			if room.cbSpecialResult[u] == 0 && CT_THREE_STRAIGHT == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THREE_STRAIGHT == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				//后敦同花顺 中敦同花顺
 
 				tagCardTypeHou := new(pk.TagAnalyseType) //后敦同花顺
@@ -303,7 +307,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 				}
 			}
 			//三同花
-			if room.cbSpecialResult[u] == 0 && CT_THREE_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
+			if CT_THREE_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				//后敦同花顺 中敦同花顺
 
 				tagCardTypeHou := new(pk.TagAnalyseType) //后敦同花顺
@@ -325,6 +329,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 					room.cbSpecialResult[u] = 6
 				}
 			}
+			//log.Debug("%d   zzzzzzzzzz", room.cbSpecialResult)
 		}
 
 	})
@@ -332,7 +337,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 }
 
 func (room *sss_data_mgr) ComputeResult() {
-	shootCount := make(map[*user.User]map[*user.User]int, 10)
+	//shootCount := make(map[*user.User]map[*user.User]int, 10)
 	m_nXShoot := 0
 	WinNum := make(map[*user.User]int, 4)
 
@@ -345,7 +350,6 @@ func (room *sss_data_mgr) ComputeResult() {
 			if uW != uN {
 				if room.Dragon[uW] && room.Dragon[uN] == false { ///<一家倒水一家不倒水
 					if room.SpecialTypeTable[uN] == false { ///<不等于特殊牌型
-
 						lWinDaoShu -= room.CbResult[uN][0]
 						room.m_bCompareResult[uW][0] -= room.CbResult[uN][0]
 
@@ -354,7 +358,6 @@ func (room *sss_data_mgr) ComputeResult() {
 
 						lWinDaoShu -= room.CbResult[uN][2]
 						room.m_bCompareResult[uW][2] -= room.CbResult[uN][2]
-
 					} else {
 						lWinDaoShu -= room.cbSpecialResult[uN]
 						room.m_bSpecialCompareResult[uW] -= room.cbSpecialResult[uN]
@@ -376,30 +379,29 @@ func (room *sss_data_mgr) ComputeResult() {
 						room.m_bSpecialCompareResult[uW] += room.cbSpecialResult[uW]
 					}
 				} else if room.Dragon[uW] == false && room.Dragon[uN] == false {
-
 					if room.SpecialTypeTable[uW] == false && room.SpecialTypeTable[uN] == false {
 
 						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) {
 							lWinDaoShu += room.CbResult[uW][0]
-							room.m_bCompareResult[uW][0] += room.CbResult[uW][0]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						} else {
 							lWinDaoShu -= room.CbResult[uN][0]
-							room.m_bCompareResult[uW][0] -= room.CbResult[uN][0]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						}
 
 						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][1], room.m_bSegmentCard[uW][1], 5, 5, true) {
 							lWinDaoShu += room.CbResult[uW][1]
-							room.m_bCompareResult[uW][1] += room.CbResult[uW][1]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						} else {
 							lWinDaoShu -= room.CbResult[uN][1]
-							room.m_bCompareResult[uW][1] -= room.CbResult[uN][1]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						}
 						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][2], room.m_bSegmentCard[uW][2], 5, 5, true) {
 							lWinDaoShu += room.CbResult[uW][2]
-							room.m_bCompareResult[uW][2] += room.CbResult[uW][2]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						} else {
 							lWinDaoShu -= room.CbResult[uN][2]
-							room.m_bCompareResult[uW][2] -= room.CbResult[uN][2]
+							room.m_bCompareResult[uW] = append(room.m_bCompareResult[uW], lWinDaoShu)
 						}
 
 						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) &&
@@ -408,8 +410,8 @@ func (room *sss_data_mgr) ComputeResult() {
 							room.m_bCompareDouble[uW] += lWinDaoShu
 							lWinDaoShu *= 2
 
-							room.m_bShootState[m_nXShoot][0] = uW ///<赢的
-							room.m_bShootState[m_nXShoot][1] = uN ///<输的
+							//room.m_bShootState[m_nXShoot][0] = uW ///<赢的
+							//room.m_bShootState[m_nXShoot][1] = uN ///<输的
 							m_nXShoot++
 							WinNum[uW]++
 						} else if !gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) &&
@@ -419,7 +421,7 @@ func (room *sss_data_mgr) ComputeResult() {
 							room.m_bCompareDouble[uW] += lWinDaoShu
 							lWinDaoShu *= 2
 
-							shootCount[uW][uN] = lWinDaoShu
+							//shootCount[uW][uN] = lWinDaoShu
 						}
 					} else if room.SpecialTypeTable[uW] == true && room.SpecialTypeTable[uN] == false {
 						WinNum[uW]++ //add
@@ -439,8 +441,33 @@ func (room *sss_data_mgr) ComputeResult() {
 						room.m_bSpecialCompareResult[uW] -= room.cbSpecialResult[uN]
 					}
 				}
+				room.m_lGameScore[uW] += lWinDaoShu * 2 //room.m_lCellScore
+				room.m_bToltalWinDaoShu[uW] += lWinDaoShu
 			}
 		})
+
+	})
+	AllKillCount := 0
+	///<下面判断是否全垒打在加减分
+	userMgr := room.PkBase.UserMgr
+	userMgrq := room.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User) {
+		if WinNum[u] == 3 {
+			userMgrq.ForEachUser(func(uN *user.User) {
+				if u == uN {
+					AllKillCount = room.m_bCompareDouble[u] * 2
+
+					room.m_lGameScore[uN] += AllKillCount * 2 //m_lCellScore
+					room.m_bToltalWinDaoShu[uN] += AllKillCount
+					room.m_bThreeKillResult[uN] = AllKillCount
+				} else {
+					AllKillCount = 3                          //room.shootCount[j][i]
+					room.m_lGameScore[uN] += AllKillCount * 2 //m_lCellScore
+					room.m_bToltalWinDaoShu[uN] += AllKillCount
+					room.m_bThreeKillResult[uN] = AllKillCount
+				}
+			})
+		}
 	})
 }
 
@@ -448,7 +475,7 @@ func (room *sss_data_mgr) ComputeResult() {
 func (room *sss_data_mgr) NormalEnd() {
 
 	room.ComputeChOut()
-	//room.ComputeResult()
+	room.ComputeResult()
 
 	/*
 		//变量定义
@@ -614,10 +641,8 @@ func (room *sss_data_mgr) StartDispatchCard() {
 
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
 			room.m_bUserCardData[u] = append(room.m_bUserCardData[u], room.GetOneCard())
-
 		}
 	})
-
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
 		SendCard.CardData = room.m_bUserCardData[u]
@@ -634,6 +659,10 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 	room.SpecialTypeTable[u] = bSpecialType
 	room.Dragon[u] = bDragon
+	if room.Dragon[u] {
+		log.Debug("%d  aa  %d", room.Dragon[u], room.Dragon[u])
+	}
+
 	room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)
 
 	btSpecialDataTemp := make([]int, 13)

@@ -1053,6 +1053,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	Type.CbFlush = make([]int, 100)
 	Type.CbStraightFlush = make([]int, 100)
 	Type.CbFourSame = make([]int, 100)
+	Type.CbGourd = make([]int, 100)
 
 	Type.BbOnePare = make([]bool, 20)
 	Type.BbTwoPare = make([]bool, 20)
@@ -1457,14 +1458,15 @@ func (lg *sss_logic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirs
 	bFirstList := make([]int, 13)
 	bNextList := make([]int, 13)
 
-	util.DeepCopy(bFirstList, bInFirstList)
-	util.DeepCopy(bNextList, bInNextList)
+	util.DeepCopy(&bFirstList, &bInFirstList)
+	util.DeepCopy(&bNextList, &bInNextList)
 
 	lg.SortCardList(bFirstList, bFirstCount)
 	lg.SortCardList(bNextList, bNextCount)
 
-	lg.AnalyseCard(bFirstList, bFirstCount, FirstAnalyseData)
-	lg.AnalyseCard(bNextList, bNextCount, NextAnalyseData)
+	FirstAnalyseData = lg.AnalyseCard(bFirstList, bFirstCount, FirstAnalyseData)
+	NextAnalyseData = lg.AnalyseCard(bNextList, bNextCount, NextAnalyseData)
+
 
 	if bFirstCount != (FirstAnalyseData.bOneCount + FirstAnalyseData.bTwoCount*2 + FirstAnalyseData.bThreeCount*3 + FirstAnalyseData.bFourCount*4 + FirstAnalyseData.bFiveCount*5) {
 		return false
