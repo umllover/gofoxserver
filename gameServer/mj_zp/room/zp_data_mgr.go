@@ -1101,6 +1101,11 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_WHZ] = 3
 		}
+		//字一色
+		kind := room.IsZiYiSe(v, room.FlowerCnt)
+		if kind > 0 {
+			winScore[IDX_SUB_SCORE_ZYS] = 12
+		}
 	}
 	//单吊
 	if room.TingCnt[room.CurrentUser] == 1 {
@@ -1179,6 +1184,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 4
 			case IDX_SUB_SCORE_WHZ:
 				winScore[k] = 4
+			case IDX_SUB_SCORE_ZYS:
+				winScore[k] = 16
 			}
 		}
 
@@ -1239,6 +1246,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 8
 			case IDX_SUB_SCORE_WHZ:
 				winScore[k] = 8
+			case IDX_SUB_SCORE_ZYS:
+				winScore[k] = 16
 			}
 		}
 	}

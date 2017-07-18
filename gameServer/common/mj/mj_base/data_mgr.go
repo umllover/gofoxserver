@@ -1741,6 +1741,26 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) 
 	return 0
 }
 
+//字一色
+func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+	if FlowerCnt[room.CurrentUser] != 0 {
+		return 0
+	}
+
+	for _, v := range pAnalyseItem.CenterCard {
+		cardColor := v >> 4
+		if cardColor != 3 {
+			return 0
+		}
+	}
+
+	if (pAnalyseItem.CardEye >> 4) != 3 {
+		return 0
+	}
+
+	return CHR_ZI_YI_SE
+}
+
 //门清
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
