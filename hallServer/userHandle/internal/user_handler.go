@@ -311,6 +311,8 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.Num = template.MaxPlayer
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
+	now := time.Now()
+	info.CreateTime = &now
 	if recvMsg.Public {
 		info.Public = 1
 	} else {

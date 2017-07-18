@@ -68,7 +68,6 @@ type S2S_NsqMsg struct {
 }
 
 func handleRequestMsg(recvMsg *S2S_NsqMsg) {
-	log.Debug("at ********************　handleRequestMsg")
 	sendMsg := &S2S_NsqMsg{ReqType: NsqMsgTypeRsp, DstServerName: recvMsg.SrcServerName, RequestID: recvMsg.RequestID}
 	if isClose() && recvMsg.CallType == callForResult {
 		sendMsg.Err = fmt.Sprintf("%v server is closing", conf.ServerName)
@@ -129,7 +128,6 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 }
 
 func handleResponseMsg(msg *S2S_NsqMsg) {
-	log.Debug("at ********************　handleResponseMsg")
 	request := popRequest(msg.RequestID)
 	if request == nil {
 		log.Error("%v: request id %v is not exist", msg.SrcServerName, msg.RequestID)
