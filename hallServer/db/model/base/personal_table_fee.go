@@ -16,7 +16,7 @@ type PersonalTableFee struct {
 	KindID         int `db:"KindID" json:"KindID"`                 // 游戏标识
 	ServerID       int `db:"ServerID" json:"ServerID"`             //
 	DrawCountLimit int `db:"DrawCountLimit" json:"DrawCountLimit"` // 局数限制
-	DrawTimeLimit  int `db:"DrawTimeLimit" json:"DrawTimeLimit"`   // 时间限制
+	AATableFee     int `db:"AATableFee" json:"AATableFee"`         // 时间限制
 	TableFee       int `db:"TableFee" json:"TableFee"`             // 创建费用
 	IniScore       int `db:"IniScore" json:"IniScore"`             // 初始分数
 }
