@@ -252,7 +252,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	log.Debug("[用户补花开始] 用户：%d补花：%d", u.ChairId, CardData)
 	gameLogic := room.MjBase.LogicMgr
 	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
-		log.Debug("[用户补花] 用户：%d补花失败", u.ChairId)
+		log.Error("[用户补花] 用户：%d补花失败", u.ChairId)
 		return false
 	}
 
@@ -356,6 +356,9 @@ func (room *ZP_RoomData) InitBuHua() {
 					room.CardIndex[playerIndex][newCardIndex]++
 					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
 						room.CardIndex[playerIndex][j]--
+						if playerIndex == room.BankerUser {
+							room.SendCardData = outData.NewCard
+						}
 						break
 					} else {
 						index = newCardIndex
@@ -1787,6 +1790,21 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
+		for {
+			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
+				room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+
+				room.FlowerCnt[wCurrentUser]++
+				if room.FlowerCnt[wCurrentUser] == 8 {
+					u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
+					room.MjBase.OnEventGameConclude(wCurrentUser, u, GER_NORMAL)
+				}
+			} else {
+				break
+			}
+		}
+	}
 	room.SendCardData = room.ProvideCard
 	room.LastCatchCardUser = wCurrentUser
 	//清除禁止胡牌的牌

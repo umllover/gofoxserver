@@ -297,7 +297,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
-		log.Error("at OnUserOutCard not have card ")
+		log.Error("at OnUserOutCard not have card ：%d chairid:%d", CardData, u.ChairId)
 		retcode = ErrNotFoudCard
 		return
 	}
