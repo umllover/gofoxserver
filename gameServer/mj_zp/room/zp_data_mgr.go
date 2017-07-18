@@ -641,7 +641,7 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)
@@ -1934,7 +1934,7 @@ func (room *ZP_RoomData) DismissEnd() {
 
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
+	GameConclude := &mj_zp_msg.G2C_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)

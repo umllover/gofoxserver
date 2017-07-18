@@ -24,7 +24,6 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
 	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
 	msg.Processor.Register(&G2C_ZPMJ_HuData{})
-	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 }
 
 type G2C_MJZP_OperateNotify struct {
@@ -85,7 +84,7 @@ type C2G_ZPMJ_OperateCard struct {
 }
 
 //游戏结束
-type G2C_ZPMJ_GameConclude struct {
+type G2C_GameConclude struct {
 	//积分变量
 	CellScore int   //单元积分
 	GameScore []int //游戏积分
