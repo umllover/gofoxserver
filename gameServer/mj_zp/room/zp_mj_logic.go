@@ -325,7 +325,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 	//记录卡牌
 	lg.HuOfCard = cbCurrentCard
-	log.Debug("记录卡牌 %d", lg.HuOfCard)
 
 	//插入扑克
 	if cbCurrentCard != 0 {

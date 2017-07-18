@@ -431,6 +431,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		tempCard := make([]int, room.GetCfg().MaxRepertory-7*4)
 		room.RemoveAllZiCar(tempCard, room.RepertoryCard)
 		room.RepertoryCard = tempCard
+		log.Debug("剔除大字1:%v", room.RepertoryCard)
 		room.LeftCardCount = room.GetCfg().MaxRepertory - 7*4
 	}
 
@@ -442,6 +443,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
 			room.CardIndex[u.ChairId][setIndex]++
 		}
+		log.Debug("用户%d手牌：%v", u.ChairId, room.CardIndex[u.ChairId])
 	})
 
 	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
