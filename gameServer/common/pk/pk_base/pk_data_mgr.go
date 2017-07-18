@@ -61,6 +61,7 @@ type RoomData struct {
 
 
 	//HistoryScores []*HistoryScore //历史积分
+	CurrentPlayCount	int
 }
 
 func (r *RoomData) OnCreateRoom() {

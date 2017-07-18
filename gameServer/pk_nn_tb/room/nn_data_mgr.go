@@ -385,10 +385,12 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 	// 广播加注
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(uFunc *user.User) {
-		addScore := &nn_tb_msg.G2C_TBNN_AddScore{}
-		addScore.ChairID = u.ChairId
-		addScore.AddScoreCount = score
-		uFunc.WriteMsg(addScore)
+		if uFunc != u  {
+			addScore := &nn_tb_msg.G2C_TBNN_AddScore{}
+			addScore.ChairID = u.ChairId
+			addScore.AddScoreCount = score
+			uFunc.WriteMsg(addScore)
+		}
 	})
 
 	if len(r.AddScoreMap) == r.PlayerCount-1 { //全加过加注结束 庄家不能加注
@@ -629,16 +631,20 @@ func (r *nntb_data_mgr) AfterEnd(Forced bool) {
 	r.PkBase.TimerMgr.AddPlayCount()
 	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
+
 		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
 			RoomId: r.PkBase.DataMgr.GetRoomId(),
 			Status: r.PkBase.Status,
 		})
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+
 		r.PkBase.UserMgr.RoomDissume()
 
 		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-			r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
+			r.PkBase.UserMgr.LeaveRoom(u, r.PkBase.Status)
 		})
+
+		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+
 		return
 	}
 
