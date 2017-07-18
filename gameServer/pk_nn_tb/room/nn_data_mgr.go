@@ -289,7 +289,7 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 
 	r.CallScoreTimesMap[u] = scoreTimes
 
-	maxScoreTimes := 1
+	maxScoreTimes := 0
 	for u, s := range r.CallScoreTimesMap {
 		if s > maxScoreTimes {
 			maxScoreTimes = s

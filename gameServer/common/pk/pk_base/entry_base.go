@@ -72,7 +72,7 @@ func (r *Entry_base) GetRoomId() int {
 
 //坐下
 func (r *Entry_base) Sitdown(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_UserSitdown)
+	chairID := args[0].(int)
 	u := args[1].(*user.User)
 
 	retcode := 0
@@ -82,12 +82,11 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		}
 	}()
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
-
 		retcode = GameIsStart
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, recvMsg.ChairID)
+	retcode = r.UserMgr.Sit(u, chairID)
 
 }
 
