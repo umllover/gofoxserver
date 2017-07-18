@@ -195,8 +195,10 @@ func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyse
 	for i := 1; i < bCardCount; i++ {
 		//获取扑克
 		bCardValueTemp = lg.GetCardLogicValue(bCardData[i])
+
 		if bCardValueTemp == bLogicValue {
 			bSameCount++
+
 		}
 		if bCardValueTemp != bLogicValue || i == (bCardCount-1) {
 			switch bSameCount {
@@ -253,8 +255,7 @@ func (lg *sss_logic) AnalyseCard(bCardDataList []int, bCardCount int, TagAnalyse
 	} else {
 		analyseItem.bStraight = false
 	}
-
-	return TagAnalyseItemArray
+	return analyseItem
 }
 func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
 	CardCount := len(cardData)
@@ -289,6 +290,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 		}
 	case 5: //五张牌型
 		{
+
 			bFlushNoA := false
 			bFlushFirstA := false
 			bFlushBackA := false
@@ -1050,7 +1052,16 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	Type.CbStraight = make([]int, 100)
 	Type.CbFlush = make([]int, 100)
 	Type.CbStraightFlush = make([]int, 100)
+	Type.CbFourSame = make([]int, 100)
 
+	Type.BbOnePare = make([]bool, 20)
+	Type.BbTwoPare = make([]bool, 20)
+	Type.BbThreeSame = make([]bool, 20)
+	Type.BbStraight = make([]bool, 20)
+	Type.BbFlush = make([]bool, 20)
+	Type.BbGourd = make([]bool, 20)
+	Type.BbFourSame = make([]bool, 20)
+	Type.BbStraightFlush = make([]bool, 20)
 
 	util.DeepCopy(&CardData, &bCardData)
 	log.Debug("%d   xxxxxxxxxxxxx", CardData)
@@ -1073,12 +1084,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 
 			} else if SameValueCount == 2 {
 				Type.BOnePare = true
-
-				//util.DeepCopy(Type.CbOnePare[Num[0]],Index[SameValueCount-2])
 				Type.CbOnePare[Num[0]] = Index[SameValueCount-2]
-				//append(Type.CbOnePare[Num[0]], Index[SameValueCount-2])
-				//Type.CbOnePare[3] = Index[SameValueCount-2]
-				//Type.CbOnePare[1] = 1
 				Num[0]++
 				Type.CbOnePare[Num[0]] = Index[SameValueCount-1]
 				Num[0]++

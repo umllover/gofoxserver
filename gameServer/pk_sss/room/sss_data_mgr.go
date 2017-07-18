@@ -109,34 +109,39 @@ func (room *sss_data_mgr) ComputeChOut() {
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 
-			log.Debug("%d", room.CbResult[u])
 			//后敦炸弹
 			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("1")
 				ResultTemp[2] = 4
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦炸弹
 			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("2")
 				ResultTemp[1] = 8
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//后敦葫芦
 			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("3")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦葫芦
 			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("4")
 				ResultTemp[1] = 2
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//后墩同花
 			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("5")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中墩同花
 			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("6")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
@@ -144,6 +149,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("7")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
@@ -151,64 +157,77 @@ func (room *sss_data_mgr) ComputeChOut() {
 			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("8")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//后敦三张
 			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("9")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦三张
 			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("10")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//前敦三张
 			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
+				log.Debug("11")
 				ResultTemp[0] = 3
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[0])
 			}
 			//后敦两对
 			if CT_FIVE_TWO_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("12")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦两对
 			if CT_FIVE_TWO_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("13")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//后敦一对
 			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("14")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦一对
 			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("15")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//前敦一对
 			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
+				log.Debug("16")
 				ResultTemp[0] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[0])
 			}
 			//后敦散牌
 			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
+				log.Debug("17")
 				ResultTemp[2] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
 			}
 			//中敦散牌
 			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
+				log.Debug("18")
 				ResultTemp[1] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
 			}
 			//前敦散牌
 			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
+				log.Debug("19")
 				ResultTemp[0] = 1
 				room.CbResult[u] = append(room.CbResult[u], ResultTemp[0])
 			}
+			log.Debug("%d   zzzzzzzzzz", ResultTemp)
 		} else {
 			//至尊清龙
 			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
@@ -307,6 +326,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 				}
 			}
 		}
+
 	})
 
 }
