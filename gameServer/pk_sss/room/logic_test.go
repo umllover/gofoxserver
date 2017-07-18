@@ -43,11 +43,11 @@ func TestGameStart_1(t *testing.T) {
 func TestShowCard(t *testing.T) {
 	log.Debug("测试摊牌")
 	data := &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{19, 34, 17},
-		MidCard:     []int{9, 42, 25, 53, 3},
-		BackCard:    []int{60, 57, 26, 61, 49},
+		FrontCard:   []int{0x21, 0x22, 0x23},
+		MidCard:     []int{0x31, 0x32, 0x33, 0x34, 0x39},
+		BackCard:    []int{0x26, 0x27, 0x28, 0x29, 0x2A},
 		SpecialType: false,
-		SpecialData: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
 		Dragon:      true,
 	}
 	args := []interface{}{data, u2}
@@ -57,11 +57,11 @@ func TestShowCard(t *testing.T) {
 func TestShowCard_1(t *testing.T) {
 	log.Debug("测试摊牌")
 	data := &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{28, 24, 1},
-		MidCard:     []int{18, 2, 33, 21, 36},
-		BackCard:    []int{23, 7, 51, 6, 6},
+		FrontCard:   []int{0x01, 0x02, 0x03},
+		MidCard:     []int{0x11, 0x12, 0x13, 0x14, 0x16},
+		BackCard:    []int{0x34, 0x3A, 0x3B, 0x3C, 0x3D},
 		SpecialType: false,
-		SpecialData: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
+		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
 		Dragon:      true,
 	}
 	args := []interface{}{data, u1}

@@ -1047,6 +1047,10 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	Type.CbOnePare = make([]int, 100)
 	Type.CbTwoPare = make([]int, 100)
 	Type.CbThreeSame = make([]int, 100)
+	Type.CbStraight = make([]int, 100)
+	Type.CbFlush = make([]int, 100)
+	Type.CbStraightFlush = make([]int, 100)
+
 
 	util.DeepCopy(&CardData, &bCardData)
 	log.Debug("%d   xxxxxxxxxxxxx", CardData)
