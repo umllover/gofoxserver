@@ -8,6 +8,7 @@ import (
 )
 
 type DataManager interface {
+	OnCreateRoom()
 	InitRoom(UserCnt int)
 	GetRoomId() int
 	CanOperatorRoom(uid int64) bool
@@ -20,6 +21,7 @@ type DataManager interface {
 	// 游戏结束
 	NormalEnd()
 	DismissEnd()
+	AfterEnd(Forced bool)
 
 	SendPersonalTableTip(*user.User)
 	SendStatusPlay(u *user.User)

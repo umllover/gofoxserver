@@ -40,7 +40,6 @@ type G2C_TBNN_StatusFree struct {
 	CollectScore 			[]int			//积分信息
 	GameRoomName			string						//房间名称
 
-
 	TimeOutCard				int							//出牌时间
 	TimeOperateCard			int 						//操作时间
 	TimeStartGame			int64 						//开始时间
@@ -83,17 +82,13 @@ type G2C_TBNN_StatusPlay struct {
 
 	PlayStatus      		[]int          //用户状态
 	DynamicJoin     		int                 //动态加入
-	TurnMaxScore			int64					//最大下注
-	TableScore      		[]int64			//下注数目
 	BankerUser				int					//庄家用户
 
 	HandCardData  			[][]int         //桌面扑克
-	OxCard        			[]int				//通比牛牛数据
 
 	TurnScore 				[]int			//积分信息
 	CollectScore 			[]int			//积分信息
 	GameRoomName			string						//房间名称
-
 
 	IsOpenCard				[]bool			//用户是否摊牌
 	CurrentPlayCount		int							    //房间已玩局数

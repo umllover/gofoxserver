@@ -11,6 +11,7 @@ import (
 	"mj/common/cost"
 	"github.com/lovelly/leaf/util"
 	"github.com/lovelly/leaf/log"
+	"mj/common/msg"
 )
 
 // 游戏状态
@@ -52,6 +53,7 @@ type nntb_data_mgr struct {
 	PublicCardData []int   //公共牌 两张
 	RepertoryCard  []int   //库存扑克
 	LeftCardCount  int     //库存剩余扑克数量
+
 	OpenCardMap			map[*user.User]OpenCardInfo	//记录亮牌数据
 	CallScoreTimesMap 	map[*user.User]int		//记录叫分信息
 	CalScoreMap			map[*user.User]int		//记录算分
@@ -87,11 +89,12 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 		StatusFree.InitScore[i] = room.InitScoreMap[i]
 	}
 
-	for _, v := range room.HistoryScores {
+	/*for _, v := range room.HistoryScores {
 		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
 		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	}
-	StatusFree.PlayerCount = room.PkBase.TimerMgr.GetPlayCount() //玩家人数
+	}*/
+	StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusFree.PlayerCount = room.PlayerCount//room.PkBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	StatusFree.GameRoomName = room.Name
 
@@ -108,15 +111,16 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 
 	StatusPlay.TurnScore = make([]int, UserCnt)
 	StatusPlay.CollectScore = make([]int, UserCnt)
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 
-	//历史积分
+	/*//历史积分
 	for j := 0; j < UserCnt; j++ {
 		//设置变量
 		if room.HistoryScores[j] != nil {
 			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
 			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
 		}
-	}
+	}*/
 
 	u.WriteMsg(StatusPlay)
 }
@@ -170,8 +174,6 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.BankerUser = nil
 	room.FisrtCallUser = cost.INVALID_CHAIR
 	room.CurrentUser = cost.INVALID_CHAIR
-
-	room.PlayCount++
 
 }
 
@@ -242,6 +244,7 @@ func (room *nntb_data_mgr) NormalEnd() {
 	}
 	calScore.InitScore = make([]int, room.PlayerCount)
 
+
 	userMgr.ForEachUser(func(u *user.User) {
 		calScore.GameScore[u.ChairId] = room.CalScoreMap[u]
 		openCardInfo := OpenCardInfo{
@@ -266,7 +269,16 @@ func (room *nntb_data_mgr) NormalEnd() {
 	for i:=0;i<room.PlayerCount;i++ {
 		calScore.InitScore[i] = room.InitScoreMap[i]
 	}
-	
+
+	// 每局积分
+	roundScore := make([]int ,room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		roundScore[i] = room.CalScoreMap[room.PkBase.UserMgr.GetUserByChairId(i)]
+	}
+	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
+
+	log.Debug("normal end %v", room.EachRoundScoreMap)
+
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(calScore)
 	})
@@ -612,8 +624,28 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 	return nil, 0
 }
 
+func (r *nntb_data_mgr) AfterEnd(Forced bool) {
+	log.Debug("at nn data mgr after end")
+	r.PkBase.TimerMgr.AddPlayCount()
+	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
+		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
+		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: r.PkBase.DataMgr.GetRoomId(),
+			Status: r.PkBase.Status,
+		})
+		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+		r.PkBase.UserMgr.RoomDissume()
 
+		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+			r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
+		})
+		return
+	}
 
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
+	})
+}
 
 
 

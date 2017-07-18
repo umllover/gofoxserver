@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"mj/common/msg"
-	"mj/gameServer/db/model/base"
+	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+	"github.com/lovelly/leaf/log"
+	"mj/common/cost"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -21,17 +23,18 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameSe
 	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
 	r.PlayerCount = temp.MaxPlayer
-	r.PlayCount = 0
-	r.InitScoreMap = make(map[int]int)
-	for i:=0;i<r.PlayerCount;i++ { //每个玩家初始积分1000
-		r.InitScoreMap[i] = 1000
-	}
+
+	r.KindID = temp.KindID
+	r.ServerID = temp.ServerID
+
 	return r
 }
 
 //当一张桌子理解
 type RoomData struct {
 	id         int
+	KindID		int
+	ServerID	int
 	Name       string //房间名字
 	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
@@ -45,8 +48,7 @@ type RoomData struct {
 
 	InitScoreMap 	map[int]int 	// 初始积分
 
-	PlayCount   int //游戏局数
-	PlayerCount int //指定游戏人数，2-4
+	PlayerCount      	int //游戏人数，
 
 	FisrtCallUser   int     //始叫用户
 	CurrentUser     int     //当前用户
@@ -54,8 +56,36 @@ type RoomData struct {
 	EscapeUserScore []int64 //逃跑玩家分数
 	DynamicScore    int64   //总分
 
-	//历史积分
-	HistoryScores []*HistoryScore //历史积分
+
+	EachRoundScoreMap 	map[int][]int// 每局比分
+
+
+	//HistoryScores []*HistoryScore //历史积分
+}
+
+func (r *RoomData) OnCreateRoom() {
+	log.Debug("at pk data mgr create room")
+	// 初始化积分
+	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+
+	r.InitScoreMap = make(map[int]int)
+	persionalTalbleFeeCache := dbase.PersonalTableFeeCache
+	persionalTableFee, ok := persionalTalbleFeeCache.Get(r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	if ok {
+		log.Debug("get persional table fee ok")
+		initScore := persionalTableFee.IniScore
+		for i:=0;i<r.PlayerCount;i++ { //每个玩家初始积分1000
+			r.InitScoreMap[i] = initScore
+		}
+	} else  {
+		for i:=0; i<r.PlayerCount;i++ {
+			r.InitScoreMap[i] = 1000
+		}
+	}
+
+	//  每局积分
+	r.EachRoundScoreMap = make(map[int][]int)
+
 }
 
 func (room *RoomData) GetCfg() *PK_CFG {
@@ -160,3 +190,25 @@ func (r *RoomData) ShowCard(u *user.User) {
 }
 
 func (r *RoomData) Trustee(u *user.User) {}
+
+func (r *RoomData) AfterEnd(Forced bool) {
+	log.Debug("at pk data mgr after end")
+	r.PkBase.TimerMgr.AddPlayCount()
+	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
+		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
+		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: r.PkBase.DataMgr.GetRoomId(),
+			Status: r.PkBase.Status,
+		})
+		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+		r.PkBase.UserMgr.RoomDissume()
+
+		return
+	}
+
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
+	})
+
+}
+
