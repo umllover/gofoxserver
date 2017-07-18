@@ -120,8 +120,6 @@ const (
 	//结束原因
 	GER_NORMAL        = 0x00 //常规结束
 	GER_DISMISS       = 0x01 //游戏解散
-	GER_USER_LEAVE    = 0x02 //用户离开
-	GER_NETWORK_ERROR = 0x03 //网络错误
 )
 
 //积分修改类型

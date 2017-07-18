@@ -72,6 +72,7 @@ func (u *User) GetRoomInfo() []*msg.CreatorRoomInfo {
 		RoomInfo.CreatorTime = v.CreateTime.Unix()
 		RoomInfo.RoomName = v.RoomName
 		RoomInfo.RoomID = v.RoomId
+		RoomInfo.KindID = v.KindId
 		info = append(info, RoomInfo)
 	}
 	return info

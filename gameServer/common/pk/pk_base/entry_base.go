@@ -265,10 +265,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
 		room.AfertEnd(false)
-	case GER_USER_LEAVE: //用户强退
-		if (room.Temp.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
-			return
-		}
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)

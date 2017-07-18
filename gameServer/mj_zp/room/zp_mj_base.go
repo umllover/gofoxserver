@@ -238,9 +238,6 @@ func (room *ZP_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
 		room.AfertEnd(false)
-	case GER_USER_LEAVE: //用户强退
-		//自动托管
-		room.OnUserTrustee(user.ChairId, true)
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
