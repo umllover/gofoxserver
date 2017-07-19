@@ -8,6 +8,7 @@ import (
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -930,11 +931,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-
-	/*	if conf.Test {
+	if conf.Test {
 		room.RepalceCard()
-	}*/
-
+	}
 	//newCar := make([]int, room.GetCfg().MaxIdx)
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
@@ -1004,7 +1003,7 @@ func (room *RoomData) RepalceCard() {
 			}
 
 			for idx, chair := range chairIds {
-				card := utils.GetStrIntList(cards[idx], ",")
+				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
 		}
