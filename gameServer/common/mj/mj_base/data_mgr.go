@@ -8,7 +8,6 @@ import (
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -269,12 +268,12 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
-		log.Error("room.UserAction[ChairId] == WIK_NULL ChairId:%d", ChairId)
+		log.Error("room.UserAction[ChairId] == WIK_NULL, ChairId:%d", ChairId)
 		return false
 	}
 
 	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
-		log.Error("HasOperator return false, ChairId=%d, OperateCode=%d, UserAction=%v", ChairId, OperateCode, room.UserAction[ChairId])
+		//log.Error("HasOperator return false, ChairId=%d, OperateCode=%d, UserAction=%v", ChairId, OperateCode, room.UserAction[ChairId])
 		return false
 	}
 
@@ -314,7 +313,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	for i := 0; i < userCnt; i++ {
 		//获取动作
 		cbUserAction := room.UserAction[i]
-		if room.IsResponse[wTargetUser] {
+		if room.IsResponse[i] {
 			cbUserAction = room.PerformAction[i]
 		}
 
@@ -330,6 +329,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	}
 
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
+		log.Error("CheckUserOperator wTargetUser=%d, ChairId=%d, room.IsResponse=%v", wTargetUser, u.ChairId, room.IsResponse)
 		return -1, u.ChairId
 	}
 
@@ -472,6 +472,7 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 		cbWeave.ProvideUser = u.ChairId
 		cbWeave.WeaveKind = cbOperateCode
 		cbWeave.CenterCard = cbOperateCard[0]
+		cbWeave.CardData = make([]int, 4)
 		for j := 0; j < 4; j++ {
 			cbWeave.CardData[j] = cbOperateCard[0]
 		}
@@ -927,16 +928,16 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	if conf.Test {
+	/*	if conf.Test {
 		room.RepalceCard()
-	}
+	}*/
 
 	//newCar := make([]int, room.GetCfg().MaxIdx)
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x3)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 2
+	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 4
+	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
 	//room.CardIndex[room.BankerUser] = newCar
 
 	//堆立信息
