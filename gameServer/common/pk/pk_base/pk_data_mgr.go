@@ -4,11 +4,12 @@ import (
 	"strconv"
 	"time"
 
+	"mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+
 	"github.com/lovelly/leaf/log"
-	"mj/common/cost"
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base) *RoomData {
@@ -33,8 +34,8 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 //当一张桌子理解
 type RoomData struct {
 	id         int
-	KindID		int
-	ServerID	int
+	KindID     int
+	ServerID   int
 	Name       string //房间名字
 	CreateUser int64  //创建房间的人
 	PkBase     *Entry_base
@@ -46,9 +47,9 @@ type RoomData struct {
 	CellScore  int //底分
 	ScoreTimes int //倍数
 
-	InitScoreMap 	map[int]int 	// 初始积分
+	InitScoreMap map[int]int // 初始积分
 
-	PlayerCount      	int //游戏人数，
+	PlayerCount int //游戏人数，
 
 	FisrtCallUser   int     //始叫用户
 	CurrentUser     int     //当前用户
@@ -56,12 +57,10 @@ type RoomData struct {
 	EscapeUserScore []int64 //逃跑玩家分数
 	DynamicScore    int64   //总分
 
+	EachRoundScoreMap map[int][]int // 每局比分
 
-	EachRoundScoreMap 	map[int][]int// 每局比分
-
-
-	//HistoryScores []*HistoryScore //历史积分
-	CurrentPlayCount	int
+	HistoryScores    []*HistoryScore //历史积分
+	CurrentPlayCount int
 }
 
 func (r *RoomData) OnCreateRoom() {
@@ -75,11 +74,11 @@ func (r *RoomData) OnCreateRoom() {
 	if ok {
 		log.Debug("get persional table fee ok")
 		initScore := persionalTableFee.IniScore
-		for i:=0;i<r.PlayerCount;i++ { //每个玩家初始积分1000
+		for i := 0; i < r.PlayerCount; i++ { //每个玩家初始积分1000
 			r.InitScoreMap[i] = initScore
 		}
-	} else  {
-		for i:=0; i<r.PlayerCount;i++ {
+	} else {
+		for i := 0; i < r.PlayerCount; i++ {
 			r.InitScoreMap[i] = 1000
 		}
 	}
@@ -212,4 +211,3 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	})
 
 }
-

@@ -308,7 +308,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	info.MaxPlayerCnt = template.MaxPlayer
 	info.RoomId = rid
 	info.NodeId = nodeId
-	info.Num = template.MaxPlayer
+	info.Num = recvMsg.DrawCountLimit
 	info.KindId = recvMsg.Kind
 	info.ServiceId = recvMsg.ServerId
 	now := time.Now()

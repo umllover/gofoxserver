@@ -7,7 +7,6 @@ import (
 	"mj/gameServer/common/pk"
 
 	"mj/gameServer/common/room_base"
-	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -35,7 +34,6 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
-	
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
@@ -87,7 +85,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u,chairID)
+	retcode = r.UserMgr.Sit(u, chairID)
 
 }
 
@@ -211,7 +209,7 @@ func (room *Entry_base) OffLineTimeOut(u *user.User) {
 
 //获取房间基础信息
 func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
-
+	return nil
 }
 
 //游戏配置
