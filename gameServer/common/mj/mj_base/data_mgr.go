@@ -505,6 +505,8 @@ func (room *RoomData) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
 		OperateResult.OperateUser = wrave.OperateUser
 		OperateResult.ActionMask = wrave.ActionMask
 	}
+	log.Debug("############# SendOperateResult OperateUser=%d, ProvideUser=%d", OperateResult.OperateUser, OperateResult.ProvideUser)
+	log.Debug("############# SendOperateResult ActionMask=%d, OperateCode=%d, OperateCard=%v", OperateResult.ActionMask, OperateResult.OperateCode, OperateResult.OperateCard)
 	room.MjBase.UserMgr.SendMsgAll(OperateResult)
 }
 
@@ -678,6 +680,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 
 		//发送提示
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 			if room.UserAction[u.ChairId] != WIK_NULL {
 				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
@@ -936,8 +939,8 @@ func (room *RoomData) StartDispatchCard() {
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x3)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 4
-	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 2
 	//room.CardIndex[room.BankerUser] = newCar
 
 	//堆立信息
