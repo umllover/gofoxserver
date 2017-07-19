@@ -69,6 +69,12 @@ func DeepCopy(dst, src interface{}) {
 	deepCopy(valueDst, valueSrc)
 }
 
+func CopySlicInt(src []int) []int {
+	dst := make([]int, len(src))
+	copy(dst, src)
+	return dst
+}
+
 func DeepClone(v interface{}) interface{} {
 	dst := reflect.New(reflect.TypeOf(v)).Elem()
 	deepCopy(dst, reflect.ValueOf(v))

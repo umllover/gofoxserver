@@ -47,6 +47,11 @@ func TestShowCard(t *testing.T) {
 	room.ShowCard(args)
 }
 
+func TestCallScoring(t *testing.T) {
+	log.Debug("测试游戏叫分")
+	ddzMrg.SendStatusPlay(u1)
+}
+
 func TestCallScore(t *testing.T) {
 	log.Debug("测试叫分")
 	data := &pk_ddz_msg.C2G_DDZ_CallScore{
@@ -67,46 +72,51 @@ func TestCallScore(t *testing.T) {
 	//Wg.Wait()
 }
 
-func TestTrustee(t *testing.T) {
-	log.Debug("测试托管")
-	data := &pk_ddz_msg.C2G_DDZ_TRUSTEE{
-		Trustee: true,
-	}
-
-	args := []interface{}{data, u1}
-	room.CTrustee(args)
-
-	args = []interface{}{data, u2}
-	room.CTrustee(args)
-
-	args = []interface{}{data, u3}
-	room.CTrustee(args)
+func TestGameing(t *testing.T) {
+	log.Debug("测试游戏进行时")
+	ddzMrg.SendStatusPlay(u1)
 }
 
-func TestOutCard(t *testing.T) {
-	log.Debug("测试出牌")
-	data := &pk_ddz_msg.C2G_DDZ_OutCard{
-		CardData: []int{ddzMrg.HandCardData[2][len(ddzMrg.HandCardData[2])-1]},
-	}
-
-	args := []interface{}{data, u3}
-	room.OutCard(args)
-
-	//reader := bufio.NewReader(os.Stdin)
-	//line, _ := reader.ReadString('a')
-	////line, _ = reader.ReadString('\n')
-	//log.Debug("1111%s", line)
-
-	//cardData, _, _ := reader.ReadLine()
-	//log.Debug("sfd%v", cardData)
-
-	//fmt.Print("请输入Í∑Í要打的牌")
-	//reader := bufio.NewReader(os.Stdin)
-	//
-	//cardData, _, _ := reader.ReadLine()
-	//fmt.Printf("dfsdfsd%s", cardData)
-	//Wg.Wait()
-}
+//func TestTrustee(t *testing.T) {
+//	log.Debug("测试托管")
+//	data := &pk_ddz_msg.C2G_DDZ_TRUSTEE{
+//		Trustee: true,
+//	}
+//
+//	args := []interface{}{data, u1}
+//	room.CTrustee(args)
+//
+//	args = []interface{}{data, u2}
+//	room.CTrustee(args)
+//
+//	args = []interface{}{data, u3}
+//	room.CTrustee(args)
+//}
+//
+//func TestOutCard(t *testing.T) {
+//	log.Debug("测试出牌")
+//	data := &pk_ddz_msg.C2G_DDZ_OutCard{
+//		CardData: []int{ddzMrg.HandCardData[2][len(ddzMrg.HandCardData[2])-1]},
+//	}
+//
+//	args := []interface{}{data, u3}
+//	room.OutCard(args)
+//
+//	//reader := bufio.NewReader(os.Stdin)
+//	//line, _ := reader.ReadString('a')
+//	////line, _ = reader.ReadString('\n')
+//	//log.Debug("1111%s", line)
+//
+//	//cardData, _, _ := reader.ReadLine()
+//	//log.Debug("sfd%v", cardData)
+//
+//	//fmt.Print("请输入Í∑Í要打的牌")
+//	//reader := bufio.NewReader(os.Stdin)
+//	//
+//	//cardData, _, _ := reader.ReadLine()
+//	//fmt.Printf("dfsdfsd%s", cardData)
+//	//Wg.Wait()
+//}
 
 //func TestGameLogic_OutCard(t *testing.T) {
 //	user := room.GetUserByChairId(0)
@@ -253,7 +263,7 @@ func init() {
 
 	_roombase := room_base.NewRoomBase()
 
-	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	userg := room_base.NewRoomUserMgr(info, temp)
 
 	u1 = newTestUser(1)
 	u1.ChairId = 0
@@ -277,7 +287,7 @@ func init() {
 	var userCnt = 3
 
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser(int64(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if i == 2 {
@@ -289,7 +299,7 @@ func init() {
 
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

@@ -183,18 +183,38 @@ func TestShowCard_Special(t *testing.T) {
 	//args = []interface{}{data, u1}
 	//room.ShowSSsCard(args)
 	//六对半
+	//data = &pk_sss_msg.C2G_SSS_Open_Card{
+	//	FrontCard:   []int{0x01, 0x11, 0x02},
+	//	MidCard:     []int{0x12, 0x03, 0x13, 0x04, 0x14},
+	//	BackCard:    []int{0x05, 0x15, 0x06, 0x16, 0x17},
+	//	SpecialType: true,
+	//	SpecialData: []int{0x01, 0x11, 0x02, 0x12, 0x03, 0x13, 0x04, 0x14, 0x05, 0x15, 0x06, 0x16, 0x17},
+	//	Dragon:      false,
+	//}
+	//args = []interface{}{data, u1}
+	//room.ShowSSsCard(args)
+	//三顺子
+	//data = &pk_sss_msg.C2G_SSS_Open_Card{
+	//	FrontCard:   []int{0x02, 0x13, 0x24},
+	//	MidCard:     []int{0x24, 0x15, 0x26, 0x37, 0x18},
+	//	BackCard:    []int{0x07, 0x18, 0x19, 0x2A, 0x3B},
+	//	SpecialType: true,
+	//	SpecialData: []int{0x02, 0x13, 0x24, 0x24, 0x15, 0x26, 0x37, 0x18, 0x07, 0x18, 0x19, 0x2A, 0x3B},
+	//	Dragon:      false,
+	//}
+	//args = []interface{}{data, u1}
+	//room.ShowSSsCard(args)
+	//三同花
 	data = &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{0x01, 0x11, 0x02},
-		MidCard:     []int{0x12, 0x03, 0x13, 0x04, 0x14},
-		BackCard:    []int{0x05, 0x15, 0x06, 0x16, 0x17},
+		FrontCard:   []int{0x01, 0x02, 0x03},
+		MidCard:     []int{0x13, 0x15, 0x17, 0x18, 0x19},
+		BackCard:    []int{0x29, 0x2A, 0x2B, 0x2C, 0x2D},
 		SpecialType: true,
 		SpecialData: []int{0x01, 0x11, 0x02, 0x12, 0x03, 0x13, 0x04, 0x14, 0x05, 0x15, 0x06, 0x16, 0x17},
 		Dragon:      false,
 	}
 	args = []interface{}{data, u1}
 	room.ShowSSsCard(args)
-	//三顺子
-	//三同花
 
 }
 
@@ -337,9 +357,10 @@ func init() {
 
 	info := &model.CreateRoomInfo{
 		RoomId:       777777,
-		MaxPlayerCnt: 2,
+		MaxPlayerCnt: 3,
 		KindId:       30,
 		ServiceId:    1,
+		Num:          1,
 	}
 
 	setCfg := map[string]interface{}{
@@ -354,7 +375,8 @@ func init() {
 
 	_roombase := room_base.NewRoomBase()
 
-	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	//	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	userg := room_base.NewRoomUserMgr(info, temp)
 
 	u1 = newTestUser(1)
 	u1.ChairId = 0
@@ -376,6 +398,8 @@ func init() {
 	room = r
 
 	var userCnt = 2
+
+	room.DataMgr.InitRoom(userCnt)
 
 	for i := 1; i < userCnt; i++ {
 		u := newTestUser(int64(i) + 1)

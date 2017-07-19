@@ -11,6 +11,7 @@ import (
 	"mj/common/cost"
 	"github.com/lovelly/leaf/util"
 	"github.com/lovelly/leaf/log"
+	"mj/common/msg"
 )
 
 // 游戏状态
@@ -27,12 +28,10 @@ const (
 
 // 定时器 -- for test
 const (
-	CALL_SCORE_TIME = 2000
-	ADD_SCORE_TIME  = 2000
-	OPEN_CARD_TIME	= 3000
+	CALL_SCORE_TIME = 20
+	ADD_SCORE_TIME  = 20
+	OPEN_CARD_TIME	= 30
 )
-
-
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry) *nntb_data_mgr {
 	d := new(nntb_data_mgr)
@@ -54,6 +53,7 @@ type nntb_data_mgr struct {
 	PublicCardData []int   //公共牌 两张
 	RepertoryCard  []int   //库存扑克
 	LeftCardCount  int     //库存剩余扑克数量
+
 	OpenCardMap			map[*user.User]OpenCardInfo	//记录亮牌数据
 	CallScoreTimesMap 	map[*user.User]int		//记录叫分信息
 	CalScoreMap			map[*user.User]int		//记录算分
@@ -83,12 +83,18 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree.TurnScore = make([]int, room.PkBase.TimerMgr.GetMaxPayCnt())
 	StatusFree.CollectScore = make([]int, room.PlayerCount)
 	StatusFree.EachRoundScore = make([][]int, room.PlayerCount, room.PkBase.TimerMgr.GetMaxPayCnt())
+	StatusFree.InitScore = make([]int, room.PlayerCount)
+	log.Debug("at send status ready %v", room.InitScoreMap)
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusFree.InitScore[i] = room.InitScoreMap[i]
+	}
 
-	for _, v := range room.HistoryScores {
+	/*for _, v := range room.HistoryScores {
 		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
 		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	}
-	StatusFree.PlayerCount = room.PkBase.TimerMgr.GetPlayCount() //玩家人数
+	}*/
+	StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusFree.PlayerCount = room.PlayerCount//room.PkBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	StatusFree.GameRoomName = room.Name
 
@@ -105,15 +111,16 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 
 	StatusPlay.TurnScore = make([]int, UserCnt)
 	StatusPlay.CollectScore = make([]int, UserCnt)
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 
-	//历史积分
+	/*//历史积分
 	for j := 0; j < UserCnt; j++ {
 		//设置变量
 		if room.HistoryScores[j] != nil {
 			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
 			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
 		}
-	}
+	}*/
 
 	u.WriteMsg(StatusPlay)
 }
@@ -138,7 +145,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 	log.Debug("begin call score timer")
 	room.CallScoreTimer = room.PkBase.AfterFunc( CALL_SCORE_TIME * time.Second, func() {
 		log.Debug("end call score timer")
-		if room.GameStatus != ADD_SCORE { // 超时叫分结束
+		if room.GameStatus == CALL_SCORE_TIMES { // 超时叫分结束
 			room.CallScoreEnd()
 		}
 	})
@@ -154,6 +161,7 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
 	room.PlayerCount = UserCnt
+	room.CellScore = room.PkBase.Temp.CellScore
 
 	room.CallScoreTimesMap = make(map[*user.User]int)
 	room.AddScoreMap = make(map[*user.User]int)
@@ -166,7 +174,6 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.BankerUser = nil
 	room.FisrtCallUser = cost.INVALID_CHAIR
 	room.CurrentUser = cost.INVALID_CHAIR
-
 
 }
 
@@ -226,13 +233,29 @@ func (room *nntb_data_mgr) StartDispatchCard() {
 func (room *nntb_data_mgr) NormalEnd() {
 
 	userMgr := room.PkBase.UserMgr
-	userMgr.ForEachUser(func(u *user.User) {
-		calScore := &nn_tb_msg.G2C_TBNN_CalScore{}
-		calScore.GameScore = room.CalScoreMap[u]
-		calScore.CardData = make([]int, pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount)
-		//util.DeepCopy(&calScore.CardData, &room.OpenCardMap[u].CardData)
 
-		u.WriteMsg(calScore)
+	calScore := &nn_tb_msg.G2C_TBNN_CalScore{}
+	calScore.GameTax = make([]int, room.PlayerCount)
+	calScore.CardType = make([]int, room.PlayerCount)
+	calScore.GameScore = make([]int, room.PlayerCount)
+	calScore.CardData = make([][]int, room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		calScore.CardData[i] = make([]int, pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount)
+	}
+	calScore.InitScore = make([]int, room.PlayerCount)
+
+
+	userMgr.ForEachUser(func(u *user.User) {
+		calScore.GameScore[u.ChairId] = room.CalScoreMap[u]
+		openCardInfo := OpenCardInfo{
+			CardType:room.OpenCardMap[u].CardType,
+			CardData:room.OpenCardMap[u].CardData,
+		}
+		calScore.CardType[u.ChairId] = openCardInfo.CardType
+		util.DeepCopy(&calScore.CardData[u.ChairId], &openCardInfo.CardData)
+
+		// 更新积分
+		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u]
 
 		//历史积分
 		/*if room.HistoryScores[u.ChairId] == nil {
@@ -242,44 +265,31 @@ func (room *nntb_data_mgr) NormalEnd() {
 		room.HistoryScores[u.ChairId].CollectScore += room.CalScoreMap[u]*/
 	})
 
+	log.Debug("normal end %v", room.InitScoreMap)
+	for i:=0;i<room.PlayerCount;i++ {
+		calScore.InitScore[i] = room.InitScoreMap[i]
+	}
+
+	// 每局积分
+	roundScore := make([]int ,room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		roundScore[i] = room.CalScoreMap[room.PkBase.UserMgr.GetUserByChairId(i)]
+	}
+	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
+
+	log.Debug("normal end %v", room.EachRoundScoreMap)
+
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(calScore)
+	})
+
 	room.GameStatus = GAME_NULL
 
 }
 
 //解散接触
 func (room *nntb_data_mgr) DismissEnd() {
-	/*
-		//变量定义
-		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
-		GameConclude.ChiHuKind = make([]int, UserCnt)
-		GameConclude.CardCount = make([]int, UserCnt)
-		GameConclude.HandCardData = make([][]int, UserCnt)
-		GameConclude.GameScore = make([]int, UserCnt)
-		GameConclude.GangScore = make([]int, UserCnt)
-		GameConclude.Revenue = make([]int, UserCnt)
-		GameConclude.ChiHuRight = make([]int, UserCnt)
-		GameConclude.MaCount = make([]int, UserCnt)
-		GameConclude.MaData = make([]int, UserCnt)
-		for i, _ := range GameConclude.HandCardData {
-			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
-		}
 
-		room.BankerUser = INVALID_CHAIR
-
-		GameConclude.SendCardData = room.SendCardData
-
-		//用户扑克
-		for i := 0; i < UserCnt; i++ {
-			if len(room.CardIndex[i]) > 0 {
-				GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
-				GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
-			}
-		}
-
-		//发送信息
-		room.MjBase.UserMgr.SendMsgAll(GameConclude)
-	*/
 }
 
 // 用户叫分(抢庄)
@@ -291,7 +301,7 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 
 	r.CallScoreTimesMap[u] = scoreTimes
 
-	maxScoreTimes := 1
+	maxScoreTimes := 0
 	for u, s := range r.CallScoreTimesMap {
 		if s > maxScoreTimes {
 			maxScoreTimes = s
@@ -335,11 +345,20 @@ func (r * nntb_data_mgr) CallScoreEnd()  {
 		r.BankerUser = userMgr.GetUserByChairId(0)
 		r.ScoreTimes = 1
 	}
+
+	callScoreEnd := &nn_tb_msg.G2C_TBNN_CallScoreEnd{
+		Banker:     r.BankerUser.ChairId,
+		ScoreTimes: r.ScoreTimes,
+	}
+
 	userMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(&nn_tb_msg.G2C_TBNN_CallScoreEnd{
-			Banker:     r.BankerUser.ChairId,
-			ScoreTimes: r.ScoreTimes,
-		})
+		if r.CallScoreTimesMap[u] == r.ScoreTimes {
+			callScoreEnd.ScoreTimesUser = append(callScoreEnd.ScoreTimesUser, u.ChairId)
+		}
+	})
+
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(callScoreEnd)
 	})
 
 	// 进入加注
@@ -347,7 +366,7 @@ func (r * nntb_data_mgr) CallScoreEnd()  {
 	log.Debug("begin add score timer ")
 	r.AddScoreTimer = r.PkBase.AfterFunc(ADD_SCORE_TIME * time.Second, func() { // 超时加注结束
 		log.Debug("end add score timer")
-		if r.GameStatus != SEND_LAST_CARD {
+		if r.GameStatus == ADD_SCORE {
 			r.AddScoreEnd()
 		}
 	})
@@ -366,10 +385,12 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 	// 广播加注
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(uFunc *user.User) {
-		addScore := &nn_tb_msg.G2C_TBNN_AddScore{}
-		addScore.ChairID = u.ChairId
-		addScore.AddScoreCount = score
-		uFunc.WriteMsg(addScore)
+		if uFunc != u  {
+			addScore := &nn_tb_msg.G2C_TBNN_AddScore{}
+			addScore.ChairID = u.ChairId
+			addScore.AddScoreCount = score
+			uFunc.WriteMsg(addScore)
+		}
 	})
 
 	if len(r.AddScoreMap) == r.PlayerCount-1 { //全加过加注结束 庄家不能加注
@@ -380,13 +401,21 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 // 加注结束
 func (r * nntb_data_mgr) AddScoreEnd() {
 	log.Debug("add score end")
+	// 没有加注的默认1倍
+	userMgr := r.PkBase.UserMgr
+
+	userMgr.ForEachUser(func(u *user.User) {
+		if r.AddScoreMap[u] == 0 {
+			r.AddScoreMap[u] = 1
+		}
+	})
+
 
 	// 进入最后一张牌
 	log.Debug("enter send last card")
 	r.GameStatus = SEND_LAST_CARD
 
 	// 发最后一张牌
-	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		lastCard := r.GetOneCard()
 		r.CardData[u.ChairId][r.GetCfg().MaxCount-1] = lastCard
@@ -417,15 +446,24 @@ func (r *nntb_data_mgr) EnterOpenCard()  {
 
 	r.OpenCardTimer = r.PkBase.AfterFunc(OPEN_CARD_TIME * time.Second, func() { // 超时亮牌结束
 		log.Debug("end open card timer")
-		if r.GameStatus != CAL_SCORE {
+		if r.GameStatus == OPEN_CARD {
 			// 没有亮牌的用户自动亮牌
-			/*userMgr := r.PkBase.UserMgr
+			userMgr := r.PkBase.UserMgr
 			userMgr.ForEachUser(func(u *user.User) {
-				if r.OpenCardMap[u] == nil {
+				if r.OpenCardMap[u].CardData == nil {
+					log.Debug("user : %d has not open card ", u.ChairId)
 					// 需要改进
-					r.OpenCard(u,0, r.CardData[u.ChairId] )
+					//r.OpenCard(u,0, r.CardData[u.ChairId] )
+					cardData := make([]int, 5)
+					util.DeepCopy(&cardData, &r.CardData[u.ChairId])
+					cardData = append(cardData, r.PublicCardData...)
+					log.Debug("7cards:%v", cardData)
+					dstCardData, cardType := r.SelectCard(cardData)
+					if dstCardData!= nil {
+						r.OpenCard(u, cardType, dstCardData)
+					}
 				}
-			})*/
+			})
 		}
 	})
 }
@@ -470,6 +508,7 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int)  {
 
 	// 验证牌型
 	if r.PkBase.LogicMgr.GetCardType(cardData) != cardType {
+		cardType = r.PkBase.LogicMgr.GetCardType(cardData)
 		log.Debug("user: %d open card type invalid , correct type is :%d",
 			u.ChairId, r.PkBase.LogicMgr.GetCardType(cardData))
 	}
@@ -508,33 +547,113 @@ func (r *nntb_data_mgr) OpenCardEnd()  {
 	logicMgr := r.PkBase.LogicMgr
 	userMgr := r.PkBase.UserMgr
 
+	bankerScore := 0
 	userMgr.ForEachUser(func(u *user.User) {
 		if u != r.BankerUser { // 闲家与庄家比
 			if logicMgr.CompareCard(r.OpenCardMap[r.BankerUser].CardData, r.OpenCardMap[u].CardData) { // 庄家比闲家大
 				log.Debug("banker win  : banker card: %v, player card: %v",
 					r.OpenCardMap[r.BankerUser], r.OpenCardMap[u])
-				r.CalScoreMap[r.BankerUser] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
-				r.CalScoreMap[u] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
+				log.Debug("%d %d %d %d ", r.CellScore, r.ScoreTimes, r.AddScoreMap[u], r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
+				bankerScore += r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType)
+				r.CalScoreMap[u] = -(r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
 			}else {
 				log.Debug("banker lost  : banker card: %v, player card: %v",
 					r.OpenCardMap[r.BankerUser], r.OpenCardMap[u])
-				r.CalScoreMap[r.BankerUser] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
-				r.CalScoreMap[u] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u]
+				bankerScore -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[u].CardType)
+				r.CalScoreMap[u] = r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[u].CardType)
 			}
 		}
 	})
+	r.CalScoreMap[r.BankerUser] = bankerScore
+	log.Debug("banker score %d", bankerScore)
+
+	log.Debug("cal score map %v", r.CalScoreMap)
 
 	// 游戏结束
-	userMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.OnEventGameConclude(u.ChairId, u, cost.GER_NORMAL )
+	r.PkBase.OnEventGameConclude(0, userMgr.GetUserByChairId(0), cost.GER_NORMAL )
+
+
+	/*r.PkBase.AfterFunc( 15 * time.Second, func() {
+		log.Debug("game end timer")
+		//退出房间
+		userMgr.ForEachUser(func(u *user.User) {
+			userMgr.LeaveRoom(u, r.PkBase.Status)
+		})
+		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+	})*/
+
+}
+
+
+
+// 7选5
+func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
+	cardCount := len(cardData)
+	if cardCount <5 {
+		return nil, 0
+	}
+	r.PkBase.LogicMgr.SortCardList(cardData, cardCount)
+	var cardsMap = make(map[int][]int)
+
+	index := 0
+	for i:= 0; i<cardCount - 4; i++ {
+		for j:= i + 1; j < cardCount - 3; j++ {
+			for k:= j + 1; k < cardCount - 2; k++ {
+				for m := k + 1; m < cardCount - 1; m++ {
+					for n := m + 1; n < cardCount; n++ {
+						temp := []int {cardData[i], cardData[j], cardData[k], cardData[m], cardData[n]}
+						cardsMap[index] = temp
+						index++
+					}
+				}
+			}
+		}
+	}
+
+	// 按照牌型来选
+	for cardType:=18;cardType>=0;cardType-- {
+		for i:=0;i<len(cardsMap);i++ {
+			if r.PkBase.LogicMgr.GetCardType(cardsMap[i]) == cardType {
+				return cardsMap[i], cardType
+			}
+		}
+	}
+
+	return nil, 0
+}
+
+func (r *nntb_data_mgr) AfterEnd(Forced bool) {
+	log.Debug("at nn data mgr after end")
+	r.PkBase.TimerMgr.AddPlayCount()
+	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
+		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
+
+		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+			RoomId: r.PkBase.DataMgr.GetRoomId(),
+			Status: r.PkBase.Status,
+		})
+
+		r.PkBase.UserMgr.RoomDissume()
+
+		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+			r.PkBase.UserMgr.LeaveRoom(u, r.PkBase.Status)
+		})
+
+		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
+
+		return
+	}
+
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
 	})
 }
-/*//退出房间
-	userMgr.ForEachUser(func(u *user.User) {
-		userMgr.LeaveRoom(u, r.PkBase.Status)
-	})
 
-	r.PkBase.OnEventGameConclude(0, nil, cost.GER_DISMISS)
-	r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())*/
+
+
 
 

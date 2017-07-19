@@ -25,6 +25,11 @@ func init() {
 	Processor.Register(&C2G_DDZ_TRUSTEE{})
 }
 
+// 游戏场景
+type G2C_DDZ_GAMESTATUS struct {
+	StatusData string // 场景附带消息，json格式
+}
+
 //空闲状态
 type G2C_DDZ_StatusFree struct {
 	// 游戏属性
@@ -57,20 +62,22 @@ type G2C_DDZ_StatusCall struct {
 	TimeHeadOutCard int //首出时间
 
 	// 游戏信息
-	GameType     int   // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
-	CellScore    int   // 单元积分
-	CurrentUser  int   // 当前玩家
-	BankerScore  int   // 庄家叫分
-	ScoreInfo    []int // 叫分信息
-	HandCardData []int // 手上扑克
+	GameType      int   // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
+	LaiziCard     int   // 癞子牌
+	EightKing     bool  // 是否八王模式
+	CellScore     int   // 单元积分
+	CurrentUser   int   // 当前玩家
+	BankerScore   int   // 庄家叫分
+	ScoreInfo     []int // 叫分信息
+	HandCardCount []int //扑克数目
 
 	// 历史积分
 	TurnScore    []int // 积分信息
 	CollectScore []int // 积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool  // 明牌标识
-	ShowCardData map[int][]int // 明牌数据
+	ShowCardSign map[int]bool // 明牌标识
+	ShowCardData [][]int      // 明牌数据
 }
 
 //游戏状态
@@ -82,31 +89,32 @@ type G2C_DDZ_StatusPlay struct {
 	TimeHeadOutCard int //首出时间
 
 	//游戏变量
-	CellScore   int //单元积分
-	BombCount   int //炸弹次数
-	BankerUser  int //庄家用户
-	CurrentUser int //当前玩家
-	BankerScore int //庄家叫分
-	GameType    int // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
-	LaiziCard   int // 癞子牌
+	CellScore int //单元积分
+
+	BankerUser  int  //庄家用户
+	CurrentUser int  //当前玩家
+	BankerScore int  //庄家叫分
+	EightKing   bool // 是否八王模式
+	GameType    int  // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
+	LaiziCard   int  // 癞子牌
 
 	//出牌信息
-	TurnWiner     int   //出牌玩家
-	TurnCardCount int   //出牌数目
-	TurnCardData  []int //出牌数据
+	TurnWiner    int   //出牌玩家
+	TurnCardData []int //出牌数据
 
 	//扑克信息
 	BankerCard    [3]int //游戏底牌
-	HandCardData  []int  //手上扑克
 	HandCardCount []int  //扑克数目
 
+	EachBombCount []int // 炸弹个数
+	KingCount     []int // 八王个数
 	//历史积分
 	TurnScore    []int //积分信息
 	CollectScore []int //积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool  // 明牌标识
-	ShowCardData map[int][]int // 明牌数据
+	ShowCardSign map[int]bool // 明牌标识
+	ShowCardData [][]int      // 明牌数据
 }
 
 //发送扑克
@@ -127,7 +135,6 @@ type G2C_DDZ_BankerInfo struct {
 	BankerUser  int    // 庄家玩家
 	CurrentUser int    // 当前玩家
 	BankerScore int    // 庄家叫分
-	LiziCard    int    // 癞子牌
 	BankerCard  [3]int // 庄家扑克
 }
 
@@ -194,6 +201,7 @@ type C2G_DDZ_CallScore struct {
 
 //用户出牌
 type C2G_DDZ_OutCard struct {
+	CardType int   // 牌型
 	CardData []int //扑克数据
 }
 

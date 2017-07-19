@@ -1027,7 +1027,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 							if 3 == Straight && Count1 != 3 && Count2 != 3 {
 								Straight3 = true
 								Count3 = 3
-								util.DeepCopy(&btSpecialCard[10], RbtCardData)
+								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
+								copy(btSpecialCard[10:], RbtCardData[:Count3])
 								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
 								RbtCardData = RbtCardData[:0]
 								break
@@ -1041,7 +1042,8 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 						if i == 13-Count1-Count2-1 && 3 == Straight && Count1 != 3 && Count2 != 3 {
 							Straight3 = true
 							Count3 = 3
-							util.DeepCopy(&btSpecialCard[10], RbtCardData)
+							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
+							copy(btSpecialCard[10:], RbtCardData[:Count3])
 							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
 							RbtCardData = RbtCardData[:0]
 							break
@@ -1058,7 +1060,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 					}
 				}
 				if Straight1 && Straight2 && Straight3 && Count1+Count2+Count3 == 13 {
-					return CT_THREE_STRAIGHTFLUSH
+					return CT_THREE_STRAIGHT
 				}
 			}
 		}

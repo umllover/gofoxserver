@@ -71,5 +71,6 @@ type CreatorRoomInfo struct {
 	CreatorTime int64  //创建时间
 	RoomID      int    //房号
 	RoomName    string //房间名称
+	KindID      int    //游戏类型
 	Status      int    //状态
 }

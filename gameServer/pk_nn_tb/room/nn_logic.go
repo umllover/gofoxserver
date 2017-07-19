@@ -92,7 +92,7 @@ func (lg *nntb_logic) IsTongHuaShun(cardData []int) bool {
 	//排序
 	lg.SortCardList(cardData,len(cardData))
 	for i:=0; i<4; i++ {
-		if lg.GetCardValue(cardData[i])+1 != lg.GetCardValue(cardData[i+1]) ||
+		if lg.GetCardValue(cardData[i])-1 != lg.GetCardValue(cardData[i+1]) ||
 			lg.GetCardColor(cardData[i]) != lg.GetCardColor(cardData[i+1]) {
 			return false
 		}
@@ -104,7 +104,7 @@ func (lg *nntb_logic) IsTongHuaShun(cardData []int) bool {
 func (lg *nntb_logic) IsAllCardValueSame(cardData []int) bool  {
 	size := len(cardData)
 	for i:=0; i<size-1; i++ {
-		if cardData[i] != cardData[i+1] {
+		if lg.GetCardValue(cardData[i]) != lg.GetCardValue(cardData[i+1]) {
 			return false
 		}
 	}
@@ -184,7 +184,7 @@ func (lg *nntb_logic) IsShunZi(cardData []int) bool {
 	}
 	lg.SortCardList(cardData, 5)
 	for i:=0;i<4;i++ {
-		if lg.GetCardValue(cardData[i])+1 != lg.GetCardValue(cardData[i+1]) {
+		if lg.GetCardValue(cardData[i])-1 != lg.GetCardValue(cardData[i+1]) {
 			return false
 		}
 	}
@@ -520,3 +520,22 @@ func (lg *nntb_logic) CompareCardTwoType(firstData []int, nextData []int) bool  
 
 	return lg.GetCardColor(firstCard) > lg.GetCardColor(nextCard)
 }
+
+func (lg *nntb_logic) GetCardTimes(cardType int) int  {
+	switch {
+	case cardType>=17 && cardType<=18:
+		return 5
+	case cardType>=15 && cardType<=16:
+		return 4
+	case cardType>=11 && cardType<=14:
+		return 3
+	case cardType==10:
+		return 2
+	}
+	return 1
+
+}
+
+
+
+

@@ -1,30 +1,19 @@
 package internal
 
 import (
-	"mj/common/msg"
 	"mj/common/msg/mj_xs_msg"
 	"mj/gameServer/user"
-	"reflect"
+
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	// c 2 s
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OutCard{}, HZOutCard)
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OperateCard{}, OperateCard)
-
+	reg.RegisterC2S(&mj_xs_msg.C2G_MJXS_OutCard{}, HZOutCard)
+	reg.RegisterC2S(&mj_xs_msg.C2G_MJXS_OperateCard{}, OperateCard)
 }
 
 func HZOutCard(args []interface{}) {

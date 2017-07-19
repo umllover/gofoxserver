@@ -48,12 +48,12 @@ func (u *User) AddRooms(r *model.CreateRoomInfo) {
 
 func (u *User) DelRooms(id int) {
 	u.Lock()
+	defer u.Unlock()
 	_, ok := u.Rooms[id]
 	if ok {
 		delete(u.Rooms, id)
+		model.CreateRoomInfoOp.Delete(id)
 	}
-	u.Unlock()
-	model.CreateRoomInfoOp.Delete(id)
 }
 
 func (u *User) GetRoom(id int) *model.CreateRoomInfo {
@@ -72,6 +72,7 @@ func (u *User) GetRoomInfo() []*msg.CreatorRoomInfo {
 		RoomInfo.CreatorTime = v.CreateTime.Unix()
 		RoomInfo.RoomName = v.RoomName
 		RoomInfo.RoomID = v.RoomId
+		RoomInfo.KindID = v.KindId
 		info = append(info, RoomInfo)
 	}
 	return info
@@ -79,6 +80,16 @@ func (u *User) GetRoomInfo() []*msg.CreatorRoomInfo {
 
 func (u *User) GetRoomCnt() int {
 	return len(u.Rooms)
+}
+
+func (u *User) EnoughCurrency(sub int) bool {
+	u.Lock()
+	defer u.Unlock()
+	if u.Currency < sub {
+		return false
+	}
+
+	return true
 }
 
 //扣砖石
@@ -126,6 +137,13 @@ func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	return true
 }
 
+func (u *User) HasRecord(RoomId int) bool {
+	u.Lock()
+	u.Unlock()
+	_, ok := u.Records[RoomId]
+	return ok
+}
+
 //删除扣钱记录
 func (u *User) DelRecord(id int) error {
 	u.Lock()
@@ -144,18 +162,24 @@ func (u *User) GetRecord(id int) *model.TokenRecord {
 }
 
 func (u *User) DelGameLockInfo() {
+	if u.EnterIP == "" && u.Roomid == 0 {
+		return
+	}
+
+	log.Debug("at DelGameLockInfo######################### ")
 	u.KindID = 0
 	u.ServerID = 0
-	u.EnterIP = ""
 	u.GameNodeID = 0
+	u.EnterIP = ""
+	u.Roomid = 0
 	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
-		"GameNodeID": "",
-		"EnterIP":    "",
 		"KindID":     0,
 		"ServerID":   0,
+		"GameNodeID": 0,
+		"EnterIP":    "",
+		"roomid":     0,
 	})
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
 }
-

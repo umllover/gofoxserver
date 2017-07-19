@@ -1,8 +1,9 @@
 package mj_base
 
 import (
+	"fmt"
 	. "mj/common/cost"
-	. "mj/gameServer/mj"
+	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -12,7 +13,7 @@ import (
 	"net"
 	"testing"
 
-	"fmt"
+	"github.com/lovelly/leaf/log"
 
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
@@ -41,7 +42,7 @@ func TestGameStart_1(t *testing.T) {
 
 func TestOutCard(t *testing.T) {
 	ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
-	fmt.Println("at EstimateUserRespond ret :", ret)
+	log.Debug("at EstimateUserRespond ret :%v", ret)
 	room.OutCard([]interface{}{u1, 1})
 }
 
@@ -88,7 +89,7 @@ func init() {
 
 	base := room_base.NewRoomBase()
 
-	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	userg := room_base.NewRoomUserMgr(info, temp)
 
 	u1 = newTestUser(1)
 	u1.ChairId = 0
@@ -105,9 +106,8 @@ func init() {
 	r.Init(cfg)
 	room = r
 	var userCnt = 4
-
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser((int64)(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -120,7 +120,7 @@ func init() {
 	}
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

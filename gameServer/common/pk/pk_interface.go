@@ -2,13 +2,13 @@ package pk
 
 import (
 	"mj/common/utils"
-
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
 )
 
 type DataManager interface {
+	OnCreateRoom()
 	InitRoom(UserCnt int)
 	GetRoomId() int
 	CanOperatorRoom(uid int64) bool
@@ -20,8 +20,8 @@ type DataManager interface {
 
 	// 游戏结束
 	NormalEnd()
-	AfertEnd(a bool)
 	DismissEnd()
+	AfterEnd(Forced bool)
 
 	SendPersonalTableTip(*user.User)
 	SendStatusPlay(u *user.User)
@@ -35,7 +35,7 @@ type DataManager interface {
 	// 明牌
 	ShowCard(u *user.User)
 	// 托管
-	Trustee(u *user.User, trustee bool)
+	Trustee(u *user.User)
 
 	//十三水
 	ShowSSSCard(u *user.User, Dragon bool, SpecialType bool, SpecialData []int, FrontCard []int, MidCard []int, BackCard []int)
@@ -52,9 +52,11 @@ type LogicManager interface {
 
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
-
-	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
+	GetCardTimes(cardType int) int
 	GetType(bCardData []int, bCardCount int) *TagAnalyseType
+	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool
+	// 以下接口不通用
+	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool

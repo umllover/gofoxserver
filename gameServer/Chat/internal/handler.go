@@ -2,29 +2,19 @@ package internal
 
 import (
 	"mj/common/msg"
+	"mj/common/register"
 	"mj/gameServer/user"
-	"reflect"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
-	handleRpc("createRoom", createRoom)
-	handleRpc("addRoomMember", addRoomMember)
-	handleRpc("delRoomMember", delRoomMember)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterRpc("createRoom", createRoom)
+	reg.RegisterRpc("addRoomMember", addRoomMember)
+	reg.RegisterRpc("delRoomMember", delRoomMember)
 
-	handlerC2S(&msg.C2G_GameChart_ToAll{}, SendChatMsgToAll)
+	reg.RegisterC2S(&msg.C2G_GameChart_ToAll{}, SendChatMsgToAll)
 
 }
 

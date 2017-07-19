@@ -1,4 +1,4 @@
-package internal
+package consul
 
 import (
 	"github.com/lovelly/leaf/log"

@@ -18,7 +18,6 @@ var Server struct {
 	TCPAddr     string
 	ListenAddr  string
 	HttpAddr    string
-	WatchAddr   string
 	MaxConnNum  int
 	ConsolePort int
 	ProfilePath string
@@ -45,15 +44,23 @@ var Server struct {
 	StatsDbPassword   string
 	ConsulAddr        string
 
+	NsqdAddrs       []string
+	NsqLookupdAddrs []string
+	PdrNsqdAddr     string
+
 	ConnAddrs       map[string]string
 	AuthServerUrl   string
 	PendingWriteNum int
-	PrivatePort     int
+	WatchAddr       string
 	NodeId          int
 }
 
 func ServerName() string {
-	return fmt.Sprintf(HallPrefix+"_%d", Server.NodeId)
+	return fmt.Sprintf(HallPrefixFmt, Server.NodeId)
+}
+
+func ServerNsqCahnnel() string {
+	return fmt.Sprintf(HallCahnnelFmt, Server.NodeId)
 }
 
 func init() {
@@ -155,7 +162,7 @@ func (c *ConsulConfig) GetNodeID() int {
 }
 
 func (c *ConsulConfig) GetSvrName() string {
-	return HallPrefix
+	return ServerName()
 }
 func (c *ConsulConfig) GetWatchSvrName() string {
 	return GamePrefix

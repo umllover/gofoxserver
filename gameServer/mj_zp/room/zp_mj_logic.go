@@ -11,8 +11,8 @@ import (
 
 func GetCardWordArray(index []int) bool {
 	CardWordArray := []string{
-		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
 		"一筒", "二筒", "三筒", "四筒", "五筒", "六筒", "七筒", "八筒", "九筒",
+		"一万", "二万", "三万", "四万", "五万", "六万", "七万", "八万", "九万",
 		"一条", "二条", "三条", "四条", "五条", "六条", "七条", "八条", "九条",
 		"东", "南", "西", "北", "中", "发", "白",
 		"春", "夏", "秋", "冬", "梅", "兰", "竹", "菊",
@@ -137,11 +137,10 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 	//计算数目
 	cbCardCount := lg.GetCardCount(cbCardIndex)
 
-	//GetCardWordArray(cbCardIndex)  测试代码
-
 	//效验数目
 	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		//log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
+		//GetCardWordArray(cbCardIndex) //todo,测试代码
+		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v,%d %v ", cbCardCount, MaxCount, (cbCardCount-2)%3)
 		return false, nil
 	}
 
@@ -190,7 +189,6 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 				tg.WeaveKind = WIK_PENG
 				KindItem = append(KindItem, tg)
 				cbKindItemCount++
-				//log.Debug("同牌判断：%s", GetCardWord(i))
 			}
 
 			//连牌判断
@@ -206,7 +204,6 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 						tg.IsAnalyseGet = true
 						KindItem = append(KindItem, tg)
 						cbKindItemCount++
-						//log.Debug("连牌判断：%s %s %s", GetCardWord(i), GetCardWord(i+1), GetCardWord(i+2))
 					}
 				}
 			}
@@ -270,11 +267,12 @@ func (lg *ZP_Logic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*ms
 
 					//设置牌型
 					for i := 0; i < cbLessKindItem; i++ {
-						analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
-						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
-						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
+						//log.Debug("@@@@@@@@ len1:%d len2:%d len3:%d", i, i+cbWeaveCount, len(analyseItem.IsAnalyseGet)) //todo,测试代码
+						analyseItem.IsAnalyseGet[i+cbWeaveCount] = pKindItem[i].IsAnalyseGet
+						analyseItem.WeaveKind[i+cbWeaveCount] = pKindItem[i].WeaveKind
+						cbCenterCard := lg.SwitchToCard(pKindItem[i].CenterCard)
 						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
-						lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
+						lg.GetWeaveCard(pKindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
 					}
 
 					//设置牌眼
@@ -338,8 +336,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
-		log.Debug("len(TagAnalyseItemArray) > 0 ")
-		log.Debug("#####有胡牌")
 		ChiHuRight |= CHR_PING_HU
 	}
 
@@ -430,4 +426,21 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 	}
 
 	return cbOutCount
+}
+
+//扑克转换
+func (lg *ZP_Logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
+	//转换扑克
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+		if cbCardIndex[i] != 0 {
+			for j := 0; j < cbCardIndex[i]; j++ { //牌展开
+				cbCardData = append(cbCardData, lg.SwitchToCard(i))
+			}
+		}
+	}
+	return cbCardData
+}
+
+func (lg *ZP_Logic) GetHuOfCard() int {
+	return lg.HuOfCard
 }

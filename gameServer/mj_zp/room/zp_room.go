@@ -23,7 +23,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	retCode := 0
 	defer func() {
 		if retCode != 0 {
-			u.WriteMsg(&msg.L2C_CreateTableFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
+			u.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
 		}
 	}()
 
@@ -47,7 +47,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  zpBase,
 		DataMgr:  zpData,
-		UserMgr:  room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp),
+		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
 	}

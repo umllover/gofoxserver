@@ -466,6 +466,20 @@ func (room *sss_data_mgr) ComputeResult() {
 }
 
 //正常结束房间
+//func (room *sss_data_mgr) NormalEnd() {
+//
+//	//room.ComputeChOut()
+//	//room.ComputeResult()
+//
+//	userMgr := room.PkBase.UserMgr
+//	userMgr.ForEachUser(func(u *user.User) {
+//		calScore := &pk_sss_msg.CMD_SSS_GameEnd{}
+//		u.WriteMsg(calScore)
+//
+//	})
+//}
+
+//正常结束房间
 func (room *sss_data_mgr) NormalEnd() {
 
 	room.ComputeChOut()
@@ -652,7 +666,6 @@ func (room *sss_data_mgr) AfterStartGame() {
 
 //玩家摊牌
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
-
 	room.SpecialTypeTable[u] = bSpecialType
 	room.Dragon[u] = bDragon
 	room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)

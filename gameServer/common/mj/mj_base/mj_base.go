@@ -3,7 +3,6 @@ package mj_base
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_zp_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
@@ -64,7 +63,7 @@ func (r *Mj_base) GetRoomId() int {
 
 //坐下
 func (r *Mj_base) Sitdown(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_UserSitdown)
+	chairID := args[0].(int)
 	u := args[1].(*user.User)
 
 	retcode := 0
@@ -74,12 +73,11 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 		}
 	}()
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
-
 		retcode = GameIsStart
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, recvMsg.ChairID)
+	retcode = r.UserMgr.Sit(u, chairID)
 
 }
 
@@ -208,14 +206,20 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.ServerID = room.Temp.ServerID
 	BirefInf.KindID = room.Temp.KindID
 	BirefInf.NodeID = conf.Server.NodeId
+	BirefInf.SvrHost = conf.Server.WSAddr
+	BirefInf.PayType = room.UserMgr.GetPayType()
 	BirefInf.RoomID = room.DataMgr.GetRoomId()
 	BirefInf.CurCnt = room.UserMgr.GetCurPlayerCnt()
-	BirefInf.MaxCnt = room.UserMgr.GetMaxPlayerCnt()    //最多多人数
-	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()      //可玩局数
-	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()   //已玩局数
-	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime() //创建时间
-	BirefInf.IsPublic = true                            //todo
+	BirefInf.MaxPlayerCnt = room.UserMgr.GetMaxPlayerCnt() //最多多人数
+	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()         //可玩局数
+	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
+	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
+	BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	BirefInf.IsPublic = room.UserMgr.IsPublic()
+	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
+	BirefInf.MachPlayer = make(map[int64]struct{})
 	return BirefInf
+
 }
 
 //游戏配置
@@ -275,7 +279,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	//效验参数
 	if u.ChairId != room.DataMgr.GetCurrentUser() {
 		log.Error("at OnUserOutCard not self out ")
-		log.Error("u.ChairId:%d,room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
+		log.Error("u.ChairId:%d, room.DataMgr.GetCurrentUser():%d", u.ChairId, room.DataMgr.GetCurrentUser())
 		retcode = ErrNotSelfOut
 		return
 	}
@@ -285,12 +289,21 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		retcode = NotValidCard
 	}
 
+	//吃啥打啥
+	if !room.DataMgr.OutOfChiCardRule(CardData, u.ChairId) {
+		log.Error(" at OutOfChiCardRule IsValidCard card ")
+		retcode = NotValidCard
+	}
+
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
-		log.Error("at OnUserOutCard not have card ")
+		log.Error("at OnUserOutCard not have card ：%d chairid:%d", CardData, u.ChairId)
 		retcode = ErrNotFoudCard
 		return
 	}
+
+	//清除出牌禁忌
+	room.DataMgr.ClearBanCard(u.ChairId)
 
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
@@ -367,7 +380,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//变量定义
 		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), OperateCode, OperateCard)
 		if cbTargetAction < 0 {
-			log.Debug("wait other user")
+			log.Debug("wait other user, OperateCode=%d, OperateCard=%d, cbTargetAction=%v, wTargetUser=%v", OperateCode, OperateCard, cbTargetAction, wTargetUser)
 			return
 		}
 
@@ -377,6 +390,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
+			room.DataMgr.ResetUserOperate()
 			return
 		}
 
@@ -442,12 +456,6 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
 		room.AfertEnd(false)
-	case GER_USER_LEAVE: //用户强退
-		if (room.Temp.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
-			return
-		}
-		//自动托管
-		room.OnUserTrustee(user.ChairId, true)
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
@@ -485,7 +493,7 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 
 	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
 
-	room.UserMgr.SendMsgAll(&mj_hz_msg.G2C_HZMJ_Trustee{
+	room.UserMgr.SendMsgAll(&mj_zp_msg.G2C_ZPMJ_Trustee{
 		Trustee: bTrustee,
 		ChairID: wChairID,
 	})
@@ -498,35 +506,14 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 			}
 			u := room.UserMgr.GetUserByChairId(wChairID)
 			card := room.LogicMgr.SwitchToCardData(cardindex)
-
-			//删除扑克
-			if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), card) {
-				log.Error("at OnUserOutCard not have card ")
-				return false
-			}
-
-			u.UserLimit &= ^LimitChiHu
-			u.UserLimit &= ^LimitPeng
-			u.UserLimit &= ^LimitGang
-
-			room.DataMgr.NotifySendCard(u, card, false)
-
-			//响应判断
-			bAroseAction := room.DataMgr.EstimateUserRespond(u.ChairId, card, EstimatKind_OutCard)
-
-			//派发扑克
-			if !bAroseAction {
-				if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
-					room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
-				}
-			}
+			room.OutCard([]interface{}{u, card, true})
 		} else if room.DataMgr.GetCurrentUser() == INVALID_CHAIR && !room.DataMgr.IsActionDone() {
-			//operatecard := make([]int, 3)
 			u := room.UserMgr.GetUserByChairId(wChairID)
 			if u == nil {
 				return false
 			}
-			//room.Operater(u, operatecard, WIK_NULL, false)
+			operateCard := []int{0, 0, 0}
+			room.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
 		}
 	}
 	return true

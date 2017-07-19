@@ -1,33 +1,42 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
-	//"mj/common/cost"
-	"mj/hallServer/conf"
-
 	"errors"
-
+	"mj/common/consul"
+	"mj/common/cost"
+	"mj/common/msg"
+	"mj/hallServer/conf"
 	"mj/hallServer/user"
+	"strconv"
+	"strings"
 
+	"mj/common/register"
+
+	"regexp"
+
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-//中心模块 ， 投递消息给别的玩家， 或者别的服务器上的玩家
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
+var (
+	GamelistRpc *chanrpc.Server
+)
 
 func init() {
-	handleRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
-	handleRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
-	handleRpc("NotifyOtherNodeLogin", NotifyOtherNodeLogin)
-	handleRpc("NotifyOtherNodelogout", NotifyOtherNodelogout)
-	handleRpc("SendMsgToUser", GoMsgToUser)
-	handleRpc("GetPlayerInfo", GetPlayerInfo)
-	handleRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	handleRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
+	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
+	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
+	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("ServerFaild", serverFaild)
+	reg.RegisterRpc("ServerStart", serverStart)
+
+	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
+	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
+
+	consul.SetHookRpc(ChanRPC)
 }
 
 //玩家在本服节点登录
@@ -35,48 +44,33 @@ func SelfNodeAddPlayer(args []interface{}) {
 	uid := args[0].(int64)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
-	//cluster.Broadcast(cost.HallPrefix,"NotifyOtherNodeLogin", uid, conf.ServerName())
+	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodeLogin{
+		Uid:        uid,
+		ServerName: conf.ServerName(),
+	})
 }
 
 //本服玩家登出
 func SelfNodeDelPlayer(args []interface{}) {
 	uid := args[0].(int64)
 	delete(Users, uid)
-	//cluster.Broadcast(cost.HallPrefix,"NotifyOtherNodelogout", uid)
+	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodelogout{
+		Uid: uid,
+	})
 }
 
 //玩家在别的节点登录了
 func NotifyOtherNodeLogin(args []interface{}) {
-	uid := args[0].(int64)
-	ServerName := args[1].(string)
-	OtherUsers[uid] = ServerName
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodeLogin)
+	OtherUsers[recvMsg.Uid] = recvMsg.ServerName
+	log.Debug("user %d login on %s", recvMsg.Uid, recvMsg.ServerName)
 }
 
 //玩家在别的节点登出了
 func NotifyOtherNodelogout(args []interface{}) {
-	uid := args[0].(int64)
-	delete(OtherUsers, uid)
-}
-
-//发消息给别的玩家
-func GoMsgToUser(args []interface{}) {
-	uid := args[0].(int64)
-	FuncName := args[1].(string)
-	ch, ok := Users[uid]
-	if ok {
-		ch.Go(FuncName, args[2:]...)
-		return
-	}
-
-	ServerName, ok1 := OtherUsers[uid]
-	if ServerName == conf.ServerName() {
-		log.Error("self server user not login .... ")
-		return
-	}
-
-	if ok1 {
-		cluster.Go(ServerName, "SendMsgToUser", args...)
-	}
+	recvMsg := args[0].(*msg.S2S_NotifyOtherNodelogout)
+	log.Debug("user %d logout on %s", recvMsg.Uid, OtherUsers[recvMsg.Uid])
+	delete(OtherUsers, recvMsg.Uid)
 }
 
 func SendMsgToSelfNotdeUser(args []interface{}) {
@@ -98,15 +92,10 @@ func HanldeFromGameMsg(args []interface{}) {
 	SendMsgToSelfNotdeUser(args)
 }
 
-//异步回调消息给别的玩家
-func AsyncCallUser(args []interface{}) {
-
-}
-
 func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int64)
-	log.Debug("at GetPlayerInfo uid:%d", uid)
-	ch, chok := Users[uid]
+	recvMsg := args[0].(*msg.S2S_GetPlayerInfo)
+	log.Debug("at GetPlayerInfo uid:%d", recvMsg.Uid)
+	ch, chok := Users[recvMsg.Uid]
 	if !chok {
 		return nil, errors.New("not foud user ch")
 	}
@@ -120,25 +109,57 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		return nil, errors.New("user data error")
 	}
 
-	gu := map[string]interface{}{
-		"Id":          u.Id,
-		"NickName":    u.NickName,
-		"Currency":    u.Currency,
-		"RoomCard":    u.RoomCard,
-		"FaceID":      u.FaceID,
-		"CustomID":    u.CustomID,
-		"HeadImgUrl":  u.HeadImgUrl,
-		"Experience":  u.Experience,
-		"Gender":      u.Gender,
-		"WinCount":    u.WinCount,
-		"LostCount":   u.LostCount,
-		"DrawCount":   u.DrawCount,
-		"FleeCount":   u.FleeCount,
-		"UserRight":   u.Accountsmember.UserRight,
-		"Score":       u.Score,
-		"Revenue":     u.Revenue,
-		"InsureScore": u.InsureScore,
-		"MemberOrder": u.MemberOrder,
+	gu := &msg.S2S_GetPlayerInfoResult{
+		Id:          u.Id,
+		NickName:    u.NickName,
+		Currency:    u.Currency,
+		RoomCard:    u.RoomCard,
+		FaceID:      u.FaceID,
+		CustomID:    u.CustomID,
+		HeadImgUrl:  u.HeadImgUrl,
+		Experience:  u.Experience,
+		Gender:      u.Gender,
+		WinCount:    u.WinCount,
+		LostCount:   u.LostCount,
+		DrawCount:   u.DrawCount,
+		FleeCount:   u.FleeCount,
+		UserRight:   u.Accountsmember.UserRight,
+		Score:       u.Score,
+		Revenue:     u.Revenue,
+		InsureScore: u.InsureScore,
+		MemberOrder: u.MemberOrder,
+		RoomId:      u.Roomid,
 	}
 	return gu, nil
+}
+
+//新的节点启动了
+func serverStart(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s on line", svr.Csid)
+	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
+	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服启动
+		GamelistRpc.Go("NewServerAgent", svr.Csid)
+	}
+}
+
+//节点关闭了
+func serverFaild(args []interface{}) {
+	svr := args[0].(*consul.CacheInfo)
+	log.Debug("%s off line", svr.Csid)
+	list := strings.Split(svr.Csid, "_")
+	if len(list) < 2 {
+		log.Error("at ServerFaild param error ")
+		return
+	}
+
+	id, err := strconv.Atoi(list[1])
+	if err != nil {
+		log.Error("at ServerFaild param error : %s", err.Error())
+		return
+	}
+	cluster.RemoveClient(svr.Csid)
+	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服关闭
+		GamelistRpc.Go("FaildServerAgent", id)
+	}
 }

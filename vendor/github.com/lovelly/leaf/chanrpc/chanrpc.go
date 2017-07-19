@@ -422,16 +422,19 @@ func (c *Client) RpcCall(id interface{}, args ...interface{}) {
 	cb := args[lastIndex]
 	args = args[:lastIndex]
 
+	var cbFunc func(*RetInfo)
+	if cb != nil {
+		cbFunc = cb.(func(*RetInfo))
+	}
+
 	var err error
 	f := c.s.functions[id]
 	if f == nil {
 		err = fmt.Errorf("function id %v: function not registered", id)
+		if cbFunc != nil {
+			cbFunc(&RetInfo{Ret: nil, Err: err})
+		}
 		return
-	}
-
-	var cbFunc func(*RetInfo)
-	if cb != nil {
-		cbFunc = cb.(func(*RetInfo))
 	}
 
 	err = c.call(&CallInfo{
@@ -439,6 +442,7 @@ func (c *Client) RpcCall(id interface{}, args ...interface{}) {
 		args:  args,
 		cb:    cb,
 	}, false)
+
 	if err != nil && cbFunc != nil {
 		cbFunc(&RetInfo{Ret: nil, Err: err})
 	}

@@ -1,9 +1,7 @@
 package msg
 
 import (
-	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
-	//"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -23,6 +21,7 @@ func init() {
 	Processor.Register(&L2C_UserIndividual{})
 	Processor.Register(&C2L_GetRoomList{})
 	Processor.Register(&C2L_QuickMatch{})
+	Processor.Register(&L2C_CreateTableFailure{})
 
 	Processor.Register(&C2L_ReqCreatorRoomRecord{})
 	Processor.Register(&C2L_ReqRoomPlayerBrief{})
@@ -34,6 +33,10 @@ func init() {
 	Processor.Register(&L2C_ActivityInfo{})
 	Processor.Register(&C2L_SetElect{})
 	Processor.Register(&L2C_SetElectResult{})
+	Processor.Register(&L2C_GetRoomList{})
+	Processor.Register(&L2C_QuickMatchOk{})
+	Processor.Register(&C2L_DeleteRoom{})
+	Processor.Register(&L2C_DeleteRoomResult{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -43,7 +46,7 @@ func init() {
 	Processor.Register(&C2G_GR_LogonMobile{})
 	Processor.Register(&C2G_GR_UserChairReq{})
 	Processor.Register(&C2L_CreateTable{})
-	Processor.Register(&L2C_CreateTableFailure{})
+	Processor.Register(&G2C_InitRoomFailure{})
 	Processor.Register(&L2C_CreateTableSucess{})
 	Processor.Register(&C2L_SearchServerTable{})
 	Processor.Register(&L2C_SearchResult{})
@@ -57,7 +60,7 @@ func init() {
 	Processor.Register(&C2G_REQUserInfo{})
 	Processor.Register(&G2C_GameStatus{})
 	Processor.Register(&C2G_REQUserChairInfo{})
-	Processor.Register(&G2C_LogonFailur{})
+	Processor.Register(&G2C_LogonFailure{})
 	Processor.Register(&C2G_UserStandup{})
 	Processor.Register(&C2G_UserReady{})
 	Processor.Register(&G2C_Hu_Data{})
@@ -67,6 +70,7 @@ func init() {
 	Processor.Register(&G2C_PersonalTableEnd{})
 	Processor.Register(&C2G_LoadRoom{})
 	Processor.Register(&G2C_LoadRoomOk{})
+	Processor.Register(&G2C_GameConclude{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
