@@ -1036,7 +1036,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 			inc++
 		}
 	}
-	log.Debug("end SetUserCard", room.CardIndex[charirID])
+	log.Debug("end SetUserCard %v", room.CardIndex[charirID])
 }
 
 func (room *RoomData) CheckZiMo() {
