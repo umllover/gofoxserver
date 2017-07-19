@@ -24,6 +24,7 @@ func init() {
 	msg.Processor.Register(&G2C_MJZP_UserCharHua{})
 	msg.Processor.Register(&G2C_MJZP_OperateNotify{})
 	msg.Processor.Register(&G2C_ZPMJ_HuData{})
+	msg.Processor.Register(&G2C_ZPMJ_GameConclude{})
 }
 
 type G2C_MJZP_OperateNotify struct {
@@ -84,7 +85,7 @@ type C2G_ZPMJ_OperateCard struct {
 }
 
 //游戏结束
-type G2C_GameConclude struct {
+type G2C_ZPMJ_GameConclude struct {
 	//积分变量
 	CellScore int   //单元积分
 	GameScore []int //游戏积分
@@ -98,7 +99,7 @@ type G2C_GameConclude struct {
 	ChiHuRight   []int        //胡牌类型
 	LeftUser     int          //玩家逃跑
 	LianZhuang   int          //连庄
-	ScoreKind    [4][35]int   //得分类型
+	ScoreKind    [4][36]int   //得分类型
 	ZhuaHua      [16]*HuaUser //用户抓花
 	//type HuaUser struct {
 	//	chairID int
@@ -252,4 +253,6 @@ type G2C_PersonalTableTip struct {
 	ZhuaHua    int  //抓花数
 	WithZiCard bool //是否带大字
 	ScoreType  int  //得分类型
+	WithChaHua bool //是否插花
+	PayType    int  //付费方式 支付方式 1是全服 2是AA
 }

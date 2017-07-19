@@ -14,8 +14,6 @@ func init() {
 	Processor.Register(&G2C_DDZ_StatusCall{})
 	Processor.Register(&G2C_DDZ_StatusPlay{})
 	Processor.Register(&G2C_DDZ_GameStart{})
-	Processor.Register(&G2C_DDZ_AndroidCard{})
-	Processor.Register(&G2C_DDZ_CheatCard{})
 	Processor.Register(&G2C_DDZ_CallScore{})
 	Processor.Register(&G2C_DDZ_BankerInfo{})
 	Processor.Register(&G2C_DDZ_OutCard{})
@@ -27,10 +25,19 @@ func init() {
 	Processor.Register(&C2G_DDZ_TRUSTEE{})
 }
 
+// 游戏场景
+type G2C_DDZ_GAMESTATUS struct {
+	StatusData string // 场景附带消息，json格式
+}
+
 //空闲状态
 type G2C_DDZ_StatusFree struct {
 	// 游戏属性
 	CellScore int // 基础积分
+
+	GameType  int  // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
+	EightKing bool // 是否八王模式
+	PlayCount int  // 游戏局数
 
 	// 时间信息
 	TimeOutCard     int // 出牌时间
@@ -41,6 +48,9 @@ type G2C_DDZ_StatusFree struct {
 	// 历史积分
 	TurnScore    []int //积分信息
 	CollectScore []int //积分信息
+
+	ShowCardSign map[int]bool // 用户明牌标识
+	TrusteeSign  []bool       // 托管标识
 }
 
 //叫分状态
@@ -52,19 +62,22 @@ type G2C_DDZ_StatusCall struct {
 	TimeHeadOutCard int //首出时间
 
 	// 游戏信息
-	CellScore    int   // 单元积分
-	CurrentUser  int   // 当前玩家
-	BankerScore  int   // 庄家叫分
-	ScoreInfo    []int // 叫分信息
-	HandCardData []int // 手上扑克
+	GameType      int   // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
+	LaiziCard     int   // 癞子牌
+	EightKing     bool  // 是否八王模式
+	CellScore     int   // 单元积分
+	CurrentUser   int   // 当前玩家
+	BankerScore   int   // 庄家叫分
+	ScoreInfo     []int // 叫分信息
+	HandCardCount []int //扑克数目
 
 	// 历史积分
 	TurnScore    []int // 积分信息
 	CollectScore []int // 积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool  // 明牌标识
-	ShowCardData map[int][]int // 明牌数据
+	ShowCardSign map[int]bool // 明牌标识
+	ShowCardData [][]int      // 明牌数据
 }
 
 //游戏状态
@@ -76,74 +89,57 @@ type G2C_DDZ_StatusPlay struct {
 	TimeHeadOutCard int //首出时间
 
 	//游戏变量
-	CellScore   int //单元积分
-	BombCount   int //炸弹次数
-	BankerUser  int //庄家用户
-	CurrentUser int //当前玩家
-	BankerScore int //庄家叫分
+	CellScore int //单元积分
+
+	BankerUser  int  //庄家用户
+	CurrentUser int  //当前玩家
+	BankerScore int  //庄家叫分
+	EightKing   bool // 是否八王模式
+	GameType    int  // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
+	LaiziCard   int  // 癞子牌
 
 	//出牌信息
-	TurnWiner     int   //出牌玩家
-	TurnCardCount int   //出牌数目
-	TurnCardData  []int //出牌数据
+	TurnWiner    int   //出牌玩家
+	TurnCardData []int //出牌数据
 
 	//扑克信息
 	BankerCard    [3]int //游戏底牌
-	HandCardData  []int  //手上扑克
 	HandCardCount []int  //扑克数目
 
+	EachBombCount []int // 炸弹个数
+	KingCount     []int // 八王个数
 	//历史积分
 	TurnScore    []int //积分信息
 	CollectScore []int //积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool  // 明牌标识
-	ShowCardData map[int][]int // 明牌数据
+	ShowCardSign map[int]bool // 明牌标识
+	ShowCardData [][]int      // 明牌数据
 }
 
 //发送扑克
 type G2C_DDZ_GameStart struct {
-	StartUser      int   //开始玩家
-	CurrentUser    int   //当前玩家
-	ValidCardData  int   //明牌扑克
-	ValidCardIndex int   //明牌位置
-	CardData       []int //扑克列表
-}
-
-//机器人扑克
-type G2C_DDZ_AndroidCard struct {
-	HandCard    [][]int //手上扑克
-	CurrentUser int     //当前玩家
-}
-
-//作弊扑克
-type G2C_DDZ_CheatCard struct {
-	CardUser  []int   //作弊玩家
-	UserCount int     //作弊数量
-	CardData  [][]int //扑克列表
-	CardCount []int   //扑克数量
-
+	CallScoreUser int          // 叫分玩家
+	LiziCard      int          // 癞子牌
+	ShowCard      map[int]bool // 明牌信息
+	CardData      [][]int      // 扑克列表
 }
 
 //用户叫分
 type G2C_DDZ_CallScore struct {
-	CurrentUser   int //当前玩家
-	CallScoreUser int //叫分玩家
-	CurrentScore  int //当前叫分
-	UserCallScore int //上次叫分
+	ScoreInfo []int // 叫分信息
 }
 
 //庄家信息
 type G2C_DDZ_BankerInfo struct {
-	BankerUser  int    //庄家玩家
-	CurrentUser int    //当前玩家
-	BankerScore int    //庄家叫分
-	BankerCard  [3]int //庄家扑克
+	BankerUser  int    // 庄家玩家
+	CurrentUser int    // 当前玩家
+	BankerScore int    // 庄家叫分
+	BankerCard  [3]int // 庄家扑克
 }
 
 //用户出牌
 type G2C_DDZ_OutCard struct {
-	CardCount   int   //出牌数目
 	CurrentUser int   //当前玩家
 	OutCardUser int   //出牌玩家
 	CardData    []int //扑克列表
@@ -151,9 +147,9 @@ type G2C_DDZ_OutCard struct {
 
 //放弃出牌
 type G2C_DDZ_PassCard struct {
-	TurnOver     int //一轮结束
-	CurrentUser  int //当前玩家
-	PassCardUser int //放弃玩家
+	TurnOver     bool //一轮结束
+	CurrentUser  int  //当前玩家
+	PassCardUser int  //放弃玩家
 }
 
 //游戏结束
@@ -187,6 +183,14 @@ type G2C_DDZ_ShowCard struct {
 	CardData     []int // 明牌数据
 }
 
+// 叫分失败
+type G2C_DDZ_CALLScoreFail struct {
+	CallScoreUser int    // 当前叫分玩家
+	CallScore     int    // 当前叫分
+	ErrorCode     int    // 错误代码
+	ErrorStr      string // 错误信息
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 //C->S
 
@@ -197,8 +201,8 @@ type C2G_DDZ_CallScore struct {
 
 //用户出牌
 type C2G_DDZ_OutCard struct {
-	CardCount int   //出牌数目
-	CardData  []int //扑克数据
+	CardType int   // 牌型
+	CardData []int //扑克数据
 }
 
 //托管
