@@ -99,7 +99,7 @@ type G2C_ZPMJ_GameConclude struct {
 	ChiHuRight   []int        //胡牌类型
 	LeftUser     int          //玩家逃跑
 	LianZhuang   int          //连庄
-	ScoreKind    [4][35]int   //得分类型
+	ScoreKind    [4][36]int   //得分类型
 	ZhuaHua      [16]*HuaUser //用户抓花
 	//type HuaUser struct {
 	//	chairID int
@@ -253,4 +253,6 @@ type G2C_PersonalTableTip struct {
 	ZhuaHua    int  //抓花数
 	WithZiCard bool //是否带大字
 	ScoreType  int  //得分类型
+	WithChaHua bool //是否插花
+	PayType    int  //付费方式 支付方式 1是全服 2是AA
 }

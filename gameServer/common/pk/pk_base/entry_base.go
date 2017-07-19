@@ -4,14 +4,13 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
-	//"mj/common/msg/pk_sss_msg"
+	"mj/gameServer/common/pk"
+
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-
-	"mj/gameServer/common/pk"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -34,9 +33,9 @@ type Entry_base struct {
 	DataMgr  pk.DataManager
 	LogicMgr pk.LogicManager
 
-	Temp              *base.GameServiceOption //模板
-	Status            int
-	BtCardSpecialData []int
+	Temp   *base.GameServiceOption //模板
+	Status int
+	
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
@@ -88,7 +87,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, chairID)
+	retcode = r.UserMgr.Sit(u,chairID)
 
 }
 
@@ -212,17 +211,7 @@ func (room *Entry_base) OffLineTimeOut(u *user.User) {
 
 //获取房间基础信息
 func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
-	msg := &msg.RoomInfo{}
-	msg.ServerID = room.Temp.ServerID
-	msg.KindID = room.Temp.KindID
-	msg.NodeID = conf.Server.NodeId
-	msg.RoomID = room.DataMgr.GetRoomId()
-	msg.CurCnt = room.UserMgr.GetCurPlayerCnt()
-	msg.MaxPlayerCnt = room.UserMgr.GetMaxPlayerCnt()    //最多多人数
-	msg.PayCnt = room.TimerMgr.GetMaxPayCnt()      //可玩局数
-	msg.CurPayCnt = room.TimerMgr.GetPlayCount()   //已玩局数
-	msg.CreateTime = room.TimerMgr.GetCreatrTime() //创建时间
-	return msg
+
 }
 
 //游戏配置
@@ -268,10 +257,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
 		room.DataMgr.AfterEnd(false)
 		return
-	case GER_USER_LEAVE: //用户强退
-		if (room.Temp.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
-			return
-		}
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)

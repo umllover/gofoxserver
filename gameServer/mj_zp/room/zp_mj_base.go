@@ -60,9 +60,6 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		retcode = NotValidCard
 	}
 
-	//清除出牌禁忌
-	room.DataMgr.ClearBanCard(u.ChairId)
-
 	//删除扑克
 	if !room.LogicMgr.RemoveCard(room.DataMgr.GetUserCardIndex(u.ChairId), CardData) {
 		log.Error("zpmj at OnUserOutCard not have card ")
@@ -181,9 +178,6 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 				bAroseAction = room.DataMgr.EstimateUserRespond(u.ChairId, OperateCard[0], EstimatKind_GangCard)
 			}
 
-			//清除操作定时
-			room.DataMgr.StopOperateCardTimer(u)
-
 			//发送扑克
 			if !bAroseAction {
 				if room.DataMgr.DispatchCardData(u.ChairId, true) > 0 {
@@ -236,4 +230,19 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		}
 	}
 	return true
+}
+
+//游戏结束
+func (room *ZP_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+	switch cbReason {
+	case GER_NORMAL: //常规结束
+		room.DataMgr.NormalEnd()
+		room.AfertEnd(false)
+	case GER_DISMISS: //游戏解散
+		room.DataMgr.DismissEnd()
+		room.AfertEnd(true)
+	}
+
+	log.Debug("zpmj at OnEventGameConclude cbReason:%d ", cbReason)
+	return
 }
