@@ -108,9 +108,24 @@ type C2L_SetElect struct {
 	ElectUid int64 //推荐人id
 }
 
+//设置推荐人结果
+type L2C_SetElectResult struct {
+	RetCode int // 0带表成功， 其他则是错误码
+}
+
 //绑定手机号码
 type C2L_SetPhoneNumber struct {
 	PhoneNumber string
+	MaskCode    int
+}
+
+//请求获取验证号码
+type C2L_ReqBindMaskCode struct {
+}
+
+//请求获取验证号码返回
+type L2C_ReqBindMaskCodeRsp struct {
+	Code int //非0位失败
 }
 
 //绑定手机结果
@@ -120,6 +135,7 @@ type L2C_SetPhoneNumberRsp struct {
 
 //点赞
 type C2L_DianZhan struct {
+	UserID int //用户id
 }
 
 //点赞结果
@@ -138,6 +154,7 @@ type L2C_RenewalFeesRsp struct {
 
 //修改名字
 type C2L_ChangeUserName struct {
+	NewName string
 }
 
 //修改名字结果
@@ -147,6 +164,7 @@ type L2C_ChangeUserNameRsp struct {
 
 //修改个性签名
 type C2L_ChangeSign struct {
+	Sign string
 }
 
 //修改个性签名结果
@@ -219,6 +237,7 @@ type L2C_UserIndividual struct {
 	HeadImgUrl  string
 	PhomeNumber string //电话号码
 	Sign        string //个性签名
+	Star        int    //赞数
 }
 
 //返回房间列表
@@ -271,9 +290,4 @@ type L2C_DrawSahreAwardResult struct {
 	DrawId  int //领取奖励的key
 	Times   int //已经领取的次数
 	RetCode int //领取成功还是失败的结果
-}
-
-//设置推荐人结果
-type L2C_SetElectResult struct {
-	RetCode int // 0带表成功， 其他则是错误码
 }
