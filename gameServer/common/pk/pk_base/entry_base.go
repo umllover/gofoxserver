@@ -211,7 +211,23 @@ func (room *Entry_base) OffLineTimeOut(u *user.User) {
 
 //获取房间基础信息
 func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
-
+	BirefInf := &msg.RoomInfo{}
+	BirefInf.ServerID = room.Temp.ServerID
+	BirefInf.KindID = room.Temp.KindID
+	BirefInf.NodeID = conf.Server.NodeId
+	BirefInf.SvrHost = conf.Server.WSAddr
+	BirefInf.PayType = room.UserMgr.GetPayType()
+	BirefInf.RoomID = room.DataMgr.GetRoomId()
+	BirefInf.CurCnt = room.UserMgr.GetCurPlayerCnt()
+	BirefInf.MaxPlayerCnt = room.UserMgr.GetMaxPlayerCnt() //最多多人数
+	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()         //可玩局数
+	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
+	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
+	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	BirefInf.IsPublic = room.UserMgr.IsPublic()
+	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
+	BirefInf.MachPlayer = make(map[int64]struct{})
+	return BirefInf
 }
 
 //游戏配置
