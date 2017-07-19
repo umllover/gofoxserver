@@ -8,7 +8,6 @@ import (
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -269,12 +268,12 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
-		log.Error("room.UserAction[ChairId] == WIK_NULL ChairId:%d", ChairId)
+		log.Error("room.UserAction[ChairId] == WIK_NULL, ChairId:%d", ChairId)
 		return false
 	}
 
 	if OperateCode != WIK_NULL && ((room.UserAction[ChairId] & OperateCode) == 0) {
-		log.Error("HasOperator return false, ChairId=%d, OperateCode=%d, UserAction=%v", ChairId, OperateCode, room.UserAction[ChairId])
+		//log.Error("HasOperator return false, ChairId=%d, OperateCode=%d, UserAction=%v", ChairId, OperateCode, room.UserAction[ChairId])
 		return false
 	}
 
@@ -314,7 +313,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	for i := 0; i < userCnt; i++ {
 		//获取动作
 		cbUserAction := room.UserAction[i]
-		if room.IsResponse[wTargetUser] {
+		if room.IsResponse[i] {
 			cbUserAction = room.PerformAction[i]
 		}
 
@@ -330,6 +329,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	}
 
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
+		log.Error("CheckUserOperator wTargetUser=%d, ChairId=%d, room.IsResponse=%v", wTargetUser, u.ChairId, room.IsResponse)
 		return -1, u.ChairId
 	}
 
@@ -472,6 +472,7 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 		cbWeave.ProvideUser = u.ChairId
 		cbWeave.WeaveKind = cbOperateCode
 		cbWeave.CenterCard = cbOperateCard[0]
+		cbWeave.CardData = make([]int, 4)
 		for j := 0; j < 4; j++ {
 			cbWeave.CardData[j] = cbOperateCard[0]
 		}
@@ -504,6 +505,8 @@ func (room *RoomData) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
 		OperateResult.OperateUser = wrave.OperateUser
 		OperateResult.ActionMask = wrave.ActionMask
 	}
+	log.Debug("############# SendOperateResult OperateUser=%d, ProvideUser=%d", OperateResult.OperateUser, OperateResult.ProvideUser)
+	log.Debug("############# SendOperateResult ActionMask=%d, OperateCode=%d, OperateCard=%v", OperateResult.ActionMask, OperateResult.OperateCode, OperateResult.OperateCard)
 	room.MjBase.UserMgr.SendMsgAll(OperateResult)
 }
 
@@ -677,6 +680,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 
 		//发送提示
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 			if room.UserAction[u.ChairId] != WIK_NULL {
 				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
@@ -927,9 +931,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	if conf.Test {
+	/*	if conf.Test {
 		room.RepalceCard()
-	}
+	}*/
 
 	//newCar := make([]int, room.GetCfg().MaxIdx)
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
