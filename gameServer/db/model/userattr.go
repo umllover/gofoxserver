@@ -32,6 +32,9 @@ type Userattr struct {
 	Gender          int8   `db:"Gender" json:"Gender"`                   // 性别
 	NickName        string `db:"NickName" json:"NickName"`               //
 	ElectUid        int64  `db:"elect_uid" json:"elect_uid"`             // 推举人id
+	Star            int    `db:"star" json:"star"`                       // 点赞数
+	Sign            int    `db:"Sign" json:"Sign"`                       // 个性签名
+	PhomeNumber     int    `db:"phome_number" json:"phome_number"`       // 电话号码
 }
 
 type userattrOp struct{}
@@ -109,7 +112,7 @@ func (op *userattrOp) Insert(m *Userattr) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
-	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName,elect_uid) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName,elect_uid,star,Sign,phome_number) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.UnderWrite,
@@ -127,6 +130,9 @@ func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
 		m.Gender,
 		m.NickName,
 		m.ElectUid,
+		m.Star,
+		m.Sign,
+		m.PhomeNumber,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -153,7 +159,7 @@ func (op *userattrOp) Update(m *Userattr) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
-	sql := `update userattr set UnderWrite=?,FaceID=?,CustomID=?,UserMedal=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,MasterOrder=?,PlayTimeCount=?,OnLineTimeCount=?,HeadImgUrl=?,Gender=?,NickName=?,elect_uid=? where UserID=?`
+	sql := `update userattr set UnderWrite=?,FaceID=?,CustomID=?,UserMedal=?,Experience=?,LoveLiness=?,UserRight=?,MasterRight=?,MasterOrder=?,PlayTimeCount=?,OnLineTimeCount=?,HeadImgUrl=?,Gender=?,NickName=?,elect_uid=?,star=?,Sign=?,phome_number=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.UnderWrite,
 		m.FaceID,
@@ -170,6 +176,9 @@ func (op *userattrOp) UpdateTx(ext sqlx.Ext, m *Userattr) error {
 		m.Gender,
 		m.NickName,
 		m.ElectUid,
+		m.Star,
+		m.Sign,
+		m.PhomeNumber,
 		m.UserID,
 	)
 

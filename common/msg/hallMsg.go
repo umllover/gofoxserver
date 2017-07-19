@@ -113,12 +113,6 @@ type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
 }
 
-//绑定手机号码
-type C2L_SetPhoneNumber struct {
-	PhoneNumber string
-	MaskCode    int
-}
-
 //请求获取验证号码
 type C2L_ReqBindMaskCode struct {
 }
@@ -126,6 +120,12 @@ type C2L_ReqBindMaskCode struct {
 //请求获取验证号码返回
 type L2C_ReqBindMaskCodeRsp struct {
 	Code int //非0位失败
+}
+
+//绑定手机号码
+type C2L_SetPhoneNumber struct {
+	PhoneNumber string
+	MaskCode    int
 }
 
 //绑定手机结果

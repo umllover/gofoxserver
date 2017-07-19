@@ -151,6 +151,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			r := RoomMgr.GetRoom(user.RoomId)
 			if r != nil {
 				r.GetChanRPC().Go("userRelogin", user)
+			} else {
+				user.KindID = recvMsg.KindID
+				user.ServerID = recvMsg.ServerID
+				user.RoomId = 0
 			}
 		}
 		user.ChanRPC().Go("ForceClose")
