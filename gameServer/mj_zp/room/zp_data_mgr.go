@@ -183,6 +183,7 @@ func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
 func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
+		log.Debug("开始11111111111111")
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
 		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
@@ -209,6 +210,7 @@ func (room *ZP_RoomData) StartGameing() {
 			room.OutCardTimer(u)
 		})
 	} else {
+		log.Debug("开始2222222222222222")
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -230,17 +232,18 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 //获得插花
 func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
+	log.Debug("获得插花")
 	room.ChaHuaMap[u.ChairId] = setCount
 
 	sendData := &mj_zp_msg.G2C_MJZP_UserCharHua{}
 	sendData.SetCount = setCount
 	sendData.Chair = u.ChairId
 	room.MjBase.UserMgr.SendMsgAll(sendData)
-	if len(room.ChaHuaMap) == 4 {
+	if len(room.ChaHuaMap) == 4 && room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
-
+		log.Debug("开始333333333333")
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -362,9 +365,9 @@ func (room *ZP_RoomData) InitBuHua() {
 					room.MjBase.UserMgr.SendMsgAll(outData)
 					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), outData.NewCard)
 					room.FlowerCnt[playerIndex]++
-					room.CardIndex[playerIndex][newCardIndex]++
+					room.CardIndex[playerIndex][j]--
 					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
-						room.CardIndex[playerIndex][j]--
+						room.CardIndex[playerIndex][newCardIndex]++
 						if playerIndex == room.BankerUser {
 							room.SendCardData = outData.NewCard
 						}
@@ -1267,6 +1270,7 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 //总得分计算和得分类型统计
 func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 	log.Debug("总得分计算和得分类型统计 赢人：%d", len(WinUser))
+	log.Debug("补花数：%v", room.FlowerCnt)
 
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
@@ -1821,10 +1825,11 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 				outData.IsInitFlower = false
 				outData.ReplaceUser = wCurrentUser
 				outData.ReplaceCard = room.ProvideCard
-				room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+				room.ProvideCard = room.GetSendCard(true, room.MjBase.UserMgr.GetMaxPlayerCnt())
 				outData.NewCard = room.ProvideCard
 				room.MjBase.UserMgr.SendMsgAll(outData)
 				room.FlowerCnt[wCurrentUser]++
+				log.Debug("用户%d补花数：%d %d", wCurrentUser, room.FlowerCnt[wCurrentUser], outData.ReplaceCard)
 			} else {
 				break
 			}
