@@ -27,7 +27,7 @@ var UserSpreadOp = &userSpreadOp{}
 var DefaultUserSpread = &UserSpread{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userSpreadOp) Get(user_id int64, spread_uid int) (*UserSpread, bool) {
+func (op *userSpreadOp) Get(user_id int64, spread_uid int64) (*UserSpread, bool) {
 	obj := &UserSpread{}
 	sql := "select * from user_spread where user_id=? and spread_uid=? "
 	err := db.DB.Get(obj, sql,
@@ -175,12 +175,12 @@ func (i *UserSpread) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *userSpreadOp) Delete(user_id int64, spread_uid int) error {
+func (op *userSpreadOp) Delete(user_id int64, spread_uid int64) error {
 	return op.DeleteTx(db.DB, user_id, spread_uid)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userSpreadOp) DeleteTx(ext sqlx.Ext, user_id int64, spread_uid int) error {
+func (op *userSpreadOp) DeleteTx(ext sqlx.Ext, user_id int64, spread_uid int64) error {
 	sql := `delete from user_spread where 1=1
         and user_id=?
         and spread_uid=?
