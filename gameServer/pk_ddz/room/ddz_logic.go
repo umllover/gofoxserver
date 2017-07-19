@@ -9,6 +9,7 @@ import (
 	"mj/common/msg/pk_ddz_msg"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/util"
 )
 
 func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
@@ -26,38 +27,13 @@ func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
 type ddz_logic struct {
 	*pk_base.BaseLogic
 	GameType int
+	LizeCard int
 }
 
 const (
-	// 牌类型
-	CT_ERROR          = 0  // 错误类型
-	CT_SINGLE         = 1  // 单张牌（散牌）
-	CT_DOUBLE         = 2  // 对子牌
-	CT_THREE          = 3  // 三张牌
-	CT_SINGLE_LINE    = 4  // 单顺子
-	CT_DOUBLE_LINE    = 5  // 双顺子
-	CT_THREE_LINE     = 6  // 三顺子
-	CT_THREE_TAKE_ONE = 7  // 三带一
-	CT_THREE_TAKE_TWO = 8  // 三带二
-	CT_FOUR_TAKE_ONE  = 9  // 四带两单
-	CT_FOUR_TAKE_TWO  = 10 // 四带两对
-	CT_BOMB_CARD      = 11 // 炸弹类型
-	CT_King_2         = 12 // 双王类型
-	CT_King_3         = 13 // 三王类型
-	CT_King_4         = 14 // 四王类型
-	CT_King_5         = 15 // 五王类型
-	CT_King_6         = 16 // 六王类型
-	CT_King_7         = 17 // 七王类型
-	CT_King_8         = 18 // 八王类型
 
 	// 数目定义
-	MAX_COUNT  = 20 //最大数目
-	FULL_COUNT = 54 //全牌数目
-
-	// 逻辑数目
-	NORMAL_COUNT    = 17 //常规数目
-	DISPATCH_COUNT  = 51 //派发数目
-	GOOD_CARD_COUTN = 38 //好牌数目
+	MAX_COUNT = 20 //最大数目
 
 	// 排序类型
 	ST_ORDER  = 1 //大小排序
@@ -69,12 +45,6 @@ const (
 
 	// 游戏人数
 	GAME_PLAYER = 3
-
-	// 游戏类型
-	/*GAME_TYPE_INVALID = 255 // 无效类型
-	GAME_TYPE_CLASSIC = 0   // 经典场
-	GAME_TYPE_HAPPY   = 1   // 欢乐场
-	GAME_TYPE_LZ      = 2   // 癞子场*/
 )
 
 type BaseLogic struct {
@@ -112,6 +82,449 @@ type tagSearchCardResult struct {
 	cbResultCard  [MAX_COUNT][MAX_COUNT]int //结果扑克
 }
 
+// 判断是否是火箭
+func (dg *ddz_logic) isRocketType(cardArr []int) (int, bool) {
+	var smallKing int // 小王数量
+	var largeKing int // 大王数量
+	for _, v := range cardArr {
+		if v == 0x4e {
+			smallKing++
+		} else if v == 0x4f {
+			largeKing++
+		} else {
+			break
+		}
+	}
+
+	if (smallKing + largeKing) == len(cardArr) {
+		var kingType int
+		kingType |= smallKing
+		kingType |= (largeKing << 4)
+		return CT_KING | kingType, true
+	}
+	return CT_ERROR, false
+}
+
+// 判断是否是炸弹
+func (dg *ddz_logic) isBombType(cardArr []int, AnalyseResult tagAnalyseResult) (int, bool) {
+	// 不是4张牌
+	if len(cardArr) != 4 {
+		return CT_ERROR, false
+	}
+
+	// 有王肯定不是炸弹
+	if dg.getKingCount(cardArr) > 0 {
+		return CT_ERROR, false
+	}
+
+	// 四张一样的，肯定是炸弹
+	if AnalyseResult.cbBlockCount[3] > 0 {
+		return CT_BOMB_CARD | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4), true
+	}
+	// 检查癞子是否能匹配
+	nCount := dg.getLaiziCount(cardArr)
+	if nCount > 0 {
+		// 有三张，肯定满足
+		if AnalyseResult.cbBlockCount[2] > 0 {
+			return CT_BOMB_CARD | (dg.getMaxLogicCardValueWithoutLaizi(cardArr) << 4) | nCount, true
+		}
+		// 两个对子
+		if AnalyseResult.cbBlockCount[1] == 2 {
+			return CT_BOMB_CARD | (dg.getMaxLogicCardValueWithoutLaizi(cardArr) << 4) | nCount, true
+		}
+		// 其它貌似不满足了
+	}
+	return CT_ERROR, false
+}
+
+// 判断是否是四带二
+func (dg *ddz_logic) isFourTakeTwo(cardArr []int, AnalyseResult tagAnalyseResult) (int, bool) {
+	nCount := len(cardArr)
+	if nCount != 6 && nCount != 8 {
+		return CT_ERROR, false
+	}
+
+	nLaiziCount := dg.getLaiziCount(cardArr)
+	// 有一对非癞子炸
+	if AnalyseResult.cbBlockCount[3] > 0 {
+		// 6根为4带两根单
+		if nCount == 6 {
+			return CT_FOUR_TAKE_TWO | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4) | 0, true
+		}
+		// 8根牌
+		if nCount == 8 {
+			// 四带两对
+			if AnalyseResult.cbBlockCount[1] == 2 {
+				return CT_FOUR_TAKE_TWO | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4) | 1, true
+			}
+			// 四带一对+至少一根癞子
+			if AnalyseResult.cbBlockCount[1] == 1 {
+				if nLaiziCount > 1 {
+					return CT_FOUR_TAKE_TWO | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4) | 1, true
+				} else {
+					return CT_ERROR, false
+				}
+			}
+			// 四带三个癞子+一个非癞子
+			if AnalyseResult.cbBlockCount[2] > 0 && dg.GetCardValue(AnalyseResult.cbCardData[2][0]) == dg.LizeCard {
+				return CT_FOUR_TAKE_TWO | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4) | 1, true
+			}
+			// 四带三个非癞子加一个癞子的情况不通过
+		}
+	} else if AnalyseResult.cbBlockCount[2] == 2 {
+		// 两对三张，其中有三张是癞子
+		if nLaiziCount == 3 {
+			// 只有6张，则是四带2
+			if nCount == 6 {
+				return CT_FOUR_TAKE_TWO | (dg.getMaxLogicCardValueWithoutLaizi(cardArr) << 4) | 0, true
+			}
+
+			// 8张则是四带两对
+			var maxValue int
+			if dg.GetCardValue(AnalyseResult.cbCardData[2][0]) != dg.LizeCard {
+				maxValue = dg.GetCardLogicValue(AnalyseResult.cbCardData[2][0])
+			} else {
+				maxValue = dg.GetCardLogicValue(AnalyseResult.cbCardData[2][3])
+			}
+
+			return CT_FOUR_TAKE_TWO | (maxValue << 4) | 1, true
+		}
+		// 如果两对三张都是非癞子，则其它即便两张都是癞子，也不符合
+	} else if AnalyseResult.cbBlockCount[2] == 1 {
+		// 只有一对三张
+		// 6张，只要有一张癞子就符合条件
+		if nLaiziCount > 0 && nCount == 6 {
+			return CT_FOUR_TAKE_TWO | 2, true
+		}
+		// 8张，至少得有两对才符合
+		if nCount == 8 && nLaiziCount > 0 && AnalyseResult.cbBlockCount[1] == 2 {
+			return CT_FOUR_TAKE_TWO | 0x20, true
+		}
+	} else if nLaiziCount >= 2 && AnalyseResult.cbBlockCount[0] <= 2 {
+		// 有两张癞子，散牌数量小于等于2张
+		// 只有6张牌，则四带二
+		if nCount == 6 {
+			return CT_FOUR_TAKE_TWO | 2, true
+		}
+		// 8张牌，只有4个对子才符合
+		if nCount == 8 && AnalyseResult.cbBlockCount[0] == 0 {
+			return CT_FOUR_TAKE_TWO | 0x20, true
+		}
+	}
+
+	return CT_ERROR, false
+}
+
+// 是否是飞机带翅膀 9（未完待续）
+func (dg *ddz_logic) isThreeLineTake(cardArr []int, AnalyseResult tagAnalyseResult) (int, bool) {
+	if len(cardArr) < 8 {
+		return CT_ERROR, false
+	}
+
+	nCount := dg.getLaiziCount(cardArr)
+
+	if nCount == 0 {
+		// 至少两对三根
+		if AnalyseResult.cbBlockCount[2] < 2 {
+			return CT_ERROR, false
+		}
+		// 判断三根牌中是否连续
+		for i := 0; i < AnalyseResult.cbBlockCount[2]-1; i++ {
+			if AnalyseResult.cbCardData[2][i]-AnalyseResult.cbCardData[2][i+3] != 1 {
+				return CT_ERROR, false
+			}
+		}
+		// 是否带对子
+		if AnalyseResult.cbBlockCount[1] == AnalyseResult.cbBlockCount[2] {
+			return CT_THREE_LINE_TAKE | (AnalyseResult.cbBlockCount[1] << 4), true
+		}
+		// 是否是带单
+		if AnalyseResult.cbBlockCount[1]+AnalyseResult.cbBlockCount[0] == AnalyseResult.cbBlockCount[2] {
+			return CT_THREE_LINE_TAKE | AnalyseResult.cbBlockCount[2], true
+		}
+	} else if nCount == 1 {
+
+	}
+
+	return CT_ERROR, false
+}
+
+// 是否是三顺子
+func (dg *ddz_logic) isThreeLine(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) < 6 {
+		return false
+	}
+
+	var nLaizeCount int
+	var cards []int
+
+	for _, v := range cardArr {
+		if v > 0x4e || dg.GetCardValue(v) == 2 {
+			return false
+		}
+		if dg.GetCardValue(v) == dg.LizeCard {
+			nLaizeCount++
+		} else {
+			if dg.GetCardValue(v) == 1 {
+				cards = append(cards, 14)
+			} else {
+				cards = append(cards, dg.GetCardValue(v))
+			}
+		}
+	}
+
+	if nLaizeCount == 0 {
+		return dg.isThreeLineNoLaizi(cards)
+	}
+
+	for i := 0; i < nLaizeCount; i++ {
+		for j := 3; j < 14; j++ {
+			tmpCard := cards[:]
+			tmpCard = append(tmpCard, j)
+			if dg.isThreeLineNoLaizi(tmpCard) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (dg *ddz_logic) isThreeLineNoLaizi(cardArr []int) bool {
+	if len(cardArr) < 6 {
+		return false
+	}
+
+	dg.SortCardList(cardArr, len(cardArr))
+	for i := 0; i < len(cardArr)-3; i++ {
+		if cardArr[i]+1 != cardArr[i+3] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// 是否双顺子
+func (dg *ddz_logic) isDoubleLine(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) < 6 {
+		return false
+	}
+
+	var nLaizeCount int
+	var cards []int
+
+	for _, v := range cardArr {
+		if v > 0x4e || dg.GetCardValue(v) == 2 {
+			return false
+		}
+		if dg.GetCardValue(v) == dg.LizeCard {
+			nLaizeCount++
+		} else {
+			if dg.GetCardValue(v) == 1 {
+				cards = append(cards, 14)
+			} else {
+				cards = append(cards, dg.GetCardValue(v))
+			}
+		}
+	}
+
+	if nLaizeCount == 0 {
+		return dg.isDoubleLineNoLaizi(cards)
+	}
+
+	for i := 0; i < nLaizeCount; i++ {
+		for j := 3; j < 14; j++ {
+			tmpCard := cards[:]
+			tmpCard = append(tmpCard, j)
+			if dg.isDoubleLineNoLaizi(tmpCard) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (dg *ddz_logic) isDoubleLineNoLaizi(cardArr []int) bool {
+	if len(cardArr) < 6 {
+		return false
+	}
+
+	dg.SortCardList(cardArr, len(cardArr))
+	for i := 0; i < len(cardArr)-2; i++ {
+		if cardArr[i]+1 != cardArr[i+2] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// 是否单顺子
+func (dg *ddz_logic) isSingleLine(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) < 5 {
+		return false
+	}
+
+	var nLaizeCount int
+	var cards []int
+
+	for _, v := range cardArr {
+		if v > 0x4e || dg.GetCardValue(v) == 2 {
+			return false
+		}
+		if dg.GetCardValue(v) == dg.LizeCard {
+			nLaizeCount++
+		} else {
+			if dg.GetCardValue(v) == 1 {
+				cards = append(cards, 14)
+			} else {
+				cards = append(cards, dg.GetCardValue(v))
+			}
+		}
+	}
+
+	if nLaizeCount == 0 {
+		return dg.isSingleLineNoLiaiz(cards)
+	}
+
+	for i := 0; i < nLaizeCount; i++ {
+		for j := 3; j < 14; j++ {
+			tmpCard := cards[:]
+			tmpCard = append(tmpCard, j)
+			if dg.isSingleLineNoLiaiz(tmpCard) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// 判断无万能牌情况下的顺子
+func (dg *ddz_logic) isSingleLineNoLiaiz(cardArr []int) bool {
+	dg.SortCardList(cardArr, len(cardArr))
+	for i := 1; i < len(cardArr); i++ {
+		if cardArr[i-1]-cardArr[i] != 1 {
+			return false
+		}
+	}
+
+	return true
+}
+
+// 是否三带二
+func (dg *ddz_logic) isThreeTakeTwo(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) != 5 {
+		return false
+	}
+
+	// 有王就不符合
+	if dg.getKingCount(cardArr) > 0 {
+		return false
+	}
+
+	nCount := dg.getLaiziCount(cardArr)
+	// 有四张牌的
+	if AnalyseResult.cbBlockCount[3] > 0 {
+		// 四张癞子+一张非王
+		if nCount == 4 && AnalyseResult.cbCardData[0][0] < 0x4e {
+			return true
+		}
+		return false
+	}
+
+	// 有三张牌的
+	if AnalyseResult.cbBlockCount[2] > 0 {
+		// 有三张加一对
+		if AnalyseResult.cbBlockCount[1] > 0 {
+			return true
+		}
+		// 三张癞子+两根散牌/一张癞子+一张非王+三张牌
+		if nCount == 3 || nCount == 1 {
+			return AnalyseResult.cbCardData[0][0] < 0x4e || AnalyseResult.cbCardData[0][1] < 0x4e
+		}
+		return false
+	}
+
+	// 有两个对子
+	if AnalyseResult.cbBlockCount[1] == 2 {
+		return nCount > 0
+	}
+
+	return false
+}
+
+// 是否三带一
+func (dg *ddz_logic) isThreeTakeOne(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) == 4 && AnalyseResult.cbBlockCount[3] == 0 {
+		// 三张一样的，不能是三张王
+		if AnalyseResult.cbBlockCount[2] > 0 {
+			return AnalyseResult.cbCardData[2][0] < 0x4e
+		}
+		nCount := dg.getLaiziCount(cardArr)
+		if AnalyseResult.cbBlockCount[1] > 0 && nCount > 0 {
+			// 一张癞子+一个非王对子+一张非癞子
+			if nCount == 1 {
+				return AnalyseResult.cbCardData[1][0] < 0x4e
+			}
+			// 两张癞子
+			if nCount == 2 {
+				// 加一对非王对子
+				if AnalyseResult.cbBlockCount[1] == 2 {
+					return AnalyseResult.cbCardData[1][0] < 0x4e && AnalyseResult.cbCardData[1][2] < 0x4e
+				}
+				// 加两张非王散牌
+				return AnalyseResult.cbCardData[0][0] < 0x4e || AnalyseResult.cbCardData[0][1] < 0x4e
+			}
+		}
+	}
+	return false
+}
+
+// 是否三张牌
+func (dg *ddz_logic) isThree(cardArr []int, AnalyseResult tagAnalyseResult) bool {
+	if len(cardArr) == 3 {
+		// 三张一样的，不能为王
+		if AnalyseResult.cbBlockCount[2] > 0 {
+			return AnalyseResult.cbCardData[2][0] < 0x4e
+		}
+		nCount := dg.getLaiziCount(cardArr)
+		// 一张癞子+一个对子，对子不为王
+		if nCount == 1 && AnalyseResult.cbBlockCount[1] > 0 {
+			return AnalyseResult.cbCardData[1][0] < 0x4e
+		}
+		// 两张癞子+一张非癞子（不为王）
+		if nCount == 2 {
+			return AnalyseResult.cbCardData[0][0] < 0x4e
+		}
+	}
+	return false
+}
+
+// 癞子牌的数量
+func (dg *ddz_logic) getLaiziCount(cardArr []int) int {
+	var nCount int
+	for _, v := range cardArr {
+		if dg.GetCardValue(v) == dg.LizeCard {
+			nCount++
+		}
+	}
+	return nCount
+}
+
+// 王的数量
+func (dg *ddz_logic) getKingCount(cardArr []int) int {
+	var nCount int
+	for _, v := range cardArr {
+		if v >= 0x4e {
+			nCount++
+		}
+	}
+	return nCount
+}
+
 //获取类型
 func (dg *ddz_logic) GetCardType(cbCardData []int) int {
 	cbCardCount := len(cbCardData)
@@ -122,53 +535,41 @@ func (dg *ddz_logic) GetCardType(cbCardData []int) int {
 		return CT_ERROR
 	case 1: //单牌
 		return CT_SINGLE
-	case 2: //对牌火箭
+	case 2: //对牌
 		{
 			//牌型判断
-			if (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
-				return CT_King_2
-			}
-			if dg.GetCardLogicValue(cbCardData[0]) == dg.GetCardLogicValue(cbCardData[1]) {
+			if (dg.GetCardLogicValue(cbCardData[0]) == dg.GetCardLogicValue(cbCardData[1])) ||
+				(dg.GetCardLogicValue(cbCardData[0]) == dg.LizeCard || dg.GetCardLogicValue(cbCardData[1]) == dg.LizeCard) {
 				return CT_DOUBLE
 			}
 
-			return CT_ERROR
+			// 有一张小于王，代表不可能是王炸，癞子无法代表王
+			if cbCardData[0] < 0x4e || cbCardData[1] < 0x4e {
+				return CT_ERROR
+			}
 		}
 	}
 
-	kingCount := 0 // 判断王数量
-	for _, v := range cbCardData {
-		if v >= 0x4E && v <= 0x4F {
-			kingCount++
-		} else {
-			break
-		}
-	}
-
-	if kingCount == cbCardCount {
-		return CT_King_2 + kingCount - 2
+	// 判断是否是火箭12
+	nType, isTrue := dg.isRocketType(cbCardData)
+	if isTrue {
+		return nType
 	}
 
 	//分析扑克
 	var AnalyseResult tagAnalyseResult
 	dg.AnalysebCardData(cbCardData, cbCardCount, &AnalyseResult)
 
-	//四牌判断
-	if AnalyseResult.cbBlockCount[3] > 0 {
-		//牌型判断
-		if (AnalyseResult.cbBlockCount[3] == 1) && (cbCardCount == 4) {
-			return CT_BOMB_CARD
-		}
-		if (AnalyseResult.cbBlockCount[3] == 1) && (cbCardCount == 6) {
-			return CT_FOUR_TAKE_ONE
-		}
-		if (AnalyseResult.cbBlockCount[3] == 1) &&
-			(cbCardCount == 8) &&
-			(AnalyseResult.cbBlockCount[1] == 2) {
-			return CT_FOUR_TAKE_TWO
-		}
+	// 判断是否是炸弹11
+	nType, isTrue = dg.isBombType(cbCardData, AnalyseResult)
+	if isTrue {
+		return nType
+	}
 
-		return CT_ERROR
+	// 判断是否是4带2 10
+	nType, isTrue = dg.isFourTakeTwo(cbCardData, AnalyseResult)
+	if isTrue {
+		return nType
 	}
 
 	// 三牌判断
@@ -310,11 +711,12 @@ func (dg *ddz_logic) DDZSortCardList(arry []int, cbCardCount int, cbSortType int
 }
 
 //删除扑克
-func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCardData []int) bool {
+func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
+	cbRemoveCount := len(cbRemoveCard)
 	// 检验数据
 	if cbRemoveCount > int(len(cbCardData)) {
 		log.Error("要删除的扑克数%i大于已有扑克数%i", cbRemoveCount, len(cbCardData))
-		return false
+		return cbCardData, false
 	}
 
 	// 备份
@@ -327,6 +729,7 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCar
 		for j, v2 := range cbCardData {
 			if v1 == v2 {
 				copy(cbCardData[j:], cbCardData[j+1:])
+				cbCardData = cbCardData[:len(cbCardData)-1]
 				u8DeleteCount++
 			}
 		}
@@ -336,15 +739,16 @@ func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbRemoveCount int, cbCar
 		// 删除数量不一，恢复数据
 		log.Error("实际删除数量%与需要删除数量%i不一样", u8DeleteCount, cbRemoveCount)
 		copy(cbCardData, tmpCardData)
-		return false
+		return cbCardData, false
 	}
 
-	return true
+	return cbCardData, true
 }
 
 //删除扑克
 func (dg *ddz_logic) RemoveCard(cbRemoveCard []int, cbRemoveCount int, cbCardData []int, cbCardCount int) bool {
-	return dg.RemoveCardList(cbRemoveCard, cbRemoveCount, cbCardData)
+	_, err := dg.RemoveCardList(cbRemoveCard, cbCardData)
+	return err
 }
 
 // 排列出牌扑克
@@ -370,7 +774,7 @@ func (dg *ddz_logic) SortOutCardList(cbCardData []int, cbCardCount int) {
 				cbCardCount += int(i+1) * AnalyseResult.cbBlockCount[i]
 			}
 		}
-	} else if cbCardType == CT_FOUR_TAKE_ONE || cbCardType == CT_FOUR_TAKE_TWO {
+	} else if cbCardType == CT_FOUR_TAKE_TWO {
 		//分析牌
 		var AnalyseResult tagAnalyseResult
 		dg.AnalysebCardData(cbCardData, cbCardCount, &AnalyseResult)
@@ -399,7 +803,7 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 	cbCardValue := int(dg.GetCardValue(int(cbCardData)))
 
 	if cbCardValue <= 0 || cbCardValue > (pk_base.LOGIC_MASK_VALUE&0x4f) {
-		log.Error("求取逻辑数值的扑克数据有误%i", cbCardValue)
+		log.Error("求取逻辑数值的扑克数据有误%d", cbCardValue)
 		return 0
 	}
 
@@ -418,16 +822,21 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 //对比扑克
 func (dg *ddz_logic) CompareCard(cbFirstCard []int, cbNextCard []int) bool {
 	cbFirstCount := len(cbFirstCard)
-	cbNextCount := len(cbNextCard)
-	// 获取类型
+
 	cbNextType := dg.GetCardType(cbNextCard)
+
+	if cbFirstCount == 0 && cbNextType != CT_ERROR {
+		return true
+	}
+
 	cbFirstType := dg.GetCardType(cbFirstCard)
+	cbNextCount := len(cbNextCard)
 
 	// 类型判断
 	if cbNextType == CT_ERROR {
 		return false
 	}
-	if cbNextType >= CT_King_2 {
+	if cbNextType >= CT_KING && cbFirstType < CT_KING {
 		return true
 	}
 
@@ -477,7 +886,6 @@ func (dg *ddz_logic) CompareCard(cbFirstCard []int, cbNextCard []int) bool {
 			// 对比扑克
 			return cbNextLogicValue > cbFirstLogicValue
 		}
-	case CT_FOUR_TAKE_ONE:
 	case CT_FOUR_TAKE_TWO:
 		{
 			// 分析扑克
@@ -889,16 +1297,10 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []int, cbHandCardCount int, cb
 
 			break
 		}
-	case CT_FOUR_TAKE_ONE: //四带两单
 	case CT_FOUR_TAKE_TWO:
 		{ //四带两双
 
-			var cbTakeCount int
-			if cbTurnOutType == CT_FOUR_TAKE_ONE {
-				cbTakeCount = 1
-			} else {
-				cbTakeCount = 2
-			}
+			cbTakeCount := 2
 
 			var cbTmpTurnCard [MAX_COUNT]int
 			copy(cbTmpTurnCard[:], cbTurnCardData[:cbTurnCardCount])
@@ -912,7 +1314,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []int, cbHandCardCount int, cb
 	}
 
 	// 搜索炸弹
-	if (cbCardCount >= 4) && (cbTurnOutType < CT_King_2) {
+	if (cbCardCount >= 4) && (cbTurnOutType < CT_KING) {
 		// 变量定义
 		var cbReferCard int
 		if cbTurnOutType == CT_BOMB_CARD {
@@ -930,7 +1332,7 @@ func (dg *ddz_logic) SearchOutCard(cbHandCardData []int, cbHandCardCount int, cb
 	}
 
 	// 搜索火箭
-	if cbTurnOutType < CT_King_2 && (cbCardCount >= 2) && (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
+	if cbTurnOutType < CT_KING && (cbCardCount >= 2) && (cbCardData[0] == 0x4F) && (cbCardData[1] == 0x4E) {
 		// 设置结果
 		pSearchCardResult.cbCardCount[cbResultCount] = 2
 		pSearchCardResult.cbResultCard[cbResultCount][0] = cbCardData[0]
@@ -1422,4 +1824,422 @@ func (dg *ddz_logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	//转换扑克
 
 	return cbCardData
+}
+
+// 设置癞子牌
+func (dg *ddz_logic) SetParamToLogic(args interface{}) {
+	dg.LizeCard = args.(int)
+}
+
+// 比牌
+func (dg *ddz_logic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool {
+	firstCount := len(firstCardData)
+	nextCount := len(lastCardData)
+
+	firstType := args[0].(int)
+
+	nextType := dg.GetCardType(lastCardData)
+
+	if firstType == CT_ERROR && nextType != CT_ERROR {
+		return true
+	}
+
+	var nType int
+	var isType bool
+
+	// 火箭
+	if firstType > CT_KING {
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			if nextCount > firstCount {
+				return true
+			}
+			if nextCount == firstCount {
+				return nType > firstType
+			}
+		}
+		return false
+	}
+
+	//分析扑克
+	var nextAnalyse tagAnalyseResult
+	dg.AnalysebCardData(lastCardData, len(lastCardData), &nextAnalyse)
+	var firstAnalyse tagAnalyseResult
+	dg.AnalysebCardData(firstCardData, len(firstCardData), &firstAnalyse)
+	// 炸弹
+	if firstType >= CT_BOMB_CARD && firstType < CT_KING {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			nFirstLaizi := firstType & 0x00F
+			nNextLaizi := nType & 0x00F
+			// 一个有癞子，一个没癞子，并且非4个癞子，无癞子的大
+			if ((nFirstLaizi == 0 && nNextLaizi != 0) || (nFirstLaizi != 0 && nNextLaizi == 0)) &&
+				(nFirstLaizi != 4 && nNextLaizi != 4) {
+				return nNextLaizi < nFirstLaizi
+			}
+			// 同时有或没有癞子，取最大值
+			return dg.getMaxLogicCardValue(lastCardData) > dg.getMaxLogicCardValue(firstCardData)
+		}
+		return false
+	}
+
+	// 四带二
+	if firstType >= CT_FOUR_TAKE_TWO {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+		// 张数不同
+		if firstCount != nextCount {
+			return false
+		}
+		// 是否四带二
+		nType, isType = dg.isFourTakeTwo(lastCardData, nextAnalyse)
+		if isType {
+			// 分别取出付牌最大的值
+			var firstMaxValue int
+
+			if firstAnalyse.cbBlockCount[3] > 0 {
+				// 已经有炸弹了，不需要癞子
+				firstMaxValue = dg.GetCardValue(firstAnalyse.cbCardData[3][0])
+			} else {
+				// 有癞子凑成的
+				firstMaxValue = dg.getMaxCardType(firstCardData, firstType)
+			}
+
+			// 第二幅牌
+			var nextMaxValue int
+
+			if nextAnalyse.cbBlockCount[3] > 0 {
+				nextMaxValue = dg.GetCardValue(nextAnalyse.cbCardData[3][0])
+			} else {
+				nextMaxValue = dg.getMaxCardType(lastCardData, nextType)
+			}
+
+			return nextMaxValue > firstMaxValue
+		}
+
+		return false
+	}
+
+	// 飞机带翅膀
+	if firstType >= CT_THREE_LINE_TAKE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+	}
+
+	// 三顺子
+	if firstType == CT_THREE_LINE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+	}
+
+	// 双顺子
+	if firstType == CT_DOUBLE_LINE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+	}
+
+	// 单顺子
+	if firstType == CT_SINGLE_LINE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+	}
+
+	// 三带二
+	if firstType == CT_THREE_TAKE_TWO {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+
+		// 是否三牌
+		isType = dg.isThree(lastCardData, nextAnalyse)
+		if isType {
+			var firstMaxValue int
+			if firstAnalyse.cbBlockCount[2] > 0 {
+				firstMaxValue = firstCardData[0]
+			} else {
+				firstMaxValue = dg.getMaxCardType(firstCardData, firstType)
+			}
+
+			var nextMaxValue int
+			if nextAnalyse.cbBlockCount[2] > 0 {
+				nextMaxValue = lastCardData[0]
+			} else {
+				nextMaxValue = dg.getMaxCardType(lastCardData, nextType)
+			}
+
+			return dg.GetCardLogicValue(nextMaxValue) > dg.GetCardLogicValue(firstMaxValue)
+		}
+	}
+
+	// 三带一
+	if firstType == CT_THREE_TAKE_ONE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+
+		// 是否三牌
+		isType = dg.isThree(lastCardData, nextAnalyse)
+		if isType {
+			var firstMaxValue int
+			if firstAnalyse.cbBlockCount[2] > 0 {
+				firstMaxValue = firstCardData[0]
+			} else {
+				firstMaxValue = dg.getMaxCardType(firstCardData, firstType)
+			}
+
+			var nextMaxValue int
+			if nextAnalyse.cbBlockCount[2] > 0 {
+				nextMaxValue = lastCardData[0]
+			} else {
+				nextMaxValue = dg.getMaxCardType(lastCardData, nextType)
+			}
+
+			return dg.GetCardLogicValue(nextMaxValue) > dg.GetCardLogicValue(firstMaxValue)
+		}
+	}
+
+	// 三张牌
+	if firstType == CT_THREE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+
+		// 是否三牌
+		isType = dg.isThree(lastCardData, nextAnalyse)
+		if isType {
+			var firstMaxValue int
+			if firstAnalyse.cbBlockCount[2] > 0 {
+				firstMaxValue = firstCardData[0]
+			} else {
+				firstMaxValue = dg.getMaxCardType(firstCardData, firstType)
+			}
+
+			var nextMaxValue int
+			if nextAnalyse.cbBlockCount[2] > 0 {
+				nextMaxValue = lastCardData[0]
+			} else {
+				nextMaxValue = dg.getMaxCardType(lastCardData, nextType)
+			}
+
+			return dg.GetCardLogicValue(nextMaxValue) > dg.GetCardLogicValue(firstMaxValue)
+		}
+	}
+
+	// 对子
+	if firstType == CT_DOUBLE {
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+		// 是否对子
+		isType = dg.isDoubleLine(lastCardData, nextAnalyse)
+		if isType {
+			var firstMaxValue int
+			if firstAnalyse.cbBlockCount[1] > 0 {
+				firstMaxValue = firstCardData[0]
+			} else {
+				firstMaxValue = dg.getMaxCardType(firstCardData, firstType)
+			}
+
+			var nextMaxValue int
+			if nextAnalyse.cbBlockCount[1] > 0 {
+				nextMaxValue = lastCardData[0]
+			} else {
+				nextMaxValue = dg.getMaxCardType(lastCardData, nextType)
+			}
+
+			return dg.GetCardLogicValue(nextMaxValue) > dg.GetCardLogicValue(firstMaxValue)
+		}
+	}
+
+	// 单
+	if firstType == CT_SINGLE {
+		if nextCount == 1 {
+			return dg.GetCardLogicValue(lastCardData[0]) > dg.GetCardLogicValue(firstCardData[0])
+		}
+		// 是否火箭
+		nType, isType = dg.isRocketType(lastCardData)
+		if isType {
+			return true
+		}
+		// 是否炸弹
+		nType, isType = dg.isBombType(lastCardData, nextAnalyse)
+		if isType {
+			return true
+		}
+	}
+
+	return false
+}
+
+// 获取最大的牌
+func (dg *ddz_logic) getMaxLogicCardValue(cardArr []int) int {
+	var cardValue int
+
+	for _, v := range cardArr {
+		v1 := dg.GetCardValue(v)
+		if v1 != dg.LizeCard {
+			cardValue = dg.maxValue(cardValue, dg.GetCardValue(v))
+		}
+	}
+
+	return cardValue
+}
+
+// max函数
+func (dg *ddz_logic) maxValue(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// 获取某一牌值的个数
+func (dg *ddz_logic) getCountWithCardValue(cardArr []int, v int) int {
+	var nCount int
+	for _, v := range cardArr {
+		if dg.GetCardValue(v) == v {
+			nCount++
+		}
+	}
+	return nCount
+}
+
+// 去掉牌中的大小王
+func (dg *ddz_logic) removeKingFromCard(cardsArr []int) []int {
+	cardArr := util.CopySlicInt(cardsArr)
+	for i, v := range cardArr {
+		if v >= 0x4e {
+			copy(cardArr[i:], cardArr[i+1:])
+			cardArr = cardArr[:len(cardArr)-1]
+		}
+	}
+
+	return cardArr
+}
+
+// 去掉某个值的牌
+func (dg *ddz_logic) removeValuesFromCard(cardArr []int, cardValue int) []int {
+	tmpArr := util.CopySlicInt(cardArr)
+
+	for i, v := range tmpArr {
+		if dg.GetCardValue(v) == cardValue {
+			copy(tmpArr[i:], tmpArr[i+1:])
+			tmpArr = tmpArr[:len(tmpArr)-1]
+		}
+	}
+	return tmpArr
+}
+
+// 获取癞子牌能组成的最大值
+func (dg *ddz_logic) getMaxCardType(cardArr []int, nType int) int {
+	nLaizi := dg.getLaiziCount(cardArr)
+
+	var nCount int
+	if nType >= CT_FOUR_TAKE_TWO && nType < CT_BOMB_CARD {
+		nCount = 4
+	} else if nType == CT_DOUBLE {
+		nCount = 2
+	} else if nType >= CT_THREE && nType <= CT_THREE_TAKE_TWO {
+		nCount = 3
+	}
+	// 遍历
+	tmp := util.CopySlicInt(cardArr)
+	tmp = dg.removeKingFromCard(tmp)
+	for len(tmp) > 0 {
+		nMaxValue := dg.getMaxLogicCardValue(tmp)
+		nMaxValueCount := dg.getCountWithCardValue(tmp, nMaxValue)
+		if nMaxValueCount+nLaizi >= nCount {
+			return nMaxValue
+		}
+		tmp = dg.removeValuesFromCard(tmp, nMaxValue)
+	}
+	return 0
+}
+
+// 获取除癞子牌外的最大逻辑值
+func (dg *ddz_logic) getMaxLogicCardValueWithoutLaizi(cardArr []int) int {
+	var cardValue int
+
+	for _, v := range cardArr {
+		v1 := dg.GetCardValue(v)
+		if v1 != dg.LizeCard {
+			cardValue = dg.maxValue(cardValue, dg.GetCardLogicValue(v))
+		}
+	}
+
+	return cardValue
 }
