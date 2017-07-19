@@ -232,11 +232,6 @@ func (room *sss_data_mgr) ComputeChOut() {
 			}
 			log.Debug("%d   zzzzzzzzzz", ResultTemp)
 		} else {
-
-			//log.Debug("%d   GetSSSCardType", gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData))
-			//fmt.Println(room.BtCardSpecialData)
-			//fmt.Println(room.m_bUserCardData[u])
-
 			//至尊清龙
 			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
 				room.cbSpecialResult[u] = 104
@@ -350,7 +345,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 				}
 
 			}
-
+			log.Debug("cbSpecialResult %d", room.cbSpecialResult[u])
 		}
 
 	})
