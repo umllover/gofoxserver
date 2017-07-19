@@ -157,6 +157,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 				user.RoomId = 0
 			}
 		}
+		user.Status = US_FREE
 		user.ChanRPC().Go("ForceClose")
 		user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
 	}
