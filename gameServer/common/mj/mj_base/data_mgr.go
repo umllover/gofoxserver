@@ -544,10 +544,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	}
 
 	//用户状态
-	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	room.IsResponse = make([]bool, UserCnt)
-	room.UserAction = make([]int, UserCnt)
-	room.OperateCard = make([][]int, UserCnt)
+	room.ResetUserOperate()
 
 	//如果非杠牌
 	if cbTargetAction != WIK_GANG {
@@ -599,6 +596,14 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	}
 	return
+}
+
+//重置用户状态
+func (room *RoomData) ResetUserOperate() {
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.IsResponse = make([]bool, UserCnt)
+	room.UserAction = make([]int, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
 }
 
 //响应判断
@@ -868,6 +873,7 @@ func (room *RoomData) GetSice() (int, int) {
 	return Sice2<<8 | Sice1, minSice
 }
 
+//开始发牌
 func (room *RoomData) StartDispatchCard() {
 	log.Debug("begin start game hzmj")
 	userMgr := room.MjBase.UserMgr
@@ -925,21 +931,13 @@ func (room *RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	/*	//TODO 测试用
-		for i := 0; i < 4; i++ {
-			if i == 0 {
-				room.CardIndex[i][7] = 3
-			} else {
-				room.CardIndex[i][7] = 0
-			}
-		}
-		newdata := make([]int, room.GetCfg().MaxRepertory)
-		for i := 0; i < len(room.RepertoryCard); i++ {
-			if room.RepertoryCard[i] != 8 {
-				newdata = append(newdata, room.RepertoryCard[i])
-			}
-		}
-		room.RepertoryCard = newdata*/
+	//newCar := make([]int, room.GetCfg().MaxIdx)
+	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x3)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 2
+	//room.CardIndex[room.BankerUser] = newCar
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
