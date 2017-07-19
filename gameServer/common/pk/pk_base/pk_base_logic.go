@@ -32,7 +32,7 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		if cbRandCount >= cbBufferCount {
 			break
 		}
-		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount)))
+		cbPosition = int(util.RandInterval(0, int(cbBufferCount-cbRandCount-1)))
 		cbCardBuffer[cbRandCount] = cbCardDataTemp[cbPosition]
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
@@ -43,7 +43,7 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 //排列扑克
 func (lg *BaseLogic) SortCardList(cardData []int, cardCount int) {
-	var logicValue []int
+	logicValue := make([]int, cardCount)
 	for i := 0; i < cardCount; i++ {
 		logicValue[i] = lg.GetCardValue(cardData[i])
 	}
@@ -79,12 +79,33 @@ func (lg *BaseLogic) GetCardColor(CardData int) int {
 	return CardData & LOGIC_MASK_COLOR
 }
 
-
-
-
 func (lg *BaseLogic) CompareCard(firstCardData []int, lastCardData []int) bool {
 	return false
 }
 func (lg *BaseLogic) GetCardType(cardData []int) int {
 	return 0
+}
+
+func (lg *BaseLogic) SetParamToLogic(args interface{}) {
+
+}
+
+func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
+	return nil, false
+}
+
+func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
+	return false
+}
+
+func (lg *BaseLogic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int {
+	return 0
+}
+
+func (lg *BaseLogic) GetCardTimes(cardType int) int {
+	return 1
+}
+
+func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool {
+	return false
 }

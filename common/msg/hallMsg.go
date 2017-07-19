@@ -108,6 +108,52 @@ type C2L_SetElect struct {
 	ElectUid int64 //推荐人id
 }
 
+//绑定手机号码
+type C2L_SetPhoneNumber struct {
+	PhoneNumber string
+}
+
+//绑定手机结果
+type L2C_SetPhoneNumberRsp struct {
+	Code int //非0 位设置失败
+}
+
+//点赞
+type C2L_DianZhan struct {
+}
+
+//点赞结果
+type C2L_DianZhanRsp struct {
+	Star int //当前赞数
+}
+
+//续费 再来一局
+type C2L_RenewalFees struct {
+}
+
+//续费 再来一局 结果
+type L2C_RenewalFeesRsp struct {
+	Code int //非0位失败
+}
+
+//修改名字
+type C2L_ChangeUserName struct {
+}
+
+//修改名字结果
+type L2C_ChangeUserNameRsp struct {
+	Code int //非0w位失败
+}
+
+//修改个性签名
+type C2L_ChangeSign struct {
+}
+
+//修改个性签名结果
+type L2C_ChangeSignRsp struct {
+	Code int //非0w位失败
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
@@ -171,6 +217,8 @@ type L2C_UserIndividual struct {
 	MemberOrder int8 //会员等级
 	Score       int64
 	HeadImgUrl  string
+	PhomeNumber string //电话号码
+	Sign        string //个性签名
 }
 
 //返回房间列表

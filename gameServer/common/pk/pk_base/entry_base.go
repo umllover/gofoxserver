@@ -5,6 +5,7 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk"
+
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
@@ -34,11 +35,14 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
+
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
+	log.Debug("new pk base %d %d", info.KindId, info.ServiceId)
 	if !ok1 {
+		log.Error("at NewPKBase not foud config .... ")
 		return nil
 	}
 
@@ -54,6 +58,8 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
+
+	r.DataMgr.OnCreateRoom()
 
 	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
@@ -77,7 +83,6 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		}
 	}()
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
-
 		retcode = GameIsStart
 		return
 	}
@@ -153,6 +158,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
+		log.Debug("all user are ready start game")
 		//派发初始扑克
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
@@ -217,7 +223,7 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()         //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
-	BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
 	BirefInf.MachPlayer = make(map[int64]struct{})
@@ -264,11 +270,9 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
-		room.AfertEnd(false)
-	case GER_USER_LEAVE: //用户强退
-		if (room.Temp.ServerType & GAME_GENRE_PERSONAL) != 0 { //房卡模式
-			return
-		}
+		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
+		room.DataMgr.AfterEnd(false)
+		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
@@ -332,5 +336,14 @@ func (r *Entry_base) OpenCard(args []interface{}) {
 	u := args[1].(*user.User)
 
 	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
+	return
+}
+
+// 十三水摊牌
+func (r *Entry_base) ShowSSsCard(args []interface{}) {
+	//recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
+	//u := args[1].(*user.User)
+
+	//r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
 	return
 }

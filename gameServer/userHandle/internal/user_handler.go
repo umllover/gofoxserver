@@ -128,10 +128,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	//if accountData.PasswordID != recvMsg.Password {
-	// retcode = ErrPasswd
-	//	return
-	//}
+	if accountData.LogonPass != recvMsg.Password {
+		retcode = ErrPasswd
+		return
+	}
 
 	if user == nil {
 		user = client.NewUser(accountData.UserID)

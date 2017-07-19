@@ -65,6 +65,12 @@ const (
 	ErrNotFoudPlayer = 401 //没找到推举人
 )
 
+// 斗地主错误代码
+const (
+	ErrDDZCSUser  = 501 // 叫分玩家错误
+	ErrDDZCSValid = 502 // 叫分无效
+)
+
 ///////// 无效的数字
 const (
 	//无效数值
@@ -120,8 +126,6 @@ const (
 	//结束原因
 	GER_NORMAL        = 0x00 //常规结束
 	GER_DISMISS       = 0x01 //游戏解散
-	GER_USER_LEAVE    = 0x02 //用户离开
-	GER_NETWORK_ERROR = 0x03 //网络错误
 )
 
 //积分修改类型

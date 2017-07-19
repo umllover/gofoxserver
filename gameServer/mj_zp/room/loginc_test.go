@@ -43,8 +43,8 @@ func TestGameStart_1(t *testing.T) {
 func TestOutCard(t *testing.T) {
 	Wg.Add(1)
 	time.Sleep(3 * time.Second)
-	a := []int{}
-	room.DataMgr.CalHuPaiScore(a)
+	//a := []int{}
+	//room.DataMgr.CalHuPaiScore(a)
 	data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
 	data.OperateCard = append(data.OperateCard, 5)
 	data.OperateCard = append(data.OperateCard, 0)
@@ -148,6 +148,7 @@ func init() {
 		"ZhuaHua":    0,
 		"WithZiCard": false,
 		"ScoreType":  33,
+		"WithChaHua": false,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {
@@ -158,7 +159,7 @@ func init() {
 
 	base := room_base.NewRoomBase()
 
-	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	userg := room_base.NewRoomUserMgr(info, temp)
 
 	u1 = newTestUser(1)
 	u1.ChairId = 0

@@ -1386,7 +1386,7 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 	if room.SendCardData != 0 {
 		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
 	} else {
-		for i := 0; i < room.GetCfg().MaxIdx; i++ {
+		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
 			if room.CardIndex[wChairID][i] > 0 {
 				cardindex = i
 				break
@@ -1463,9 +1463,6 @@ func (room *RoomData) ClearBanCard(ChairId int) {
 
 //吃啥打啥
 func (room *RoomData) OutOfChiCardRule(CardData, ChairId int) bool {
-	if room.BanUser[ChairId]&LimitChi != 0 && room.BanCardCnt[ChairId][LimitChi] == CardData {
-		return false
-	}
 	return true
 }
 
@@ -1762,6 +1759,26 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) 
 	return 0
 }
 
+//字一色
+func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+	if FlowerCnt[room.CurrentUser] != 0 {
+		return 0
+	}
+
+	for _, v := range pAnalyseItem.CenterCard {
+		cardColor := v >> 4
+		if cardColor != 3 {
+			return 0
+		}
+	}
+
+	if (pAnalyseItem.CardEye >> 4) != 3 {
+		return 0
+	}
+
+	return CHR_ZI_YI_SE
+}
+
 //门清
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
@@ -1904,12 +1921,5 @@ func (room *RoomData) IsPingHu() int {
 
 func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
-	return
-}
-
-//其他
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//清理定时器
-func (room *RoomData) StopOperateCardTimer(u *user.User) {
 	return
 }
