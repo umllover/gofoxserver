@@ -25,7 +25,7 @@ type GameServiceOption struct {
 	MaxPlayer           int    `db:"MaxPlayer" json:"MaxPlayer"`                     // 最多多少人一起玩
 	ServerType          int    `db:"ServerType" json:"ServerType"`                   // 房间类型
 	RoomName            string `db:"RoomName" json:"RoomName"`                       // 房间名称
-	OffLineTrustee      int    `db:"OffLineTrustee" json:"OffLineTrustee"`           // 是否短线代打
+	OffLineTrustee      int    `db:"OffLineTrustee" json:"OffLineTrustee"`           // 是否短线代打 0是不托管 1是托管
 	CardOrBean          int8   `db:"CardOrBean" json:"CardOrBean"`                   // 消耗房卡还是游戏豆
 	FeeBeanOrRoomCard   int    `db:"FeeBeanOrRoomCard" json:"FeeBeanOrRoomCard"`     // 消耗房卡或游戏豆的数量
 	MaxCellScore        int    `db:"MaxCellScore" json:"MaxCellScore"`               // 房间最大底分
