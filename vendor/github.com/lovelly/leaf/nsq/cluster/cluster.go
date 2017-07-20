@@ -59,17 +59,17 @@ func RemoveClient(serverName string) {
 func Broadcast(serverName string, args interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
-		log.Error("CallN Marshal error:%s", err.Error())
+		log.Error("CallN Marshal error:%s, stask:%S", err.Error(), string(debug.Stack()))
 		return
 	}
 	msg := &S2S_NsqMsg{CallType: callBroadcast, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}
 	Publish(msg)
 }
 
-func Go(serverName string, args ...interface{}) {
+func Go(serverName string, args interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
-		log.Error("CallN Marshal error:%s", err.Error())
+		log.Error("CallN Marshal error:%s, stack:%s", err.Error(), string(debug.Stack()))
 		return
 	}
 	msg := &S2S_NsqMsg{ReqType: NsqMsgTypeReq, CallType: callNotForResult, SrcServerName: SelfName, DstServerName: serverName, Args: bstr[0]}

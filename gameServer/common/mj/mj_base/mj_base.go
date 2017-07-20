@@ -384,7 +384,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//变量定义
 		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), OperateCode, OperateCard)
 		if cbTargetAction < 0 {
-			log.Debug("wait other user")
+			log.Debug("wait other user, OperateCode=%d, OperateCard=%d, cbTargetAction=%v, wTargetUser=%v", OperateCode, OperateCard, cbTargetAction, wTargetUser)
 			return
 		}
 
@@ -394,6 +394,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
+			room.DataMgr.ResetUserOperate()
 			return
 		}
 
