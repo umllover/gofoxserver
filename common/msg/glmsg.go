@@ -104,6 +104,11 @@ type S2S_GetPlayerInfoResult struct {
 	RoomId      int
 }
 
+//请求关闭房间
+type S2S_CloseRoom struct {
+	RoomID int
+}
+
 //结束消息， 各个游戏自己实现
 type G2C_GameConclude struct {
 }

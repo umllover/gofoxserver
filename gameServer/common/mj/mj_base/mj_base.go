@@ -169,7 +169,9 @@ func (room *Mj_base) UserReLogin(args []interface{}) {
 	room.UserMgr.ReLogin(u, room.Status)
 	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
-	room.OnUserTrustee(u.ChairId, false)
+	if room.Temp.OffLineTrustee == 1 {
+		room.OnUserTrustee(u.ChairId, false)
+	}
 }
 
 //玩家离线
@@ -182,9 +184,11 @@ func (room *Mj_base) UserOffline(args []interface{}) {
 	}
 
 	room.UserMgr.SetUsetStatus(u, US_OFFLINE)
-	room.TimerMgr.StartKickoutTimer(room.GetSkeleton(), u.Id, func() {
-		room.OffLineTimeOut(u)
-	})
+	if room.Temp.OffLineTrustee == 0 {
+		room.TimerMgr.StartKickoutTimer(room.GetSkeleton(), u.Id, func() {
+			room.OffLineTimeOut(u)
+		})
+	}
 }
 
 //离线超时踢出
@@ -249,7 +253,7 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 
 	room.DataMgr.SendPersonalTableTip(u)
 
-	if room.Status == RoomStatusReady { // 没开始
+	if room.Status == RoomStatusReady || room.Status == RoomStatusEnd { // 没开始
 		room.DataMgr.SendStatusReady(u)
 	} else { //开始了
 		//把所有玩家信息推送给自己
@@ -380,7 +384,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//变量定义
 		cbTargetAction, wTargetUser := room.DataMgr.CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), OperateCode, OperateCard)
 		if cbTargetAction < 0 {
-			log.Debug("wait other user")
+			log.Debug("wait other user, OperateCode=%d, OperateCard=%d, cbTargetAction=%v, wTargetUser=%v", OperateCode, OperateCard, cbTargetAction, wTargetUser)
 			return
 		}
 
@@ -390,6 +394,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
+			room.DataMgr.ResetUserOperate()
 			return
 		}
 
@@ -459,7 +464,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		room.DataMgr.DismissEnd()
 		room.AfertEnd(true)
 	}
-
+	room.Status = RoomStatusEnd
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
 	return
 }
@@ -485,6 +490,11 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
+	//if room.Temp.OffLineTrustee == 0 {
+	//	return false
+	//}
+	//todo，待修改
+
 	//效验状态
 	if wChairID >= room.UserMgr.GetMaxPlayerCnt() {
 		return false

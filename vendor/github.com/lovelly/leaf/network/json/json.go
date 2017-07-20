@@ -47,7 +47,7 @@ func (p *Processor) Register(msg interface{}) string {
 		log.Fatal("unnamed json message", string(debug.Stack()))
 	}
 	if _, ok := p.msgInfo[msgID]; ok {
-		log.Fatal("message %v is already registered %s", msgID,string(debug.Stack()))
+		log.Fatal("message %v is already registered %s", msgID, string(debug.Stack()))
 	}
 
 	i := new(MsgInfo)
@@ -199,7 +199,7 @@ func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 func (p *Processor) Marshal(msg interface{}) ([][]byte, error) {
 	msgType := reflect.TypeOf(msg)
 	if msgType == nil || msgType.Kind() != reflect.Ptr {
-		return nil, errors.New("json message pointer required")
+		return nil, fmt.Errorf("json message pointer required cur:%s", msgType.String())
 	}
 	msgID := msgType.Elem().Name()
 	if _, ok := p.msgInfo[msgID]; !ok {
