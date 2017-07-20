@@ -30,7 +30,7 @@
 
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
-    "ValidKind":"389,28,391",
+    "ValidKind":"389,28,391,30",
     "WatchAddr":"127.0.0.1:7002",
     "NodeId": 3330
 }

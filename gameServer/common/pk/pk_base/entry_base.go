@@ -6,7 +6,6 @@ import (
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk"
 
-	"mj/common/msg/pk_sss_msg"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
@@ -338,14 +337,5 @@ func (r *Entry_base) OpenCard(args []interface{}) {
 	u := args[1].(*user.User)
 
 	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
-	return
-}
-
-// 十三水摊牌
-func (r *Entry_base) ShowSSsCard(args []interface{}) {
-	recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
-	u := args[1].(*user.User)
-
-	r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
 	return
 }

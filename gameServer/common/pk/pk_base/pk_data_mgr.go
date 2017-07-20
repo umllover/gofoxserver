@@ -210,6 +210,7 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	})
 
 }
+
 func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }

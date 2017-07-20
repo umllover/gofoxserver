@@ -466,121 +466,121 @@ func (room *sss_data_mgr) ComputeResult() {
 }
 
 //正常结束房间
-//func (room *sss_data_mgr) NormalEnd() {
-//
-//	//room.ComputeChOut()
-//	//room.ComputeResult()
-//
-//	userMgr := room.PkBase.UserMgr
-//	userMgr.ForEachUser(func(u *user.User) {
-//		calScore := &pk_sss_msg.CMD_SSS_GameEnd{}
-//		u.WriteMsg(calScore)
-//
-//	})
-//}
-
-//正常结束房间
 func (room *sss_data_mgr) NormalEnd() {
 
 	room.ComputeChOut()
 	//room.ComputeResult()
 
-	/*
-		//变量定义
-		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
-		GameConclude.ChiHuKind = make([]int, UserCnt)
-		GameConclude.CardCount = make([]int, UserCnt)
-		GameConclude.HandCardData = make([][]int, UserCnt)
-		GameConclude.GameScore = make([]int, UserCnt)
-		GameConclude.GangScore = make([]int, UserCnt)
-		GameConclude.Revenue = make([]int, UserCnt)
-		GameConclude.ChiHuRight = make([]int, UserCnt)
-		GameConclude.MaCount = make([]int, UserCnt)
-		GameConclude.MaData = make([]int, UserCnt)
+	userMgr := room.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User) {
+		calScore := &pk_sss_msg.CMD_SSS_GameEnd{}
+		u.WriteMsg(calScore)
 
-		for i, _ := range GameConclude.HandCardData {
-			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
-		}
-
-		GameConclude.SendCardData = room.SendCardData
-		GameConclude.LeftUser = INVALID_CHAIR
-		room.ChiHuKind = make([]int, UserCnt)
-		//结束信息
-		for i := 0; i < UserCnt; i++ {
-			GameConclude.ChiHuKind[i] = room.ChiHuKind[i]
-			//权位过滤
-			if room.ChiHuKind[i] == WIK_CHI_HU {
-				room.FiltrateRight(i, &room.ChiHuRight[i])
-				GameConclude.ChiHuRight[i] = room.ChiHuRight[i]
-			}
-			GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
-			GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
-		}
-
-		//计算胡牌输赢分
-		UserGameScore := make([]int, UserCnt)
-		room.CalHuPaiScore(UserGameScore)
-
-		//拷贝码数据
-		GameConclude.MaCount = make([]int, 0)
-
-		nCount := 0
-		if nCount > 1 {
-			nCount++
-		}
-
-		for i := 0; i < nCount; i++ {
-			GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
-		}
-
-		//积分变量
-		ScoreInfoArray := make([]*msg.TagScoreInfo, UserCnt)
-
-		GameConclude.ProvideUser = room.ProvideUser
-		GameConclude.ProvideCard = room.ProvideCard
-
-		//统计积分
-		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-			if u.Status != US_PLAYING {
-				return
-			}
-			GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
-			//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
-			GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-			GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
-
-			//收税
-			if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
-				GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-				GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-			}
-
-			ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
-			ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
-			ScoreInfoArray[u.ChairId].Score = GameConclude.GameScore[u.ChairId]
-			if ScoreInfoArray[u.ChairId].Score > 0 {
-				ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_WIN
-			} else {
-				ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_LOSE
-			}
-
-			//历史积分
-			if room.HistoryScores[u.ChairId] == nil {
-				room.HistoryScores[u.ChairId] = &HistoryScore{}
-			}
-			room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
-			room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
-
-		})
-
-		//发送数据
-		room.MjBase.UserMgr.SendMsgAll(GameConclude)
-
-		//写入积分 todo
-		room.MjBase.UserMgr.WriteTableScore(ScoreInfoArray, room.MjBase.UserMgr.GetMaxPlayerCnt(), HZMJ_CHANGE_SOURCE)
-	*/
+	})
 }
+
+//正常结束房间
+//func (room *sss_data_mgr) NormalEnd() {
+//
+//	room.ComputeChOut()
+//	//room.ComputeResult()
+//
+//	/*
+//		//变量定义
+//		UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+//		GameConclude := &mj_hz_msg.G2C_HZMJ_GameConclude{}
+//		GameConclude.ChiHuKind = make([]int, UserCnt)
+//		GameConclude.CardCount = make([]int, UserCnt)
+//		GameConclude.HandCardData = make([][]int, UserCnt)
+//		GameConclude.GameScore = make([]int, UserCnt)
+//		GameConclude.GangScore = make([]int, UserCnt)
+//		GameConclude.Revenue = make([]int, UserCnt)
+//		GameConclude.ChiHuRight = make([]int, UserCnt)
+//		GameConclude.MaCount = make([]int, UserCnt)
+//		GameConclude.MaData = make([]int, UserCnt)
+//
+//		for i, _ := range GameConclude.HandCardData {
+//			GameConclude.HandCardData[i] = make([]int, MAX_COUNT)
+//		}
+//
+//		GameConclude.SendCardData = room.SendCardData
+//		GameConclude.LeftUser = INVALID_CHAIR
+//		room.ChiHuKind = make([]int, UserCnt)
+//		//结束信息
+//		for i := 0; i < UserCnt; i++ {
+//			GameConclude.ChiHuKind[i] = room.ChiHuKind[i]
+//			//权位过滤
+//			if room.ChiHuKind[i] == WIK_CHI_HU {
+//				room.FiltrateRight(i, &room.ChiHuRight[i])
+//				GameConclude.ChiHuRight[i] = room.ChiHuRight[i]
+//			}
+//			GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
+//			GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
+//		}
+//
+//		//计算胡牌输赢分
+//		UserGameScore := make([]int, UserCnt)
+//		room.CalHuPaiScore(UserGameScore)
+//
+//		//拷贝码数据
+//		GameConclude.MaCount = make([]int, 0)
+//
+//		nCount := 0
+//		if nCount > 1 {
+//			nCount++
+//		}
+//
+//		for i := 0; i < nCount; i++ {
+//			GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
+//		}
+//
+//		//积分变量
+//		ScoreInfoArray := make([]*msg.TagScoreInfo, UserCnt)
+//
+//		GameConclude.ProvideUser = room.ProvideUser
+//		GameConclude.ProvideCard = room.ProvideCard
+//
+//		//统计积分
+//		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+//			if u.Status != US_PLAYING {
+//				return
+//			}
+//			GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
+//			//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
+//			GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
+//			GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
+//
+//			//收税
+//			if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
+//				GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
+//				GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
+//			}
+//
+//			ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
+//			ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
+//			ScoreInfoArray[u.ChairId].Score = GameConclude.GameScore[u.ChairId]
+//			if ScoreInfoArray[u.ChairId].Score > 0 {
+//				ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_WIN
+//			} else {
+//				ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_LOSE
+//			}
+//
+//			//历史积分
+//			if room.HistoryScores[u.ChairId] == nil {
+//				room.HistoryScores[u.ChairId] = &HistoryScore{}
+//			}
+//			room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
+//			room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
+//
+//		})
+//
+//		//发送数据
+//		room.MjBase.UserMgr.SendMsgAll(GameConclude)
+//
+//		//写入积分 todo
+//		room.MjBase.UserMgr.WriteTableScore(ScoreInfoArray, room.MjBase.UserMgr.GetMaxPlayerCnt(), HZMJ_CHANGE_SOURCE)
+//	*/
+//}
 
 func (room *sss_data_mgr) AfertEnd(a bool) {
 
@@ -705,5 +705,46 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.PkBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
 		//})
 	}
+
+}
+
+// 空闲状态场景
+func (room *sss_data_mgr) SendStatusReady(u *user.User) {
+	log.Debug("发送空闲状态场景消息")
+	//room.GameStatus = GAME_STATUS_FREE
+	StatusFree := &pk_sss_msg.G2C_SSS_StatusFree{}
+
+	//StatusFree.CellScore = room.PkBase.Temp.CellScore // 基础积分
+	//
+	//StatusFree.GameType = room.GameType
+	//StatusFree.EightKing = room.EightKing
+	//
+	//StatusFree.PlayCount = room.PkBase.TimerMgr.GetMaxPayCnt()
+	//
+	//StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
+	//StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
+	//StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间
+	//StatusFree.TimeHeadOutCard = room.TimeHeadOutCard                    // 首出时间
+	//StatusFree.TurnScore = append(StatusFree.TurnScore, 12)
+	//StatusFree.CollectScore = append(StatusFree.CollectScore, 11)
+	//for _, v := range room.HistoryScores {
+	//	StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
+	//	StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
+	//}
+	//
+	//// 发送明牌标识
+	//for k, v := range room.ShowCardSign {
+	//	StatusFree.ShowCardSign[k] = v
+	//}
+	//
+	//// 发送托管标识
+	//trustees := room.PkBase.UserMgr.GetTrustees()
+	//StatusFree.TrusteeSign = make([]bool, len(trustees))
+	//util.DeepCopy(&StatusFree.TrusteeSign, &trustees)
+
+	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+
+		u.WriteMsg(StatusFree)
+	})
 
 }

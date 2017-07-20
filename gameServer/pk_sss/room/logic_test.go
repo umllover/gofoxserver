@@ -331,8 +331,8 @@ func TestAnalyseCard(t *testing.T) {
 
 func init() {
 	Wg.Add(1)
-	//conf.Init("D:/go/src/mj/gameServer/gameApp/gameServer.json")
-	conf.Init("/new/src/mj/gameServer/gameApp/gameServer.json")
+	conf.Init("D:/go/src/mj/gameServer/gameApp/gameServer.json")
+	//conf.Init("/new/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag
