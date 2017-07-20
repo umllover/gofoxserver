@@ -363,10 +363,11 @@ func (room *ZP_RoomData) InitBuHua() {
 					newCardIndex := SwitchToCardIndex(outData.NewCard)
 					outData.ReplaceCard = SwitchToCardData(index)
 					room.MjBase.UserMgr.SendMsgAll(outData)
+
 					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), outData.NewCard)
 					room.FlowerCnt[playerIndex]++
-					room.CardIndex[playerIndex][j]--
 					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
+						room.CardIndex[playerIndex][j]--
 						room.CardIndex[playerIndex][newCardIndex]++
 						if playerIndex == room.BankerUser {
 							room.SendCardData = outData.NewCard
@@ -380,6 +381,7 @@ func (room *ZP_RoomData) InitBuHua() {
 		}
 		playerIndex++
 	}
+	log.Debug("补花完：%v", room.CardIndex)
 }
 
 //庄家开局动作
@@ -430,6 +432,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	gameLogic.RandCardList(room.RepertoryCard, mj_base.GetCardByIdx(room.ConfigIdx))
 
 	//剔除大字
+	log.Debug("剔除大字before:%v", room.RepertoryCard)
 	if room.WithZiCard == false {
 		tempCard := make([]int, room.GetCfg().MaxRepertory-7*4)
 		room.RemoveAllZiCar(tempCard, room.RepertoryCard)
@@ -1828,7 +1831,12 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 				room.ProvideCard = room.GetSendCard(true, room.MjBase.UserMgr.GetMaxPlayerCnt())
 				outData.NewCard = room.ProvideCard
 				room.MjBase.UserMgr.SendMsgAll(outData)
+
 				room.FlowerCnt[wCurrentUser]++
+				newCardIndex := SwitchToCardIndex(outData.NewCard)
+				oldCardIndex := SwitchToCardIndex(outData.ReplaceCard)
+				room.CardIndex[wCurrentUser][newCardIndex]++
+				room.CardIndex[wCurrentUser][oldCardIndex]--
 				log.Debug("用户%d补花数：%d %d", wCurrentUser, room.FlowerCnt[wCurrentUser], outData.ReplaceCard)
 			} else {
 				break

@@ -1294,6 +1294,10 @@ func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	if bTail {
 		cbSendCardData = room.RepertoryCard[room.MinusLastCount]
 		room.MinusLastCount++
+		log.Debug("GetSendCard ==== %d, index :%d", cbSendCardData, room.MinusLastCount)
+		if cbSendCardData >= 0x41 {
+			log.Debug("AA%v", room.RepertoryCard)
+		}
 	} else {
 		room.MinusHeadCount++
 		cbIndexCard = room.GetCfg().MaxRepertory - room.MinusHeadCount
