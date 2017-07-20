@@ -669,7 +669,6 @@ func (room *ZP_RoomData) NormalEnd() {
 
 	GameConclude.SendCardData = room.SendCardData
 	GameConclude.LeftUser = INVALID_CHAIR
-	//room.ChiHuKind = make([]int, UserCnt)
 	//结束信息
 	for i := 0; i < UserCnt; i++ {
 		GameConclude.ChiHuKind[i] = room.ChiHuKind[i]

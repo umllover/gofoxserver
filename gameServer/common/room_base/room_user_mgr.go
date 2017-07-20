@@ -214,7 +214,6 @@ func (r *RoomUserMgr) SendOnlookers(data interface{}) {
 
 func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int64, data interface{}) {
 	for _, u := range r.Users {
-		log.Debug("SendMsgAllNoSelf %v ", (u != nil && u.Id != selfid))
 		if u != nil && u.Id != selfid {
 			u.WriteMsg(data)
 		}

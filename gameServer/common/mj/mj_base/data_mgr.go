@@ -680,8 +680,8 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 
 		//发送提示
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 			if room.UserAction[u.ChairId] != WIK_NULL {
+				log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
 					ActionCard: room.ProvideCard,
@@ -767,6 +767,15 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		//log.Debug("after %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
+		//下发胡牌消息
+		if huKind != WIK_NULL {
+			log.Debug("##################### huKind=%v", huKind)
+			//u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+			//	ActionMask: huKind,
+			//	ActionCard: room.ProvideCard,
+			//})
+		}
+
 		//杠牌判断
 		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
 			GangCardResult := &TagGangCardResult{}
@@ -774,15 +783,14 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		}
 	}
 
-	//log.Debug("aaaaaaaaa %v", room.WeaveItemArray[wCurrentUser])
 	//听牌判断
 	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[wCurrentUser] == false {
 		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
 		HuData.OutCardCount = int(cbCount)
 		if cbCount > 0 {
+			//room.Ting[wCurrentUser] = true //TODO 这边应该置为true吧
 			room.UserAction[wCurrentUser] |= WIK_LISTEN
-
 			for i := 0; i < room.GetCfg().MaxCount; i++ {
 				if HuData.HuCardCount[i] > 0 {
 					for j := 0; j < HuData.HuCardCount[i]; j++ {
@@ -792,7 +800,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 					break
 				}
 			}
-
 			u.WriteMsg(HuData)
 		}
 	}
@@ -939,8 +946,11 @@ func (room *RoomData) StartDispatchCard() {
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x3)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 2
+	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x6)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x7)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x8)] = 1
 	//room.CardIndex[room.BankerUser] = newCar
 
 	//堆立信息
@@ -1102,7 +1112,6 @@ func (room *RoomData) NormalEnd() {
 
 	GameConclude.SendCardData = room.SendCardData
 	GameConclude.LeftUser = INVALID_CHAIR
-	room.ChiHuKind = make([]int, UserCnt)
 	//结束信息
 	for i := 0; i < UserCnt; i++ {
 		GameConclude.ChiHuKind[i] = room.ChiHuKind[i]
@@ -1273,7 +1282,6 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) {
 		bZiMo := room.ProvideUser == WinUser[0]
 		if bZiMo {
 			for i := 0; i < UserCnt; i++ {
-
 				if i != WinUser[0] {
 					EndScore[i] -= CellScore
 					EndScore[WinUser[0]] += CellScore
