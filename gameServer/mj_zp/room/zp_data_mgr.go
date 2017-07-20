@@ -896,6 +896,13 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 			cbTargetAction = cbUserAction
 		}
 	}
+	for i := 0; i < userCnt; i++ {
+		if i == wTargetUser {
+			continue
+		}
+		clearUser := room.MjBase.UserMgr.GetUserByChairId(i)
+		room.StopOperateCardTimer(clearUser)
+	}
 
 	log.Debug("wTargetUser:%d u.ChairId：%d", wTargetUser, u.ChairId)
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
@@ -2023,18 +2030,7 @@ func (room *ZP_RoomData) OutCardTimer(u *user.User) {
 	}
 
 	room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
-		log.Debug("超时---出牌 %d", u.ChairId)
-		//card := room.SendCardData
-		//if !room.MjBase.LogicMgr.IsValidCard(card) {
-		//	for j := 0; j < room.GetCfg().MaxIdx; j++ {
-		//		if room.CardIndex[u.ChairId][j] > 0 {
-		//			card = room.MjBase.LogicMgr.SwitchToCardData(j)
-		//			break
-		//		}
-		//	}
-		//}
-		//log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-		//room.MjBase.OutCard([]interface{}{u, card, true})
+		log.Debug("超时---出牌用户： %d", u.ChairId)
 		room.MjBase.OnUserTrustee(u.ChairId, true)
 	})
 }

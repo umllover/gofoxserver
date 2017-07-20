@@ -1301,8 +1301,8 @@ func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	} else {
 		room.MinusHeadCount++
 		cbIndexCard = room.GetCfg().MaxRepertory - room.MinusHeadCount
-		log.Debug("@@@@@@ cbIndexCard:%d len:%d len2:%d len3:%d", cbIndexCard, len(room.RepertoryCard), room.GetCfg().MaxRepertory, room.MinusHeadCount) //todo
 		cbSendCardData = room.RepertoryCard[cbIndexCard]
+		log.Debug("@@@@@@ cbIndexCard:%d len3:%d card:%x", cbIndexCard, len(room.RepertoryCard), room.GetCfg().MaxRepertory, room.MinusHeadCount, cbSendCardData) //todo
 	}
 
 	//堆立信息
