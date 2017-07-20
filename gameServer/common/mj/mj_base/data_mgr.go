@@ -729,7 +729,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.SendCardData = room.ProvideCard
 	room.LastCatchCardUser = wCurrentUser
-	//清除禁止胡牌的牌
 
 	u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
 	if u == nil {
@@ -950,8 +949,9 @@ func (room *RoomData) StartDispatchCard() {
 	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x6)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x7)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x8)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x18)] = 1
 	//room.CardIndex[room.BankerUser] = newCar
+	//room.RepertoryCard[55] = 0x35
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
