@@ -3,9 +3,9 @@
 	"LogPath": "",
 	"RoomModuleCount": 4,
 	
-	"WSAddr": "192.168.1.190:20002",
-    "HttpAddr":"192.168.1.190:40002",
-    "ListenAddr": "192.168.1.190:32002",
+	"WSAddr": "192.168.1.88:20002",
+    "HttpAddr":"192.168.1.88:40002",
+    "ListenAddr": "192.168.1.88:32002",
 	"MaxConnNum": 20000,
 	
     "BaseDbHost":"192.168.1.33",
@@ -32,5 +32,5 @@
 	"PendingWriteNum": 100,
     "ValidKind":"389,28,391",
     "WatchAddr":"127.0.0.1:7002",
-    "NodeId": 886
+    "NodeId": 3
 }

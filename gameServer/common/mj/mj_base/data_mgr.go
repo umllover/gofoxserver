@@ -8,6 +8,7 @@ import (
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -936,11 +937,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-
-	/*	if conf.Test {
+	if conf.Test {
 		room.RepalceCard()
-	}*/
-
+	}
 	//newCar := make([]int, room.GetCfg().MaxIdx)
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
@@ -1014,7 +1013,7 @@ func (room *RoomData) RepalceCard() {
 			}
 
 			for idx, chair := range chairIds {
-				card := utils.GetStrIntList(cards[idx], ",")
+				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
 		}
@@ -1047,7 +1046,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 			inc++
 		}
 	}
-	log.Debug("end SetUserCard", room.CardIndex[charirID])
+	log.Debug("end SetUserCard %v", room.CardIndex[charirID])
 }
 
 func (room *RoomData) CheckZiMo() {
@@ -1324,6 +1323,10 @@ func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	if bTail {
 		cbSendCardData = room.RepertoryCard[room.MinusLastCount]
 		room.MinusLastCount++
+		log.Debug("GetSendCard ==== %d, index :%d", cbSendCardData, room.MinusLastCount)
+		if cbSendCardData >= 0x41 {
+			log.Debug("AA%v", room.RepertoryCard)
+		}
 	} else {
 		room.MinusHeadCount++
 		cbIndexCard = room.GetCfg().MaxRepertory - room.MinusHeadCount

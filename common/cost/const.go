@@ -71,6 +71,12 @@ const (
 	ErrDDZCSValid = 502 // 叫分无效
 )
 
+//个人信息操作码
+const (
+	ErrNotFondCreatorRoom = 601 //没有找到要删除的房间
+	ErrRoomIsStart        = 602 //房间已经开始了
+)
+
 ///////// 无效的数字
 const (
 	//无效数值
@@ -124,8 +130,8 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL        = 0x00 //常规结束
-	GER_DISMISS       = 0x01 //游戏解散
+	GER_NORMAL  = 0x00 //常规结束
+	GER_DISMISS = 0x01 //游戏解散
 )
 
 //积分修改类型
