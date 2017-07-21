@@ -67,8 +67,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	//抓花规则
 	getInedx := [3]int{1, 5, 9}
 	for i := 0; i < count; i++ {
-		room.LeftCardCount--
-		cardData := room.RepertoryCard[room.LeftCardCount]
+		cardData := room.GetHeadCard()
 		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
 		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
 		if cardColor == 3 {
@@ -112,7 +111,6 @@ func (room *hz_data) NormalEnd() {
 
 	GameConclude.SendCardData = room.SendCardData
 	GameConclude.LeftUser = INVALID_CHAIR
-	room.ChiHuKind = make([]int, UserCnt)
 	//结束信息
 	for i := 0; i < UserCnt; i++ {
 		GameConclude.ChiHuKind[i] = room.ChiHuKind[i]

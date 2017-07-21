@@ -340,9 +340,9 @@ func (room *Mj_base) ChaHuaMsg(args []interface{}) {
 
 //补花
 func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
-	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
+	u := args[0].(*user.User)
+	CardData := args[1].(int)
+	room.DataMgr.OnUserReplaceCard(u, CardData)
 }
 
 //用户听牌
@@ -474,7 +474,7 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
-		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),
 			Status: room.Status,
 		})

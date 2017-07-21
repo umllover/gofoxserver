@@ -286,4 +286,8 @@ type G2C_GameChart_ToAll struct {
 type G2C_LoadRoomOk struct {
 }
 
+//结束消息， 各个游戏自己实现
+type G2C_GameConclude struct {
+}
+
 ///////////////////////// game chart end ///////////////////////////////

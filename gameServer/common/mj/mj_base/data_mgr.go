@@ -52,7 +52,6 @@ type RoomData struct {
 	ProvideCard       int    //供应扑克
 	ResumeUser        int    //还原用户
 	ProvideUser       int    //供应用户
-	LeftCardCount     int    //剩下牌的数量
 	OutCardCount      int    //出牌数目
 	EndLeftCount      int    //荒庄牌数
 	LastCatchCardUser int    //最后一个摸牌的用户
@@ -186,7 +185,7 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 
 	//状态变量
 	StatusPlay.ActionCard = room.ProvideCard
-	StatusPlay.LeftCardCount = room.LeftCardCount
+	StatusPlay.LeftCardCount = room.GetLeftCard()
 	StatusPlay.ActionMask = room.UserAction[u.ChairId]
 
 	StatusPlay.Ting = room.Ting
@@ -644,8 +643,8 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 			}
 
 			//杠牌判断
-			log.Debug(".room.LeftCardCount > room.EndLeftCount %v, %v", room.LeftCardCount > room.EndLeftCount, u.UserLimit&LimitGang)
-			if room.LeftCardCount > room.EndLeftCount && u.UserLimit&LimitGang == 0 {
+			log.Debug(".room.LeftCardCount > room.EndLeftCount %v, %v", room.IsEnoughCard(), u.UserLimit&LimitGang)
+			if room.IsEnoughCard() && u.UserLimit&LimitGang == 0 {
 				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateGangCard(room.CardIndex[u.ChairId], cbCenterCard)
 			}
 		}
@@ -721,7 +720,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//荒庄结束
-	if room.LeftCardCount <= room.EndLeftCount {
+	if !room.IsEnoughCard() {
 		room.ProvideUser = INVALID_CHAIR
 		return 1
 	}
@@ -769,7 +768,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
-		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
+		if room.IsEnoughCard() && !room.Ting[wCurrentUser] {
 			GangCardResult := &TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
 		}
@@ -819,6 +818,9 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 }
 
 func (room *RoomData) BeforeStartGame(UserCnt int) {
+	if room.MjBase.TimerMgr.GetPlayCount() < 1 {
+		room.InitRoomOne()
+	}
 	room.InitRoom(UserCnt)
 }
 
@@ -831,6 +833,11 @@ func (room *RoomData) AfterStartGame() {
 	room.CheckZiMo()
 	//通知客户端开始了
 	room.SendGameStart()
+}
+
+//只在开始前执行一次
+func (room *RoomData) InitRoomOne() {
+
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
@@ -860,14 +867,13 @@ func (room *RoomData) InitRoom(UserCnt int) {
 		room.HeapCardInfo[i] = make([]int, 2)
 	}
 
-	room.LeftCardCount = room.GetCfg().MaxRepertory
 	room.UserActionDone = false
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
 	room.HistoryScores = make([]*HistoryScore, UserCnt)
 	room.MinusLastCount = 0
-	room.MinusHeadCount = 0
+	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
 }
 
@@ -897,36 +903,18 @@ func (room *RoomData) StartDispatchCard() {
 	//红中可以当财神
 	gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(0x35))
 
+	//选取庄家
+	room.ElectionBankerUser()
+
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
-			room.LeftCardCount--
-			room.MinusHeadCount++
-			cardIdx := gameLogic.SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
+			cardIdx := gameLogic.SwitchToCardIndex(room.GetHeadCard())
 			room.CardIndex[u.ChairId][cardIdx]++
 		}
 	})
 
-	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
-	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
-		if OwnerUser != nil {
-			room.BankerUser = OwnerUser.ChairId
-		} else {
-			log.Error("get bamkerUser error at StartGame")
-		}
-	}
-
-	if room.BankerUser == INVALID_CHAIR {
-		room.BankerUser = util.RandInterval(0, UserCnt-1)
-	}
-
-	if room.BankerUser >= UserCnt {
-		log.Error(" room.BankerUser >=UserCnt %d,  %d", room.BankerUser, UserCnt)
-	}
-
-	room.MinusHeadCount++
-	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
-	room.LeftCardCount--
+	room.SendCardData = room.GetHeadCard()
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
@@ -945,7 +933,7 @@ func (room *RoomData) StartDispatchCard() {
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
-	TakeCount := room.GetCfg().MaxRepertory - room.LeftCardCount
+	TakeCount := room.GetCfg().MaxRepertory - room.GetLeftCard()
 	for i := 0; i < UserCnt; i++ {
 		//计算数目
 		var ValidCount int
@@ -1016,7 +1004,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 	gameLogic := room.MjBase.LogicMgr
 
 	repalc := func(Oldcard int, newCard int) {
-		for i := room.MinusHeadCount; i < room.LeftCardCount; i++ {
+		for i := room.MinusHeadCount; i < room.GetLeftCard(); i++ {
 			if room.RepertoryCard[i] == Oldcard {
 				room.RepertoryCard[i] = newCard
 			}
@@ -1308,22 +1296,12 @@ func (room *RoomData) CalculateRevenue(ChairId, lScore int) int {
 //取得扑克
 func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	//发送扑克
-	room.LeftCardCount--
 
 	var cbSendCardData int
-	var cbIndexCard int
 	if bTail {
-		cbSendCardData = room.RepertoryCard[room.MinusLastCount]
-		room.MinusLastCount++
-		log.Debug("GetSendCard ==== %d, index :%d", cbSendCardData, room.MinusLastCount)
-		if cbSendCardData >= 0x41 {
-			log.Debug("AA%v", room.RepertoryCard)
-		}
+		cbSendCardData = room.GetLastCard()
 	} else {
-		room.MinusHeadCount++
-		cbIndexCard = room.GetCfg().MaxRepertory - room.MinusHeadCount
-		//log.Debug("@@@@@@ cbIndexCard:%d len:%d len2:%d len3:%d", cbIndexCard, len(room.RepertoryCard), room.GetCfg().MaxRepertory, room.MinusHeadCount) //todo
-		cbSendCardData = room.RepertoryCard[cbIndexCard]
+		cbSendCardData = room.GetHeadCard()
 	}
 
 	//堆立信息
@@ -1931,4 +1909,58 @@ func (room *RoomData) IsPingHu() int {
 func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
 	return
+}
+
+///// 非接口类型函数
+func (room *RoomData) ClearStatus() {
+	//用户状态
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.IsResponse = make([]bool, UserCnt)
+	room.UserAction = make([]int, UserCnt)
+	room.PerformAction = make([]int, UserCnt)
+}
+
+//是否足够的牌
+func (room *RoomData) IsEnoughCard() bool {
+	return room.GetLeftCard() > room.EndLeftCount
+}
+
+//获取剩下的牌
+func (room *RoomData) GetLeftCard() int {
+	return room.MinusHeadCount - room.MinusLastCount
+}
+
+//正常取牌
+func (room *RoomData) GetHeadCard() int {
+	room.MinusHeadCount--
+	if room.MinusHeadCount < room.MinusLastCount {
+		log.Error("at GetHeadCard room.MinusHeadCoun out index")
+		return -1
+	}
+	return room.RepertoryCard[room.MinusHeadCount]
+}
+
+//用于补牌
+func (room *RoomData) GetLastCard() (card int) {
+	if room.MinusLastCount >= room.MinusHeadCount {
+		log.Error("at GetLastCard room.MinusHeadCount out index")
+		return -1
+	}
+	card = room.RepertoryCard[room.MinusLastCount]
+	room.MinusLastCount++
+	return
+}
+
+//选举庄家
+func (room *RoomData) ElectionBankerUser() {
+	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
+		if OwnerUser != nil {
+			room.BankerUser = OwnerUser.ChairId
+		} else {
+			log.Error("get bamkerUser error at StartGame")
+		}
+	} else {
+		room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
+	}
 }
