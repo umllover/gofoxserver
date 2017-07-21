@@ -1370,6 +1370,7 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 	cardindex := INVALID_BYTE
 	if room.SendCardData != 0 {
 		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
+		log.Debug("托管卡牌：%d", room.MjBase.LogicMgr.SwitchToCardData(cardindex))
 	} else {
 		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
 			if room.CardIndex[wChairID][i] > 0 {
@@ -1377,6 +1378,7 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 				break
 			}
 		}
+		log.Debug("托管卡牌：%d,room.SendCardData:%d", room.MjBase.LogicMgr.SwitchToCardData(cardindex), room.SendCardData)
 	}
 	return cardindex
 }
