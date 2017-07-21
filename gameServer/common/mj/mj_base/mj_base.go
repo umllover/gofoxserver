@@ -428,7 +428,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		// room.UserAction[room.CurrentUser] = WIK_NULL
+		room.DataMgr.ResetUserOperateEx(u)
 
 		//执行动作
 		switch OperateCode {

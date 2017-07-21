@@ -609,6 +609,13 @@ func (room *RoomData) ResetUserOperate() {
 	room.OperateCard = make([][]int, UserCnt)
 }
 
+//重置用户状态
+func (room *RoomData) ResetUserOperateEx(u *user.User) {
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.UserAction = make([]int, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
+}
+
 //响应判断
 func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int) bool {
 	log.Debug("EstimateUserRespond start")
