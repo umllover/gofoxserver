@@ -35,5 +35,5 @@
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
     "WatchAddr":"127.0.0.1:7001",
-    "NodeId": 1
+    "NodeId": 8
 }
