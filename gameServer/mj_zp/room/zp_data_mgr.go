@@ -458,44 +458,44 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
-	//todo,测试手牌
-	var temp []int
-	temp = make([]int, 42)
-
-	temp[0] = 3 //三张一同
-	temp[1] = 3 //三张二同
-	temp[2] = 3 //三张三同
-	temp[3] = 3 //三张四同
-	temp[4] = 3 //三张五同
-	temp[5] = 1
-	temp[6] = 1
-
-	//room.FlowerCnt[0] = 1 //花牌
-	room.SendCardData = 0x07
-	room.CardIndex[0] = temp
-	GetCardWordArray(room.CardIndex[0])
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	log.Debug("room.CardIndex:%v", room.CardIndex[0])
-
-	var temp1 []int
-	temp1 = make([]int, 42)
-	temp1[0] = 3 //三张一同
-	temp1[1] = 3 //三张二同
-	temp1[2] = 3 //三张三同
-	temp1[3] = 3 //三张四同
-	temp1[4] = 3 //三张五同
-	temp1[5] = 1
-	room.CardIndex[1] = temp1
-
-	var temp2 []int
-	temp2 = make([]int, 42)
-	temp2[0] = 3 //三张一同
-	temp2[1] = 3 //三张二同
-	temp2[2] = 3 //三张三同
-	temp2[3] = 3 //三张四同
-	temp2[4] = 3 //三张五同
-	temp2[5] = 1
-	room.CardIndex[2] = temp2
+	////todo,测试手牌
+	//var temp []int
+	//temp = make([]int, 42)
+	//
+	//temp[0] = 3 //三张一同
+	//temp[1] = 3 //三张二同
+	//temp[2] = 3 //三张三同
+	//temp[3] = 3 //三张四同
+	//temp[4] = 3 //三张五同
+	//temp[5] = 1
+	//temp[6] = 1
+	//
+	////room.FlowerCnt[0] = 1 //花牌
+	//room.SendCardData = 0x07
+	//room.CardIndex[0] = temp
+	//GetCardWordArray(room.CardIndex[0])
+	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//
+	//var temp1 []int
+	//temp1 = make([]int, 42)
+	//temp1[0] = 3 //三张一同
+	//temp1[1] = 3 //三张二同
+	//temp1[2] = 3 //三张三同
+	//temp1[3] = 3 //三张四同
+	//temp1[4] = 3 //三张五同
+	//temp1[5] = 1
+	//room.CardIndex[1] = temp1
+	//
+	//var temp2 []int
+	//temp2 = make([]int, 42)
+	//temp2[0] = 3 //三张一同
+	//temp2[1] = 3 //三张二同
+	//temp2[2] = 3 //三张三同
+	//temp2[3] = 3 //三张四同
+	//temp2[4] = 3 //三张五同
+	//temp2[5] = 1
+	//room.CardIndex[2] = temp2
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
