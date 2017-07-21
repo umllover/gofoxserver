@@ -64,7 +64,7 @@ type C2G_UserSitdown struct {
 }
 
 //坐下结果
-type G2c_UserSitDownRst struct {
+type G2C_UserSitDownRst struct {
 	Code int //非0为失败
 }
 
@@ -292,6 +292,11 @@ type G2C_LoadRoomOk struct {
 
 //结束消息， 各个游戏自己实现
 type G2C_GameConclude struct {
+}
+
+//踢出玩家
+type G2C_KickOut struct {
+	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
 }
 
 ///////////////////////// game chart end ///////////////////////////////

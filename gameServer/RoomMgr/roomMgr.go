@@ -41,7 +41,7 @@ func GetRoom(id int) IRoom {
 }
 
 func DelRoom(id int) {
-	cluster.Broadcast(HallPrefix, msg.S2S_notifyDelRoom{RoomID: id})
+	cluster.Broadcast(HallPrefix, &msg.S2S_notifyDelRoom{RoomID: id})
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	delete(Rooms, id)

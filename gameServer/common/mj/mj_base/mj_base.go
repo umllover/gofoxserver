@@ -68,7 +68,7 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 
 	retcode := 0
 	defer func() {
-		u.WriteMsg(&msg.G2c_UserSitDownRst{Code: retcode})
+		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
 	}()
 
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
@@ -429,7 +429,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		// room.UserAction[room.CurrentUser] = WIK_NULL
+		//room.UserAction[room.CurrentUser] = WIK_NULL
 
 		//执行动作
 		switch OperateCode {

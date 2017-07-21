@@ -293,3 +293,8 @@ type L2C_DrawSahreAwardResult struct {
 	Times   int //已经领取的次数
 	RetCode int //领取成功还是失败的结果
 }
+
+//踢出玩家
+type L2C_KickOut struct {
+	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
+}
