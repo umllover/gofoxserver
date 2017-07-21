@@ -211,3 +211,15 @@ func (p *Processor) Marshal(msg interface{}) ([][]byte, error) {
 	data, err := json.Marshal(m)
 	return [][]byte{data}, err
 }
+
+func (p *Processor) GetMsgId(msg interface{}) (string, error) {
+	msgType := reflect.TypeOf(msg)
+	if msgType == nil || msgType.Kind() != reflect.Ptr {
+		return "", fmt.Errorf("json message pointer required cur:%s", msgType.String())
+	}
+	msgID := msgType.Elem().Name()
+	if _, ok := p.msgInfo[msgID]; !ok {
+		return "", fmt.Errorf("message %v not registered", msgID)
+	}
+	return msgID, nil
+}

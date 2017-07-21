@@ -55,12 +55,13 @@ func SetChaHua(args []interface{}) {
 
 //补花
 func SetBuHua(args []interface{}) {
+	recvMsg := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
 	agent := args[1].(gate.Agent)
 	u := agent.UserData().(*user.User)
 
 	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("SetBuHua", args[0], u)
+		r.GetChanRPC().Go("SetBuHua", u, recvMsg.CardData)
 	}
 }
 

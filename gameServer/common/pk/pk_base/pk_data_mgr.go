@@ -196,7 +196,7 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	r.PkBase.TimerMgr.AddPlayCount()
 	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: r.PkBase.DataMgr.GetRoomId(),
 			Status: r.PkBase.Status,
 		})

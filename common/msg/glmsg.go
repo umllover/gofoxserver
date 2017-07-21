@@ -109,6 +109,8 @@ type S2S_CloseRoom struct {
 	RoomID int
 }
 
-//结束消息， 各个游戏自己实现
-type G2C_GameConclude struct {
+//给大厅玩家的消息
+type S2S_HanldeFromGameMsg struct {
+	Uid      int64
+	Data     []byte
 }

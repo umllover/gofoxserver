@@ -138,7 +138,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	}
 	room.OperateTime = make([]*timer.Timer, UserCnt)
 
-	room.LeftCardCount = room.GetCfg().MaxRepertory
 	room.UserActionDone = false
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
@@ -432,41 +431,22 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.RemoveAllZiCar(tempCard, room.RepertoryCard)
 		room.RepertoryCard = tempCard
 		log.Debug("剔除大字1:%v", room.RepertoryCard)
-		room.LeftCardCount = room.GetCfg().MaxRepertory - 7*4
+		room.MinusHeadCount = len(room.RepertoryCard)
 	}
+
+	//选取庄家
+	room.ElectionBankerUser()
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
-			room.LeftCardCount--
-			room.MinusHeadCount++
-			setIndex := SwitchToCardIndex(room.RepertoryCard[room.LeftCardCount])
+			setIndex := SwitchToCardIndex(room.GetHeadCard())
 			room.CardIndex[u.ChairId][setIndex]++
 		}
 		log.Debug("用户%d手牌：%v", u.ChairId, room.CardIndex[u.ChairId])
 	})
 
-	OwnerUser, _ := userMgr.GetUserByUid(room.CreateUser)
-	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
-		if OwnerUser != nil {
-			room.BankerUser = OwnerUser.ChairId
-		} else {
-			log.Error("get bamkerUser error at StartGame")
-		}
-	}
-
-	if room.BankerUser == INVALID_CHAIR {
-		room.BankerUser = util.RandInterval(0, UserCnt-1)
-	}
-
-	if room.BankerUser >= UserCnt {
-		log.Error(" room.BankerUser >=UserCnt %d,  %d", room.BankerUser, UserCnt)
-	}
-
-	room.MinusHeadCount++
-	room.LeftCardCount--
-	room.SendCardData = room.RepertoryCard[room.LeftCardCount]
-
+	room.SendCardData = room.GetHeadCard()
 	room.CardIndex[room.BankerUser][SwitchToCardIndex(room.SendCardData)]++
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
@@ -493,7 +473,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
 	TakeChairID := (room.BankerUser + SiceCount - 1) % UserCnt
-	TakeCount := room.GetCfg().MaxRepertory - room.LeftCardCount
+	TakeCount := room.GetCfg().MaxRepertory - room.GetLeftCard()
 	for i := 0; i < UserCnt; i++ {
 		//计算数目
 		var ValidCount int
@@ -562,7 +542,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 			}
 
 			//杠牌判断
-			if room.LeftCardCount > room.EndLeftCount && u.UserLimit&LimitGang == 0 {
+			if room.IsEnoughCard() && u.UserLimit&LimitGang == 0 {
 				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateGangCard(room.CardIndex[u.ChairId], cbCenterCard)
 			}
 
@@ -758,8 +738,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 	}
 
 	for i := 0; i < count; i++ {
-		room.LeftCardCount--
-		cardData := room.RepertoryCard[room.LeftCardCount]
+		cardData := room.GetHeadCard()
 		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
 		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
 		if cardColor == 3 {
@@ -1392,7 +1371,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 
 	//状态变量
 	StatusPlay.ActionCard = room.ProvideCard
-	StatusPlay.LeftCardCount = room.LeftCardCount
+	StatusPlay.LeftCardCount = room.GetLeftCard()
 	StatusPlay.ActionMask = room.UserAction[u.ChairId]
 
 	StatusPlay.Ting = room.Ting
@@ -1806,8 +1785,8 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//荒庄结束
-	if room.LeftCardCount <= room.EndLeftCount {
-		log.Debug("荒庄结束,room.LeftCardCount:%d,room.EndLeftCount:%d", room.LeftCardCount, room.EndLeftCount)
+	if !room.IsEnoughCard() {
+		log.Debug("荒庄结束,room.LeftCardCount:%d,room.EndLeftCount:%d", room.GetLeftCard(), room.EndLeftCount)
 		room.ProvideUser = INVALID_CHAIR
 		return 1
 	}
@@ -1871,7 +1850,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
-		if (room.LeftCardCount > room.EndLeftCount) && !room.Ting[wCurrentUser] {
+		if room.IsEnoughCard() && !room.Ting[wCurrentUser] {
 			GangCardResult := &mj_base.TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
 		}
