@@ -256,16 +256,9 @@ func (room *nntb_data_mgr) NormalEnd() {
 
 		// 更新积分
 		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u]
-
-		//历史积分
-		/*if room.HistoryScores[u.ChairId] == nil {
-			room.HistoryScores[u.ChairId] = &pk_base.HistoryScore{}
-		}
-		room.HistoryScores[u.ChairId].TurnScore = room.CalScoreMap[u]
-		room.HistoryScores[u.ChairId].CollectScore += room.CalScoreMap[u]*/
 	})
 
-	log.Debug("normal end %v", room.InitScoreMap)
+	log.Debug("normal end init score map %v", room.InitScoreMap)
 	for i:=0;i<room.PlayerCount;i++ {
 		calScore.InitScore[i] = room.InitScoreMap[i]
 	}
@@ -277,7 +270,7 @@ func (room *nntb_data_mgr) NormalEnd() {
 	}
 	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
 
-	log.Debug("normal end %v", room.EachRoundScoreMap)
+	log.Debug("normal end each round score map %v", room.EachRoundScoreMap)
 
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(calScore)
@@ -547,29 +540,29 @@ func (r *nntb_data_mgr) OpenCardEnd()  {
 	logicMgr := r.PkBase.LogicMgr
 	userMgr := r.PkBase.UserMgr
 
-	bankerScore := 0
 	userMgr.ForEachUser(func(u *user.User) {
 		if u != r.BankerUser { // 闲家与庄家比
 			if logicMgr.CompareCard(r.OpenCardMap[r.BankerUser].CardData, r.OpenCardMap[u].CardData) { // 庄家比闲家大
-				log.Debug("banker win  : banker card: %v, player card: %v",
-					r.OpenCardMap[r.BankerUser], r.OpenCardMap[u])
-				log.Debug("%d %d %d %d ", r.CellScore, r.ScoreTimes, r.AddScoreMap[u], r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
-				bankerScore += r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+				log.Debug("at open card end %d %d %d %d ",
+					r.CellScore, r.ScoreTimes, r.AddScoreMap[u], r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
+				r.CalScoreMap[r.BankerUser] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
 					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType)
-				r.CalScoreMap[u] = -(r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
-					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
+				r.CalScoreMap[u] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType)
+				log.Debug("banker win  : banker card: %v banker score:%d, player card: %v player score:%d",
+					r.OpenCardMap[r.BankerUser], r.CalScoreMap[r.BankerUser], r.OpenCardMap[u], r.CalScoreMap[u])
 			}else {
-				log.Debug("banker lost  : banker card: %v, player card: %v",
-					r.OpenCardMap[r.BankerUser], r.OpenCardMap[u])
-				bankerScore -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+				log.Debug("at open card end %d %d %d %d ",
+					r.CellScore, r.ScoreTimes, r.AddScoreMap[u], r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
+				r.CalScoreMap[r.BankerUser] -= r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
 					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[u].CardType)
-				r.CalScoreMap[u] = r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
+				r.CalScoreMap[u] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
 					r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[u].CardType)
+				log.Debug("banker lost  : banker card: %v banker score:%d, player card: %v player score:%d",
+					r.OpenCardMap[r.BankerUser], r.CalScoreMap[r.BankerUser], r.OpenCardMap[u], r.CalScoreMap[u])
 			}
 		}
 	})
-	r.CalScoreMap[r.BankerUser] = bankerScore
-	log.Debug("banker score %d", bankerScore)
 
 	log.Debug("cal score map %v", r.CalScoreMap)
 
