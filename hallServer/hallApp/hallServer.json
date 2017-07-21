@@ -2,9 +2,9 @@
 	"LogLevel": "debug",
 	"LogPath": "",
 
-	"WSAddr": "192.168.1.88:20001",
-    "HttpAddr":"192.168.1.88:40001",
-    "ListenAddr": "192.168.1.88:30001",
+	"WSAddr": "192.168.1.190:20001",
+    "HttpAddr":"192.168.1.190:40001",
+    "ListenAddr": "192.168.1.190:30001",
 	"MaxConnNum": 20000,
 
     "AccountDbHost":"192.168.1.33",
@@ -35,5 +35,5 @@
     "ConsulAddr":"192.168.1.144:8500",
 	"PendingWriteNum": 100,
     "WatchAddr":"127.0.0.1:7001",
-    "NodeId": 3
+    "NodeId": 886
 }
