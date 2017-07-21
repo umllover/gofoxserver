@@ -1,8 +1,10 @@
 package room
 
-import (	"encoding/json"
+import (
+	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_xs_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
@@ -64,7 +66,6 @@ func (room *xs_data) InitRoom(UserCnt int) {
 	}
 	room.OperateTime = make([]*timer.Timer, UserCnt)
 
-	room.LeftCardCount = room.GetCfg().MaxRepertory
 	room.UserActionDone = false
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
@@ -109,7 +110,7 @@ func (room *xs_data) SendGameStart() {
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.SunWindCount = 0
-	GameStart.LeftCardCount = room.LeftCardCount
+	GameStart.LeftCardCount = room.GetLeftCard()
 	GameStart.First = room.IsFirst
 	GameStart.FengQuan = room.FengQaun
 	GameStart.InitialBankerUser = room.BankerUser
@@ -134,4 +135,83 @@ func (room *xs_data) SendOperateResult(u *user.User, wrave *msg.WeaveItem) {
 		OperateResult.ActionMask = wrave.ActionMask
 	}
 	room.MjBase.UserMgr.SendMsgAll(OperateResult)
+}
+
+//响应判断
+func (room *xs_data) EstimateUserRespond(wCenterUser int, cbCenterCard int, EstimatKind int) bool {
+	//变量定义
+	bAroseAction := false
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.ClearStatus()
+	//动作判断
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		//用户过滤
+		if wCenterUser == u.ChairId || room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+			return
+		}
+
+		//出牌类型
+		if EstimatKind == EstimatKind_OutCard {
+			//吃碰判断
+			if u.UserLimit&LimitPeng == 0 {
+				//碰牌判断
+				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimatePengCard(room.CardIndex[u.ChairId], cbCenterCard)
+			}
+
+			//吃牌判断
+			wEatUser := (wCenterUser + UserCnt - 1) % UserCnt
+			if wEatUser == u.ChairId {
+				room.UserAction[wEatUser] |= room.MjBase.LogicMgr.EstimateEatCard(room.CardIndex[u.ChairId], cbCenterCard)
+			}
+
+			//杠牌判断
+			log.Debug(".room.LeftCardCount > room.EndLeftCount %v, %v", room.IsEnoughCard(), u.UserLimit&LimitGang)
+			if room.IsEnoughCard() && u.UserLimit&LimitGang == 0 {
+				room.UserAction[u.ChairId] |= room.MjBase.LogicMgr.EstimateGangCard(room.CardIndex[u.ChairId], cbCenterCard)
+			}
+		}
+
+		if u.UserLimit|LimitChiHu == 0 {
+			//吃胡判断
+			chr := 0
+			huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
+			room.UserAction[u.ChairId] |= huKind
+		}
+
+		//结果判断
+		if room.UserAction[u.ChairId] != WIK_NULL {
+			bAroseAction = true
+		}
+	})
+
+	//结果处理
+	if bAroseAction {
+		//设置变量
+		room.ProvideUser = wCenterUser
+		room.ProvideCard = cbCenterCard
+		room.ResumeUser = room.CurrentUser
+		room.CurrentUser = INVALID_CHAIR
+
+		//发送提示
+		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
+			if room.UserAction[u.ChairId] != WIK_NULL {
+				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+					ActionMask: room.UserAction[u.ChairId],
+					ActionCard: room.ProvideCard,
+				})
+			}
+		})
+		return true
+	}
+
+	if room.GangStatus != WIK_GANERAL {
+		room.GangOutCard = true
+		room.GangStatus = WIK_GANERAL
+		room.ProvideGangUser = INVALID_CHAIR
+	} else {
+		room.GangOutCard = false
+	}
+
+	return false
 }

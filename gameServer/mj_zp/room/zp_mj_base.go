@@ -133,6 +133,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 			if room.DataMgr.DispatchCardData(room.DataMgr.GetResumeUser(), room.DataMgr.GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 			}
+			return
 		}
 
 		//胡牌操作
@@ -230,19 +231,4 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		}
 	}
 	return true
-}
-
-//游戏结束
-func (room *ZP_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
-	switch cbReason {
-	case GER_NORMAL: //常规结束
-		room.DataMgr.NormalEnd()
-		room.AfertEnd(false)
-	case GER_DISMISS: //游戏解散
-		room.DataMgr.DismissEnd()
-		room.AfertEnd(true)
-	}
-
-	log.Debug("zpmj at OnEventGameConclude cbReason:%d ", cbReason)
-	return
 }

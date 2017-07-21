@@ -68,10 +68,9 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 
 	retcode := 0
 	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
-		}
+		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
 	}()
+
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
 		retcode = GameIsStart
 		return
@@ -117,14 +116,16 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	u := args[0].(*user.User)
 	retcode := 0
 	defer func() {
-		if retcode != 0 {
+		if retcode != 0 && u != nil {
 			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
 		}
 	}()
 
-	if !room.DataMgr.CanOperatorRoom(u.Id) {
-		retcode = NotOwner
-		return
+	if u != nil { //u== nil 强制解散
+		if !room.DataMgr.CanOperatorRoom(u.Id) {
+			retcode = NotOwner
+			return
+		}
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
@@ -342,9 +343,9 @@ func (room *Mj_base) ChaHuaMsg(args []interface{}) {
 
 //补花
 func (room *Mj_base) OnUserReplaceCardMsg(args []interface{}) {
-	u := args[1].(*user.User)
-	getData := args[0].(*mj_zp_msg.C2G_MJZP_ReplaceCard)
-	room.DataMgr.OnUserReplaceCard(u, getData.CardData)
+	u := args[0].(*user.User)
+	CardData := args[1].(int)
+	room.DataMgr.OnUserReplaceCard(u, CardData)
 }
 
 //用户听牌
@@ -430,7 +431,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		// room.UserAction[room.CurrentUser] = WIK_NULL
+		//room.UserAction[room.CurrentUser] = WIK_NULL
 
 		//执行动作
 		switch OperateCode {
@@ -476,7 +477,7 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
-		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),
 			Status: room.Status,
 		})
