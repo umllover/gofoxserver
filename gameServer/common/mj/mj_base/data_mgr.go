@@ -8,7 +8,6 @@ import (
 	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -900,8 +899,10 @@ func (room *RoomData) StartDispatchCard() {
 
 	gameLogic.RandCardList(room.RepertoryCard, GetCardByIdx(room.ConfigIdx))
 
-	//红中可以当财神
-	gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(0x35))
+	//万能牌设置
+	if room.GetCfg().MagicCard != 0 {
+		gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(room.GetCfg().MagicCard))
+	}
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
@@ -937,9 +938,11 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-	if conf.Test {
-		room.RepalceCard()
-	}
+	//if conf.Test {
+	//	room.RepalceCard()
+	//}
+
+	//TODO 测试用
 	//newCar := make([]int, room.GetCfg().MaxIdx)
 	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
@@ -950,7 +953,7 @@ func (room *RoomData) StartDispatchCard() {
 	//newCar[gameLogic.SwitchToCardIndex(0x7)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x18)] = 1
 	//room.CardIndex[room.BankerUser] = newCar
-	//room.RepertoryCard[55] = 0x35
+	//room.RepertoryCard[55] = 0x7
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
