@@ -148,7 +148,7 @@ func init() {
 		"ZhuaHua":    0,
 		"WithZiCard": false,
 		"ScoreType":  33,
-		"WithChaHua": false,
+		"WithChaHua": true,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {

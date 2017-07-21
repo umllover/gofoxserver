@@ -1296,8 +1296,10 @@ func (room *RoomData) CalculateRevenue(ChairId, lScore int) int {
 //取得扑克
 func (room *RoomData) GetSendCard(bTail bool, UserCnt int) int {
 	//发送扑克
+	room.LeftCardCount--
 
 	var cbSendCardData int
+	var cbIndexCard int
 	if bTail {
 		cbSendCardData = room.GetLastCard()
 	} else {
