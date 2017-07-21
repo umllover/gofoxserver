@@ -35,7 +35,6 @@ const (
 const (
 	CALL_SCORE_TIME = 20
 	ADD_SCORE_TIME  = 20
-
 	OPEN_CARD_TIME  = 30
 )
 
@@ -47,7 +46,6 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameSe
 
 // 亮牌信息
 type OpenCardInfo struct {
-
 	CardData []int // 亮牌数据
 	CardType int   //亮牌牌型
 }
@@ -69,9 +67,7 @@ type nntb_data_mgr struct {
 
 	BankerUser *user.User //庄家用户
 
-	
 	// 游戏状态
-
 	GameStatus     int
 	CallScoreTimer *timer.Timer
 	AddScoreTimer  *timer.Timer
@@ -80,7 +76,6 @@ type nntb_data_mgr struct {
 
 func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
-
 
 	StatusFree.CellScore = room.PkBase.Temp.CellScore                      //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
@@ -96,12 +91,7 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 		StatusFree.InitScore[i] = room.InitScoreMap[i]
 	}
 
-	/*for _, v := range room.HistoryScores {
-		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
-		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	}*/
 	StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-
 	StatusFree.PlayerCount = room.PlayerCount                   //room.PkBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPayCnt() //局数限制
 	StatusFree.GameRoomName = room.Name
@@ -120,15 +110,6 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay.TurnScore = make([]int, UserCnt)
 	StatusPlay.CollectScore = make([]int, UserCnt)
 	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-
-	/*//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}*/
 
 	u.WriteMsg(StatusPlay)
 }
@@ -256,16 +237,13 @@ func (room *nntb_data_mgr) NormalEnd() {
 	userMgr.ForEachUser(func(u *user.User) {
 		calScore.GameScore[u.ChairId] = room.CalScoreMap[u]
 		openCardInfo := OpenCardInfo{
-
 			CardType: room.OpenCardMap[u].CardType,
 			CardData: room.OpenCardMap[u].CardData,
 		}
 		calScore.CardType[u.ChairId] = openCardInfo.CardType
 		util.DeepCopy(&calScore.CardData[u.ChairId], &openCardInfo.CardData)
-
 		// 更新积分
 		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u]
-
 	})
 
 
@@ -283,13 +261,10 @@ func (room *nntb_data_mgr) NormalEnd() {
 	}
 	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
 
-
 	log.Debug("normal end each round score map %v", room.EachRoundScoreMap)
-
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(calScore)
 	})
-
 	room.GameStatus = GAME_NULL
 
 }
@@ -570,7 +545,6 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	userMgr.ForEachUser(func(u *user.User) {
 		if u != r.BankerUser { // 闲家与庄家比
 			if logicMgr.CompareCard(r.OpenCardMap[r.BankerUser].CardData, r.OpenCardMap[u].CardData) { // 庄家比闲家大
-*
 				log.Debug("at open card end %d %d %d %d ",
 					r.CellScore, r.ScoreTimes, r.AddScoreMap[u], r.PkBase.LogicMgr.GetCardTimes(r.OpenCardMap[r.BankerUser].CardType))
 				r.CalScoreMap[r.BankerUser] += r.CellScore * r.ScoreTimes * r.AddScoreMap[u] *
