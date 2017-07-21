@@ -4,6 +4,7 @@ import (
 	"mj/common/cost"
 	"mj/hallServer/base"
 	"mj/hallServer/conf"
+	"mj/hallServer/user"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/module"
@@ -34,6 +35,8 @@ func (m *Module) OnInit() {
 	}
 
 	cluster.Start(cfg)
+
+	user.CenterRpc = ChanRPC
 }
 
 func (m *Module) OnDestroy() {

@@ -12,7 +12,7 @@ import (
 	"mj/hallServer/gate"
 	"mj/hallServer/http_service"
 	"mj/hallServer/race_msg"
-	"mj/hallServer/userHandle"
+	"mj/hallServer/user"
 	"os"
 
 	"mj/hallServer/match_room"
@@ -52,10 +52,10 @@ func main() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	leaf.Run(
+		user.UserMgr,
 		gate.Module,
 		center.Module,
 		consul.Module,
-		userHandle.UserMgr,
 		game_list.Module,
 		race_msg.Module,
 		match_room.Module,

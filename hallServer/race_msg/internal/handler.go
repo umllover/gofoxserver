@@ -3,7 +3,6 @@ package internal
 import (
 	"mj/hallServer/db/model"
 	"mj/hallServer/user"
-	"mj/hallServer/userHandle"
 	"time"
 
 	"github.com/lovelly/leaf/log"
@@ -69,9 +68,8 @@ func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 
 //发送消息给所有人
 func SendMsgToAll(data interface{}) {
-
 	log.Debug("即将发送消息给所有人：%v", data)
-	userHandle.UserMgr.ForEachUser(func(u *user.User) {
+	user.ForEachUser(func(u *user.User) {
 		u.WriteMsg(data)
 	})
 }

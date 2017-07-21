@@ -18,6 +18,8 @@ import (
 
 	"mj/hallServer/center"
 
+	"mj/common/utils"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -71,7 +73,7 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
-	DelUser(u.Id)
+	user.DelUser(u.Id)
 	m.Close(common.UserOffline)
 	log.Debug("CloseAgent ok")
 	return nil
@@ -123,7 +125,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		}
 	}
 
-	if _, ok := Users[accountData.UserID]; ok {
+	if user.HasUser(accountData.UserID) {
 		retcode = ErrUserDoubleLogin
 		return
 	}
@@ -150,7 +152,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	}
 
 	player.Agent = agent
-	AddUser(player.Id, player)
+	user.AddUser(player.Id, player)
 	agent.SetUserData(player)
 	player.LoadTimes()
 	player.HallNodeID = conf.Server.NodeId
@@ -783,10 +785,29 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 
 //绑定电话号码
 func (m *UserModule) SetPhoneNumber(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
-	//player := m.a.UserData().(*user.User)
-	//
+	recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_SetPhoneNumberRsp{Code: retCode})
+	}()
 
+	info, ok := model.UserMaskCodeOp.Get(player.Id)
+	if !ok {
+		retCode = ErrMaskCodeNotFoud
+		return
+	}
+
+	if info.MaskCode != recvMsg.MaskCode {
+		retCode = ErrMaskCodeError
+		return
+	}
+
+	model.UserMaskCodeOp.Delete(player.Id)
+	player.PhomeNumber = info.PhomeNumber
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"phome_number": info.PhomeNumber,
+	})
 }
 
 //点赞
@@ -828,5 +849,31 @@ func (m *UserModule) ChangeSign(args []interface{}) {
 
 //获取验证码
 func (m *UserModule) ReqBindMaskCode(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_ReqBindMaskCode)
+	recvMsg := args[0].(*msg.C2L_ReqBindMaskCode)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_ReqBindMaskCodeRsp{Code: retCode})
+	}()
+
+	if player.MacKCodeTime != nil {
+		if time.Now().After(*player.MacKCodeTime) {
+			retCode = ErrFrequentAccess
+			return
+		}
+	}
+	code, _ := utils.RandInt(100000, 1000000)
+	now := time.Now()
+	player.MacKCodeTime = &now
+
+	err := model.UserMaskCodeOp.InsertUpdate(&model.UserMaskCode{UserId: player.Id, PhomeNumber: recvMsg.PhoneNumber, MaskCode: code}, map[string]interface{}{
+		"mask_code":    code,
+		"phome_number": recvMsg.PhoneNumber,
+	})
+	if err == nil {
+		retCode = ErrRandMaskCodeError
+		return
+	}
+
+	ReqGetMaskCode(recvMsg.PhoneNumber, code)
 }

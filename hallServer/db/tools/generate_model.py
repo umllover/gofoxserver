@@ -187,6 +187,11 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
             ','.join([c['COLUMN_NAME']  for c in columns if c['EXTRA'] != 'auto_increment' ]),
             ','.join(['?' for c in columns if c['EXTRA'] != 'auto_increment']))
 
+        insert_update_sql = 'insert into %s(%s) values(%s) ON DUPLICATE KEY UPDATE ' % \
+            (table_name, \
+            ','.join([c['COLUMN_NAME']  for c in columns if c['EXTRA'] != 'auto_increment' ]),
+            ','.join(['?' for c in columns if c['EXTRA'] != 'auto_increment']))
+
         update_sql = 'update %s set %s where %s' % \
                 (table_name, \
                 ','.join([c['COLUMN_NAME']+'=?'  for c in columns if c['COLUMN_KEY'] != 'PRI' ]), \
@@ -202,6 +207,7 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
             'is_view' : is_view,
             'insert_sql' : insert_sql,
             'update_sql' : update_sql,
+			'insert_update_sql':insert_update_sql,
             'table_name': table_name,
             'struct_name': struct_name,
             'op_struct_name': op_struct_name,

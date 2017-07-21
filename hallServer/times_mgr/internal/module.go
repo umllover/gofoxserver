@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"mj/gameServer/base"
-
+	"mj/hallServer/base"
 	"mj/hallServer/user"
-	"mj/hallServer/userHandle"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -51,7 +49,7 @@ func (m *TimesModule) ClearDayTimes() {
 		corn, _ := timer.NewCronExpr("0 0 12 * * *")
 		m.Skeleton.CronFunc(corn, m.ClearDayTimes)
 	}()
-	userHandle.ForEachUser(func(u *user.User) {
+	user.ForEachUser(func(u *user.User) {
 		u.ClearDayTimes()
 	})
 
@@ -63,7 +61,7 @@ func (m *TimesModule) CliearWeekTimes() {
 		m.Skeleton.CronFunc(wcorn, m.CliearWeekTimes)
 	}()
 
-	userHandle.ForEachUser(func(u *user.User) {
+	user.ForEachUser(func(u *user.User) {
 		u.ClearWeekTimes()
 	})
 }

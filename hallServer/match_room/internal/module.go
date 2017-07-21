@@ -3,7 +3,7 @@ package internal
 import (
 	"container/list"
 	"mj/common/msg"
-	"mj/gameServer/base"
+	"mj/hallServer/base"
 	"mj/hallServer/game_list"
 	"sort"
 	"time"
