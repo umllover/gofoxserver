@@ -144,7 +144,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.ProvideGangUser = INVALID_CHAIR
 	room.HistoryScores = make([]*HistoryScore, UserCnt)
 	room.MinusLastCount = 0
-	room.MinusHeadCount = 0
+	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
 
 	//设置漳浦麻将牌数据
