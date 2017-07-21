@@ -28,13 +28,14 @@ func init() {
 	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
 	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
 	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+
 	reg.RegisterRpc("ServerFaild", serverFaild)
 	reg.RegisterRpc("ServerStart", serverStart)
 
 	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
+	reg.RegisterS2S(&msg.S2S_HanldeFromGameMsg{}, HanldeFromGameMsg)
 
 	consul.SetHookRpc(ChanRPC)
 }
@@ -89,7 +90,16 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 
 //处理来自游戏服的消息
 func HanldeFromGameMsg(args []interface{}) {
-	SendMsgToSelfNotdeUser(args)
+	recvMsg := args[0].(*msg.S2S_HanldeFromGameMsg)
+	data, err := msg.Processor.Unmarshal(recvMsg.Data)
+	if err != nil {
+		log.Error("at HanldeFromGameMsg Unmarshal error:%s", err.Error())
+	}
+	msgId, err1 := msg.Processor.GetMsgId(data)
+	if err1 != nil {
+		log.Error("at HanldeFromGameMsg error:%s", err1.Error())
+	}
+	SendMsgToSelfNotdeUser([]interface{}{recvMsg.Uid, msgId, data})
 }
 
 func GetPlayerInfo(args []interface{}) (interface{}, error) {

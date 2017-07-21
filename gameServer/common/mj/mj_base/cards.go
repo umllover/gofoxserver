@@ -74,6 +74,7 @@ type MJ_CFG struct {
 	MaxRepertory int //最多存放多少张牌
 	HuaIndex     int //花牌开始缩影
 	HuaCount     int //花牌数量
+
 }
 
 var cfg = []*MJ_CFG{

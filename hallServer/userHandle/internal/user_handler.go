@@ -16,6 +16,8 @@ import (
 	"mj/hallServer/user"
 	"time"
 
+	"mj/hallServer/center"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -45,6 +47,13 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
 	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
 	reg.RegisterRpc(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
+
+	reg.RegisterRpc(&msg.C2L_SetPhoneNumber{}, m.SetPhoneNumber)
+	reg.RegisterRpc(&msg.C2L_DianZhan{}, m.DianZhan)
+	reg.RegisterRpc(&msg.C2L_RenewalFees{}, m.RenewalFees)
+	reg.RegisterRpc(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
+	reg.RegisterRpc(&msg.C2L_ChangeSign{}, m.ChangeSign)
+	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 }
 
 //连接进来的通知
@@ -750,6 +759,74 @@ func (m *UserModule) Recharge(args []interface{}) {
 	}
 }
 
+//删除自己创建的房间
 func (m *UserModule) DeleteRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_DeleteRoom)
+	player := m.a.UserData().(*user.User)
 
+	info := player.GetRoom(recvMsg.RoomId)
+	if info != nil {
+		player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrNotFondCreatorRoom})
+		return
+	}
+
+	center.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
+		if err != nil {
+			player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrRoomIsStart})
+		} else {
+			player.DelRooms(recvMsg.RoomId)
+			player.WriteMsg(&msg.L2C_DeleteRoomResult{})
+		}
+	})
+
+}
+
+//绑定电话号码
+func (m *UserModule) SetPhoneNumber(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
+	//player := m.a.UserData().(*user.User)
+	//
+
+}
+
+//点赞
+func (m *UserModule) DianZhan(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_DianZhan)
+	//player := m.a.UserData().(*user.User)
+}
+
+//续费
+func (m *UserModule) RenewalFees(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_RenewalFees)
+}
+
+//改名字
+func (m *UserModule) ChangeUserName(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ChangeUserName)
+	player := m.a.UserData().(*user.User)
+	player.NickName = recvMsg.NewName
+
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"NickName": player.NickName,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeUserNameRsp{Code: 0, NewName: player.NickName})
+}
+
+//改签名
+func (m *UserModule) ChangeSign(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ChangeSign)
+	player := m.a.UserData().(*user.User)
+
+	player.Sign = recvMsg.Sign
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"Sign": player.Sign,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeSignRsp{Code: 0, NewSign: player.Sign})
+}
+
+//获取验证码
+func (m *UserModule) ReqBindMaskCode(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_ReqBindMaskCode)
 }

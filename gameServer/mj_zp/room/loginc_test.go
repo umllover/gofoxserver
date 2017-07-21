@@ -15,9 +15,11 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"mj/common/msg/mj_zp_msg"
-	"time"
+
+	"fmt"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -37,9 +39,15 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
-
 }
 
+func TestZP_RoomData_StartDispatchCard(t *testing.T) {
+
+	//data := room.DataMgr.(*ZP_RoomData)
+	//data.RepertoryCard = make([]int, 144)
+	//data.StartDispatchCard()
+
+}
 func TestOutCard(t *testing.T) {
 	Wg.Add(1)
 	time.Sleep(3 * time.Second)
@@ -54,7 +62,7 @@ func TestOutCard(t *testing.T) {
 		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
 	}
 
-	Wg.Wait()
+	//Wg.Wait()
 }
 
 //func TestGameLogic_OutCard(t *testing.T) {
@@ -148,7 +156,7 @@ func init() {
 		"ZhuaHua":    0,
 		"WithZiCard": false,
 		"ScoreType":  33,
-		"WithChaHua": false,
+		"WithChaHua": true,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {
@@ -207,7 +215,8 @@ func newTestUser(uid int64) *user.User {
 	}
 
 	u.ChairId = 0
-	u.Agent = new(TAgent)
+	u.Agent = NewAgent()
+
 	return u
 }
 
@@ -219,7 +228,19 @@ func (t *TestUser) WriteMsg(msg interface{}) {
 
 }
 
+func NewAgent() *TAgent {
+	a := new(TAgent)
+	a.Ch = chanrpc.NewServer(100000)
+	go func() {
+		for v := range a.Ch.ChanCall {
+			fmt.Println(v)
+		}
+	}()
+	return a
+}
+
 type TAgent struct {
+	Ch *chanrpc.Server
 }
 
 func (t *TAgent) WriteMsg(msg interface{})     {}
@@ -230,7 +251,7 @@ func (t *TAgent) RemoteAddr() net.Addr         { return nil }
 func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
-func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func (t *TAgent) ChanRPC() *chanrpc.Server     { return t.Ch }
 func InitLog() {
 	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
 	if err != nil {

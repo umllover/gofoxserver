@@ -35,7 +35,6 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
-
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
@@ -87,7 +86,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u,chairID)
+	retcode = r.UserMgr.Sit(u, chairID)
 
 }
 
@@ -154,7 +153,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 		return
 	}
 
-	log.Debug("at UserReady ==== ")
+	log.Debug("at UserReady")
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
@@ -286,7 +285,7 @@ func (room *Entry_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
-		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),
 			Status: room.Status,
 		})

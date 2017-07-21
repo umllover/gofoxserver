@@ -269,9 +269,7 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	lg.HuOfCard = cbCurrentCard
 
 	//插入扑克
-	if cbCurrentCard != 0 {
-		cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
-	}
+	cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
 
 	if b4HZHu && cbCardIndexTemp[31] == 4 { //四个红中直接胡牌
 		return WIK_CHI_HU, nil
@@ -587,7 +585,6 @@ func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*m
 //扑克转换
 func (lg *BaseLogic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 	//转换扑克
-
 	if lg.MagicIndex != lg.GetCfg().MaxIdx { //有财神， 把财神放进去
 		for i := 0; i < cbCardIndex[lg.MagicIndex]; i++ {
 			cbCardData = append(cbCardData, lg.SwitchToCard(lg.MagicIndex))

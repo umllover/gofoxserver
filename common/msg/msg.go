@@ -37,6 +37,18 @@ func init() {
 	Processor.Register(&L2C_QuickMatchOk{})
 	Processor.Register(&C2L_DeleteRoom{})
 	Processor.Register(&L2C_DeleteRoomResult{})
+	Processor.Register(&C2L_ReqBindMaskCode{})
+	Processor.Register(&L2C_ReqBindMaskCodeRsp{})
+	Processor.Register(&C2L_SetPhoneNumber{})
+	Processor.Register(&L2C_SetPhoneNumberRsp{})
+	Processor.Register(&C2L_DianZhan{})
+	Processor.Register(&C2L_DianZhanRsp{})
+	Processor.Register(&C2L_RenewalFees{})
+	Processor.Register(&L2C_RenewalFeesRsp{})
+	Processor.Register(&C2L_ChangeUserName{})
+	Processor.Register(&L2C_ChangeUserNameRsp{})
+	Processor.Register(&C2L_ChangeSign{})
+	Processor.Register(&L2C_ChangeSignRsp{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -71,6 +83,7 @@ func init() {
 	Processor.Register(&C2G_LoadRoom{})
 	Processor.Register(&G2C_LoadRoomOk{})
 	Processor.Register(&G2C_GameConclude{})
+	Processor.Register(&G2C_UserSitDownRst{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

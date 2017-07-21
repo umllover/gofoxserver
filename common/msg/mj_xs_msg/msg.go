@@ -13,6 +13,8 @@ func init() {
 	msg.Processor.Register(&G2C_SendCard{})
 	msg.Processor.Register(&G2C_OperateResult{})
 	msg.Processor.Register(&G2C_OperateNotify{})
+	msg.Processor.Register(&C2G_MJXS_ReplaceCard{})
+	msg.Processor.Register(&G2C_MJXS_ReplaceCardRsp{})
 }
 
 //出操作
@@ -24,6 +26,19 @@ type C2G_MJXS_OperateCard struct {
 //出操作
 type C2G_MJXS_OutCard struct {
 	CardData int //扑克数据
+}
+
+//花牌替换
+type C2G_MJXS_ReplaceCard struct {
+	CardData int //花牌
+}
+
+//补花
+type G2C_MJXS_ReplaceCardRsp struct {
+	ReplaceUser  int  //补牌用户
+	ReplaceCard  int  //补牌扑克
+	NewCard      int  //补完扑克
+	IsInitFlower bool //是否开局补花，true开局补花
 }
 
 //发送扑克
