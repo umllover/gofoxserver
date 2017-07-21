@@ -144,7 +144,9 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	log.Debug("at UserReady ==== ")
-	room.UserMgr.SetUsetStatus(u, US_READY)
+	if u.Status != US_PLAYING {
+		room.UserMgr.SetUsetStatus(u, US_READY)
+	}
 
 	if room.UserMgr.IsAllReady() {
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
