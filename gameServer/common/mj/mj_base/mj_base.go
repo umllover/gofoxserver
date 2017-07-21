@@ -68,10 +68,9 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 
 	retcode := 0
 	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
-		}
+		u.WriteMsg(&msg.G2c_UserSitDownRst{Code: retcode})
 	}()
+
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
 		retcode = GameIsStart
 		return
@@ -117,14 +116,16 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	u := args[0].(*user.User)
 	retcode := 0
 	defer func() {
-		if retcode != 0 {
+		if retcode != 0 && u != nil {
 			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
 		}
 	}()
 
-	if !room.DataMgr.CanOperatorRoom(u.Id) {
-		retcode = NotOwner
-		return
+	if u != nil { //u== nil 强制解散
+		if !room.DataMgr.CanOperatorRoom(u.Id) {
+			retcode = NotOwner
+			return
+		}
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {

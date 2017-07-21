@@ -4,7 +4,7 @@
 	"RoomModuleCount": 4,
 	
 	"WSAddr": "192.168.1.141:20002",
-    "HttpAddr":"192.168.1.14140002",
+    "HttpAddr":"192.168.1.141:40002",
     "ListenAddr": "192.168.1.141:32002",
 	"MaxConnNum": 20000,
 	
@@ -32,5 +32,5 @@
 	"PendingWriteNum": 100,
     "ValidKind":"389,28,391",
     "WatchAddr":"127.0.0.1:7002",
-    "NodeId": 3
+    "NodeId": 1
 }

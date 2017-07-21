@@ -15,6 +15,11 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
+
+	"mj/common/msg/mj_zp_msg"
+
+	"fmt"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -37,26 +42,26 @@ func TestGameStart_1(t *testing.T) {
 }
 
 func TestZP_RoomData_StartDispatchCard(t *testing.T) {
-	for i := 0; i < 10000; i++ {
-		data := room.DataMgr.(*ZP_RoomData)
-		data.RepertoryCard = make([]int, 144)
-		data.StartDispatchCard()
-	}
+
+	//data := room.DataMgr.(*ZP_RoomData)
+	//data.RepertoryCard = make([]int, 144)
+	//data.StartDispatchCard()
+
 }
 func TestOutCard(t *testing.T) {
-	//Wg.Add(1)
-	//time.Sleep(3 * time.Second)
-	////a := []int{}
-	////room.DataMgr.CalHuPaiScore(a)
-	//data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
-	//data.OperateCard = append(data.OperateCard, 5)
-	//data.OperateCard = append(data.OperateCard, 0)
-	//data.OperateCard = append(data.OperateCard, 5)
-	//data.OperateCode = 64
-	//if room != nil {
-	//	room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
-	//}
-	//
+	Wg.Add(1)
+	time.Sleep(3 * time.Second)
+	//a := []int{}
+	//room.DataMgr.CalHuPaiScore(a)
+	data := &mj_zp_msg.C2G_ZPMJ_OperateCard{}
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCard = append(data.OperateCard, 0)
+	data.OperateCard = append(data.OperateCard, 5)
+	data.OperateCode = 64
+	if room != nil {
+		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
+	}
+
 	//Wg.Wait()
 }
 
@@ -210,7 +215,8 @@ func newTestUser(uid int64) *user.User {
 	}
 
 	u.ChairId = 0
-	u.Agent = new(TAgent)
+	u.Agent = NewAgent()
+
 	return u
 }
 
@@ -222,7 +228,19 @@ func (t *TestUser) WriteMsg(msg interface{}) {
 
 }
 
+func NewAgent() *TAgent {
+	a := new(TAgent)
+	a.Ch = chanrpc.NewServer(100000)
+	go func() {
+		for v := range a.Ch.ChanCall {
+			fmt.Println(v)
+		}
+	}()
+	return a
+}
+
 type TAgent struct {
+	Ch *chanrpc.Server
 }
 
 func (t *TAgent) WriteMsg(msg interface{})     {}
@@ -233,7 +251,7 @@ func (t *TAgent) RemoteAddr() net.Addr         { return nil }
 func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
-func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func (t *TAgent) ChanRPC() *chanrpc.Server     { return t.Ch }
 func InitLog() {
 	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
 	if err != nil {

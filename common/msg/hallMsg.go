@@ -68,6 +68,12 @@ type C2L_SearchServerTable struct {
 	KindID  int
 }
 
+//查询房间的结果
+type L2C_SearchResult struct {
+	TableID  int //桌子 I D 返回0 是没匹配到
+	ServerIP string
+}
+
 //获取玩家显示信息
 type C2L_User_Individual struct {
 	UserId int
@@ -159,7 +165,8 @@ type C2L_ChangeUserName struct {
 
 //修改名字结果
 type L2C_ChangeUserNameRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewName string
 }
 
 //修改个性签名
@@ -169,7 +176,8 @@ type C2L_ChangeSign struct {
 
 //修改个性签名结果
 type L2C_ChangeSignRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewSign string
 }
 
 /////////// l 2 c /////////////////////////
@@ -244,12 +252,6 @@ type L2C_UserIndividual struct {
 type L2C_GetRoomList struct {
 	Lists []*RoomInfo //房间信息
 	Count int         //有多少条C2L_ReqCreatorRoomRecord
-}
-
-//查询房间的结果
-type L2C_SearchResult struct {
-	TableID  int //桌子 I D 返回0 是没匹配到
-	ServerIP string
 }
 
 // 创建房间失败消息
