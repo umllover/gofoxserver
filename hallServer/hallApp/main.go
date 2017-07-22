@@ -11,13 +11,11 @@ import (
 	"mj/hallServer/game_list"
 	"mj/hallServer/gate"
 	"mj/hallServer/http_service"
-	"mj/hallServer/race_msg"
-	"mj/hallServer/user"
-	"os"
-
 	"mj/hallServer/match_room"
-
+	"mj/hallServer/race_msg"
 	"mj/hallServer/times_mgr"
+	"mj/hallServer/userHandle"
+	"os"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -52,7 +50,7 @@ func main() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	leaf.Run(
-		user.UserMgr,
+		userHandle.UserMgr,
 		gate.Module,
 		center.Module,
 		consul.Module,

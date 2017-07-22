@@ -1,4 +1,4 @@
-package user
+package internal
 
 import (
 	"mj/common/base"
@@ -7,7 +7,6 @@ import (
 )
 
 var (
-	UserMgr  = new(MgrModule)
 	skeleton = base.NewSkeleton()
 )
 

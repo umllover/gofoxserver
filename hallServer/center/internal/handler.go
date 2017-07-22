@@ -5,14 +5,12 @@ import (
 	"mj/common/consul"
 	"mj/common/cost"
 	"mj/common/msg"
+	"mj/common/register"
 	"mj/hallServer/conf"
 	"mj/hallServer/user"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"mj/common/register"
-
-	"regexp"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"

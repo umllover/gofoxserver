@@ -1,19 +1,20 @@
-package user
+package internal
 
 import (
+	"mj/hallServer/center"
+	"mj/hallServer/user"
 	"sync"
 
-	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 )
 
 var (
-	Users     = make(map[int64]*User) //key is userId
+	Users     = make(map[int64]*user.User) //key is userId
 	UsersLock sync.RWMutex
-	CenterRpc *chanrpc.Server
 )
 
-func ForEachUser(f func(u *User)) {
+//此api 尽量少用
+func ForEachUser(f func(u *user.User)) {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	for _, u := range Users {
@@ -23,7 +24,8 @@ func ForEachUser(f func(u *User)) {
 	}
 }
 
-func GetUser(uid int64) *User {
+//此函数不到处  要跟user 联络请用center
+func getUser(uid int64) *user.User {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	u, _ := Users[uid]
@@ -37,9 +39,9 @@ func HasUser(uid int64) bool {
 	return ok
 }
 
-func AddUser(uid int64, u *User) {
+func AddUser(uid int64, u *user.User) {
 	log.Debug("AddUser: %d ===", uid)
-	CenterRpc.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
+	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
 	Users[uid] = u
@@ -47,7 +49,7 @@ func AddUser(uid int64, u *User) {
 
 func DelUser(uid int64) {
 	log.Debug("deluser %d ===", uid)
-	CenterRpc.Go("SelfNodeDelPlayer", uid)
+	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
 	delete(Users, uid)

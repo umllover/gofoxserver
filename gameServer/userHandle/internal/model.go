@@ -1,4 +1,4 @@
-package user
+package internal
 
 import (
 	"github.com/lovelly/leaf/log"
@@ -8,7 +8,6 @@ import (
 )
 
 var (
-	UserMgr  = new(MgrModule)
 	skeleton = base.NewSkeleton()
 )
 

@@ -73,7 +73,7 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
-	user.DelUser(u.Id)
+	DelUser(u.Id)
 	m.Close(common.UserOffline)
 	log.Debug("CloseAgent ok")
 	return nil
@@ -125,7 +125,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		}
 	}
 
-	if user.HasUser(accountData.UserID) {
+	if HasUser(accountData.UserID) {
 		retcode = ErrUserDoubleLogin
 		return
 	}
@@ -152,7 +152,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	}
 
 	player.Agent = agent
-	user.AddUser(player.Id, player)
+	AddUser(player.Id, player)
 	agent.SetUserData(player)
 	player.LoadTimes()
 	player.HallNodeID = conf.Server.NodeId
