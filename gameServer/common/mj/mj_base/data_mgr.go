@@ -1449,12 +1449,6 @@ func (room *RoomData) RecordBanCard(OperateCode, ChairId int) {
 	room.BanUser[ChairId] |= OperateCode
 }
 
-//清除出牌禁忌
-func (room *RoomData) ClearBanCard(ChairId int) {
-	room.BanUser[ChairId] = 0
-	room.BanCardCnt[ChairId] = [9]int{}
-}
-
 //吃啥打啥
 func (room *RoomData) OutOfChiCardRule(CardData, ChairId int) bool {
 	return true

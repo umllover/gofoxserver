@@ -134,9 +134,11 @@ func (lg *BaseLogic) RemoveCard(cbCardIndex []int, cbRemoveCard int) bool {
 	//效验扑克
 	if !lg.CheckValid(cbRemoveCard) {
 		log.Error("at RemoveCard card is Invalid %d", cbRemoveCard)
+		return false
 	}
 	if cbCardIndex[lg.SwitchToIdx(cbRemoveCard)] < 0 {
 		log.Error("at RemoveCard 11 card is Invalid %d", cbRemoveCard)
+		return false
 	}
 	if cbCardIndex[cbRemoveIndex] > 0 {
 		cbCardIndex[cbRemoveIndex]--

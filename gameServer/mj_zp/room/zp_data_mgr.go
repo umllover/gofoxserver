@@ -1312,9 +1312,11 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		log.Debug("补花得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 		//连庄
 		if i == room.BankerUser { //庄W
+			log.Debug("连庄 len1:%d len2:%d len3:%d len4:%d i:%d", len(playerScore), room.LianZhuang, room.ProvideUser, room.BankerUser, i)
 			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
 			room.SumScore[room.BankerUser] += room.LianZhuang
 		} else { //边W
+			log.Debug("连庄 len1:%d len2:%d len3:%d len4:%d i:%d", len(playerScore), room.LianZhuang, room.ProvideUser, room.BankerUser, i)
 			room.SumScore[room.ProvideUser] += room.LianZhuang
 			room.SumScore[room.BankerUser] -= room.LianZhuang
 		}
@@ -1349,6 +1351,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
 		//分饼
 		if room.BankerUser == i {
+			log.Debug("分饼 len1:%d len2:%d i:%d", len(room.SumScore), len(room.FollowCardScore), i)
 			room.SumScore[i] -= room.FollowCardScore[i]
 		} else {
 			playerScore[IDX_SUB_SCORE_CH] = room.FollowCardScore[i]
@@ -1553,6 +1556,9 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			}
 		}
 
+		if room.BankerUser > 3 {
+			room.BankerUser = 0
+		}
 	} else { //荒庄
 		room.BankerUser = room.BankerUser
 	}
@@ -1580,12 +1586,6 @@ func (room *ZP_RoomData) CallGangScore() {
 //出牌禁忌
 func (room *ZP_RoomData) RecordBanCard(OperateCode, ChairId int) {
 	room.BanUser[ChairId] |= OperateCode
-}
-
-//清除出牌禁忌
-func (room *ZP_RoomData) ClearBanCard(ChairId int) {
-	room.BanUser[ChairId] = 0
-	room.BanCardCnt[ChairId] = [9]int{}
 }
 
 //吃啥打啥
@@ -1820,6 +1820,12 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		return 1
 	}
 
+	//清理出牌禁忌
+	if room.SendStatus != Gang_Send {
+		room.BanUser[wCurrentUser] = 0
+		room.BanCardCnt[wCurrentUser] = [9]int{}
+	}
+
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
@@ -2052,7 +2058,11 @@ func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
 			for j := room.GetCfg().MaxIdx - 1; j > 0; j-- {
 				if room.CardIndex[u.ChairId][j] > 0 {
 					card = room.MjBase.LogicMgr.SwitchToCardData(j)
-					break
+					if !(card == room.BanCardCnt[u.ChairId][LimitChi] && room.BankerUser == u.ChairId) {
+						break
+					} else {
+						log.Debug("超时吃啥打啥")
+					}
 				}
 			}
 		}

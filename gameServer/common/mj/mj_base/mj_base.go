@@ -306,9 +306,6 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		return
 	}
 
-	//清除出牌禁忌
-	room.DataMgr.ClearBanCard(u.ChairId)
-
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
 
