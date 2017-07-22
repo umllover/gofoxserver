@@ -124,8 +124,8 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL        = 0x00 //常规结束
-	GER_DISMISS       = 0x01 //游戏解散
+	GER_NORMAL  = 0x00 //常规结束
+	GER_DISMISS = 0x01 //游戏解散
 )
 
 //积分修改类型
