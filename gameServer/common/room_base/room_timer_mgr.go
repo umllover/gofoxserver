@@ -45,6 +45,10 @@ func (room *RoomTimerMgr) GetTimeOperateCard() int {
 	return room.TimeOperateCard
 }
 
+func (room *RoomTimerMgr) AddMaxPayCnt(cnt int) {
+	room.PlayCount += cnt
+}
+
 func (room *RoomTimerMgr) GetTimeOutCard() int {
 	return room.TimeOutCard
 }

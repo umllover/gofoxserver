@@ -38,6 +38,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
 	reg.RegisterRpc("Recharge", m.Recharge)
+	reg.RegisterC2S("S2S_OfflineHandler", m.HandlerOffilne)
 
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
@@ -48,14 +49,15 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
 	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
-	reg.RegisterRpc(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
-
-	reg.RegisterRpc(&msg.C2L_SetPhoneNumber{}, m.SetPhoneNumber)
-	reg.RegisterRpc(&msg.C2L_DianZhan{}, m.DianZhan)
-	reg.RegisterRpc(&msg.C2L_RenewalFees{}, m.RenewalFees)
-	reg.RegisterRpc(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
-	reg.RegisterRpc(&msg.C2L_ChangeSign{}, m.ChangeSign)
+	reg.RegisterC2S(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
+	reg.RegisterC2S(&msg.C2L_SetPhoneNumber{}, m.SetPhoneNumber)
+	reg.RegisterC2S(&msg.C2L_DianZhan{}, m.DianZhan)
+	reg.RegisterC2S(&msg.C2L_RenewalFees{}, m.RenewalFees)
+	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
+	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
+
+	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 }
 
 //连接进来的通知
@@ -409,7 +411,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / roomInfo.MaxPlayerCnt
+		monrey = feeTemp.AATableFee
 	}
 
 	if !player.SubCurrency(feeTemp.TableFee) {
@@ -761,6 +763,15 @@ func (m *UserModule) Recharge(args []interface{}) {
 	}
 }
 
+func (m *UserModule) HandlerOffilne(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_OfflineHandler)
+	player := m.a.UserData().(*user.User)
+	h, ok := model.UserOfflineHandlerOp.Get(recvMsg.EventID)
+	if ok {
+		handlerEventFunc(player, h)
+	}
+}
+
 //删除自己创建的房间
 func (m *UserModule) DeleteRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_DeleteRoom)
@@ -812,13 +823,76 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 
 //点赞
 func (m *UserModule) DianZhan(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_DianZhan)
+	recvMsg := args[0].(*msg.C2L_DianZhan)
 	//player := m.a.UserData().(*user.User)
+	AddOfflineHandler(MailTypeDianZhan, recvMsg.UserID, nil)
 }
 
 //续费
 func (m *UserModule) RenewalFees(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2L_RenewalFees)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode})
+	}()
+	if player.Roomid == 0 {
+		retCode = ErrNotInRoom
+		return
+	}
+
+	info, err := game_list.ChanRPC.TimeOutCall1("GetRoomByRoomId", 5*time.Second, player.Roomid)
+	if err != nil {
+		retCode = ErrFindRoomError
+		return
+	}
+
+	room := info.(*msg.RoomInfo)
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/room.RenewalCnt)
+	if !ok {
+		retCode = ErrConfigError
+		return
+	}
+
+	monrey := feeTemp.TableFee
+	if room.PayType == AA_PAY_TYPE {
+		monrey = feeTemp.AATableFee
+	}
+
+	if !player.SubCurrency(feeTemp.TableFee) {
+		retCode = NotEnoughFee
+		return
+	}
+
+	if !player.HasRecord(room.RoomID) {
+		record := &model.TokenRecord{}
+		record.UserId = player.Id
+		record.RoomId = room.RoomID
+		record.Amount = monrey
+		record.TokenType = AA_PAY_TYPE
+		record.KindID = room.KindID
+		if !player.AddRecord(record) {
+			retCode = ErrServerError
+			player.AddCurrency(monrey)
+			return
+		}
+	} else { //已近口过钱了， 还来搜索房间
+		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
+	}
+	room.PayCnt *= 2
+	room.RenewalCnt++
+
+	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
+}
+
+func (m *UserModule) RenewalFeeFaild(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_RenewalFeeFaild)
+	player := m.a.UserData().(*user.User)
+	record := player.GetRecord(recvMsg.RecodeID)
+	if record != nil {
+		player.AddCurrency(record.Amount)
+		player.DelRecord(record.RoomId)
+	}
 }
 
 //改名字

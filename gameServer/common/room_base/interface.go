@@ -30,6 +30,7 @@ type TimerManager interface {
 	GetPlayCount() int
 	AddPlayCount()
 	GetMaxPayCnt() int
+	AddMaxPayCnt(int )
 	GetCreatrTime() int64
 	GetTimeOutCard() int
 	GetTimeOperateCard() int

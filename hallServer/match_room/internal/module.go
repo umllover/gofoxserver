@@ -60,10 +60,10 @@ func (m *MatchModule) GetRoomsByKind(kind int) []*msg.RoomInfo {
 	return rooms.([]*msg.RoomInfo)
 }
 
-func (m *MatchModule) GetRoomsByRoomId(RoomId int) *msg.RoomInfo {
-	log.Debug("beginc GetRoomsByRoomId %d", RoomId)
-	rooms, err := game_list.ChanRPC.TimeOutCall1("GetRoomsByRoomId", 5, RoomId)
-	log.Debug("end GetRoomsByRoomId %d", RoomId)
+func (m *MatchModule) GetRoomByRoomId(RoomId int) *msg.RoomInfo {
+	log.Debug("beginc GetRoomByRoomId %d", RoomId)
+	rooms, err := game_list.ChanRPC.TimeOutCall1("GetRoomByRoomId", 5, RoomId)
+	log.Debug("end GetRoomByRoomId %d", RoomId)
 	if err != nil {
 		return nil
 	}

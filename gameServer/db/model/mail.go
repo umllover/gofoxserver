@@ -12,32 +12,31 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//token_record
+//mail
 //
 
 // +gen *
-type TokenRecord struct {
-	RoomId      int        `db:"room_id" json:"room_id"`           //
-	UserId      int64      `db:"user_id" json:"user_id"`           //
-	TokenType   int        `db:"tokenType" json:"tokenType"`       //
-	Amount      int        `db:"amount" json:"amount"`             //
-	Status      int        `db:"status" json:"status"`             //
+type Mail struct {
+	MailId      int        `db:"mail_id" json:"mail_id"`           //
+	UserId      int        `db:"user_id" json:"user_id"`           // 邮件id
+	MailType    int        `db:"mail_type" json:"mail_type"`       //
+	Context     string     `db:"context" json:"context"`           //
 	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` //
-	KindID      int        `db:"KindID" json:"KindID"`             //
-	ServerId    int        `db:"ServerId" json:"ServerId"`         //
+	Sender      string     `db:"sender" json:"sender"`             //
+	Title       string     `db:"title" json:"title"`               //
 }
 
-type tokenRecordOp struct{}
+type mailOp struct{}
 
-var TokenRecordOp = &tokenRecordOp{}
-var DefaultTokenRecord = &TokenRecord{}
+var MailOp = &mailOp{}
+var DefaultMail = &Mail{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *tokenRecordOp) Get(room_id int, user_id int64) (*TokenRecord, bool) {
-	obj := &TokenRecord{}
-	sql := "select * from token_record where room_id=? and user_id=? "
+func (op *mailOp) Get(mail_id int, user_id int) (*Mail, bool) {
+	obj := &Mail{}
+	sql := "select * from mail where mail_id=? and user_id=? "
 	err := db.DB.Get(obj, sql,
-		room_id,
+		mail_id,
 		user_id,
 	)
 
@@ -47,9 +46,9 @@ func (op *tokenRecordOp) Get(room_id int, user_id int64) (*TokenRecord, bool) {
 	}
 	return obj, true
 }
-func (op *tokenRecordOp) SelectAll() ([]*TokenRecord, error) {
-	objList := []*TokenRecord{}
-	sql := "select * from token_record "
+func (op *mailOp) SelectAll() ([]*Mail, error) {
+	objList := []*Mail{}
+	sql := "select * from mail "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -58,11 +57,11 @@ func (op *tokenRecordOp) SelectAll() ([]*TokenRecord, error) {
 	return objList, nil
 }
 
-func (op *tokenRecordOp) QueryByMap(m map[string]interface{}) ([]*TokenRecord, error) {
-	result := []*TokenRecord{}
+func (op *mailOp) QueryByMap(m map[string]interface{}) ([]*Mail, error) {
+	result := []*Mail{}
 	var params []interface{}
 
-	sql := "select * from token_record where 1=1 "
+	sql := "select * from mail where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -75,7 +74,7 @@ func (op *tokenRecordOp) QueryByMap(m map[string]interface{}) ([]*TokenRecord, e
 	return result, nil
 }
 
-func (op *tokenRecordOp) GetByMap(m map[string]interface{}) (*TokenRecord, error) {
+func (op *mailOp) GetByMap(m map[string]interface{}) (*Mail, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -87,7 +86,7 @@ func (op *tokenRecordOp) GetByMap(m map[string]interface{}) (*TokenRecord, error
 }
 
 /*
-func (i *TokenRecord) Insert() error {
+func (i *Mail) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -97,22 +96,21 @@ func (i *TokenRecord) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *tokenRecordOp) Insert(m *TokenRecord) (int64, error) {
+func (op *mailOp) Insert(m *Mail) (int64, error) {
 	return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
-	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?)"
+func (op *mailOp) InsertTx(ext sqlx.Ext, m *Mail) (int64, error) {
+	sql := "insert into mail(mail_id,user_id,mail_type,context,creator_time,sender,title) values(?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
-		m.RoomId,
+		m.MailId,
 		m.UserId,
-		m.TokenType,
-		m.Amount,
-		m.Status,
+		m.MailType,
+		m.Context,
 		m.CreatorTime,
-		m.KindID,
-		m.ServerId,
+		m.Sender,
+		m.Title,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -123,16 +121,15 @@ func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
 }
 
 //存在就更新， 不存在就插入
-func (op *tokenRecordOp) InsertUpdate(obj *TokenRecord, m map[string]interface{}) error {
-	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.RoomId,
+func (op *mailOp) InsertUpdate(obj *Mail, m map[string]interface{}) error {
+	sql := "insert into mail(mail_id,user_id,mail_type,context,creator_time,sender,title) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.MailId,
 		obj.UserId,
-		obj.TokenType,
-		obj.Amount,
-		obj.Status,
+		obj.MailType,
+		obj.Context,
 		obj.CreatorTime,
-		obj.KindID,
-		obj.ServerId,
+		obj.Sender,
+		obj.Title,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -148,7 +145,7 @@ func (op *tokenRecordOp) InsertUpdate(obj *TokenRecord, m map[string]interface{}
 }
 
 /*
-func (i *TokenRecord) Update()  error {
+func (i *Mail) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -158,21 +155,20 @@ func (i *TokenRecord) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *tokenRecordOp) Update(m *TokenRecord) error {
+func (op *mailOp) Update(m *Mail) error {
 	return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
-	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=? and user_id=?`
+func (op *mailOp) UpdateTx(ext sqlx.Ext, m *Mail) error {
+	sql := `update mail set mail_type=?,context=?,creator_time=?,sender=?,title=? where mail_id=? and user_id=?`
 	_, err := ext.Exec(sql,
-		m.TokenType,
-		m.Amount,
-		m.Status,
+		m.MailType,
+		m.Context,
 		m.CreatorTime,
-		m.KindID,
-		m.ServerId,
-		m.RoomId,
+		m.Sender,
+		m.Title,
+		m.MailId,
 		m.UserId,
 	)
 
@@ -185,14 +181,14 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMap(room_id int, user_id int64, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, room_id, user_id, m)
+func (op *mailOp) UpdateWithMap(mail_id int, user_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, mail_id, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int64, m map[string]interface{}) error {
+func (op *mailOp) UpdateWithMapTx(ext sqlx.Ext, mail_id int, user_id int, m map[string]interface{}) error {
 
-	sql := `update token_record set %s where 1=1 and room_id=? and user_id=? ;`
+	sql := `update mail set %s where 1=1 and mail_id=? and user_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -203,41 +199,41 @@ func (op *tokenRecordOp) UpdateWithMapTx(ext sqlx.Ext, room_id int, user_id int6
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, room_id, user_id)
+	params = append(params, mail_id, user_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *TokenRecord) Delete() error{
+func (i *Mail) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *tokenRecordOp) Delete(room_id int, user_id int64) error {
-	return op.DeleteTx(db.DB, room_id, user_id)
+func (op *mailOp) Delete(mail_id int, user_id int) error {
+	return op.DeleteTx(db.DB, mail_id, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *tokenRecordOp) DeleteTx(ext sqlx.Ext, room_id int, user_id int64) error {
-	sql := `delete from token_record where 1=1
-        and room_id=?
+func (op *mailOp) DeleteTx(ext sqlx.Ext, mail_id int, user_id int) error {
+	sql := `delete from mail where 1=1
+        and mail_id=?
         and user_id=?
         `
 	_, err := ext.Exec(sql,
-		room_id,
+		mail_id,
 		user_id,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *tokenRecordOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *mailOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from token_record where 1=1 `
+	sql := `select count(*) from mail where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -251,13 +247,13 @@ func (op *tokenRecordOp) CountByMap(m map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (op *tokenRecordOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *mailOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *tokenRecordOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *mailOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from token_record where 1=1 "
+	sql := "delete from mail where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)

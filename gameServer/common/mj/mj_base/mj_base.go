@@ -99,6 +99,12 @@ func (r *Mj_base) UserStandup(args []interface{}) {
 	r.UserMgr.Standup(u)
 }
 
+func (r *Mj_base) AddPayCnt(args []interface{}) (interface{}, error) {
+	addCnt := args[0].(int)
+	r.TimerMgr.AddMaxPayCnt(addCnt)
+	return nil, nil
+}
+
 //获取对方信息
 func (room *Mj_base) GetUserChairInfo(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
