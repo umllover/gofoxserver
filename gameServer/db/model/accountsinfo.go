@@ -178,6 +178,59 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface{}) error {
+	sql := "insert into accountsinfo(ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.ProtectID,
+		obj.SpreaderID,
+		obj.Accounts,
+		obj.NickName,
+		obj.PassPortID,
+		obj.Compellation,
+		obj.LogonPass,
+		obj.IsAndroid,
+		obj.InsurePass,
+		obj.MasterOrder,
+		obj.Gender,
+		obj.Nullity,
+		obj.NullityOverDate,
+		obj.StunDown,
+		obj.MoorMachine,
+		obj.WebLogonTimes,
+		obj.GameLogonTimes,
+		obj.LastLogonIP,
+		obj.LastLogonDate,
+		obj.LastLogonMobile,
+		obj.LastLogonMachine,
+		obj.RegisterIP,
+		obj.RegisterDate,
+		obj.RegisterMobile,
+		obj.RegisterMachine,
+		obj.QQID,
+		obj.WXID,
+		obj.AgentID,
+		obj.AgentNumber,
+		obj.HeadImgUrl,
+		obj.UnionID,
+		obj.QQ,
+		obj.EMail,
+		obj.DwellingPlace,
+		obj.PostalCode,
+		obj.Birthday,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *Accountsinfo) Update()  error {
     _,err := db.DBMap.Update(i)

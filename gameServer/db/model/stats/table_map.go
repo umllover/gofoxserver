@@ -6,6 +6,7 @@ package stats
 func InitTableMap() {
 	/*
 	   db.StatsDBMap.AddTableWithName(Activity{}, "activity").SetKeys(false,"ActivityName")
+	   db.StatsDBMap.AddTableWithName(CreateRoomLog{}, "create_room_log").SetKeys(false,"RoomId")
 	   db.StatsDBMap.AddTableWithName(Globalspreadinfo{}, "globalspreadinfo").SetKeys(false,"ID")
 	   db.StatsDBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
 	   db.StatsDBMap.AddTableWithName(Systemstatusinfo{}, "systemstatusinfo").SetKeys(false,"StatusName")

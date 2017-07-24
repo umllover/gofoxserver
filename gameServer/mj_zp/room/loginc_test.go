@@ -62,7 +62,7 @@ func TestOutCard(t *testing.T) {
 		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
 	}
 
-	//Wg.Wait()
+	Wg.Wait()
 }
 
 //func TestGameLogic_OutCard(t *testing.T) {
@@ -142,8 +142,9 @@ func init() {
 	info := &model.CreateRoomInfo{
 		RoomId:       777777,
 		MaxPlayerCnt: 4,
-		KindId:       389,
+		KindId:       391,
 		ServiceId:    1,
+		Num:          8,
 	}
 
 	//游戏配置
@@ -156,7 +157,7 @@ func init() {
 		"ZhuaHua":    0,
 		"WithZiCard": false,
 		"ScoreType":  33,
-		"WithChaHua": true,
+		"WithChaHua": false,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {
@@ -173,7 +174,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, mj_base.IDX_ZPMJ, "", temp, r, info.OtherInfo)
+	datag := NewDataMgr(info, u1.Id, mj_base.IDX_ZPMJ, "", temp, r)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)

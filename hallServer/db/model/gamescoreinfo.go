@@ -137,6 +137,39 @@ func (op *gamescoreinfoOp) InsertTx(ext sqlx.Ext, m *Gamescoreinfo) (int64, erro
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *gamescoreinfoOp) InsertUpdate(obj *Gamescoreinfo, m map[string]interface{}) error {
+	sql := "insert into gamescoreinfo(UserID,Score,Revenue,InsureScore,WinCount,LostCount,DrawCount,FleeCount,AllLogonTimes,PlayTimeCount,OnLineTimeCount,LastLogonIP,LastLogonDate,LastLogonMachine,RegisterIP,RegisterMachine) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserID,
+		obj.Score,
+		obj.Revenue,
+		obj.InsureScore,
+		obj.WinCount,
+		obj.LostCount,
+		obj.DrawCount,
+		obj.FleeCount,
+		obj.AllLogonTimes,
+		obj.PlayTimeCount,
+		obj.OnLineTimeCount,
+		obj.LastLogonIP,
+		obj.LastLogonDate,
+		obj.LastLogonMachine,
+		obj.RegisterIP,
+		obj.RegisterMachine,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *Gamescoreinfo) Update()  error {
     _,err := db.DBMap.Update(i)

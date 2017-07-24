@@ -142,6 +142,42 @@ func (op *userattrOp) InsertTx(ext sqlx.Ext, m *Userattr) (int64, error) {
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *userattrOp) InsertUpdate(obj *Userattr, m map[string]interface{}) error {
+	sql := "insert into userattr(UserID,UnderWrite,FaceID,CustomID,UserMedal,Experience,LoveLiness,UserRight,MasterRight,MasterOrder,PlayTimeCount,OnLineTimeCount,HeadImgUrl,Gender,NickName,elect_uid,star,Sign,phome_number) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserID,
+		obj.UnderWrite,
+		obj.FaceID,
+		obj.CustomID,
+		obj.UserMedal,
+		obj.Experience,
+		obj.LoveLiness,
+		obj.UserRight,
+		obj.MasterRight,
+		obj.MasterOrder,
+		obj.PlayTimeCount,
+		obj.OnLineTimeCount,
+		obj.HeadImgUrl,
+		obj.Gender,
+		obj.NickName,
+		obj.ElectUid,
+		obj.Star,
+		obj.Sign,
+		obj.PhomeNumber,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *Userattr) Update()  error {
     _,err := db.DBMap.Update(i)

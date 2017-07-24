@@ -114,6 +114,27 @@ func (op *userWeekTimesOp) InsertTx(ext sqlx.Ext, m *UserWeekTimes) (int64, erro
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *userWeekTimesOp) InsertUpdate(obj *UserWeekTimes, m map[string]interface{}) error {
+	sql := "insert into user_week_times(user_id,key_id,v,create_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserId,
+		obj.KeyId,
+		obj.V,
+		obj.CreateTime,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *UserWeekTimes) Update()  error {
     _,err := db.DBMap.Update(i)

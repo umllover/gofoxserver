@@ -106,6 +106,6 @@ func (lg *BaseLogic) GetCardTimes(cardType int) int {
 	return 1
 }
 
-func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool {
-	return false
+func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool) {
+	return 0, false
 }

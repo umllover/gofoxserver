@@ -99,6 +99,12 @@ func (r *Mj_base) UserStandup(args []interface{}) {
 	r.UserMgr.Standup(u)
 }
 
+func (r *Mj_base) AddPayCnt(args []interface{}) (interface{}, error) {
+	addCnt := args[0].(int)
+	r.TimerMgr.AddMaxPayCnt(addCnt)
+	return nil, nil
+}
+
 //获取对方信息
 func (room *Mj_base) GetUserChairInfo(args []interface{}) {
 	recvMsg := args[0].(*msg.C2G_REQUserChairInfo)
@@ -309,9 +315,6 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		return
 	}
 
-	//清除出牌禁忌
-	room.DataMgr.ClearBanCard(u.ChairId)
-
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
 
@@ -431,7 +434,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		//room.UserAction[room.CurrentUser] = WIK_NULL
+		room.DataMgr.ResetUserOperateEx(u)
 
 		//执行动作
 		switch OperateCode {
@@ -493,10 +496,6 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
-	//if room.Temp.OffLineTrustee == 0 {
-	//	return false
-	//}
-	//todo，待修改
 
 	//效验状态
 	if wChairID >= room.UserMgr.GetMaxPlayerCnt() {

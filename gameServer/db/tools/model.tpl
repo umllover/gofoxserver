@@ -136,6 +136,29 @@ func (op *{{op_struct_name}}) InsertTx(ext sqlx.Ext, m *{{struct_name}}) (int64,
     {% endif -%}
 }
 
+//存在就更新， 不存在就插入
+func (op *{{op_struct_name}}) InsertUpdate(obj *{{struct_name}}, m map[string]interface{}) ( error) {
+    sql := "{{insert_update_sql}}"
+    var params = []interface{}{ {% for column in column_list -%}
+        {% if not column.auto_incr -%}
+            obj.{{column.field_name}},
+        {% endif -%}
+    {% endfor -%}
+	}
+    var set_sql string
+    for k, v := range m{
+		if set_sql != "" {
+			set_sql += ","
+		}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
+
+    _, err := db.{{db_sel}}.Exec(sql + set_sql, params...)
+    return err
+}
+
+
 /*
 func (i *{{struct_name}}) Update()  error {
     _,err := db.{{db_map}}.Update(i)

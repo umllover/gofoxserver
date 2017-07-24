@@ -68,8 +68,6 @@ func (room *ZP_base) OutCard(args []interface{}) {
 		return
 	}
 
-	//todo.记录出牌用户
-
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
 
@@ -167,7 +165,7 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		// room.UserAction[room.CurrentUser] = WIK_NULL
+		room.DataMgr.ResetUserOperateEx(u)
 
 		//执行动作
 		switch OperateCode {

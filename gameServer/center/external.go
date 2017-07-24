@@ -29,7 +29,7 @@ func SendDataToHallUser(HallNodeName string, uid int64, data interface{}) {
 		return
 	}
 
-	cluster.Go(HallNodeName, &msg.S2S_HanldeFromGameMsg{Uid: uid, Data: bdate[0]})
+	cluster.Go(HallNodeName, &msg.S2S_HanldeFromUserMsg{Uid: uid, Data: bdate[0]})
 }
 
 //发送消息给游戏服

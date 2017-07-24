@@ -40,9 +40,9 @@ type DataManager interface {
 	RecordOutCarCnt() int                                            //记录出牌数
 	OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int)        //抓花 扎码出库
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
-	ClearBanCard(ChairId int)                                        //清除出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
+	ResetUserOperateEx(u *user.User)                                 //清除状态
 
 	GetResumeUser() int
 	GetGangStatus() int
@@ -66,7 +66,7 @@ type LogicManager interface {
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) (int, []*TagAnalyseItem)
+	AnalyseChiHuCard([]int, []*msg.WeaveItem, int) (bool, []*TagAnalyseItem)
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
 	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)
