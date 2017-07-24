@@ -1,22 +1,21 @@
 package consul
 
 import (
-	"mj/common/consul/internal"
+	"github.com/lovelly/leaf/chanrpc"
 )
 
 var (
-	Module  = new(internal.Module)
-	ChanRPC = internal.ChanRPC
+	Module = new(ConsulModule)
 )
 
-func SetConfig(cfg internal.Rgconfig) {
-	internal.Config = cfg
+func SetConfig(cfg Rgconfig) {
+	Config = cfg
 }
 
 func SetSelfId(selfId string) {
-	internal.SelfId = selfId
+	SelfId = selfId
 }
 
-func AddinitiativeSvr(svrName ...string) {
-	internal.InitiativeSvr = append(internal.InitiativeSvr, svrName...)
+func SetHookRpc(rpc *chanrpc.Server) {
+	HookChanRpc = rpc
 }

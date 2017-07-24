@@ -5,37 +5,29 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
-	"reflect"
 
 	"mj/gameServer/RoomMgr"
 
-	"github.com/lovelly/leaf/cluster"
+	"mj/common/register"
+
+	"mj/gameServer/center"
+
 	"github.com/lovelly/leaf/log"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	cluster.SetRoute(id, ChanRPC)
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	//rpc
-	handleRpc("GetKindList", GetKindList)
-	handleRpc("GetRooms", GetRooms)
+	reg.RegisterS2S(&msg.S2S_GetKindList{}, GetKindList)
+	reg.RegisterS2S(&msg.S2S_GetRooms{}, GetRooms)
+	reg.RegisterS2S(&msg.S2S_RenewalFee{}, RenewalFee)
 }
 
 ///// rpc
 func GetKindList(args []interface{}) (interface{}, error) {
 	ip, port := conf.GetServerAddrAndPort()
 
-	ret := make([]*msg.TagGameServer, 0)
+	ret := &msg.S2S_KindListResult{}
 	for kind, v := range modules {
 		templates, ok := base.GameServiceOptionCache.GetKey1(kind)
 		if !ok {
@@ -58,19 +50,42 @@ func GetKindList(args []interface{}) (interface{}, error) {
 			svrInfo.ServerName = template.RoomName
 			svrInfo.SurportType = 0
 			svrInfo.TableCount = v.GetTableCount()
-			ret = append(ret, svrInfo)
+			ret.Data = append(ret.Data, svrInfo)
 		}
 	}
 
-	log.Debug("at GetKindList ==== %v", ret)
+	//log.Debug("at S2S_GetKindList ==== %v", ret)
 	return ret, nil
 }
 
 func GetRooms(args []interface{}) (interface{}, error) {
-	rooms := make([]*msg.RoomInfo, 0)
+	rooms := &msg.S2S_GetRoomsResult{}
 	RoomMgr.ForEachRoom(func(r RoomMgr.IRoom) {
-		rooms = append(rooms, r.GetBirefInfo())
+		rooms.Data = append(rooms.Data, r.GetBirefInfo())
 	})
-	log.Debug("at GetRooms ==== %v", rooms)
+	log.Debug("at S2S_GetRooms ==== %v", rooms)
 	return rooms, nil
+}
+
+//大厅服服通知续费
+func RenewalFee(args []interface{}) {
+	retCode := 0
+	recvMsg := args[0].(*msg.S2S_RenewalFee)
+	defer func() {
+		if retCode != 0 { //通知大厅续费失败
+			center.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
+		}
+	}()
+	room := RoomMgr.GetRoom(recvMsg.RoomID)
+	if room == nil {
+		retCode = 1
+		return
+	}
+
+	_, err := room.GetChanRPC().Call1("AddPayCnt", recvMsg.AddCnt)
+	if err != nil {
+		retCode = 2
+		return
+	}
+	return
 }

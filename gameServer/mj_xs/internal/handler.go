@@ -1,50 +1,50 @@
 package internal
 
 import (
-	"mj/common/msg"
 	"mj/common/msg/mj_xs_msg"
 	"mj/gameServer/user"
-	"reflect"
+
+	"mj/common/register"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
+	reg := register.NewRegister(ChanRPC)
 	// c 2 s
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OutCard{}, HZOutCard)
-	handlerC2S(&mj_xs_msg.C2G_MJXS_OperateCard{}, OperateCard)
-
+	reg.RegisterC2S(&mj_xs_msg.C2G_MJXS_OutCard{}, HZOutCard)
+	reg.RegisterC2S(&mj_xs_msg.C2G_MJXS_OperateCard{}, OperateCard)
+	reg.RegisterC2S(&mj_xs_msg.C2G_MJXS_ReplaceCard{}, ReplaceCard)
 }
 
 func HZOutCard(args []interface{}) {
 	recvMsg := args[0].(*mj_xs_msg.C2G_MJXS_OutCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	player := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(player.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OutCard", user, recvMsg.CardData)
+		r.GetChanRPC().Go("OutCard", player, recvMsg.CardData)
 	}
 }
 
 func OperateCard(args []interface{}) {
 	recvMsg := args[0].(*mj_xs_msg.C2G_MJXS_OperateCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	player := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(player.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OperateCard", user, recvMsg.OperateCode, recvMsg.OperateCard)
+		r.GetChanRPC().Go("OperateCard", player, recvMsg.OperateCode, recvMsg.OperateCard)
+	}
+}
+func ReplaceCard(args []interface{}) {
+	recvMsg := args[0].(*mj_xs_msg.C2G_MJXS_ReplaceCard)
+	agent := args[1].(gate.Agent)
+	player := agent.UserData().(*user.User)
+
+	r := getRoom(player.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("SetBuHua", player, recvMsg.CardData)
 	}
 }

@@ -113,6 +113,27 @@ func (op *activityOp) InsertTx(ext sqlx.Ext, m *Activity) (int64, error) {
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *activityOp) InsertUpdate(obj *Activity, m map[string]interface{}) error {
+	sql := "insert into activity(activity_name,activity_type,activity_begin,activity_end) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.ActivityName,
+		obj.ActivityType,
+		obj.ActivityBegin,
+		obj.ActivityEnd,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *Activity) Update()  error {
     _,err := db.StatsDBMap.Update(i)

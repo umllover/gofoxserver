@@ -1,28 +1,13 @@
 package internal
 
 import (
-	"reflect"
-	"time"
-
-	"mj/common/msg"
+	"mj/hallServer/db/model"
 	"mj/hallServer/user"
 	"mj/hallServer/userHandle"
-
-	"mj/hallServer/db/model"
+	"time"
 
 	"github.com/lovelly/leaf/log"
 )
-
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
 
 func init() {
 
@@ -84,9 +69,8 @@ func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 
 //发送消息给所有人
 func SendMsgToAll(data interface{}) {
-
 	log.Debug("即将发送消息给所有人：%v", data)
-	userHandle.UserMgr.ForEachUser(func(u *user.User) {
+	userHandle.ForEachUser(func(u *user.User) {
 		u.WriteMsg(data)
 	})
 }

@@ -5,11 +5,12 @@ import (
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model"
 	"mj/gameServer/user"
+
+	"github.com/lovelly/leaf/log"
 )
 
 func NewDDZEntry(info *model.CreateRoomInfo) *DDZ_Entry {
 	e := new(DDZ_Entry)
-	return e
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e
 }
@@ -31,66 +32,29 @@ func (room *DDZ_Entry) CallScore(args []interface{}) {
 // 用户出牌
 func (room *DDZ_Entry) OutCard(args []interface{}) {
 
-	//recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_OutCard)
-	//u := args[1].(*user.User)
+	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_OutCard)
+	u := args[1].(*user.User)
 
-	//room.DataMgr.OpenCard(u, recvMsg.CardData)
+	log.Debug("用户%d出牌%v", u.ChairId, recvMsg)
+	room.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
 }
 
 // 托管
 func (room *DDZ_Entry) CTrustee(args []interface{}) {
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_TRUSTEE)
 	u := args[1].(*user.User)
-	room.DataMgr.Trustee(u, recvMsg.Trustee)
-}
 
-// 空闲状态
-func (room *DDZ_Entry) OnEventGameSceneStatusFree(args []interface{}) {
-
-}
-
-// 叫分状态
-func (room *DDZ_Entry) OnEventGameSceneStatusCall(args []interface{}) {
-
-}
-
-// 游戏状态
-func (room *DDZ_Entry) OnEventGameSceneStatusPlaying(args []interface{}) {
-
+	room.DataMgr.OtherOperation([]interface{}{"Trustee", u, recvMsg})
 }
 
 // 明牌
 func (r *DDZ_Entry) ShowCard(args []interface{}) {
 	u := args[1].(*user.User)
-	r.DataMgr.ShowCard(u)
-}
-
-// 发送扑克
-func (room *DDZ_Entry) GameStartSendCards(args []interface{}) {
-
-}
-
-// 机器人扑克
-func (room *DDZ_Entry) AndroidCard(args []interface{}) {
-
-}
-
-// 作弊扑克
-func (room *DDZ_Entry) CheatCard(args []interface{}) {
-
-}
-
-// 庄家信息
-func (room *DDZ_Entry) BankerInfo(args []interface{}) {
-
+	r.DataMgr.OtherOperation([]interface{}{"ShowCard", u})
 }
 
 // 放弃出牌
 func (room *DDZ_Entry) PassCard(args []interface{}) {
-
-}
-
-// 托管
-func (room *DDZ_Entry) GTrustee(args []interface{}) {
-
+	u := args[1].(*user.User)
+	room.DataMgr.OtherOperation([]interface{}{"PassCard", u})
 }

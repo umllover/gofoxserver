@@ -1,4 +1,4 @@
-package internal
+package consul
 
 import (
 	"fmt"
@@ -26,12 +26,10 @@ func watchServices(client *api.Client, serverName string, status []string) {
 		}
 
 		lastIndex = meta.LastIndex
-		if len(checks) < 1 {
-			continue
-		}
-		//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v",lastIndex,  meta.LastIndex,  serverName, checks)
+
+		//log.Debug("[INFO] consul: Health changed  LastIndex:%d,, new inx: %d, server name %s, data:%v", lastIndex, meta.LastIndex, serverName, checks)
 		newSvrs := servicesConfig(client, passingServices(checks, status))
-		if len(newSvrs) > 0 {
+		if len(newSvrs) > 0 || len(checks) < 1 {
 			ChanRPC.Go("AddServerInfo", newSvrs)
 		}
 	}

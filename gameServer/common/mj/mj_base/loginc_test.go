@@ -2,7 +2,6 @@ package mj_base
 
 import (
 	. "mj/common/cost"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -11,6 +10,8 @@ import (
 	"mj/gameServer/user"
 	"net"
 	"testing"
+
+	"github.com/lovelly/leaf/log"
 
 	"fmt"
 
@@ -29,24 +30,48 @@ var (
 )
 
 func TestGameStart_1(t *testing.T) {
-	room.UserReady([]interface{}{nil, u1})
-	room.DataMgr.SetUserCard(0, []int{
-		0x1, 0x1, 0x1,
-		0x2, 0x2, 0x2,
-		0x3, 0x3, 0x3,
-		0x4, 0x4,
-		0x5, 0x5,
-	})
+	//room.UserReady([]interface{}{nil, u1})
+	//room.DataMgr.SetUserCard(0, []int{
+	//	0x1, 0x1, 0x1,
+	//	0x2, 0x2, 0x2,
+	//	0x3, 0x3, 0x3,
+	//	0x4, 0x4,
+	//	0x5, 0x5,
+	//})
 }
 
 func TestOutCard(t *testing.T) {
-	ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
-	fmt.Println("at EstimateUserRespond ret :", ret)
-	room.OutCard([]interface{}{u1, 1})
+	//ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
+	//log.Debug("at EstimateUserRespond ret :%v", ret)
+	//room.OutCard([]interface{}{u1, 1})
+}
+
+func TestRandRandCard(t *testing.T) {
+	fmt.Println("111111111111111111111111111")
+	for i := 0; i < 100000; i++ {
+		m := make(map[int]int)
+		newCard := make([]int, len(cards[1]))
+		room.LogicMgr.RandCardList(newCard, cards[1])
+		for _, v := range newCard {
+			m[v]++
+			if v <= 0x37 {
+				if m[v] > 4 {
+					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)
+				}
+			}
+
+			if v > 0x37 {
+				if m[v] > 1 {
+					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)
+				}
+			}
+		}
+	}
+	fmt.Println("22222222222222222222222")
 }
 
 func TestGameConclude(t *testing.T) {
-	room.UserOperateCard([]interface{}{u1, 1, []int{1}})
+	//room.UserOperateCard([]interface{}{u1, 1, []int{1}})
 }
 
 func TestDispatchCardData(t *testing.T) {
@@ -88,7 +113,7 @@ func init() {
 
 	base := room_base.NewRoomBase()
 
-	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	userg := room_base.NewRoomUserMgr(info, temp)
 
 	u1 = newTestUser(1)
 	u1.ChairId = 0
@@ -105,9 +130,8 @@ func init() {
 	r.Init(cfg)
 	room = r
 	var userCnt = 4
-
 	for i := 1; i < userCnt; i++ {
-		u := newTestUser(i + 1)
+		u := newTestUser((int64)(i + 1))
 		if i == 1 {
 			u2 = u
 		} else if 1 == 2 {
@@ -120,7 +144,7 @@ func init() {
 	}
 }
 
-func newTestUser(uid int) *user.User {
+func newTestUser(uid int64) *user.User {
 	u := new(user.User)
 	u.Id = uid
 	u.RoomId = 1

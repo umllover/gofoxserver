@@ -3,9 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"mj/common"
 	"mj/common/consul"
-	. "mj/common/cost"
 	"mj/hallServer/center"
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
@@ -13,14 +11,11 @@ import (
 	"mj/hallServer/game_list"
 	"mj/hallServer/gate"
 	"mj/hallServer/http_service"
+	"mj/hallServer/match_room"
 	"mj/hallServer/race_msg"
-	"mj/hallServer/shop"
+	"mj/hallServer/times_mgr"
 	"mj/hallServer/userHandle"
 	"os"
-
-	"mj/hallServer/match_room"
-
-	"mj/hallServer/times_mgr"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -48,24 +43,21 @@ func main() {
 		db.RefreshInTime()
 	}
 
-	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})
 	consul.SetSelfId(lconf.ServerName)
-	consul.AddinitiativeSvr(GamePrefix)
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 	leaf.Run(
+		userHandle.UserMgr,
 		gate.Module,
 		center.Module,
 		consul.Module,
-		userHandle.UserMgr,
 		game_list.Module,
 		race_msg.Module,
 		match_room.Module,
 		times_mgr.Module,
-		shop.Module,
 	)
 }
 
@@ -80,5 +72,6 @@ func Init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	conf.Test = *Test
 	leaf.InitLog()
 }

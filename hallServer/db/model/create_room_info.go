@@ -131,6 +131,36 @@ func (op *createRoomInfoOp) InsertTx(ext sqlx.Ext, m *CreateRoomInfo) (int64, er
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *createRoomInfoOp) InsertUpdate(obj *CreateRoomInfo, m map[string]interface{}) error {
+	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,Public,max_player_cnt,pay_type,other_info) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserId,
+		obj.RoomName,
+		obj.KindId,
+		obj.ServiceId,
+		obj.CreateTime,
+		obj.NodeId,
+		obj.RoomId,
+		obj.Num,
+		obj.Status,
+		obj.Public,
+		obj.MaxPlayerCnt,
+		obj.PayType,
+		obj.OtherInfo,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *CreateRoomInfo) Update()  error {
     _,err := db.DBMap.Update(i)

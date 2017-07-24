@@ -1,7 +1,6 @@
 package main
 
 import (
-	"mj/common"
 	"mj/common/consul"
 	"mj/gameServer/Chat"
 	"mj/gameServer/center"
@@ -10,7 +9,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/gate"
 	"mj/gameServer/kindList"
-	"mj/gameServer/userHandle"
 
 	"flag"
 
@@ -18,6 +16,8 @@ import (
 	"os"
 
 	"mj/gameServer/http_service"
+
+	"mj/gameServer/userHandle"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -36,7 +36,6 @@ func main() {
 		os.Exit(0)
 	}
 	Init()
-	common.Init()
 	http_service.StartHttpServer()
 	http_service.StartPrivateServer()
 	consul.SetConfig(&conf.ConsulConfig{})
@@ -45,13 +44,13 @@ func main() {
 	base.LoadBaseData()
 	kindList.Init()
 
-	modules := []module.Module{center.Module}
+	modules := []module.Module{}
+	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
-	modules = append(modules, consul.Module)
 	modules = append(modules, Chat.Module)
-	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, kindList.GetModules()...)
+	modules = append(modules, consul.Module)
 	leaf.Run(modules...)
 }
 

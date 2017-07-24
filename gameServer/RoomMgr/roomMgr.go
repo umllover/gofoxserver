@@ -23,7 +23,6 @@ var (
 )
 
 func AddRoom(r IRoom) bool {
-	cluster.Broadcast(HallPrefix, "notifyNewRoom", r.GetBirefInfo())
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	if _, ok := Rooms[r.GetRoomId()]; ok {
@@ -42,14 +41,14 @@ func GetRoom(id int) IRoom {
 }
 
 func DelRoom(id int) {
-	cluster.Broadcast(HallPrefix, "notifyDelRoom", id)
+	cluster.Broadcast(HallPrefix, &msg.S2S_notifyDelRoom{RoomID: id})
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
 	delete(Rooms, id)
 }
 
 func UpdateRoomToHall(data interface{}) {
-	cluster.Broadcast(HallPrefix, "updateRoomInfo", data)
+	cluster.Broadcast(HallPrefix, data)
 }
 
 // 此函数有风险， 请注意 调用函数内不用mgrLock 锁， 此函数消耗也大， 请勿随意调用

@@ -1,5 +1,5 @@
 /// leader election
-package internal
+package consul
 
 import (
 	"fmt"

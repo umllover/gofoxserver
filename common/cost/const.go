@@ -65,6 +65,26 @@ const (
 	ErrNotFoudPlayer = 401 //没找到推举人
 )
 
+// 斗地主错误代码
+const (
+	ErrDDZCSUser  = 501 // 叫分玩家错误
+	ErrDDZCSValid = 502 // 叫分无效
+)
+
+//个人信息操作码
+const (
+	ErrNotFondCreatorRoom = 601 //没有找到要删除的房间
+	ErrRoomIsStart        = 602 //房间已经开始了
+
+	ErrFrequentAccess    = 603 //获取验证码太频繁了
+	ErrRandMaskCodeError = 604 //获取验证码失败
+	ErrMaskCodeNotFoud   = 605 //验证码没找到
+	ErrMaskCodeError     = 606 //验证码失败
+	ErrNotInRoom         = 607 //不在房间内
+	ErrFindRoomError     = 608 //查找房间失败
+	ErrConfigError       = 609 //配置错误
+)
+
 ///////// 无效的数字
 const (
 	//无效数值
@@ -118,10 +138,8 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL        = 0x00 //常规结束
-	GER_DISMISS       = 0x01 //游戏解散
-	GER_USER_LEAVE    = 0x02 //用户离开
-	GER_NETWORK_ERROR = 0x03 //网络错误
+	GER_NORMAL  = 0x00 //常规结束
+	GER_DISMISS = 0x01 //游戏解散
 )
 
 //积分修改类型
@@ -132,16 +150,28 @@ const (
 
 //自己支付
 const (
-	SELF_PAY_TYPE = 1
-	AA_PAY_TYPE   = 2
+	SELF_PAY_TYPE = 1 //自己付钱
+	AA_PAY_TYPE   = 2 //AA付钱
 )
 
 //////////////////////////////////////////////
 //标识前缀
 const (
-	HallPrefix = "HallSvr" //房间服
-	GamePrefix = "GameSvr"
+	HallPrefix     = "HallSvr"        //房间服
+	GamePrefix     = "GameSvr"        //游戏服
+	HallPrefixFmt  = "HallSvr_%d"     //房间服
+	GamePrefixFmt  = "GameSvr_%d"     //游戏服
+	GameChannelFmt = "GameChannel_%d" //nsq channel
+	HallCahnnelFmt = "HallCahnnel_%d" //nsq channel
 )
+
+func GetGameSvrTopc(id int) string {
+	return fmt.Sprintf(GamePrefixFmt, id)
+}
+
+func GetHallSvrTopc(id int) string {
+	return fmt.Sprintf(HallPrefixFmt, id)
+}
 
 func LOBYTE(w int) int {
 	return w & 0xFF
@@ -176,4 +206,7 @@ func GetHallSvrName(sververId int) string {
 const (
 	MAX_CREATOR_ROOM_CNT = "MAX_CREATOR_ROOM_CNT"
 	MAX_ELECT_AWARD      = "MAX_ELECT_AWARD"
+	MAX_SHOW_ENTRY       = "MAX_SHOW_ENTRY"
+	MATCH_TIMEOUT        = "MATCH_TIMEOUT"
+	MASK_CODE_TEXT       = "MASK_CODE_TEXT"
 )

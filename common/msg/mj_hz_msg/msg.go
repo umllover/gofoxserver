@@ -11,7 +11,6 @@ var (
 func init() {
 	//HZMJ msg
 	Processor.Register(&G2C_HZMG_GameStart{})
-	Processor.Register(&G2C_HZMJ_GameConclude{})
 	Processor.Register(&C2G_HZMJ_HZOutCard{})
 	Processor.Register(&G2C_HZMJ_OutCard{})
 	Processor.Register(&G2C_HZMJ_OperateNotify{})
@@ -35,7 +34,7 @@ type G2C_HZMG_GameStart struct {
 }
 
 //游戏结束
-type G2C_HZMJ_GameConclude struct {
+type G2C_GameConclude struct {
 	//积分变量
 	CellScore int   //单元积分
 	GameScore []int //游戏积分

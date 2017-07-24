@@ -1,29 +1,65 @@
 package internal
 
 import (
+	"github.com/lovelly/leaf/log"
+	. "mj/common/cost"
 	"mj/common/msg"
-	"reflect"
+	"mj/common/register"
+
+	"mj/hallServer/user"
+
+	"mj/hallServer/common"
+	"time"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-////注册rpc 消息
-func handleRpc(id interface{}, f interface{}) {
-	ChanRPC.Register(id, f)
-}
-
-//注册 客户端消息调用
-func handlerC2S(m interface{}, h interface{}) {
-	msg.Processor.SetRouter(m, ChanRPC)
-	skeleton.RegisterChanRPC(reflect.TypeOf(m), h)
-}
-
 func init() {
-	handlerC2S(&msg.C2L_QuickMatch{}, QuickMatch)
+	reg := register.NewRegister(ChanRPC)
+	reg.RegisterC2S(&msg.C2L_QuickMatch{}, QuickMatch)
+	reg.RegisterC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
+
+	reg.RegisterRpc("delMatchPlayer", delMatchPlayer)
 }
 
 func QuickMatch(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_QuickMatch)
 	agent := args[1].(gate.Agent)
-	DefaultMachModule.AddMatchPlayer(recvMsg.KindID, &MachPlayer{ch: agent.ChanRPC()})
+	player := agent.UserData().(*user.User)
+
+	limitTime := common.GetGlobalVarInt(MATCH_TIMEOUT)
+	matchPlayer := &MachPlayer{Uid: player.Id, ch: agent.ChanRPC(), EndTime: time.Now().Unix() + int64(limitTime)}
+	DefaultMachModule.AddMatchPlayer(recvMsg.KindID, matchPlayer)
+	agent.WriteMsg(&msg.L2C_QuickMatchOk{MatchTime: limitTime})
+}
+
+//玩家请求查找房间
+func SrarchTable(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_SearchServerTable)
+	agent := args[1].(gate.Agent)
+	player := agent.UserData().(*user.User)
+	retcode := 0
+	defer func() {
+		if retcode != 0 {
+			agent.WriteMsg(RenderErrorMessage(retcode))
+		}
+	}()
+
+	roomInfo := DefaultMachModule.GetRoomByRoomId(recvMsg.TableID)
+	if roomInfo == nil {
+		log.Error("at SrarchTable not foud room, %v", recvMsg)
+		retcode = ErrNoFoudRoom
+		return
+	}
+
+	roomInfo.MachPlayer[player.Id] = struct{}{}
+
+	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
+	return
+}
+
+func delMatchPlayer(args []interface{}) {
+	uid := args[0].(int64)
+	roomInfo := args[1].(*msg.RoomInfo)
+	delete(roomInfo.MachPlayer, uid)
 }

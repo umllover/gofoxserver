@@ -25,6 +25,7 @@ type DataManager interface {
 	WeaveCard(cbTargetAction, wTargetUser int)                       //组合扑克
 	RemoveCardByOP(wTargetUser, ChoOp int) bool                      //根据操作码删除扑克
 	CallOperateResult(wTargetUser, cbTargetAction int)               //计算吃碰杠胡的操作结果
+	ResetUserOperate()                                               //重置用户状态
 	ZiMo(u *user.User)                                               //自摸处理
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int //暗杠处理
 	NormalEnd()                                                      //正常结束
@@ -39,17 +40,16 @@ type DataManager interface {
 	RecordOutCarCnt() int                                            //记录出牌数
 	OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int)        //抓花 扎码出库
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
-	ClearBanCard(ChairId int)                                        //清除出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
-	StopOperateCardTimer(u *user.User)                               //停止操作定时
-	CalHuPaiScore(EndScore []int)                                    //todo,测试代码
+	ResetUserOperateEx(u *user.User)                                 //清除状态
 
 	GetResumeUser() int
 	GetGangStatus() int
 	GetUserCardIndex(ChairId int) []int
 	GetCurrentUser() int //当前出牌用户
 	GetRoomId() int
+	GetCreater() int64
 	GetProvideUser() int
 	IsActionDone() bool
 
@@ -66,7 +66,7 @@ type LogicManager interface {
 	EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int
 	EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int
 	GetUserActionRank(cbUserAction int) int
-	AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int, ChiHuRight int, MaxCount int, b4HZHu bool) (int, []*TagAnalyseItem)
+	AnalyseChiHuCard([]int, []*msg.WeaveItem, int) (bool, []*TagAnalyseItem)
 	AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gcr *TagGangCardResult) int
 	GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbHuCardData []int, MaxCount int) int
 	RandCardList(cbCardBuffer, OriDataArray []int)

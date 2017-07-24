@@ -50,8 +50,8 @@ const (
 	IDX_SUB_SCORE_SANAK = 32 //三暗刻
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
 	IDX_SUB_SCORE_WUAK  = 34 //五暗刻
+	IDX_SUB_SCORE_ZYS   = 35 //字一色
 
-	COUNT_KIND_SCORE = 35 //分数子项个数
+	COUNT_KIND_SCORE = 36 //分数子项个数
 
 )
-
