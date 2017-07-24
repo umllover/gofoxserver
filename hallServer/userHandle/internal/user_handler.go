@@ -38,8 +38,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
 	reg.RegisterRpc("Recharge", m.Recharge)
-	reg.RegisterC2S("S2S_OfflineHandler", m.HandlerOffilne)
-
+	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
+	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilne)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -57,7 +57,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 
-	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 }
 
 //连接进来的通知
