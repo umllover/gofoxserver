@@ -413,12 +413,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
-	if !hasMianfei(){
+
 
 		if !player.SubCurrency(feeTemp.TableFee) {
 			retcode = NotEnoughFee
 			return
-		}
+
 	}
 
 
