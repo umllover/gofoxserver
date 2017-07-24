@@ -5,6 +5,8 @@ import (
 	"mj/hallServer/db/model"
 	"sync"
 
+	"time"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -24,7 +26,10 @@ type User struct {
 	Times     map[int]int64 //永久次数
 	DayTimes  map[int]int64 //每日次数
 	WeekTimes map[int]int64 //周次数
-	Id        int64
+
+	//非入库字段
+	MacKCodeTime *time.Time
+	Id           int64
 	sync.RWMutex
 }
 

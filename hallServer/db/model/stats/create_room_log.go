@@ -127,6 +127,34 @@ func (op *createRoomLogOp) InsertTx(ext sqlx.Ext, m *CreateRoomLog) (int64, erro
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *createRoomLogOp) InsertUpdate(obj *CreateRoomLog, m map[string]interface{}) error {
+	sql := "insert into create_room_log(room_id,user_id,room_name,kind_id,node_id,create_time,create_others,pay_type,timeout_nostart,start_endError,nomal_open) values(?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.RoomId,
+		obj.UserId,
+		obj.RoomName,
+		obj.KindId,
+		obj.NodeId,
+		obj.CreateTime,
+		obj.CreateOthers,
+		obj.PayType,
+		obj.TimeoutNostart,
+		obj.StartEnderror,
+		obj.NomalOpen,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *CreateRoomLog) Update()  error {
     _,err := db.StatsDBMap.Update(i)

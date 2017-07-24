@@ -22,6 +22,9 @@ func SendToThisNodeUser(uid int64, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)
 }
 
+func SendMsgToHallUser(uid int64, data interface{}) {
+	ChanRPC.Go("SendMsgToHallUser", uid, data)
+}
 
 //发送消息给游戏服
 func SendMsgToGame(svrid int, data interface{}) {

@@ -17,7 +17,8 @@ import (
 
 // +gen *
 type Mail struct {
-	UserId      int        `db:"user_id" json:"user_id"`           //
+	MailId      int        `db:"mail_id" json:"mail_id"`           //
+	UserId      int        `db:"user_id" json:"user_id"`           // 邮件id
 	MailType    int        `db:"mail_type" json:"mail_type"`       //
 	Context     string     `db:"context" json:"context"`           //
 	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` //
@@ -31,10 +32,11 @@ var MailOp = &mailOp{}
 var DefaultMail = &Mail{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *mailOp) Get(user_id int) (*Mail, bool) {
+func (op *mailOp) Get(mail_id int, user_id int) (*Mail, bool) {
 	obj := &Mail{}
-	sql := "select * from mail where user_id=? "
+	sql := "select * from mail where mail_id=? and user_id=? "
 	err := db.DB.Get(obj, sql,
+		mail_id,
 		user_id,
 	)
 
@@ -100,8 +102,9 @@ func (op *mailOp) Insert(m *Mail) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *mailOp) InsertTx(ext sqlx.Ext, m *Mail) (int64, error) {
-	sql := "insert into mail(user_id,mail_type,context,creator_time,sender,title) values(?,?,?,?,?,?)"
+	sql := "insert into mail(mail_id,user_id,mail_type,context,creator_time,sender,title) values(?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
+		m.MailId,
 		m.UserId,
 		m.MailType,
 		m.Context,
@@ -115,6 +118,30 @@ func (op *mailOp) InsertTx(ext sqlx.Ext, m *Mail) (int64, error) {
 	}
 	affected, _ := result.LastInsertId()
 	return affected, nil
+}
+
+//存在就更新， 不存在就插入
+func (op *mailOp) InsertUpdate(obj *Mail, m map[string]interface{}) error {
+	sql := "insert into mail(mail_id,user_id,mail_type,context,creator_time,sender,title) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.MailId,
+		obj.UserId,
+		obj.MailType,
+		obj.Context,
+		obj.CreatorTime,
+		obj.Sender,
+		obj.Title,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
 }
 
 /*
@@ -134,13 +161,14 @@ func (op *mailOp) Update(m *Mail) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *mailOp) UpdateTx(ext sqlx.Ext, m *Mail) error {
-	sql := `update mail set mail_type=?,context=?,creator_time=?,sender=?,title=? where user_id=?`
+	sql := `update mail set mail_type=?,context=?,creator_time=?,sender=?,title=? where mail_id=? and user_id=?`
 	_, err := ext.Exec(sql,
 		m.MailType,
 		m.Context,
 		m.CreatorTime,
 		m.Sender,
 		m.Title,
+		m.MailId,
 		m.UserId,
 	)
 
@@ -153,14 +181,14 @@ func (op *mailOp) UpdateTx(ext sqlx.Ext, m *Mail) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *mailOp) UpdateWithMap(user_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, user_id, m)
+func (op *mailOp) UpdateWithMap(mail_id int, user_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, mail_id, user_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *mailOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, m map[string]interface{}) error {
+func (op *mailOp) UpdateWithMapTx(ext sqlx.Ext, mail_id int, user_id int, m map[string]interface{}) error {
 
-	sql := `update mail set %s where 1=1 and user_id=? ;`
+	sql := `update mail set %s where 1=1 and mail_id=? and user_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -171,7 +199,7 @@ func (op *mailOp) UpdateWithMapTx(ext sqlx.Ext, user_id int, m map[string]interf
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, user_id)
+	params = append(params, mail_id, user_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -184,16 +212,18 @@ func (i *Mail) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *mailOp) Delete(user_id int) error {
-	return op.DeleteTx(db.DB, user_id)
+func (op *mailOp) Delete(mail_id int, user_id int) error {
+	return op.DeleteTx(db.DB, mail_id, user_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *mailOp) DeleteTx(ext sqlx.Ext, user_id int) error {
+func (op *mailOp) DeleteTx(ext sqlx.Ext, mail_id int, user_id int) error {
 	sql := `delete from mail where 1=1
+        and mail_id=?
         and user_id=?
         `
 	_, err := ext.Exec(sql,
+		mail_id,
 		user_id,
 	)
 	return err

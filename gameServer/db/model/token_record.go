@@ -122,6 +122,31 @@ func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *tokenRecordOp) InsertUpdate(obj *TokenRecord, m map[string]interface{}) error {
+	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.RoomId,
+		obj.UserId,
+		obj.TokenType,
+		obj.Amount,
+		obj.Status,
+		obj.CreatorTime,
+		obj.KindID,
+		obj.ServerId,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *TokenRecord) Update()  error {
     _,err := db.DBMap.Update(i)

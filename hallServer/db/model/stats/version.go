@@ -108,6 +108,25 @@ func (op *versionOp) InsertTx(ext sqlx.Ext, m *Version) (int64, error) {
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *versionOp) InsertUpdate(obj *Version, m map[string]interface{}) error {
+	sql := "insert into version(id,ver) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.Id,
+		obj.Ver,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *Version) Update()  error {
     _,err := db.StatsDBMap.Update(i)

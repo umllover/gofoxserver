@@ -1,36 +1,20 @@
 package internal
 
 import (
-	"mj/common/base"
 	"mj/hallServer/center"
+	"mj/hallServer/user"
 	"sync"
 
-	"mj/hallServer/user"
-
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/module"
 )
 
 var (
-	skeleton  = base.NewSkeleton()
 	Users     = make(map[int64]*user.User) //key is userId
 	UsersLock sync.RWMutex
 )
 
-type MgrModule struct {
-	*module.Skeleton
-}
-
-func (m *MgrModule) OnInit() {
-	m.Skeleton = skeleton
-
-}
-
-func (m *MgrModule) OnDestroy() {
-	log.Debug("at server close offline user ")
-}
-
-func (m *MgrModule) ForEachUser(f func(u *user.User)) {
+//此api 尽量少用
+func ForEachUser(f func(u *user.User)) {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	for _, u := range Users {
@@ -40,7 +24,8 @@ func (m *MgrModule) ForEachUser(f func(u *user.User)) {
 	}
 }
 
-func GetUser(uid int64) *user.User {
+//此函数不到处  要跟user 联络请用center
+func getUser(uid int64) *user.User {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
 	u, _ := Users[uid]
