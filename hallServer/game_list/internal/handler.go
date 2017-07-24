@@ -51,7 +51,7 @@ func init() {
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
 	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
 	reg.RegisterRpc("GetMatchRoomsByKind", GetMatchRoomsByKind)
-	reg.RegisterRpc("GetRoomsByRoomId", GetRoomsByRoomId)
+	reg.RegisterRpc("GetRoomByRoomId", GetRoomByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
 
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
@@ -383,7 +383,7 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 	return ret, nil
 }
 
-func GetRoomsByRoomId(args []interface{}) (interface{}, error) {
+func GetRoomByRoomId(args []interface{}) (interface{}, error) {
 	roomid := args[0].(int)
 	ret, ok := roomList[roomid]
 	if !ok {

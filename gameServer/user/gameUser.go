@@ -64,16 +64,6 @@ func (u *User) IsOffline() bool {
 	return u.offline
 }
 
-func (u *User) SetOffline(su bool) bool {
-	u.mu.Lock()
-	defer u.mu.Unlock()
-	u.offline = su
-	if u.RoomId != 0 {
-		return false
-	}
-	return true
-}
-
 func (u *User) SetRoomId(id int) {
 	u.mu.Lock()
 	defer u.mu.Unlock()

@@ -9,8 +9,9 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
+	"mj/gameServer/center"
+
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
@@ -214,7 +215,6 @@ func (r *RoomUserMgr) SendOnlookers(data interface{}) {
 
 func (r *RoomUserMgr) SendMsgAllNoSelf(selfid int64, data interface{}) {
 	for _, u := range r.Users {
-		log.Debug("SendMsgAllNoSelf %v ", (u != nil && u.Id != selfid))
 		if u != nil && u.Id != selfid {
 			u.WriteMsg(data)
 		}
@@ -402,9 +402,9 @@ func (room *RoomUserMgr) IsAllReady() bool {
 
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 	if Status == RoomStatusStarting {
-		room.SetUsetStatus(u, US_PLAYING)
+		//room.SetUsetStatus(u, US_PLAYING)
 	} else {
-		room.SetUsetStatus(u, US_SIT)
+		//room.SetUsetStatus(u, US_SIT)
 	}
 }
 
@@ -434,24 +434,20 @@ func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
 	})
 }
 
-func (room *RoomUserMgr) SendDataToHallUser(chiairID int, funcName string, data interface{}) {
+func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 	u := room.GetUserByChairId(chiairID)
 	if u == nil {
 		return
 	}
 
-	cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+	center.SendDataToHallUser(u.HallNodeName, u.Id, data)
 }
 
-func (room *RoomUserMgr) SendMsgToHallServerAll(funcName string, data interface{}) {
+func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 	for _, u := range room.Users {
 		if u == nil {
 			continue
 		}
-		cluster.Go(u.HallNodeName, "HanldeFromGameMsg", u.Id, funcName, data)
+		center.SendDataToHallUser(u.HallNodeName, u.Id, data)
 	}
-}
-
-func (room *RoomUserMgr) SendCloseRoomToHall(data interface{}) {
-	room.SendMsgToHallServerAll("RoomCloseInfo", data)
 }

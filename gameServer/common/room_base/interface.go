@@ -30,6 +30,7 @@ type TimerManager interface {
 	GetPlayCount() int
 	AddPlayCount()
 	GetMaxPayCnt() int
+	AddMaxPayCnt(int )
 	GetCreatrTime() int64
 	GetTimeOutCard() int
 	GetTimeOperateCard() int
@@ -48,9 +49,8 @@ type UserManager interface {
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int64, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
-	SendDataToHallUser(chiairID int, funcName string, data interface{})
-	SendMsgToHallServerAll(funcName string, data interface{})
-	SendCloseRoomToHall(data interface{})
+	SendDataToHallUser(chiairID int,  data interface{})
+	SendMsgToHallServerAll(data interface{})
 
 	GetCurPlayerCnt() int
 	GetPayType() int

@@ -96,10 +96,6 @@ func (room *RoomData) GetCreater() int64 {
 	return room.CreateUser
 }
 
-// 其它操作，各个游戏自己有自己的游戏指令
-func (room *RoomData) OtherOperation(args []interface{}) {
-
-}
 func (room *RoomData) CanOperatorRoom(uid int64) bool {
 	if uid == room.CreateUser {
 		return true
@@ -155,9 +151,6 @@ func (room *RoomData) StartGameing() {
 func (room *RoomData) AfterStartGame() {
 
 }
-func (room *RoomData) AfertEnd(Forced bool) {
-	log.Debug("ggggggggggggg")
-}
 
 // 游戏结束
 func (room *RoomData) NormalEnd() {
@@ -185,6 +178,14 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 
 }
 
+// 其它操作，各个游戏自己有自己的游戏指令
+func (room *RoomData) OtherOperation(args []interface{}) {
+
+}
+func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
+
+}
+
 func (r *RoomData) ShowCard(u *user.User) {
 }
 
@@ -195,7 +196,7 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	r.PkBase.TimerMgr.AddPlayCount()
 	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-		r.PkBase.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: r.PkBase.DataMgr.GetRoomId(),
 			Status: r.PkBase.Status,
 		})
@@ -208,9 +209,5 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
 	})
-
-}
-
-func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }

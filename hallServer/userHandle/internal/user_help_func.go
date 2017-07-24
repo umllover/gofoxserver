@@ -2,7 +2,11 @@ package internal
 
 import (
 	"errors"
+	"fmt"
+	. "mj/common/cost"
+	"mj/hallServer/common"
 	"mj/hallServer/db"
+	"mj/hallServer/http_service"
 	"mj/hallServer/user"
 )
 
@@ -41,4 +45,12 @@ func UpdateOrderStats(OnLineID int) bool {
 		return false
 	}
 	return true
+}
+
+func ReqGetMaskCode(phome string, maskCode int) {
+	http_service.PostJSON("https://sms.yunpian.com/v2/sms/single_send.json", map[string]interface{}{
+		"apikey": "fce482d259d86ca9b0490d400889a9b8",
+		"mobile": phome,
+		"text":   fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), maskCode),
+	})
 }

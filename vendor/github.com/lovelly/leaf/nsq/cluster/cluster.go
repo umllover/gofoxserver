@@ -66,7 +66,7 @@ func Broadcast(serverName string, args interface{}) {
 	Publish(msg)
 }
 
-func Go(serverName string, args ...interface{}) {
+func Go(serverName string, args interface{}) {
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s, stack:%s", err.Error(), string(debug.Stack()))

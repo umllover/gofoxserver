@@ -1,8 +1,7 @@
 package internal
 
 import (
-	"mj/gameServer/base"
-
+	"mj/hallServer/base"
 	"mj/hallServer/user"
 	"mj/hallServer/userHandle"
 

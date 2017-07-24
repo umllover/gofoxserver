@@ -35,8 +35,6 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
-
-	BtCardSpecialData []int
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
@@ -74,7 +72,6 @@ func (r *Entry_base) GetRoomId() int {
 
 //坐下
 func (r *Entry_base) Sitdown(args []interface{}) {
-
 	chairID := args[0].(int)
 	u := args[1].(*user.User)
 
@@ -155,7 +152,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 		return
 	}
 
-	log.Debug("at UserReady ==== ")
+	log.Debug("at UserReady")
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
@@ -272,7 +269,7 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
 		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
-		//room.DataMgr.AfterEnd(false)
+		room.DataMgr.AfterEnd(false)
 		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
@@ -287,7 +284,7 @@ func (room *Entry_base) AfertEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
-		room.UserMgr.SendCloseRoomToHall(&msg.RoomEndInfo{
+		room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: room.DataMgr.GetRoomId(),
 			Status: room.Status,
 		})
@@ -337,5 +334,14 @@ func (r *Entry_base) OpenCard(args []interface{}) {
 	u := args[1].(*user.User)
 
 	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
+	return
+}
+
+// 十三水摊牌
+func (r *Entry_base) ShowSSsCard(args []interface{}) {
+	//recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
+	//u := args[1].(*user.User)
+
+	//r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
 	return
 }

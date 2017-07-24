@@ -34,13 +34,8 @@ type DataManager interface {
 
 	// 明牌
 	ShowCard(u *user.User)
-	// 托管
-	Trustee(u *user.User)
-
-	//十三水
-	ShowSSSCard(u *user.User, Dragon bool, SpecialType bool, SpecialData []int, FrontCard []int, MidCard []int, BackCard []int)
-
-	// 其它操作，各个游戏自己有自己的游戏指令
+	// 十三水专用
+	ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int)
 	OtherOperation(args []interface{})
 }
 
@@ -53,9 +48,10 @@ type LogicManager interface {
 	CompareCard(firstCardData []int, lastCardData []int) bool
 	GetCardType(cardData []int) int
 	GetCardTimes(cardType int) int
-	GetType(bCardData []int, bCardCount int) *TagAnalyseType
-	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool
+
+	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool)
 	// 以下接口不通用
+	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数

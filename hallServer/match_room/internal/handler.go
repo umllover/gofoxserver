@@ -45,7 +45,7 @@ func SrarchTable(args []interface{}) {
 		}
 	}()
 
-	roomInfo := DefaultMachModule.GetRoomsByRoomId(recvMsg.TableID)
+	roomInfo := DefaultMachModule.GetRoomByRoomId(recvMsg.TableID)
 	if roomInfo == nil {
 		log.Error("at SrarchTable not foud room, %v", recvMsg)
 		retcode = ErrNoFoudRoom

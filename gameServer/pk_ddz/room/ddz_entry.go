@@ -36,7 +36,7 @@ func (room *DDZ_Entry) OutCard(args []interface{}) {
 	u := args[1].(*user.User)
 
 	log.Debug("用户%d出牌%v", u.ChairId, recvMsg)
-	room.DataMgr.OpenCard(u, 0, recvMsg.CardData)
+	room.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
 }
 
 // 托管

@@ -112,6 +112,27 @@ func (op *userMaskCodeOp) InsertTx(ext sqlx.Ext, m *UserMaskCode) (int64, error)
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *userMaskCodeOp) InsertUpdate(obj *UserMaskCode, m map[string]interface{}) error {
+	sql := "insert into user_mask_code(user_id,phome_number,mask_code,creator_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserId,
+		obj.PhomeNumber,
+		obj.MaskCode,
+		obj.CreatorTime,
+	}
+	var set_sql string
+	for k, v := range m {
+		if set_sql != "" {
+			set_sql += ","
+		}
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
+
+	_, err := db.DB.Exec(sql+set_sql, params...)
+	return err
+}
+
 /*
 func (i *UserMaskCode) Update()  error {
     _,err := db.DBMap.Update(i)

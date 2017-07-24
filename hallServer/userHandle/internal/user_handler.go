@@ -16,6 +16,10 @@ import (
 	"mj/hallServer/user"
 	"time"
 
+	"mj/hallServer/center"
+
+	"mj/common/utils"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -34,7 +38,9 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
 	reg.RegisterRpc("Recharge", m.Recharge)
-
+	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
+	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
+	reg.RegisterRpc("ForceClose", m.ForceClose)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -44,7 +50,14 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ReqRoomPlayerBrief{}, m.GetRoomPlayerBreif)
 	reg.RegisterC2S(&msg.C2L_DrawSahreAward{}, m.DrawSahreAward)
 	reg.RegisterC2S(&msg.C2L_SetElect{}, m.SetElect)
-	reg.RegisterRpc(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
+	reg.RegisterC2S(&msg.C2L_DeleteRoom{}, m.DeleteRoom)
+	reg.RegisterC2S(&msg.C2L_SetPhoneNumber{}, m.SetPhoneNumber)
+	reg.RegisterC2S(&msg.C2L_DianZhan{}, m.DianZhan)
+	reg.RegisterC2S(&msg.C2L_RenewalFees{}, m.RenewalFees)
+	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
+	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
+	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
+
 }
 
 //连接进来的通知
@@ -57,13 +70,21 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
-	u, ok := agent.UserData().(*user.User)
+	Reason := args[1].(int)
+	player, ok := agent.UserData().(*user.User)
 	if !ok {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
-	DelUser(u.Id)
-	m.Close(common.UserOffline)
+
+	m.UserOffline()
+	if Reason != KickOutMsg { //重登踢出会覆盖， 所以这里不用删除
+		DelUser(player.Id)
+	}
+
+	if Reason == UserOffline {
+		m.Close(UserOffline)
+	}
 	log.Debug("CloseAgent ok")
 	return nil
 }
@@ -114,11 +135,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		}
 	}
 
-	if _, ok := Users[accountData.UserID]; ok {
-		retcode = ErrUserDoubleLogin
-		return
-	}
-
 	if accountData.LogonPass != recvMsg.LogonPass {
 		retcode = ErrPasswd
 		return
@@ -138,6 +154,12 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
 			player.DelGameLockInfo()
 		}
+	}
+
+	oldUser := getUser(accountData.UserID)
+	if oldUser != nil {
+		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.Roomid)
+		m.KickOutUser(oldUser)
 	}
 
 	player.Agent = agent
@@ -398,13 +420,16 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	monrey := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / roomInfo.MaxPlayerCnt
+		monrey = feeTemp.AATableFee
 	}
+
+	//if !hasMianfei(){
 
 	if !player.SubCurrency(feeTemp.TableFee) {
 		retcode = NotEnoughFee
 		return
 	}
+	//}
 
 	if !player.HasRecord(roomInfo.RoomID) {
 		record := &model.TokenRecord{}
@@ -750,6 +775,201 @@ func (m *UserModule) Recharge(args []interface{}) {
 	}
 }
 
-func (m *UserModule) DeleteRoom(args []interface{}) {
+//离线通知时间
+func (m *UserModule) HandlerOffilneEvent(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_OfflineHandler)
+	player := m.a.UserData().(*user.User)
+	h, ok := model.UserOfflineHandlerOp.Get(recvMsg.EventID)
+	if ok {
+		handlerEventFunc(player, h)
+	}
+}
 
+func (m *UserModule) KickOutUser(player *user.User) {
+	player.ChanRPC().Go("ForceClose")
+}
+
+func (m *UserModule) ForceClose(args []interface{}) {
+	log.Debug("at ForceClose ..... ")
+	m.Close(KickOutMsg)
+}
+
+//删除自己创建的房间
+func (m *UserModule) DeleteRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_DeleteRoom)
+	player := m.a.UserData().(*user.User)
+
+	info := player.GetRoom(recvMsg.RoomId)
+	if info != nil {
+		player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrNotFondCreatorRoom})
+		return
+	}
+
+	center.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
+		if err != nil {
+			player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrRoomIsStart})
+		} else {
+			player.DelRooms(recvMsg.RoomId)
+			player.WriteMsg(&msg.L2C_DeleteRoomResult{})
+		}
+	})
+
+}
+
+//绑定电话号码
+func (m *UserModule) SetPhoneNumber(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_SetPhoneNumberRsp{Code: retCode})
+	}()
+
+	info, ok := model.UserMaskCodeOp.Get(player.Id)
+	if !ok {
+		retCode = ErrMaskCodeNotFoud
+		return
+	}
+
+	if info.MaskCode != recvMsg.MaskCode {
+		retCode = ErrMaskCodeError
+		return
+	}
+
+	model.UserMaskCodeOp.Delete(player.Id)
+	player.PhomeNumber = info.PhomeNumber
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"phome_number": info.PhomeNumber,
+	})
+}
+
+//点赞
+func (m *UserModule) DianZhan(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_DianZhan)
+	//player := m.a.UserData().(*user.User)
+	AddOfflineHandler(MailTypeDianZhan, recvMsg.UserID, nil)
+}
+
+//续费
+func (m *UserModule) RenewalFees(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_RenewalFees)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode})
+	}()
+	if player.Roomid == 0 {
+		retCode = ErrNotInRoom
+		return
+	}
+
+	info, err := game_list.ChanRPC.TimeOutCall1("GetRoomByRoomId", 5*time.Second, player.Roomid)
+	if err != nil {
+		retCode = ErrFindRoomError
+		return
+	}
+
+	room := info.(*msg.RoomInfo)
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/room.RenewalCnt)
+	if !ok {
+		retCode = ErrConfigError
+		return
+	}
+
+	monrey := feeTemp.TableFee
+	if room.PayType == AA_PAY_TYPE {
+		monrey = feeTemp.AATableFee
+	}
+
+	if !player.SubCurrency(feeTemp.TableFee) {
+		retCode = NotEnoughFee
+		return
+	}
+
+	if !player.HasRecord(room.RoomID) {
+		record := &model.TokenRecord{}
+		record.UserId = player.Id
+		record.RoomId = room.RoomID
+		record.Amount = monrey
+		record.TokenType = AA_PAY_TYPE
+		record.KindID = room.KindID
+		if !player.AddRecord(record) {
+			retCode = ErrServerError
+			player.AddCurrency(monrey)
+			return
+		}
+	} else { //已近口过钱了， 还来搜索房间
+		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
+	}
+	room.PayCnt *= 2
+	room.RenewalCnt++
+
+	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
+}
+
+func (m *UserModule) RenewalFeeFaild(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_RenewalFeeFaild)
+	player := m.a.UserData().(*user.User)
+	record := player.GetRecord(recvMsg.RecodeID)
+	if record != nil {
+		player.AddCurrency(record.Amount)
+		player.DelRecord(record.RoomId)
+	}
+}
+
+//改名字
+func (m *UserModule) ChangeUserName(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ChangeUserName)
+	player := m.a.UserData().(*user.User)
+	player.NickName = recvMsg.NewName
+
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"NickName": player.NickName,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeUserNameRsp{Code: 0, NewName: player.NickName})
+}
+
+//改签名
+func (m *UserModule) ChangeSign(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ChangeSign)
+	player := m.a.UserData().(*user.User)
+
+	player.Sign = recvMsg.Sign
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"Sign": player.Sign,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeSignRsp{Code: 0, NewSign: player.Sign})
+}
+
+//获取验证码
+func (m *UserModule) ReqBindMaskCode(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ReqBindMaskCode)
+	player := m.a.UserData().(*user.User)
+	retCode := 0
+	defer func() {
+		player.WriteMsg(&msg.L2C_ReqBindMaskCodeRsp{Code: retCode})
+	}()
+
+	if player.MacKCodeTime != nil {
+		if time.Now().After(*player.MacKCodeTime) {
+			retCode = ErrFrequentAccess
+			return
+		}
+	}
+	code, _ := utils.RandInt(100000, 1000000)
+	now := time.Now()
+	player.MacKCodeTime = &now
+
+	err := model.UserMaskCodeOp.InsertUpdate(&model.UserMaskCode{UserId: player.Id, PhomeNumber: recvMsg.PhoneNumber, MaskCode: code}, map[string]interface{}{
+		"mask_code":    code,
+		"phome_number": recvMsg.PhoneNumber,
+	})
+	if err == nil {
+		retCode = ErrRandMaskCodeError
+		return
+	}
+
+	ReqGetMaskCode(recvMsg.PhoneNumber, code)
 }

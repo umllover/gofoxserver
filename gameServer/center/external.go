@@ -2,7 +2,10 @@ package center
 
 import (
 	. "mj/common/cost"
+	"mj/common/msg"
 	"mj/gameServer/center/internal"
+
+	"github.com/lovelly/leaf/log"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -16,6 +19,17 @@ var (
 //发送消息给本服服务器上的玩家
 func SendToThisNodeUser(uid int, funcName string, data interface{}) {
 	ChanRPC.Go("SendMsgToSelfNotdeUser", uid, funcName, data)
+}
+
+//发消息给大厅服务器上的玩家
+func SendDataToHallUser(HallNodeName string, uid int64, data interface{}) {
+	bdate, err := msg.Processor.Marshal(data)
+	if err != nil {
+		log.Error("at SendDataToHallUser error:%s", err.Error())
+		return
+	}
+
+	cluster.Go(HallNodeName, &msg.S2S_HanldeFromUserMsg{Uid: uid, Data: bdate[0]})
 }
 
 //发送消息给游戏服

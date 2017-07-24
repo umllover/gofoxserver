@@ -116,6 +116,30 @@ func (op *systemstatusinfoOp) InsertTx(ext sqlx.Ext, m *Systemstatusinfo) (int64
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *systemstatusinfoOp) InsertUpdate(obj *Systemstatusinfo, m map[string]interface{}) ( error) {
+    sql := "insert into systemstatusinfo(StatusName,StatusValue,StatusString,StatusTip,StatusDescription,SortID) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+    var params = []interface{}{ obj.StatusName,
+        obj.StatusValue,
+        obj.StatusString,
+        obj.StatusTip,
+        obj.StatusDescription,
+        obj.SortID,
+        }
+    var set_sql string
+    for k, v := range m{
+		if set_sql != "" {
+			set_sql += ","
+		}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
+
+    _, err := db.StatsDB.Exec(sql + set_sql, params...)
+    return err
+}
+
+
 /*
 func (i *Systemstatusinfo) Update()  error {
     _,err := db.StatsDBMap.Update(i)

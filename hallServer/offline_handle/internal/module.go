@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"mj/gameServer/base"
+	"mj/hallServer/base"
 
 	"time"
 

@@ -1,12 +1,11 @@
 package stats
 
-import (
-	"errors"
-	"fmt"
-	"mj/hallServer/db"
-
-	"github.com/jmoiron/sqlx"
-	"github.com/lovelly/leaf/log"
+import(
+    "mj/hallServer/db"
+    "github.com/lovelly/leaf/log"
+    "github.com/jmoiron/sqlx"
+    "fmt"
+    "strings"
 )
 
 //This file is generate by scripts,don't edit it
@@ -16,29 +15,28 @@ import (
 
 // +gen *
 type VersionLocker struct {
-	Id int `db:"id" json:"id"` //
-}
+    Id int `db:"id" json:"id"` // 
+    }
 
 type versionLockerOp struct{}
 
 var VersionLockerOp = &versionLockerOp{}
 var DefaultVersionLocker = &VersionLocker{}
-
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
 func (op *versionLockerOp) Get(id int) (*VersionLocker, bool) {
-	obj := &VersionLocker{}
-	sql := "select * from version_locker where id=? "
-	err := db.StatsDB.Get(obj, sql,
-		id,
-	)
-
-	if err != nil {
-		log.Error("Get data error:%v", err.Error())
-		return nil, false
-	}
-	return obj, true
-}
-func (op *versionLockerOp) SelectAll() ([]*VersionLocker, error) {
+    obj := &VersionLocker{}
+    sql := "select * from version_locker where id=? "
+    err := db.StatsDB.Get(obj, sql, 
+        id,
+        )
+    
+    if err != nil{
+        log.Error("Get data error:%v", err.Error())
+        return nil,false
+    }
+    return obj, true
+} 
+func(op *versionLockerOp) SelectAll() ([]*VersionLocker, error) {
 	objList := []*VersionLocker{}
 	sql := "select * from version_locker "
 	err := db.StatsDB.Select(&objList, sql)
@@ -49,15 +47,15 @@ func (op *versionLockerOp) SelectAll() ([]*VersionLocker, error) {
 	return objList, nil
 }
 
-func (op *versionLockerOp) QueryByMap(m map[string]interface{}) ([]*VersionLocker, error) {
+func(op *versionLockerOp) QueryByMap(m map[string]interface{}) ([]*VersionLocker, error) {
 	result := []*VersionLocker{}
-	var params []interface{}
+    var params []interface{}
 
 	sql := "select * from version_locker where 1=1 "
-	for k, v := range m {
-		sql += fmt.Sprintf(" and %s=? ", k)
-		params = append(params, v)
-	}
+    for k, v := range m{
+        sql += fmt.Sprintf(" and %s=? ", k)
+        params = append(params, v)
+    }
 	err := db.StatsDB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
@@ -66,15 +64,15 @@ func (op *versionLockerOp) QueryByMap(m map[string]interface{}) ([]*VersionLocke
 	return result, nil
 }
 
-func (op *versionLockerOp) GetByMap(m map[string]interface{}) (*VersionLocker, error) {
-	lst, err := op.QueryByMap(m)
-	if err != nil {
-		return nil, err
-	}
-	if len(lst) > 0 {
-		return lst[0], nil
-	}
-	return nil, errors.New("no row in result")
+func(op *versionLockerOp) GetByMap(m map[string]interface{}) (*VersionLocker, error) {
+    lst, err := op.QueryByMap(m)
+    if err != nil {
+        return nil, err
+    }
+    if len(lst) > 0 {
+        return lst[0], nil
+    }
+    return nil, errors.New("no row in result")
 }
 
 /*
@@ -89,22 +87,41 @@ func (i *VersionLocker) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *versionLockerOp) Insert(m *VersionLocker) (int64, error) {
-	return op.InsertTx(db.StatsDB, m)
+    return op.InsertTx(db.StatsDB, m)
 }
 
 // 插入数据，自增长字段将被忽略
 func (op *versionLockerOp) InsertTx(ext sqlx.Ext, m *VersionLocker) (int64, error) {
-	sql := "insert into version_locker(id) values(?)"
-	result, err := ext.Exec(sql,
-		m.Id,
-	)
-	if err != nil {
-		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
-		return -1, err
-	}
-	affected, _ := result.LastInsertId()
-	return affected, nil
+    sql := "insert into version_locker(id) values(?)"
+    result, err := ext.Exec(sql,
+    m.Id,
+        )
+    if err != nil{
+        log.Error("InsertTx sql error:%v, data:%v", err.Error(),m)
+        return -1, err
+    }
+    affected, _ := result.LastInsertId()
+        return affected, nil
+    }
+
+//存在就更新， 不存在就插入
+func (op *versionLockerOp) InsertUpdate(obj *VersionLocker, m map[string]interface{}) ( error) {
+    sql := "insert into version_locker(id) values(?) ON DUPLICATE KEY UPDATE "
+    var params = []interface{}{ obj.Id,
+        }
+    var set_sql string
+    for k, v := range m{
+		if set_sql != "" {
+			set_sql += ","
+		}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
+
+    _, err := db.StatsDB.Exec(sql + set_sql, params...)
+    return err
 }
+
 
 /*
 func (i *VersionLocker) Update()  error {
@@ -117,47 +134,47 @@ func (i *VersionLocker) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionLockerOp) Update(m *VersionLocker) error {
-	return op.UpdateTx(db.StatsDB, m)
+func (op *versionLockerOp) Update(m *VersionLocker) (error) {
+    return op.UpdateTx(db.StatsDB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionLockerOp) UpdateTx(ext sqlx.Ext, m *VersionLocker) error {
-	sql := `update version_locker set  where id=?`
-	_, err := ext.Exec(sql,
-		m.Id,
-	)
+func (op *versionLockerOp) UpdateTx(ext sqlx.Ext, m *VersionLocker) (error) {
+    sql := `update version_locker set  where id=?`
+    _, err := ext.Exec(sql,
+    m.Id,
+        )
 
-	if err != nil {
-		log.Error("update sql error:%v, data:%v", err.Error(), m)
-		return err
-	}
+    if err != nil{
+		log.Error("update sql error:%v, data:%v", err.Error(),m)
+        return err
+    }
 
-	return nil
+    return nil
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionLockerOp) UpdateWithMap(id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.StatsDB, id, m)
+func (op *versionLockerOp) UpdateWithMap(id int, m map[string]interface{}) (error) {
+    return op.UpdateWithMapTx(db.StatsDB, id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionLockerOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[string]interface{}) error {
+func (op *versionLockerOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[string]interface{}) (error) {
 
-	sql := `update version_locker set %s where 1=1 and id=? ;`
+    sql := `update version_locker set %s where 1=1 and id=? ;`
 
-	var params []interface{}
-	var set_sql string
-	for k, v := range m {
+    var params []interface{}
+    var set_sql string
+    for k, v := range m{
 		if set_sql != "" {
 			set_sql += ","
 		}
-		set_sql += fmt.Sprintf(" %s=? ", k)
-		params = append(params, v)
-	}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
 	params = append(params, id)
-	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
-	return err
+    _, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
+    return err
 }
 
 /*
@@ -168,53 +185,54 @@ func (i *VersionLocker) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *versionLockerOp) Delete(id int) error {
-	return op.DeleteTx(db.StatsDB, id)
+func (op *versionLockerOp) Delete(id int) error{
+    return op.DeleteTx(db.StatsDB, id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *versionLockerOp) DeleteTx(ext sqlx.Ext, id int) error {
-	sql := `delete from version_locker where 1=1
+func (op *versionLockerOp) DeleteTx(ext sqlx.Ext, id int) error{
+    sql := `delete from version_locker where 1=1
         and id=?
         `
-	_, err := ext.Exec(sql,
-		id,
-	)
-	return err
+    _, err := ext.Exec(sql, 
+        id,
+        )
+    return err
 }
 
 // 返回符合查询条件的记录数
 func (op *versionLockerOp) CountByMap(m map[string]interface{}) (int64, error) {
 
-	var params []interface{}
-	sql := `select count(*) from version_locker where 1=1 `
-	for k, v := range m {
-		sql += fmt.Sprintf(" and  %s=? ", k)
-		params = append(params, v)
-	}
-	count := int64(-1)
-	err := db.StatsDB.Get(&count, sql, params...)
-	if err != nil {
-		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
-		return 0, err
-	}
-	return count, nil
+    var params []interface{}
+    sql := `select count(*) from version_locker where 1=1 `
+    for k, v := range m{
+        sql += fmt.Sprintf(" and  %s=? ",k)
+        params = append(params, v)
+    }
+    count := int64(-1)
+    err := db.StatsDB.Get(&count, sql, params...)
+    if err != nil {
+        log.Error("CountByMap  error:%v data :%v", err.Error(), m)
+		return 0,err
+    }
+    return count, nil
 }
 
-func (op *versionLockerOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *versionLockerOp) DeleteByMap(m map[string]interface{})(int64, error){
 	return op.DeleteByMapTx(db.StatsDB, m)
 }
 
-func (op *versionLockerOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *versionLockerOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){
 	var params []interface{}
 	sql := "delete from version_locker where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
 	}
-	result, err := ext.Exec(sql, params...)
-	if err != nil {
-		return -1, err
-	}
-	return result.RowsAffected()
+	result, err := ext.Exec(sql, params...) 
+    if err != nil {
+        return -1, err
+    }
+    return result.RowsAffected()
 }
+

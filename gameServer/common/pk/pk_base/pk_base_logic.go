@@ -96,10 +96,6 @@ func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int
 	return nil, false
 }
 
-func (lg *BaseLogic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
-	return nil
-}
-
 func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
 	return false
 }
@@ -112,6 +108,10 @@ func (lg *BaseLogic) GetCardTimes(cardType int) int {
 	return 1
 }
 
-func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool {
-	return false
+func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool) {
+	return 0, false
+}
+
+func (lg *BaseLogic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	return nil
 }

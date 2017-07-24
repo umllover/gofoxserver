@@ -33,12 +33,10 @@ type ddz_data_mgr struct {
 	*pk_base.RoomData
 	GameStatus int // 当前游戏状态
 
-	CurrentUser   int // 当前玩家
-	CallScoreUser int // 叫分玩家
-	BankerUser    int // 地主
-	TurnWiner     int // 出牌玩家
+	CurrentUser int // 当前玩家
 
-	TimeHeadOutCard int // 首出时间
+	BankerUser int // 地主
+	TurnWiner  int // 出牌玩家
 
 	EightKing bool // 是否八王模式
 	GameType  int  // 游戏类型
@@ -52,9 +50,9 @@ type ddz_data_mgr struct {
 	ScoreInfo []int // 叫分信息
 
 	// 出牌信息
-	TurnCardStatus []int     // 用户出牌状态
-	TurnCardData   [][][]int // 出牌数据
-	RepertoryCard  []int     // 库存扑克
+	TurnCardStatus []int                          // 用户出牌状态
+	TurnCardData   [][]pk_ddz_msg.C2G_DDZ_OutCard // 出牌数据
+	RepertoryCard  []int                          // 库存扑克
 
 	// 扑克信息
 	BankerCard   [3]int       // 游戏底牌
@@ -62,42 +60,40 @@ type ddz_data_mgr struct {
 	ShowCardSign map[int]bool // 用户明牌标识
 }
 
+func (room *ddz_data_mgr) resetData() {
+	room.GameStatus = GAME_STATUS_FREE
+	room.CurrentUser = cost.INVALID_CHAIR
+	room.BankerUser = cost.INVALID_CHAIR
+	room.TurnWiner = cost.INVALID_CHAIR
+	room.LiziCard = 0
+	room.EachBombCount = make([]int, room.PlayerCount)
+	room.KingCount = append([]int{})
+	room.ScoreInfo = make([]int, room.PlayerCount)
+	room.TurnCardStatus = make([]int, room.PlayerCount)
+	room.TurnCardData = make([][]pk_ddz_msg.C2G_DDZ_OutCard, room.PlayerCount)
+
+	nMaxCardCount := room.GetCfg().MaxRepertory
+	if room.EightKing {
+		nMaxCardCount += 6
+	}
+	room.RepertoryCard = make([]int, nMaxCardCount)
+	room.BankerCard = [3]int{}
+	room.HandCardData = append([][]int{})
+	room.ShowCardSign = map[int]bool{}
+
+	room.ScoreTimes = 0
+	room.HistoryScores = make([]*pk_base.HistoryScore, room.PlayerCount)
+}
+
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间参数")
 	room.RoomData.InitRoom(UserCnt)
 
-	room.GameStatus = GAME_STATUS_FREE
-	room.CurrentUser = cost.INVALID_CHAIR
-	room.CallScoreUser = cost.INVALID_CHAIR
-	room.BankerUser = cost.INVALID_CHAIR
-	room.TurnWiner = cost.INVALID_CHAIR
-
-	room.TimeHeadOutCard = 0
-	room.EachBombCount = make([]int, room.PlayerCount)
-
-	room.CallScoreUser = cost.INVALID_CHAIR
-	room.ScoreInfo = make([]int, room.PlayerCount)
-
-	room.TurnCardStatus = make([]int, room.PlayerCount)
-	room.TurnCardData = make([][][]int, room.PlayerCount)
-	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
-
-	room.HandCardData = make([][]int, room.PlayerCount)
-	room.HistoryScores = make([]*pk_base.HistoryScore, room.PlayerCount)
+	room.resetData()
 }
 
-//// 叫分
-//func (room *ddz_data_mgr) AfterStartGame() {
-//	room.GameStatus = pk_base.CALL_SCORE_TIMES
-//	if room.CallScoreUser == cost.INVALID_CHAIR {
-//		room.CallScore(room.PkBase.UserMgr.GetUserByChairId(0), 0)
-//	} else {
-//		room.CallScore(room.PkBase.UserMgr.GetUserByChairId(room.CallScoreUser), 0)
-//	}
-//}
-
 // 空闲状态场景
-func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
+func (room *ddz_data_mgr) SendStatusReady(usr *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
@@ -111,14 +107,13 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
 	StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
-	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间
-	StatusFree.TimeHeadOutCard = room.TimeHeadOutCard                    // 首出时间
+	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间 	// 首出时间
 	StatusFree.TurnScore = append(StatusFree.TurnScore, 12)
 	StatusFree.CollectScore = append(StatusFree.CollectScore, 11)
-	for _, v := range room.HistoryScores {
-		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
-		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	}
+	//for _, v := range room.HistoryScores {
+	//	StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
+	//	StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
+	//}
 
 	// 发送明牌标识
 	for k, v := range room.ShowCardSign {
@@ -132,7 +127,10 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 
-		u.WriteMsg(StatusFree)
+		if u.ChairId == usr.ChairId || u.Status < cost.US_READY {
+			u.WriteMsg(StatusFree)
+		}
+
 	})
 
 }
@@ -155,7 +153,6 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 	StatusCall.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
 	StatusCall.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
 	StatusCall.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
-	StatusCall.TimeHeadOutCard = room.TimeHeadOutCard
 
 	StatusCall.GameType = room.GameType
 	StatusCall.LaiziCard = room.LiziCard
@@ -170,7 +167,7 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 	}
 
 	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
-	StatusCall.ScoreInfo = make([]int, UserCnt)
+	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
 
 	StatusCall.TurnScore = make([]int, UserCnt)
 	StatusCall.CollectScore = make([]int, UserCnt)
@@ -208,12 +205,15 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 		room.SendStatusCall(u)
 		return
 	}
+	if room.GameStatus == GAME_STATUS_FREE {
+		room.SendStatusReady(u)
+		return
+	}
 	StatusPlay := &pk_ddz_msg.G2C_DDZ_StatusPlay{}
 	//自定规则
 	StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
 	StatusPlay.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
 	StatusPlay.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
-	StatusPlay.TimeHeadOutCard = room.TimeHeadOutCard
 
 	//游戏变量
 	StatusPlay.CellScore = room.CellScore
@@ -285,6 +285,7 @@ func (room *ddz_data_mgr) SendGameStart() {
 
 	// 底牌
 	//util.DeepCopy(room.BankerCard[:], &room.RepertoryCard[len(room.RepertoryCard)-3:])
+	log.Debug("发牌数据%v,%v", room.BankerCard, room.RepertoryCard)
 	copy(room.BankerCard[:], room.RepertoryCard[len(room.RepertoryCard)-3:])
 	room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-3]
 
@@ -313,26 +314,27 @@ func (room *ddz_data_mgr) SendGameStart() {
 	// 初始化牌
 	room.HandCardData = append([][]int{})
 	for i := 0; i < room.PlayerCount; i++ {
-		tempCardData := room.RepertoryCard[len(room.RepertoryCard)-cardCount:]
+		tempCardData := util.CopySlicInt(room.RepertoryCard[len(room.RepertoryCard)-cardCount:])
 		room.PkBase.LogicMgr.SortCardList(tempCardData, len(tempCardData))
 		room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-cardCount]
 		room.HandCardData = append(room.HandCardData, tempCardData)
-		if room.CallScoreUser == cost.INVALID_CHAIR {
+		if room.CurrentUser == cost.INVALID_CHAIR {
 			for _, v := range tempCardData {
 				if v == 0x33 {
-					room.CallScoreUser = i
+					room.CurrentUser = i
 					break
 				}
 			}
 		}
 	}
 
-	if room.CallScoreUser == cost.INVALID_CHAIR {
-		room.CallScoreUser = util.RandInterval(0, 2)
+	if room.CurrentUser == cost.INVALID_CHAIR {
+		room.CurrentUser = util.RandInterval(0, 2)
 	}
-	room.ScoreInfo[room.CallScoreUser] = CALLSCORE_CALLING
 
-	GameStart.CallScoreUser = room.CallScoreUser
+	room.ScoreInfo[room.CurrentUser] = CALLSCORE_CALLING
+
+	GameStart.CallScoreUser = room.CurrentUser
 
 	if room.ShowCardSign == nil {
 		room.ShowCardSign = make(map[int]bool)
@@ -374,21 +376,28 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		return
 	}
 
-	if scoreTimes <= r.ScoreTimes && r.ScoreTimes != 0 {
+	if scoreTimes <= r.ScoreTimes && scoreTimes != 0 {
 		cost.RenderErrorMessage(cost.ErrDDZCSValid)
 		log.Debug("用户叫分%d必须大于当前分数%d", scoreTimes, r.ScoreTimes)
 		return
 	}
-	r.ScoreTimes = scoreTimes
+
+	if scoreTimes == 0 {
+
+	} else {
+		r.ScoreTimes = scoreTimes
+		r.BankerUser = u.ChairId
+	}
+
 	r.ScoreInfo[u.ChairId] = scoreTimes
 
-	nextCallUser := (r.CallScoreUser + 1) % r.PlayerCount // 下一个叫分玩家
+	nextCallUser := (r.CurrentUser + 1) % r.PlayerCount // 下一个叫分玩家
+	r.CurrentUser = nextCallUser
 
 	isEnd := (r.ScoreTimes == CALLSCORE_MAX) || (r.ScoreInfo[nextCallUser] != CALLSCORE_NOCALL)
 
 	if !isEnd {
 		r.ScoreInfo[nextCallUser] = CALLSCORE_CALLING
-		r.CallScoreUser = nextCallUser
 	} else {
 		// 叫分结束，看谁叫的分数大就是地主
 		var score int
@@ -468,6 +477,12 @@ func (r *ddz_data_mgr) ShowCard(u *user.User) {
 
 // 用户出牌
 func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
+	if cardType == 0 {
+		log.Debug("用户%d要不起", u.ChairId)
+		r.PassCard(u)
+		return
+	}
+	log.Debug("用户%d出牌%v", u.ChairId, cardData)
 	// 检查当前是否是游戏中
 	if r.GameStatus != GAME_STATUS_PLAY {
 		log.Debug("出牌错误，当前游戏状态为%d", r.GameStatus)
@@ -481,7 +496,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 
 	// 检查所出牌是否完整在手上
 	if len(cardData) > len(r.HandCardData[u.ChairId]) {
-
+		log.Debug("所出的牌%v，手上的牌%v，超过数量了", cardData, r.HandCardData[u.ChairId])
 		return
 	}
 
@@ -496,14 +511,18 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		}
 		if !b {
 			// 所出的牌没在该人手上
+			log.Debug("所出的牌%v，手上的牌%v", cardData, r.HandCardData[u.ChairId])
 			return
 		}
 	}
 
-	// 对比牌型
-	r.PkBase.LogicMgr.SortCardList(cardData, len(cardData)) // 排序
+	nowCard := pk_ddz_msg.C2G_DDZ_OutCard{}
+	nowCard.CardData = util.CopySlicInt(cardData)
 
-	var lastTurnCard []int
+	// 对比牌型
+	r.PkBase.LogicMgr.SortCardList(nowCard.CardData, len(nowCard.CardData)) // 排序
+
+	var lastTurnCard pk_ddz_msg.C2G_DDZ_OutCard
 	for i := 1; i < r.PlayerCount; i++ {
 		lastUser := r.lastUser(u.ChairId)
 		uStatus := r.TurnCardStatus[lastUser]
@@ -515,24 +534,50 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		}
 	}
 
-	if !r.PkBase.LogicMgr.CompareCard(lastTurnCard, cardData) {
-		log.Debug("出牌数据错误")
-		return
+	log.Debug("上一次出牌的信息%v", lastTurnCard)
+	if lastTurnCard.CardType == CT_ERROR {
+		nowCard.CardType = r.PkBase.LogicMgr.GetCardType(nowCard.CardData)
+		if nowCard.CardType == CT_ERROR {
+			// 出牌无效
+			return
+		}
+	} else {
+		var isType bool
+		nowCard.CardType, isType = r.PkBase.LogicMgr.CompareCardWithParam(lastTurnCard.CardData, nowCard.CardData, []interface{}{lastTurnCard.CardType})
+		if !isType {
+			log.Debug("出牌数据有错")
+			return
+		}
+	}
+
+	// 判断是否火箭
+	if nowCard.CardType >= CT_KING {
+		r.KingCount = append(r.KingCount, len(nowCard.CardData))
+	} else if nowCard.CardType >= CT_BOMB_CARD {
+		// 炸弹
+		r.EachBombCount[u.ChairId]++
 	}
 
 	r.TurnWiner = u.ChairId
-	r.CurrentUser = r.nextUser(r.CurrentUser)
+	r.CurrentUser = r.nextUser(u.ChairId)
 	r.TurnCardStatus[r.CurrentUser] = OUTCARD_OUTING
 	// 把所出的牌存到出牌数据里
-	r.TurnCardData[u.ChairId] = append(r.TurnCardData[u.ChairId], cardData)
+
+	r.TurnCardData[u.ChairId] = append(r.TurnCardData[u.ChairId], nowCard)
 	r.TurnCardStatus[u.ChairId] = len(r.TurnCardData[u.ChairId]) - 1
 
 	// 从手牌删除数据
-	//r.HandCardData[u.ChairId], _ = r.PkBase.LogicMgr.RemoveCardList(cardData, r.HandCardData[u.ChairId])
+	log.Debug("出牌玩家%d删除前的手牌%v", r.TurnWiner, r.HandCardData)
+	r.HandCardData[u.ChairId], _ = r.PkBase.LogicMgr.RemoveCardList(cardData, r.HandCardData[u.ChairId])
+	log.Debug("删除后的手牌%v", r.HandCardData)
 
 	// 发送给所有玩家
-	DataOutCard := pk_ddz_msg.G2C_DDZ_OutCard{}
-	DataOutCard.CurrentUser = r.CurrentUser
+	DataOutCard := &pk_ddz_msg.G2C_DDZ_OutCard{}
+	if len(r.HandCardData[u.ChairId]) == 0 {
+		DataOutCard.CurrentUser = cost.INVALID_CHAIR
+	} else {
+		DataOutCard.CurrentUser = r.CurrentUser
+	}
 	DataOutCard.OutCardUser = u.ChairId
 	DataOutCard.CardData = make([]int, len(cardData))
 	util.DeepCopy(&DataOutCard.CardData, &cardData)
@@ -551,17 +596,18 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 
 // 判断下一个玩家托管状态
 func (r *ddz_data_mgr) checkNextUserTrustee() {
-	log.Debug("当前玩家%d,托管状态%v", r.CurrentUser, r.PkBase.UserMgr.GetTrustees())
+	log.Debug("当前玩家%d,上次出牌玩家%d,托管状态%v", r.CurrentUser, r.TurnWiner, r.PkBase.UserMgr.GetTrustees())
 	if r.PkBase.UserMgr.IsTrustee(r.CurrentUser) {
 		// 出牌玩家为托管状态
 		if r.CurrentUser == r.TurnWiner {
 			// 上一个出牌玩家是自己，则选最小牌
 			var cardData []int
 			cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
-			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0, cardData)
+			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 1, cardData)
 		} else {
 			// 上一个出牌玩家不是自己，则不出
-			r.PassCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser))
+			log.Debug("玩家不出%d,%d,%d", r, r.PkBase, r.PkBase.UserMgr)
+			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0, nil)
 		}
 	}
 }
@@ -589,7 +635,7 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 		return
 	}
 	// 如果上一个出牌人是自己，则不能放弃
-	if r.TurnWiner == u.ChairId {
+	if r.TurnWiner == u.ChairId || r.TurnWiner == cost.INVALID_CHAIR {
 		log.Debug("不允许放弃")
 		return
 	}
@@ -614,9 +660,10 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 
 // 游戏正常结束
 func (r *ddz_data_mgr) NormalEnd() {
+	log.Debug("游戏正常结束了")
+	r.GameStatus = GAME_STATUS_FREE
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.CellScore
-	DataGameConclude.GameScore = make([]int, r.PlayerCount)
 
 	// 算分数
 	nMultiple := r.ScoreTimes
@@ -678,7 +725,6 @@ func (r *ddz_data_mgr) NormalEnd() {
 	for i := 0; i < r.PlayerCount; i++ {
 		if i == r.BankerUser {
 			DataGameConclude.GameScore = append(DataGameConclude.GameScore, (0-gameScore)*(r.PlayerCount-1))
-			r.CallScoreUser = r.BankerUser
 		} else {
 			DataGameConclude.GameScore = append(DataGameConclude.GameScore, gameScore)
 		}
