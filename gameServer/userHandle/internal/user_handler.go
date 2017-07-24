@@ -245,7 +245,7 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	r := RoomMgr.GetRoom(recvMsg.TableID)
 	if r == nil {
 		if player.RoomId != 0 {
-			r := RoomMgr.GetRoom(player.RoomId)
+			r = RoomMgr.GetRoom(player.RoomId)
 			if r == nil {
 				m.LoadRoom([]interface{}{&msg.C2G_LoadRoom{RoomID: player.RoomId}})
 				r = RoomMgr.GetRoom(player.RoomId)
