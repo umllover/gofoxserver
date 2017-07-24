@@ -2,11 +2,9 @@ package room
 
 import (
 	"encoding/json"
-	"mj/gameServer/common/pk/pk_base"
-
-	"mj/gameServer/db/model"
-
 	"mj/common/msg/pk_ddz_msg"
+	"mj/gameServer/common/pk/pk_base"
+	"mj/gameServer/db/model"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
