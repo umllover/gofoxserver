@@ -458,7 +458,9 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		}
 	}
 	//选取庄家
-	room.ElectionBankerUser()
+	if room.BankerUser == INVALID_CHAIR {
+		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+	}
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
@@ -493,26 +495,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
-	//
-	//var temp1 []int
-	//temp1 = make([]int, 42)
-	//temp1[0] = 3 //三张一同
-	//temp1[1] = 3 //三张二同
-	//temp1[2] = 3 //三张三同
-	//temp1[3] = 3 //三张四同
-	//temp1[4] = 3 //三张五同
-	//temp1[5] = 1
-	//room.CardIndex[1] = temp1
-	//
-	//var temp2 []int
-	//temp2 = make([]int, 42)
-	//temp2[0] = 3 //三张一同
-	//temp2[1] = 3 //三张二同
-	//temp2[2] = 3 //三张三同
-	//temp2[3] = 3 //三张四同
-	//temp2[4] = 3 //三张五同
-	//temp2[5] = 1
-	//room.CardIndex[2] = temp2
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -881,9 +863,9 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		}
 		//抢杠胡分
 		room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 0
-
 		//记录放弃操作
 		room.RecordBanCard(OperateCode, u.ChairId)
+		room.StopOperateCardTimer(u)
 	}
 
 	cbTargetAction := OperateCode
@@ -1351,9 +1333,11 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		log.Debug("补花得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 		//连庄
 		if i == room.BankerUser { //庄W
+			log.Debug("连庄 len1:%d len2:%d len3:%d len4:%d i:%d", len(playerScore), room.LianZhuang, room.ProvideUser, room.BankerUser, i)
 			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
 			room.SumScore[room.BankerUser] += room.LianZhuang
 		} else { //边W
+			log.Debug("连庄 len1:%d len2:%d len3:%d len4:%d i:%d", len(playerScore), room.LianZhuang, room.ProvideUser, room.BankerUser, i)
 			room.SumScore[room.ProvideUser] += room.LianZhuang
 			room.SumScore[room.BankerUser] -= room.LianZhuang
 		}
@@ -1388,6 +1372,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
 		//分饼
 		if room.BankerUser == i {
+			log.Debug("分饼 len1:%d len2:%d i:%d", len(room.SumScore), len(room.FollowCardScore), i)
 			room.SumScore[i] -= room.FollowCardScore[i]
 		} else {
 			playerScore[IDX_SUB_SCORE_CH] = room.FollowCardScore[i]
@@ -1592,6 +1577,9 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			}
 		}
 
+		if room.BankerUser > 3 {
+			room.BankerUser = 0
+		}
 	} else { //荒庄
 		room.BankerUser = room.BankerUser
 	}
@@ -1619,12 +1607,6 @@ func (room *ZP_RoomData) CallGangScore() {
 //出牌禁忌
 func (room *ZP_RoomData) RecordBanCard(OperateCode, ChairId int) {
 	room.BanUser[ChairId] |= OperateCode
-}
-
-//清除出牌禁忌
-func (room *ZP_RoomData) ClearBanCard(ChairId int) {
-	room.BanUser[ChairId] = 0
-	room.BanCardCnt[ChairId] = [9]int{}
 }
 
 //吃啥打啥
@@ -1859,6 +1841,12 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		return 1
 	}
 
+	//清理出牌禁忌
+	if room.SendStatus != Gang_Send {
+		room.BanUser[wCurrentUser] = 0
+		room.BanCardCnt[wCurrentUser] = [9]int{}
+	}
+
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
@@ -2051,6 +2039,14 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 	u.WriteMsg(StatusFree)
 }
 
+//重置用户状态
+func (room *ZP_RoomData) ResetUserOperateEx(u *user.User) {
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	room.UserAction = make([]int, UserCnt)
+	room.OperateCard = make([][]int, UserCnt)
+	room.StopOperateCardTimer(u)
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 //定时器
 
@@ -2083,7 +2079,11 @@ func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
 			for j := room.GetCfg().MaxIdx - 1; j > 0; j-- {
 				if room.CardIndex[u.ChairId][j] > 0 {
 					card = room.MjBase.LogicMgr.SwitchToCardData(j)
-					break
+					if !(card == room.BanCardCnt[u.ChairId][LimitChi] && room.BankerUser == u.ChairId) {
+						break
+					} else {
+						log.Debug("超时吃啥打啥")
+					}
 				}
 			}
 		}

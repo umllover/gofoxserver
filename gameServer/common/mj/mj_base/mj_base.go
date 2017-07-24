@@ -151,7 +151,9 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	log.Debug("at UserReady ==== ")
-	room.UserMgr.SetUsetStatus(u, US_READY)
+	if u.Status != US_PLAYING {
+		room.UserMgr.SetUsetStatus(u, US_READY)
+	}
 
 	if room.UserMgr.IsAllReady() {
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
@@ -313,9 +315,6 @@ func (room *Mj_base) OutCard(args []interface{}) {
 		return
 	}
 
-	//清除出牌禁忌
-	room.DataMgr.ClearBanCard(u.ChairId)
-
 	//记录出牌数
 	room.DataMgr.RecordOutCarCnt()
 
@@ -435,7 +434,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		}
 
 		//设置变量
-		//room.UserAction[room.CurrentUser] = WIK_NULL
+		room.DataMgr.ResetUserOperateEx(u)
 
 		//执行动作
 		switch OperateCode {
