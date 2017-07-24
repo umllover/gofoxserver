@@ -495,8 +495,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[2] = 3 //三张三同
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 1
-	//temp[6] = 1
+	//temp[5] = 2
+	//temp[6] = 0
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x07
@@ -504,6 +504,16 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//
+	//var temp2 []int
+	//temp2 = make([]int, 42)
+	//temp2[0] = 3 //三张一同
+	//temp2[1] = 3 //三张二同
+	//temp2[2] = 3 //三张三同
+	//temp2[3] = 3 //三张四同
+	//temp2[4] = 3 //三张五同
+	//temp2[5] = 2
+	//room.CardIndex[1] = temp2
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -690,7 +700,6 @@ func (room *ZP_RoomData) NormalEnd() {
 		if room.ChiHuKind[i] == WIK_CHI_HU {
 			room.FiltrateRight(i, &room.ChiHuRight[i])
 			GameConclude.ChiHuRight[i] = room.ChiHuRight[i]
-			log.Debug("//todo,一炮 用户：%d 胡牌类型：%d", i, GameConclude.ChiHuRight[i]) //todo,一炮
 		}
 		GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
@@ -775,7 +784,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 		cardData := room.GetHeadCard()
 		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
 		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
-		if cardColor == 3 {
+		if cardColor == 0x30 {
 			//东南西北
 			if cardValue < 5 {
 				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
@@ -792,7 +801,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 					BuZhong = append(BuZhong, cardData)
 				}
 			}
-		} else if cardColor >= 0 && cardColor <= 2 {
+		} else if cardColor >= 0x00 && cardColor <= 0x20 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
 				CardData = append(CardData, cardData)
 			} else {
@@ -1139,11 +1148,13 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		kind = room.IsWuHuaZi(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_WHZ] = 3
+			log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
 		//字一色
 		kind = room.IsZiYiSe(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_ZYS] = 12
+			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
 	}
 	//单吊
@@ -1486,12 +1497,11 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		UserScore[u.ChairId] = int(u.Score)
 	})
 
-	//WinUser := make([]int, UserCnt)
 	var WinUser []int
 	WinCount := 0
-
 	//WinUser = append(WinUser, 0) //todo,测试代码
 	//WinCount = 1                 //todo,测试代码
+	//room.ZhuaHuaCnt = 10         //todo,测试代码
 	for i := 0; i < UserCnt; i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%UserCnt] {
 			WinUser = append(WinUser, (room.BankerUser+i)%UserCnt)
@@ -1897,18 +1907,18 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if !room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
 		//胡牌判断
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
-		log.Debug("befer %v ", room.UserAction[wCurrentUser])
 		hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.SendCardData)
 		if hu {
 			room.UserAction[wCurrentUser] |= WIK_CHI_HU
 		}
-		log.Debug("afert %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
 		if room.IsEnoughCard() && !room.Ting[wCurrentUser] {
+			log.Debug("###############before 杠：%d", room.UserAction[wCurrentUser])
 			GangCardResult := &mj_base.TagGangCardResult{}
 			room.UserAction[wCurrentUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], room.ProvideCard, GangCardResult)
+			log.Debug("###############after 杠：%d", room.UserAction[wCurrentUser])
 		}
 
 		if room.FlowerCnt[wCurrentUser] == 8 {
@@ -1944,7 +1954,6 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//	}
 	//}
 
-	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 	//构造数据
 	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser

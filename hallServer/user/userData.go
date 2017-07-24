@@ -3,9 +3,12 @@ package user
 import (
 	"mj/common/msg"
 	"mj/hallServer/db/model"
+
 	"sync"
 
 	"time"
+
+	"mj/hallServer/db/model/base"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -15,6 +18,7 @@ import (
 
 type User struct {
 	gate.Agent
+	*base.FreeLimit
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo
@@ -187,4 +191,22 @@ func (u *User) DelGameLockInfo() {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+}
+
+//判断是否免费
+
+func (u *User) CheckFree() {
+	//u.Lock()
+	//defer u.Unlock()
+	//t := time.Now()
+	//tm:=&t
+	//for _, v := range base.FreeLimitCache.All(){
+	//	if v.FreeBegin < tm.Before(u.FreeBegin) {
+	//		continue
+	//	}
+	//
+	//	t.Day() == v.da
+	//	if t.Before(v.beg) ad
+	//}
+	//2017-05-30
 }

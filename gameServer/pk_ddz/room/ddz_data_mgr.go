@@ -50,9 +50,9 @@ type ddz_data_mgr struct {
 	ScoreInfo []int // 叫分信息
 
 	// 出牌信息
-	TurnCardStatus []int                            // 用户出牌状态
+	TurnCardStatus []int                          // 用户出牌状态
 	TurnCardData   [][]pk_ddz_msg.C2G_DDZ_OutCard // 出牌数据
-	RepertoryCard  []int                            // 库存扑克
+	RepertoryCard  []int                          // 库存扑克
 
 	// 扑克信息
 	BankerCard   [3]int       // 游戏底牌
@@ -71,7 +71,12 @@ func (room *ddz_data_mgr) resetData() {
 	room.ScoreInfo = make([]int, room.PlayerCount)
 	room.TurnCardStatus = make([]int, room.PlayerCount)
 	room.TurnCardData = make([][]pk_ddz_msg.C2G_DDZ_OutCard, room.PlayerCount)
-	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
+
+	nMaxCardCount := room.GetCfg().MaxRepertory
+	if room.EightKing {
+		nMaxCardCount += 6
+	}
+	room.RepertoryCard = make([]int, nMaxCardCount)
 	room.BankerCard = [3]int{}
 	room.HandCardData = append([][]int{})
 	room.ShowCardSign = map[int]bool{}
