@@ -74,3 +74,19 @@ type CreatorRoomInfo struct {
 	KindID      int    //游戏类型
 	Status      int    //状态
 }
+
+//一件商品的信息
+type ShopItem struct {
+	Id         int    //商品id
+	Name       string //商品名字
+	Price      int    //商品的价格
+	LeftAmount int    //商品剩余数量
+}
+
+// 商品兑换信息
+type TradeShopItem struct {
+	Id    int  //商品id
+	Name  int  //商品名字
+	Price int  //商品的价格
+	state bool //交易状态
+}

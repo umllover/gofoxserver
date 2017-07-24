@@ -42,7 +42,6 @@ func GetTBNNCards() []int {
 	return GetCardByIdx(IDX_TBNN)
 }
 
-
 type PK_CFG struct {
 	PublicCardCount int //
 	MaxCount        int //最大手牌数目

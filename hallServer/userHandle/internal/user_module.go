@@ -3,6 +3,8 @@ package internal
 import (
 	"mj/hallServer/base"
 
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -49,6 +51,13 @@ func (m *UserModule) Close(Reason int) {
 		m.closeCh <- true
 	}()
 	m.UserOffline()
+}
+
+func (m *UserModule) GetTimestamp() *time.Time {
+	timestamp := &time.Now().Unix()
+	tm := time.Unix(*timestamp, 0)
+
+	return tm
 }
 
 func (m *UserModule) GetChanRPC() *chanrpc.Server {
