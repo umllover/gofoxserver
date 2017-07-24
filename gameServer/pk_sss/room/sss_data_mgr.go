@@ -96,79 +96,79 @@ func (room *sss_data_mgr) ComputeChOut() {
 
 	userMgr.ForEachUser(func(u *user.User) {
 		if room.SpecialTypeTable[u] == false {
-			ResultTemp := make([]int, 3)
+			//ResultTemp := make([]int, 3)
 			bCardData := make([]int, 5)
 			util.DeepCopy(&bCardData, &room.m_bSegmentCard[u][2])
 			tagCardTypeHou := gameLogic.GetType(bCardData, len(bCardData))
 			if tagCardTypeHou.BStraightFlush {
-				ResultTemp[2] = 5
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				//ResultTemp[2] = 5
+				room.CbResult[u][2] = 5
 			}
 			bCardDataHouZ := make([]int, 5)
 			util.DeepCopy(&bCardDataHouZ, &room.m_bSegmentCard[u][1])
 			tagCardTypeHouZ := gameLogic.GetType(bCardDataHouZ, len(bCardData))
 			if tagCardTypeHouZ.BStraightFlush {
-				ResultTemp[1] = 10
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
+				//ResultTemp[1] = 10
+				room.CbResult[u][1] = 10
 			}
 
 			//后敦炸弹
 			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("1")
-				ResultTemp[2] = 4
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				log.Debug("后敦炸弹")
+				//ResultTemp[2] = 4
+				room.CbResult[u][2] = 4
 			}
 			//中敦炸弹
 			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("2")
-				ResultTemp[1] = 8
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
+				log.Debug("中敦炸弹")
+				//ResultTemp[1] = 8
+				room.CbResult[u][1] = 8
 			}
 			//后敦葫芦
 			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("3")
-				ResultTemp[2] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				log.Debug("后敦葫芦")
+				//ResultTemp[2] = 1
+				room.CbResult[u][2] = 1
 			}
 			//中敦葫芦
 			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("4")
-				ResultTemp[1] = 2
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
+				log.Debug("中敦葫芦")
+				//ResultTemp[1] = 2
+				room.CbResult[u][1] = 2
 			}
 			//后墩同花
 			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("5")
-				ResultTemp[2] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				log.Debug("后墩同花")
+				//ResultTemp[2] = 1
+				room.CbResult[u][2] = 1
 			}
 			//中墩同花
 			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("6")
-				ResultTemp[1] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
+				log.Debug("中墩同花")
+				//ResultTemp[1] = 1
+				room.CbResult[u][1] = 1
 			}
 			//后墩顺子
 			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("7")
-				ResultTemp[2] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				log.Debug("后墩顺子")
+				//ResultTemp[2] = 1
+				room.CbResult[u][2] = 1
 			}
 			//中墩顺子
 			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
 				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("8")
-				ResultTemp[1] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[1])
+				log.Debug("中墩顺子")
+				//ResultTemp[1] = 1
+				room.CbResult[u][1] = 1
 			}
 			//后敦三张
 			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("9")
-				ResultTemp[2] = 1
-				room.CbResult[u] = append(room.CbResult[u], ResultTemp[2])
+				log.Debug("后敦三张")
+				//ResultTemp[2] = 1
+				room.CbResult[u][2] = 1
 			}
 			//中敦三张
 			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
