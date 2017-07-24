@@ -1,7 +1,6 @@
 package mj_base
 
 import (
-	"fmt"
 	"mj/common/msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
@@ -718,7 +717,6 @@ func (lg *BaseLogic) GetIteratorFunc(needCnt, allCnt int) func() []int {
 					cbNewIndex := cbIndex[i-1]
 					for j := (i - 1); j <= needCnt; j++ {
 						cbIndex[j] = cbNewIndex + j - i + 2
-						fmt.Println("BBB ", cbIndex)
 					}
 					break
 				}

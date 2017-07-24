@@ -322,7 +322,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	_, TagAnalyseItemArray := lg.AnalyseCard(cbCardIndexTemp, WeaveItem)
 
 	if len(TagAnalyseItemArray) > 0 {
-		log.Debug("hu hu hu hu hu le ")
 		return true, TagAnalyseItemArray
 	}
 

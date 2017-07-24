@@ -62,7 +62,7 @@ func TestOutCard(t *testing.T) {
 		room.GetChanRPC().Go("OperateCard", u1, data.OperateCode, data.OperateCard)
 	}
 
-	//Wg.Wait()
+	Wg.Wait()
 }
 
 //func TestGameLogic_OutCard(t *testing.T) {
@@ -157,7 +157,7 @@ func init() {
 		"ZhuaHua":    0,
 		"WithZiCard": false,
 		"ScoreType":  33,
-		"WithChaHua": true,
+		"WithChaHua": false,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {

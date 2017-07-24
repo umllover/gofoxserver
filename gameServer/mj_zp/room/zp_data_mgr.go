@@ -495,8 +495,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[2] = 3 //三张三同
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 1
-	//temp[6] = 1
+	//temp[5] = 2
+	//temp[6] = 0
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x07
@@ -775,7 +775,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 		cardData := room.GetHeadCard()
 		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
 		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
-		if cardColor == 3 {
+		if cardColor == 0x30 {
 			//东南西北
 			if cardValue < 5 {
 				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
@@ -792,7 +792,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 					BuZhong = append(BuZhong, cardData)
 				}
 			}
-		} else if cardColor >= 0 && cardColor <= 2 {
+		} else if cardColor >= 0x00 && cardColor <= 0x20 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
 				CardData = append(CardData, cardData)
 			} else {
@@ -1139,11 +1139,13 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		kind = room.IsWuHuaZi(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_WHZ] = 3
+			log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
 		//字一色
 		kind = room.IsZiYiSe(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_ZYS] = 12
+			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
 	}
 	//单吊
@@ -1486,12 +1488,11 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		UserScore[u.ChairId] = int(u.Score)
 	})
 
-	//WinUser := make([]int, UserCnt)
 	var WinUser []int
 	WinCount := 0
-
 	//WinUser = append(WinUser, 0) //todo,测试代码
 	//WinCount = 1                 //todo,测试代码
+	//room.ZhuaHuaCnt = 10         //todo,测试代码
 	for i := 0; i < UserCnt; i++ {
 		if WIK_CHI_HU == room.ChiHuKind[(room.BankerUser+i)%UserCnt] {
 			WinUser = append(WinUser, (room.BankerUser+i)%UserCnt)
