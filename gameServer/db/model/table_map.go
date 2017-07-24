@@ -15,7 +15,6 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(RaceMsgInfo{}, "race_msg_info").SetKeys(true, "MsgID")
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(RoomRecord{}, "room_record").SetKeys(false,"RoomId")
-	   db.DBMap.AddTableWithName(ShopLive{}, "shop_live").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(TokenRecord{}, "token_record").SetKeys(false,"RoomId","UserId")
 	   db.DBMap.AddTableWithName(UserDayTimes{}, "user_day_times").SetKeys(false,"UserId","KeyId")
 	   db.DBMap.AddTableWithName(UserMaskCode{}, "user_mask_code").SetKeys(false,"UserId")
