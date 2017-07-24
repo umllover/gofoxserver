@@ -40,7 +40,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 
 	r := NewMJBase(info)
 	zpBase := room_base.NewRoomBase()
-	zpData := NewDataMgr(info.RoomId, u.Id, mj_base.IDX_ZPMJ, "", temp, r, info.OtherInfo)
+	zpData := NewDataMgr(info, u.Id, mj_base.IDX_ZPMJ, "", temp, r)
 	if zpData == nil {
 		return nil
 	}

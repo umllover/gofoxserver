@@ -6,6 +6,7 @@ import (
 	"mj/common/msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"strconv"
@@ -17,6 +18,8 @@ import (
 	"mj/common/utils"
 
 	"time"
+
+	dbbase "mj/gameServer/db/model/base"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
@@ -48,41 +51,49 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base, set string) *ZP_RoomData {
+func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)
+	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base)
+
+	persionalTableFee, ok := dbbase.PersonalTableFeeCache.Get(info.KindId, info.ServiceId, info.Num)
+	if ok {
+		r.IniSource = persionalTableFee.IniScore
+	} else {
+		persionalTableFee.IniScore = 1000
+		log.Error("zpmj at NewDataMgr initScore error")
+	}
 
 	//房间游戏设置
-	info := make(map[string]interface{})
-	err := json.Unmarshal([]byte(set), &info)
+	setInfo := make(map[string]interface{})
+	err := json.Unmarshal([]byte(info.OtherInfo), &setInfo)
 	if err != nil {
 		log.Error("zpmj at NewDataMgr error:%s", err.Error())
 		return nil
 	}
 
-	getData, ok := info["ZhuaHua"].(float64)
+	getData, ok := setInfo["ZhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
-	getData2, ok := info["WithZiCard"].(bool)
+	getData2, ok := setInfo["WithZiCard"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [WithZiCard] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := info["ScoreType"].(float64)
+	getData3, ok := setInfo["ScoreType"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ScoreType] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
-	getData4, ok := info["WithChaHua"].(bool)
+	getData4, ok := setInfo["WithChaHua"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [WithChaHua] error")
 		return nil
