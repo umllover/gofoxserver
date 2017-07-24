@@ -307,6 +307,17 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 				gangCardResult.CardData[gangCardResult.CardCount] = WeaveItem[i].CenterCard
 				gangCardResult.CardCount++
 			}
+			for j := 0; j < lg.GetCfg().MaxIdx; j++ { //碰来后的和手牌组成杠
+				if cbCardIndex[j] > 0 {
+					card := lg.SwitchToCard(j)
+					if WeaveItem[i].CenterCard == card {
+						cbActionMask |= WIK_GANG
+						gangCardResult.CardData[gangCardResult.CardCount] = WeaveItem[i].CenterCard
+						gangCardResult.CardCount++
+						break
+					}
+				}
+			}
 		}
 	}
 

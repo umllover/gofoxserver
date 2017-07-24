@@ -39,7 +39,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
 	reg.RegisterRpc("Recharge", m.Recharge)
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
-	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilne)
+	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
+	reg.RegisterRpc("ForceClose", m.ForceClose)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -69,13 +70,21 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
-	u, ok := agent.UserData().(*user.User)
+	Reason := args[1].(int)
+	player, ok := agent.UserData().(*user.User)
 	if !ok {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
-	DelUser(u.Id)
-	m.Close(common.UserOffline)
+
+	m.UserOffline()
+	if Reason != KickOutMsg { //重登踢出会覆盖， 所以这里不用删除
+		DelUser(player.Id)
+	}
+
+	if Reason == UserOffline {
+		m.Close(UserOffline)
+	}
 	log.Debug("CloseAgent ok")
 	return nil
 }
@@ -126,11 +135,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		}
 	}
 
-	if HasUser(accountData.UserID) {
-		retcode = ErrUserDoubleLogin
-		return
-	}
-
 	if accountData.LogonPass != recvMsg.LogonPass {
 		retcode = ErrPasswd
 		return
@@ -150,6 +154,12 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
 			player.DelGameLockInfo()
 		}
+	}
+
+	oldUser := getUser(accountData.UserID)
+	if oldUser != nil {
+		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.Roomid)
+		m.KickOutUser(oldUser)
 	}
 
 	player.Agent = agent
@@ -413,10 +423,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
+	//if !hasMianfei(){
+
 	if !player.SubCurrency(feeTemp.TableFee) {
 		retcode = NotEnoughFee
 		return
 	}
+	//}
 
 	if !player.HasRecord(roomInfo.RoomID) {
 		record := &model.TokenRecord{}
@@ -762,13 +775,23 @@ func (m *UserModule) Recharge(args []interface{}) {
 	}
 }
 
-func (m *UserModule) HandlerOffilne(args []interface{}) {
+//离线通知时间
+func (m *UserModule) HandlerOffilneEvent(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_OfflineHandler)
 	player := m.a.UserData().(*user.User)
 	h, ok := model.UserOfflineHandlerOp.Get(recvMsg.EventID)
 	if ok {
 		handlerEventFunc(player, h)
 	}
+}
+
+func (m *UserModule) KickOutUser(player *user.User) {
+	player.ChanRPC().Go("ForceClose")
+}
+
+func (m *UserModule) ForceClose(args []interface{}) {
+	log.Debug("at ForceClose ..... ")
+	m.Close(KickOutMsg)
 }
 
 //删除自己创建的房间
