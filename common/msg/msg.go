@@ -1,7 +1,9 @@
 package msg
 
 import (
+	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
+	//"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -33,6 +35,7 @@ func init() {
 	Processor.Register(&L2C_ActivityInfo{})
 	Processor.Register(&C2L_SetElect{})
 	Processor.Register(&L2C_SetElectResult{})
+	Processor.Register(&L2C_RspTradeShopInfo{})
 	Processor.Register(&L2C_GetRoomList{})
 	Processor.Register(&L2C_QuickMatchOk{})
 	Processor.Register(&C2L_DeleteRoom{})

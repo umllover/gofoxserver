@@ -304,3 +304,7 @@ type L2C_DrawSahreAwardResult struct {
 type L2C_KickOut struct {
 	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
 }
+
+//买东西结果
+type L2C_RspTradeShopInfo struct {
+}
