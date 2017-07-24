@@ -490,10 +490,6 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
-	//if room.Temp.OffLineTrustee == 0 {
-	//	return false
-	//}
-	//todo，待修改
 
 	//效验状态
 	if wChairID >= room.UserMgr.GetMaxPlayerCnt() {

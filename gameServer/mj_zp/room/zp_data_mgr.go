@@ -380,7 +380,6 @@ func (room *ZP_RoomData) InitBuHua() {
 		}
 		playerIndex++
 	}
-	log.Debug("补花完：%v", room.CardIndex)
 }
 
 //庄家开局动作
@@ -573,7 +572,6 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 			//吃胡判断
 			if u.ChairId != wCenterUser {
 				if u.UserLimit&LimitChiHu == 0 {
-					log.Debug("有吃胡1")
 					//有禁止吃胡的牌
 					if !(room.BanUser[u.ChairId]&LimitChiHu != 0 && room.BanCardCnt[u.ChairId][LimitChiHu] == cbCenterCard) {
 						log.Debug("有吃胡2")
@@ -878,14 +876,9 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		} else {
 			cbUserAction = room.UserAction[i]
 		}
-
-		log.Debug("userd:%d cbUserAction:%d ", i, room.UserAction[i])
-		log.Debug("room.PerformAction:%d ", room.PerformAction)
 		//优先级别
 		cbUserActionRank := room.MjBase.LogicMgr.GetUserActionRank(cbUserAction)
 		cbTargetActionRank := room.MjBase.LogicMgr.GetUserActionRank(cbTargetAction)
-		log.Debug("cbUserActionRank:%d", cbUserActionRank)
-		log.Debug("cbTargetActionRank:%d", cbTargetActionRank)
 
 		//动作判断
 		if cbUserActionRank > cbTargetActionRank {
@@ -901,7 +894,6 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 		room.StopOperateCardTimer(clearUser)
 	}
 
-	log.Debug("wTargetUser:%d u.ChairId：%d", wTargetUser, u.ChairId)
 	if room.IsResponse[wTargetUser] == false { //最高权限的人没响应
 		return -1, u.ChairId
 	}
@@ -1736,7 +1728,6 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	//用户状态
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	log.Debug("+++++++++++++++++++++UserAction :%v", room.UserAction)
 	room.IsResponse = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
@@ -1748,11 +1739,6 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		nowUser := room.MjBase.UserMgr.GetUserByChairId(wTargetUser)
 		room.OutCardTimerEx(nowUser)
 	}
-	log.Debug("状态清除")
-	log.Debug("room.IsResponse %v", room.IsResponse)
-	log.Debug("room.UserActionResponse %v", room.UserAction)
-	log.Debug("room.OperateCard %v", room.OperateCard)
-	log.Debug("len1 OperateCard: %d %d", len(room.OperateCard), len(room.OperateCard[1]))
 
 	//如果非杠牌
 	if cbTargetAction != WIK_GANG {
@@ -1898,11 +1884,9 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		//胡牌判断
 		chr := 0
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]--
-		log.Debug("befer %v ", room.UserAction[wCurrentUser])
 		huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser],
 			room.SendCardData, chr, room.GetCfg().MaxCount, false)
 		room.UserAction[wCurrentUser] |= huKind
-		log.Debug("afert %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//杠牌判断
