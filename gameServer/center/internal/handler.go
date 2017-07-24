@@ -5,12 +5,10 @@ import (
 	"mj/common/consul"
 	"mj/common/cost"
 	"mj/common/msg"
+	"mj/common/register"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/conf"
 	"mj/gameServer/user"
-
-	"mj/common/register"
-
-	"mj/gameServer/RoomMgr"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"

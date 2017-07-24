@@ -4,14 +4,13 @@ import (
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	"mj/common/register"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/kindList"
 	client "mj/gameServer/user"
-
-	"mj/common/register"
 
 	"encoding/json"
 

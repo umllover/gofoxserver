@@ -42,7 +42,7 @@ func init() {
 	Processor.Register(&C2L_SetPhoneNumber{})
 	Processor.Register(&L2C_SetPhoneNumberRsp{})
 	Processor.Register(&C2L_DianZhan{})
-	Processor.Register(&C2L_DianZhanRsp{})
+	Processor.Register(&L2C_DianZhanRsp{})
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
 	Processor.Register(&C2L_ChangeUserName{})

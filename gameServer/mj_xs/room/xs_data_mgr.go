@@ -12,7 +12,6 @@ import (
 	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
-
 	"github.com/lovelly/leaf/timer"
 )
 
@@ -173,9 +172,10 @@ func (room *xs_data) EstimateUserRespond(wCenterUser int, cbCenterCard int, Esti
 
 		if u.UserLimit|LimitChiHu == 0 {
 			//吃胡判断
-			chr := 0
-			huKind, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard, chr, room.GetCfg().MaxCount, false)
-			room.UserAction[u.ChairId] |= huKind
+			hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
+			if hu {
+				room.UserAction[u.ChairId] |= WIK_CHI_HU
+			}
 		}
 
 		//结果判断

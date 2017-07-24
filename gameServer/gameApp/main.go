@@ -9,7 +9,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/gate"
 	"mj/gameServer/kindList"
-	"mj/gameServer/userHandle"
 
 	"flag"
 
@@ -17,6 +16,8 @@ import (
 	"os"
 
 	"mj/gameServer/http_service"
+
+	"mj/gameServer/userHandle"
 
 	"github.com/lovelly/leaf"
 	lconf "github.com/lovelly/leaf/conf"
@@ -44,12 +45,11 @@ func main() {
 	kindList.Init()
 
 	modules := []module.Module{}
+	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
 	modules = append(modules, Chat.Module)
-	modules = append(modules, userHandle.UserMgr)
 	modules = append(modules, kindList.GetModules()...)
-
 	modules = append(modules, consul.Module)
 	leaf.Run(modules...)
 }

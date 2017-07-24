@@ -121,6 +121,7 @@ type L2C_SetElectResult struct {
 
 //请求获取验证号码
 type C2L_ReqBindMaskCode struct {
+	PhoneNumber string
 }
 
 //请求获取验证号码返回
@@ -141,11 +142,16 @@ type L2C_SetPhoneNumberRsp struct {
 
 //点赞
 type C2L_DianZhan struct {
-	UserID int //用户id
+	UserID int64 //用户id
 }
 
 //点赞结果
-type C2L_DianZhanRsp struct {
+type L2C_DianZhanRsp struct {
+	Star int //当前赞数
+}
+
+// 通知被别人点赞了
+type L2C_BeStar struct {
 	Star int //当前赞数
 }
 

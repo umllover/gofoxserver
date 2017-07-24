@@ -26,6 +26,7 @@ type RoomInfo struct {
 	Players      map[int64]*PlayerBrief //玩家id
 	SvrHost      string                 //哪个ip上的房间
 	Status       int                    //房间状态
+	RenewalCnt   int                    //续费次数
 
 	//服务器标记字段
 	MachPlayer map[int64]struct{}
@@ -109,8 +110,28 @@ type S2S_CloseRoom struct {
 	RoomID int
 }
 
-//给大厅玩家的消息
-type S2S_HanldeFromGameMsg struct {
-	Uid      int64
-	Data     []byte
+//来自其他服的消息
+type S2S_HanldeFromUserMsg struct {
+	Uid     int64
+	Data    []byte
+	SvrType int
+}
+
+//通知离线时间
+type S2S_OfflineHandler struct {
+	EventID int
+}
+
+//通知游戏服续费
+type S2S_RenewalFee struct {
+	RoomID   int
+	AddCnt   int
+	HallName string
+	UserId   int64
+}
+
+//回复大厅续费失败
+type S2S_RenewalFeeFaild struct {
+	RoomId   int
+	RecodeID int
 }
