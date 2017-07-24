@@ -1,6 +1,7 @@
 package mj_base
 
 import (
+	"fmt"
 	"mj/common/msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
@@ -538,12 +539,18 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
 		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-		cbIndex := []int{0, 1, 2, 3}
-		pKindItem := make([]*TagKindItem, 4)
+		var cbIndex []int
+		Iterator := lg.GetIteratorFunc(cbLessKindItem, cbKindItemCount)
+		pKindItem := make([]*TagKindItem, lg.GetCfg().MaxWeave)
 		//开始组合
 		for {
+			cbIndex = Iterator()
+			if cbIndex == nil {
+				break
+			}
+
 			//设置变量
-			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+			cbCardIndexTemp = util.CopySlicInt(cbCardIndex)
 			for i := 0; i < cbLessKindItem; i++ {
 				pKindItem[i] = KindItem[cbIndex[i]]
 			}
@@ -595,26 +602,6 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 					//插入结果
 					TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 				}
-			}
-
-			//设置索引
-			if cbIndex[cbLessKindItem-1] == (cbKindItemCount - 1) {
-				i := cbLessKindItem - 1
-				for ; i > 0; i-- {
-					if (cbIndex[i-1] + 1) != cbIndex[i] {
-						cbNewIndex := cbIndex[i-1]
-						for j := (i - 1); j < cbLessKindItem; j++ {
-							cbIndex[j] = cbNewIndex + j - i + 2
-						}
-						break
-					}
-				}
-				if i == 0 {
-					break
-				}
-
-			} else {
-				cbIndex[cbLessKindItem-1]++
 			}
 		}
 	}
@@ -710,4 +697,38 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 
 func (lg *BaseLogic) GetHuOfCard() int {
 	return lg.HuOfCard
+}
+
+func (lg *BaseLogic) GetIteratorFunc(needCnt, allCnt int) func() []int {
+	cbIndex := make([]int, 0)
+	needCnt -= 1
+	allCnt -= 1
+	return func() []int {
+		if len(cbIndex) < 1 {
+			for i := 0; i <= needCnt; i++ {
+				cbIndex = append(cbIndex, i)
+			}
+			return cbIndex
+		}
+
+		if cbIndex[needCnt] == allCnt {
+			i := needCnt
+			for ; i > 0; i-- {
+				if (cbIndex[i-1] + 1) != cbIndex[i] {
+					cbNewIndex := cbIndex[i-1]
+					for j := (i - 1); j <= needCnt; j++ {
+						cbIndex[j] = cbNewIndex + j - i + 2
+						fmt.Println("BBB ", cbIndex)
+					}
+					break
+				}
+			}
+			if i == 0 {
+				return nil
+			}
+		} else {
+			cbIndex[needCnt]++
+		}
+		return cbIndex
+	}
 }

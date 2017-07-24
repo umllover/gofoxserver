@@ -6,8 +6,6 @@ import (
 
 	"mj/gameServer/common/mj/mj_base"
 
-	"fmt"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -256,38 +254,4 @@ func (lg *xs_logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 
 	return false, nil
 
-}
-
-func (lg *xs_logic) GetIteratorFunc(needCnt, allCnt int) func() []int {
-	cbIndex := make([]int, 0)
-	needCnt -= 1
-	allCnt -= 1
-	return func() []int {
-		if len(cbIndex) < 1 {
-			for i := 0; i <= needCnt; i++ {
-				cbIndex = append(cbIndex, i)
-			}
-			return cbIndex
-		}
-
-		if cbIndex[needCnt] == allCnt {
-			i := needCnt
-			for ; i > 0; i-- {
-				if (cbIndex[i-1] + 1) != cbIndex[i] {
-					cbNewIndex := cbIndex[i-1]
-					for j := (i - 1); j <= needCnt; j++ {
-						cbIndex[j] = cbNewIndex + j - i + 2
-						fmt.Println("BBB ", cbIndex)
-					}
-					break
-				}
-			}
-			if i == 0 {
-				return nil
-			}
-		} else {
-			cbIndex[needCnt]++
-		}
-		return cbIndex
-	}
 }

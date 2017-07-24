@@ -217,13 +217,18 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
 		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-		cbIndex := []int{0, 1, 2, 3, 4}
+		var cbIndex []int
+		Iterator := lg.GetIteratorFunc(cbLessKindItem, cbKindItemCount)
 		pKindItem := make([]*TagKindItem, lg.GetCfg().MaxWeave)
 
 		//开始组合
 		for {
+			cbIndex = Iterator()
+			if cbIndex == nil {
+				break
+			}
 			//设置变量
-			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+			cbCardIndexTemp = util.CopySlicInt(cbCardIndex)
 			for i := 0; i < cbLessKindItem; i++ {
 				pKindItem[i] = KindItem[cbIndex[i]]
 			}
@@ -286,26 +291,6 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (
 					//插入结果
 					TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 				}
-			}
-
-			//设置索引
-			if cbIndex[cbLessKindItem-1] == (cbKindItemCount - 1) {
-				i := cbLessKindItem - 1
-				for ; i > 0; i-- {
-					if (cbIndex[i-1] + 1) != cbIndex[i] {
-						cbNewIndex := cbIndex[i-1]
-						for j := (i - 1); j < cbLessKindItem; j++ {
-							cbIndex[j] = cbNewIndex + j - i + 2
-						}
-						break
-					}
-				}
-				if i == 0 {
-					break
-				}
-
-			} else {
-				cbIndex[cbLessKindItem-1]++
 			}
 		}
 	}

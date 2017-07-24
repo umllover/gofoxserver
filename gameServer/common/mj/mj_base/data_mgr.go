@@ -783,8 +783,8 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
 		//下发胡牌消息
-		if huKind != WIK_NULL {
-			log.Debug("##################### huKind=%v", huKind)
+		if hu {
+			log.Debug("##################### huKind=%v", hu)
 			//u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
 			//	ActionMask: huKind,
 			//	ActionCard: room.ProvideCard,
