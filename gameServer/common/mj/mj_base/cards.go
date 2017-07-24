@@ -74,7 +74,7 @@ type MJ_CFG struct {
 	MaxRepertory int //最多存放多少张牌
 	HuaIndex     int //花牌开始缩影
 	HuaCount     int //花牌数量
-
+	MagicCard    int //万能牌
 }
 
 var cfg = []*MJ_CFG{
@@ -85,6 +85,7 @@ var cfg = []*MJ_CFG{
 		MaxRepertory: 112,
 		HuaIndex:     0,
 		HuaCount:     8,
+		MagicCard:    53,
 	},
 
 	IDX_ZPMJ: &MJ_CFG{
@@ -94,6 +95,7 @@ var cfg = []*MJ_CFG{
 		MaxRepertory: 144,
 		HuaIndex:     8,
 		HuaCount:     8,
+		MagicCard:    0,
 	},
 	IDX_XSMJ: &MJ_CFG{
 		MaxIdx:       42,
@@ -102,6 +104,7 @@ var cfg = []*MJ_CFG{
 		MaxRepertory: 112,
 		HuaIndex:     0,
 		HuaCount:     8,
+		MagicCard:    0,
 	},
 }
 

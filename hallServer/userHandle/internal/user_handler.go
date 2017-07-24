@@ -784,12 +784,15 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 //绑定电话号码
 func (m *UserModule) SetPhoneNumber(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
+	//player := m.a.UserData().(*user.User)
+	//
 
 }
 
 //点赞
 func (m *UserModule) DianZhan(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2L_DianZhan)
+	//player := m.a.UserData().(*user.User)
 }
 
 //续费
@@ -799,12 +802,28 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 
 //改名字
 func (m *UserModule) ChangeUserName(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_ChangeUserName)
+	recvMsg := args[0].(*msg.C2L_ChangeUserName)
+	player := m.a.UserData().(*user.User)
+	player.NickName = recvMsg.NewName
+
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"NickName": player.NickName,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeUserNameRsp{Code: 0, NewName: player.NickName})
 }
 
 //改签名
 func (m *UserModule) ChangeSign(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_ChangeSign)
+	recvMsg := args[0].(*msg.C2L_ChangeSign)
+	player := m.a.UserData().(*user.User)
+
+	player.Sign = recvMsg.Sign
+	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"Sign": player.Sign,
+	})
+
+	player.WriteMsg(&msg.L2C_ChangeSignRsp{Code: 0, NewSign: player.Sign})
 }
 
 //获取验证码

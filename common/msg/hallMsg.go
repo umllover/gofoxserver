@@ -68,6 +68,12 @@ type C2L_SearchServerTable struct {
 	KindID  int
 }
 
+//查询房间的结果
+type L2C_SearchResult struct {
+	TableID  int //桌子 I D 返回0 是没匹配到
+	ServerIP string
+}
+
 //获取玩家显示信息
 type C2L_User_Individual struct {
 	UserId int
@@ -159,7 +165,8 @@ type C2L_ChangeUserName struct {
 
 //修改名字结果
 type L2C_ChangeUserNameRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewName string
 }
 
 //修改个性签名
@@ -169,7 +176,8 @@ type C2L_ChangeSign struct {
 
 //修改个性签名结果
 type L2C_ChangeSignRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewSign string
 }
 
 /////////// l 2 c /////////////////////////
@@ -246,12 +254,6 @@ type L2C_GetRoomList struct {
 	Count int         //有多少条C2L_ReqCreatorRoomRecord
 }
 
-//查询房间的结果
-type L2C_SearchResult struct {
-	TableID  int //桌子 I D 返回0 是没匹配到
-	ServerIP string
-}
-
 // 创建房间失败消息
 type L2C_CreateTableFailure struct {
 	ErrorCode      int
@@ -290,4 +292,9 @@ type L2C_DrawSahreAwardResult struct {
 	DrawId  int //领取奖励的key
 	Times   int //已经领取的次数
 	RetCode int //领取成功还是失败的结果
+}
+
+//踢出玩家
+type L2C_KickOut struct {
+	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
 }

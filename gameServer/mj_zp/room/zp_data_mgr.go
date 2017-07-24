@@ -440,6 +440,21 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.MinusHeadCount = len(room.RepertoryCard)
 	}
 
+	m := make(map[int]int)
+	for _, v := range room.RepertoryCard {
+		m[v]++
+		if v <= 0x37 {
+			if m[v] > 4 {
+				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
+			}
+		}
+
+		if v > 0x37 {
+			if m[v] > 1 {
+				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
+			}
+		}
+	}
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
 		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)

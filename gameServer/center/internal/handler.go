@@ -10,6 +10,8 @@ import (
 
 	"mj/common/register"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -27,6 +29,9 @@ func init() {
 	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
+
+	// 登录服发来的协议
+	reg.RegisterS2S(&msg.S2S_CloseRoom{}, SREQCloseRoom)
 }
 
 //玩家在本服节点登录
@@ -61,20 +66,6 @@ func NotifyOtherNodelogout(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_NotifyOtherNodelogout)
 	log.Debug("user %d logout on %s", recvMsg.Uid, OtherUsers[recvMsg.Uid])
 	delete(OtherUsers, recvMsg.Uid)
-}
-
-func SendMsgToSelfNotdeUser(args []interface{}) {
-	uid := args[0].(int64)
-	FuncName := args[1].(string)
-	ch, ok := Users[uid]
-	if ok {
-		ch.Go(FuncName, args[2:]...)
-		return
-	} else {
-
-	}
-	log.Debug("at SendMsgToSelfNotdeUser player not in node")
-	return
 }
 
 //处理来自游戏服的消息
@@ -120,6 +111,17 @@ func GetPlayerInfo(args []interface{}) (interface{}, error) {
 		"MemberOrder": u.MemberOrder,
 	}
 	return gu, nil
+}
+
+func SREQCloseRoom(args []interface{}) (interface{}, error) {
+	recvMsg := args[0].(*msg.S2S_CloseRoom)
+	room := RoomMgr.GetRoom(recvMsg.RoomID)
+	if room == nil {
+		return nil, errors.New("not foud room")
+	}
+
+	room.GetChanRPC().Go("DissumeRoom", nil)
+	return nil, nil
 }
 
 //新的节点启动了
