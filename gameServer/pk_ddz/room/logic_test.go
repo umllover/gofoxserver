@@ -1,7 +1,7 @@
 package room
 
 import (
-	. "mj/common/cost"
+	//. "mj/common/cost"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -19,7 +19,9 @@ import (
 
 	"mj/gameServer/common/pk/pk_base"
 
-	"mj/common/msg/pk_ddz_msg"
+	//"mj/common/msg/pk_ddz_msg"
+
+	"mj/common/cost"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -37,46 +39,46 @@ var (
 
 var Wg sync.WaitGroup
 
-func TestGameStart_1(t *testing.T) {
-	room.UserReady([]interface{}{nil, u1})
-
-}
-
-func TestShowCard(t *testing.T) {
-	args := []interface{}{nil, u2}
-	room.ShowCard(args)
-}
-
-func TestCallScoring(t *testing.T) {
-	log.Debug("测试游戏叫分")
-	ddzMrg.SendStatusPlay(u1)
-}
-
-func TestCallScore(t *testing.T) {
-	log.Debug("测试叫分")
-	data := &pk_ddz_msg.C2G_DDZ_CallScore{
-		CallScore: 1,
-	}
-
-	args := []interface{}{data, u1}
-	room.CallScore(args)
-
-	data.CallScore = 2
-	args = []interface{}{data, u2}
-	room.CallScore(args)
-
-	data.CallScore = 3
-	args = []interface{}{data, u3}
-	room.CallScore(args)
-
-	//Wg.Wait()
-}
-
-func TestGameing(t *testing.T) {
-	log.Debug("测试游戏进行时")
-	ddzMrg.SendStatusPlay(u1)
-}
-
+//func TestGameStart_1(t *testing.T) {
+//	room.UserReady([]interface{}{nil, u1})
+//
+//}
+//
+//func TestShowCard(t *testing.T) {
+//	args := []interface{}{nil, u2}
+//	room.ShowCard(args)
+//}
+//
+//func TestCallScoring(t *testing.T) {
+//	log.Debug("测试游戏叫分")
+//	ddzMrg.SendStatusPlay(u1)
+//}
+//
+//func TestCallScore(t *testing.T) {
+//	log.Debug("测试叫分")
+//	data := &pk_ddz_msg.C2G_DDZ_CallScore{
+//		CallScore: 1,
+//	}
+//
+//	args := []interface{}{data, u1}
+//	room.CallScore(args)
+//
+//	data.CallScore = 2
+//	args = []interface{}{data, u2}
+//	room.CallScore(args)
+//
+//	data.CallScore = 3
+//	args = []interface{}{data, u3}
+//	room.CallScore(args)
+//
+//	//Wg.Wait()
+//}
+//
+//func TestGameing(t *testing.T) {
+//	log.Debug("测试游戏进行时")
+//	ddzMrg.SendStatusPlay(u1)
+//}
+//
 //func TestTrustee(t *testing.T) {
 //	log.Debug("测试托管")
 //	data := &pk_ddz_msg.C2G_DDZ_TRUSTEE{
@@ -96,6 +98,7 @@ func TestGameing(t *testing.T) {
 //func TestOutCard(t *testing.T) {
 //	log.Debug("测试出牌")
 //	data := &pk_ddz_msg.C2G_DDZ_OutCard{
+//		CardType: 1,
 //		CardData: []int{ddzMrg.HandCardData[2][len(ddzMrg.HandCardData[2])-1]},
 //	}
 //
@@ -171,51 +174,106 @@ func TestAnalyseCard(t *testing.T) {
 //func TestCardType(t *testing.T) {
 //	lg := new(ddz_logic)
 //
-//	var c0 []int
-//	log.Debug("空牌-%d", lg.GetCardType(c0))
-//	c1 := [...]int{0x01}
-//	log.Debug("单牌%d", lg.GetCardType(c1[:]))
-//	c2 := [...]int{0x03, 0x33}
-//	log.Debug("对子-%d", lg.GetCardType(c2[:]))
-//	c21 := [...]int{0x03, 0x31}
-//	log.Debug("无效两根-%d", lg.GetCardType(c21[:]))
-//	c3 := [...]int{0x03, 0x23, 0x33}
-//	log.Debug("三根-%d", lg.GetCardType(c3[:]))
-//	c31 := [...]int{0x04, 0x34, 0x24, 0x08}
-//	log.Debug("三代一-%d", lg.GetCardType(c31[:]))
-//	c32 := [...]int{0x04, 0x34, 0x24, 0x08, 0x18}
-//	log.Debug("三代二-%d", lg.GetCardType(c32[:]))
-//	c5 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17}
-//	log.Debug("顺子%d", lg.GetCardType(c5[:]))
-//	c51 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17, 0x02}
-//	log.Debug("带2的顺子-%d", lg.GetCardType(c51[:]))
-//	c4 := [...]int{0x03, 0x33, 0x24, 0x04}
-//	log.Debug("两个连续对子%d", lg.GetCardType(c4[:]))
-//	c6 := [...]int{0x03, 0x33, 0x22, 0x02, 0x14, 0x04}
-//	log.Debug("带2连对%d", lg.GetCardType(c6[:]))
-//	c61 := [...]int{0x03, 0x33, 0x25, 0x05, 0x14, 0x04}
-//	log.Debug("连对%d", lg.GetCardType(c61[:]))
-//	c62 := [...]int{0x03, 0x33, 0x23, 0x02, 0x12, 0x32}
-//	log.Debug("带2三顺子%d", lg.GetCardType(c62[:]))
-//	c63 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24}
-//	log.Debug("三顺子%d", lg.GetCardType(c63[:]))
-//	c64 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24, 0x01, 0x02}
-//	log.Debug("飞机带两单%d", lg.GetCardType(c64[:]))
-//	c65 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24, 0x01, 0x11, 0x02, 0x12}
-//	log.Debug("飞机带两对%d", lg.GetCardType(c65[:]))
-//	c41 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x25}
-//	log.Debug("四带两单%d", lg.GetCardType(c41[:]))
-//	c42 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x24, 0x15, 0x25}
-//	log.Debug("四带两对%d", lg.GetCardType(c42[:]))
-//	c40 := [...]int{0x03, 0x33, 0x23, 0x13}
-//	log.Debug("炸弹%d", lg.GetCardType(c40[:]))
-//
-//	var ck []int
-//	for i := 0; i < 8; i++ {
-//		ck = append(ck, 0x4E+i%2)
-//		log.Debug("八王类型%d", lg.GetCardType(ck[:]))
-//	}
+//	//var c0 []int
+//	//log.Debug("空牌-%#x", lg.GetCardType(c0))
+//	//c1 := [...]int{0x01}
+//	//log.Debug("单牌%#x", lg.GetCardType(c1[:]))
+//	//c2 := [...]int{0x03, 0x33}
+//	//log.Debug("对子%#x", lg.GetCardType(c2[:]))
+//	//c21 := [...]int{0x03, 0x31}
+//	//log.Debug("无效两根%#x", lg.GetCardType(c21[:]))
+//	//c3 := [...]int{0x03, 0x23, 0x33}
+//	//log.Debug("三根%#x", lg.GetCardType(c3[:]))
+//	//c31 := [...]int{0x04, 0x34, 0x24, 0x08}
+//	//log.Debug("三代一%#x", lg.GetCardType(c31[:]))
+//	//c32 := [...]int{0x04, 0x34, 0x24, 0x08, 0x18}
+//	//log.Debug("三代二%#x", lg.GetCardType(c32[:]))
+//	//c5 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17}
+//	//log.Debug("顺子%#x", lg.GetCardType(c5[:]))
+//	//c51 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17, 0x02}
+//	//log.Debug("带2的顺子%#x", lg.GetCardType(c51[:]))
+//	//c4 := [...]int{0x03, 0x33, 0x24, 0x04}
+//	//log.Debug("两个连续对子%#x", lg.GetCardType(c4[:]))
+//	//c6 := [...]int{0x03, 0x33, 0x22, 0x02, 0x14, 0x04}
+//	//log.Debug("带2连对%#x", lg.GetCardType(c6[:]))
+//	//c61 := [...]int{0x03, 0x33, 0x25, 0x05, 0x14, 0x04}
+//	//log.Debug("连对%#x", lg.GetCardType(c61[:]))
+//	//c62 := [...]int{0x03, 0x33, 0x23, 0x02, 0x12, 0x32}
+//	//log.Debug("带2三顺子%#x", lg.GetCardType(c62[:]))
+//	//c63 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24}
+//	//log.Debug("三顺子%#x", lg.GetCardType(c63[:]))
+//	//c64 := [...]int{0x0d, 0x3d, 0x2d, 0x01, 0x11, 0x21, 0x04, 0x02}
+//	//log.Debug("飞机带两单%#x", lg.GetCardType(c64[:]))
+//	//c65 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24, 0x01, 0x11, 0x02, 0x12}
+//	//log.Debug("飞机带两对%#x", lg.GetCardType(c65[:]))
+//	//c41 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x25}
+//	//log.Debug("四带两单%#x", lg.GetCardType(c41[:]))
+//	//c42 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x24, 0x15, 0x25}
+//	//log.Debug("四带两对%#x", lg.GetCardType(c42[:]))
+//	//c40 := [...]int{0x03, 0x33, 0x23, 0x13}
+//	//log.Debug("炸弹%#x", lg.GetCardType(c40[:]))
+//	//
+//	//var ck []int
+//	//for i := 0; i < 8; i++ {
+//	//	ck = append(ck, 0x4E+i%2)
+//	//	log.Debug("八王类型%#x", lg.GetCardType(ck[:]))
+//	//}
 //}
+
+func TestCompareCard(t *testing.T) {
+	lg := new(ddz_logic)
+	//var card1 []int = []int{0x03, 0x13, 0x23, 0x33}
+	//var card2 []int = []int{0x0d, 0x1d, 0x2d, 0x3d}
+	//nType, isType := lg.CompareCardWithParam(card1, card2, []interface{}{lg.GetCardType(card1)})
+	//log.Debug("炸弹比牌结果%d,%d", nType, isType)
+
+	nType, isType := 0, false
+	//nType, isType = lg.CompareCardWithParam([]int{0xA}, []int{0x4}, []interface{}{lg.GetCardType([]int{0xA})})
+	//log.Debug("单牌比牌结果%#x,%d", nType, isType)
+
+	//c2 := []int{0x7, 0x17}
+	//nType, isType = lg.CompareCardWithParam(c2, []int{0x8, 0x8}, []interface{}{lg.GetCardType(c2)})
+	//log.Debug("对子比牌结果%#x, %b", nType, isType)
+
+	c3 := []int{0x03, 0x23, 0x33}
+	nType, isType = lg.CompareCardWithParam(c3, []int{0x8, 0x28, 0x18}, []interface{}{lg.GetCardType(c3)})
+	log.Debug("三根比牌结果%#x, %b", nType, isType)
+
+	//c31 := [...]int{0x04, 0x34, 0x24, 0x08}
+	//log.Debug("三代一%#x", lg.GetCardType(c31[:]))
+	//c32 := [...]int{0x04, 0x34, 0x24, 0x08, 0x18}
+	//log.Debug("三代二%#x", lg.GetCardType(c32[:]))
+	//c5 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17}
+	//log.Debug("顺子%#x", lg.GetCardType(c5[:]))
+	//c51 := [...]int{0x03, 0x34, 0x25, 0x06, 0x17, 0x02}
+	//log.Debug("带2的顺子%#x", lg.GetCardType(c51[:]))
+	//c4 := [...]int{0x03, 0x33, 0x24, 0x04}
+	//log.Debug("两个连续对子%#x", lg.GetCardType(c4[:]))
+	//c6 := [...]int{0x03, 0x33, 0x22, 0x02, 0x14, 0x04}
+	//log.Debug("带2连对%#x", lg.GetCardType(c6[:]))
+	//c61 := [...]int{0x03, 0x33, 0x25, 0x05, 0x14, 0x04}
+	//log.Debug("连对%#x", lg.GetCardType(c61[:]))
+	//c62 := [...]int{0x03, 0x33, 0x23, 0x02, 0x12, 0x32}
+	//log.Debug("带2三顺子%#x", lg.GetCardType(c62[:]))
+	//c63 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24}
+	//log.Debug("三顺子%#x", lg.GetCardType(c63[:]))
+	//c64 := [...]int{0x0d, 0x3d, 0x2d, 0x01, 0x11, 0x21, 0x04, 0x02}
+	//log.Debug("飞机带两单%#x", lg.GetCardType(c64[:]))
+	//c65 := [...]int{0x03, 0x33, 0x23, 0x04, 0x14, 0x24, 0x01, 0x11, 0x02, 0x12}
+	//log.Debug("飞机带两对%#x", lg.GetCardType(c65[:]))
+	//c41 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x25}
+	//log.Debug("四带两单%#x", lg.GetCardType(c41[:]))
+	//c42 := [...]int{0x03, 0x33, 0x23, 0x13, 0x14, 0x24, 0x15, 0x25}
+	//log.Debug("四带两对%#x", lg.GetCardType(c42[:]))
+	//c40 := [...]int{0x03, 0x33, 0x23, 0x13}
+	//log.Debug("炸弹%#x", lg.GetCardType(c40[:]))
+
+	//var ck []int
+	//for i := 0; i < 8; i++ {
+	//	ck = append(ck, 0x4E+i%2)
+	//	log.Debug("八王类型%#x", lg.GetCardType(ck[:]))
+	//}
+}
 
 func init() {
 	Wg.Add(1)
@@ -304,7 +362,7 @@ func newTestUser(uid int64) *user.User {
 	u.Id = uid
 	u.RoomId = 1
 	if uid != 1 {
-		u.Status = US_READY
+		u.Status = cost.US_READY
 	}
 
 	u.ChairId = 0
