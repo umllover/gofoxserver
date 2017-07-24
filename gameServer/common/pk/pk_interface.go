@@ -49,7 +49,7 @@ type LogicManager interface {
 	GetCardType(cardData []int) int
 	GetCardTimes(cardType int) int
 
-	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) bool
+	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool)
 	// 以下接口不通用
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)

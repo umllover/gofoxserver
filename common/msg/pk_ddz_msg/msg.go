@@ -210,6 +210,10 @@ type C2G_DDZ_TRUSTEE struct {
 	Trustee bool //托管标志
 }
 
+// 明牌
+type C2G_DDZ_SHOWCARD struct {
+}
+
 // 斗地主创建房间附带信息
 type C2G_DDZ_CreateRoomInfo struct {
 	GameType int
