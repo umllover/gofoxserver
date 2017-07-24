@@ -24,13 +24,15 @@ var (
 
 func AddRoom(r IRoom) bool {
 	mgrLock.Lock()
-	defer mgrLock.Unlock()
+	mgrLock.Unlock()
 	if _, ok := Rooms[r.GetRoomId()]; ok {
+		mgrLock.Unlock()
 		log.Debug("at AddRoom doeble add, roomid:%v", r.GetRoomId())
 		r.Destroy(r.GetRoomId())
 		return false
 	}
 	Rooms[r.GetRoomId()] = r
+	mgrLock.Unlock()
 	return true
 }
 
