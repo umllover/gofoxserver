@@ -1,12 +1,13 @@
 package internal
 
 import (
-	"auth_server/module/log"
 	"encoding/json"
 	"mj/common/msg"
 	"mj/hallServer/center"
 	"mj/hallServer/db/model"
 	"mj/hallServer/user"
+
+	"github.com/lovelly/leaf/log"
 )
 
 const (
