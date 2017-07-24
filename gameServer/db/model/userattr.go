@@ -33,8 +33,8 @@ type Userattr struct {
 	NickName        string `db:"NickName" json:"NickName"`               //
 	ElectUid        int64  `db:"elect_uid" json:"elect_uid"`             // 推举人id
 	Star            int    `db:"star" json:"star"`                       // 点赞数
-	Sign            int    `db:"Sign" json:"Sign"`                       // 个性签名
-	PhomeNumber     int    `db:"phome_number" json:"phome_number"`       // 电话号码
+	Sign            string `db:"Sign" json:"Sign"`                       // 个性签名
+	PhomeNumber     string `db:"phome_number" json:"phome_number"`       // 电话号码
 }
 
 type userattrOp struct{}
