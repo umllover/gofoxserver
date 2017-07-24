@@ -119,29 +119,28 @@ func (op *globalspreadinfoOp) InsertTx(ext sqlx.Ext, m *Globalspreadinfo) (int64
 }
 
 //存在就更新， 不存在就插入
-func (op *globalspreadinfoOp) InsertUpdate(obj *Globalspreadinfo, m map[string]interface{}) ( error) {
-    sql := "insert into globalspreadinfo(ID,RegisterGrantScore,PlayTimeCount,PlayTimeGrantScore,FillGrantRate,BalanceRate,MinBalanceScore) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-    var params = []interface{}{ obj.ID,
-        obj.RegisterGrantScore,
-        obj.PlayTimeCount,
-        obj.PlayTimeGrantScore,
-        obj.FillGrantRate,
-        obj.BalanceRate,
-        obj.MinBalanceScore,
-        }
-    var set_sql string
-    for k, v := range m{
+func (op *globalspreadinfoOp) InsertUpdate(obj *Globalspreadinfo, m map[string]interface{}) error {
+	sql := "insert into globalspreadinfo(ID,RegisterGrantScore,PlayTimeCount,PlayTimeGrantScore,FillGrantRate,BalanceRate,MinBalanceScore) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.ID,
+		obj.RegisterGrantScore,
+		obj.PlayTimeCount,
+		obj.PlayTimeGrantScore,
+		obj.FillGrantRate,
+		obj.BalanceRate,
+		obj.MinBalanceScore,
+	}
+	var set_sql string
+	for k, v := range m {
 		if set_sql != "" {
 			set_sql += ","
 		}
-        set_sql += fmt.Sprintf(" %s=? ", k)
-        params = append(params, v)
-    }
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
 
-    _, err := db.StatsDB.Exec(sql + set_sql, params...)
-    return err
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
 }
-
 
 /*
 func (i *Globalspreadinfo) Update()  error {

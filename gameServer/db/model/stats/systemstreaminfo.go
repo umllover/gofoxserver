@@ -118,28 +118,27 @@ func (op *systemstreaminfoOp) InsertTx(ext sqlx.Ext, m *Systemstreaminfo) (int64
 }
 
 //存在就更新， 不存在就插入
-func (op *systemstreaminfoOp) InsertUpdate(obj *Systemstreaminfo, m map[string]interface{}) ( error) {
-    sql := "insert into systemstreaminfo(DateID,WebLogonSuccess,WebRegisterSuccess,GameLogonSuccess,GameRegisterSuccess,CollectDate) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-    var params = []interface{}{ obj.DateID,
-        obj.WebLogonSuccess,
-        obj.WebRegisterSuccess,
-        obj.GameLogonSuccess,
-        obj.GameRegisterSuccess,
-        obj.CollectDate,
-        }
-    var set_sql string
-    for k, v := range m{
+func (op *systemstreaminfoOp) InsertUpdate(obj *Systemstreaminfo, m map[string]interface{}) error {
+	sql := "insert into systemstreaminfo(DateID,WebLogonSuccess,WebRegisterSuccess,GameLogonSuccess,GameRegisterSuccess,CollectDate) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.DateID,
+		obj.WebLogonSuccess,
+		obj.WebRegisterSuccess,
+		obj.GameLogonSuccess,
+		obj.GameRegisterSuccess,
+		obj.CollectDate,
+	}
+	var set_sql string
+	for k, v := range m {
 		if set_sql != "" {
 			set_sql += ","
 		}
-        set_sql += fmt.Sprintf(" %s=? ", k)
-        params = append(params, v)
-    }
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
 
-    _, err := db.StatsDB.Exec(sql + set_sql, params...)
-    return err
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
 }
-
 
 /*
 func (i *Systemstreaminfo) Update()  error {

@@ -119,29 +119,28 @@ func (op *versionUpdateTestOp) InsertTx(ext sqlx.Ext, m *VersionUpdateTest) (int
 }
 
 //存在就更新， 不存在就插入
-func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string]interface{}) ( error) {
-    sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-    var params = []interface{}{ obj.Id,
-        obj.Test21,
-        obj.Test22,
-        obj.Test23,
-        obj.Test31,
-        obj.Test32,
-        obj.Test33,
-        }
-    var set_sql string
-    for k, v := range m{
+func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string]interface{}) error {
+	sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.Id,
+		obj.Test21,
+		obj.Test22,
+		obj.Test23,
+		obj.Test31,
+		obj.Test32,
+		obj.Test33,
+	}
+	var set_sql string
+	for k, v := range m {
 		if set_sql != "" {
 			set_sql += ","
 		}
-        set_sql += fmt.Sprintf(" %s=? ", k)
-        params = append(params, v)
-    }
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
 
-    _, err := db.StatsDB.Exec(sql + set_sql, params...)
-    return err
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
 }
-
 
 /*
 func (i *VersionUpdateTest) Update()  error {
