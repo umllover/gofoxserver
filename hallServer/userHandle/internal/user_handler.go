@@ -380,7 +380,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		monrey = feeTemp.TableFee / roomInfo.MaxCnt
 		activity, suc := stats.ActivityOp.Get("roomcard")
 		nosub := false
-		if suc == true && time.Now().After(activity.ActivityBegin) && time.Now().Before(activity.ActivityEnd) {
+		if suc == true && time.Now().Before(*activity.ActivityBegin) || time.Now().Before(*activity.ActivityEnd) {
 			nosub = true
 		}
 
