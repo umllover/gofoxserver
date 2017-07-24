@@ -87,7 +87,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.m_bToltalWinDaoShu = make(map[*user.User]int, UserCnt)
 	room.m_lGameScore = make(map[*user.User]int, UserCnt)
 	room.m_nXShoot = 0
-
+	room.BtCardSpecialData = make([]int, 13)
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 }
 func (room *sss_data_mgr) ComputeChOut() {
@@ -95,6 +95,7 @@ func (room *sss_data_mgr) ComputeChOut() {
 	gameLogic := room.PkBase.LogicMgr
 
 	userMgr.ForEachUser(func(u *user.User) {
+		room.CbResult[u] = make([]int, 3)
 		if room.SpecialTypeTable[u] == false {
 			//ResultTemp := make([]int, 3)
 			bCardData := make([]int, 5)
@@ -447,7 +448,7 @@ func (room *sss_data_mgr) ComputeResult() {
 
 							room.m_bCompareDouble[uW] += lWinDaoShu
 							lWinDaoShu *= 2
-
+							shootCount[uW] = make(map[*user.User]int)
 							shootCount[uW][uN] = lWinDaoShu
 						}
 					} else if room.SpecialTypeTable[uW] == true && room.SpecialTypeTable[uN] == false {
@@ -743,7 +744,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.ComputeChOut()
 		room.ComputeResult()
 
-		gameEnd := &pk_sss_msg.CMD_SSS_GameEnd{}
+		gameEnd := &pk_sss_msg.G2C_SSS_GameEnd{}
 
 		//LGameTax               int        //游戏税收
 		//LGameEveryTax          []int      //每个玩家的税收

@@ -53,6 +53,11 @@ type C2G_UserSitdown struct {
 	Password string //房间密码
 }
 
+//坐下结果
+type G2C_UserSitDownRst struct {
+	Code int //非0为失败
+}
+
 //请求玩家信息
 type C2G_REQUserInfo struct {
 	UserID   int
