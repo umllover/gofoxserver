@@ -143,17 +143,15 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	oldUser := getUser(accountData.UserID)
 	if oldUser != nil {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
-		if user.KindID != 0 && user.RoomId != 0 {
-			r := RoomMgr.GetRoom(user.RoomId)
-			if r != nil { //原来房间没关闭， 进入原来的房间
-				r.GetChanRPC().Go("userRelogin", user)
-				user.KindID = oldUser.KindID
-				user.RoomId = oldUser.RoomId
-				user.ChairId = oldUser.ChairId
-			}
-		}
 		oldUser.RoomId = 0
 		m.KickOutUser(oldUser)
+	}
+
+	if user.RoomId != 0 {
+		r := RoomMgr.GetRoom(user.RoomId)
+		if r != nil { //原来房间没关闭，投递个消息看下原来是否在房间内
+			r.GetChanRPC().Go("userRelogin", user)
+		}
 	}
 
 	user.Agent = agent

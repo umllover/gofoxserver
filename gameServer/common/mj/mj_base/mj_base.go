@@ -170,11 +170,14 @@ func (room *Mj_base) UserReady(args []interface{}) {
 //玩家重登
 func (room *Mj_base) UserReLogin(args []interface{}) {
 	u := args[0].(*user.User)
-	if u.Status == US_READY {
-		log.Debug("user status is ready at UserReady")
+	roomUser := room.getRoomUser(u.Id)
+	if roomUser == nil {
+		log.Debug("UserReLogin not old user ... ")
 		return
 	}
-
+	log.Debug("at ReLogin have old user ")
+	u.ChairId = roomUser.ChairId
+	u.RoomId = roomUser.RoomId
 	room.UserMgr.ReLogin(u, room.Status)
 	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
@@ -528,4 +531,9 @@ func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 		}
 	}
 	return true
+}
+
+func (room *Mj_base) getRoomUser(uid int64) *user.User {
+	u, _ := room.UserMgr.GetUserByUid(uid)
+	return u
 }
