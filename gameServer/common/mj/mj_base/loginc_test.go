@@ -11,7 +11,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/lovelly/leaf/log"
+	"mj/common/msg"
 
 	"fmt"
 
@@ -30,24 +30,45 @@ var (
 )
 
 func TestGameStart_1(t *testing.T) {
-	//room.UserReady([]interface{}{nil, u1})
-	//room.DataMgr.SetUserCard(0, []int{
-	//	0x1, 0x1, 0x1,
-	//	0x2, 0x2, 0x2,
-	//	0x3, 0x3, 0x3,
-	//	0x4, 0x4,
-	//	0x5, 0x5,
-	//})
+	/*room.UserReady([]interface{}{nil, u1})
+	room.DataMgr.SetUserCard(0, []int{
+		0x1, 0x1, 0x1,
+		0x3, 0x3, 0x3,
+		0x4, 0x4, 0x4,
+		0x6,
+		0x7,
+		0x8,
+		0x15, 0x15,
+	})
+	*/
 }
 
 func TestOutCard(t *testing.T) {
+	//room.GetChanRPC().Go("OutCard", user, 5)
 	//ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
 	//log.Debug("at EstimateUserRespond ret :%v", ret)
 	//room.OutCard([]interface{}{u1, 1})
 }
 
+func TestBaseLogic_AnalyseCard(t *testing.T) {
+	fmt.Println("===========================================")
+	lg := room.LogicMgr.(*BaseLogic)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+	cbCardIndexTemp[0x1] = 3
+	cbCardIndexTemp[0x3] = 3
+	cbCardIndexTemp[0x4] = 3
+	cbCardIndexTemp[0x6] = 2
+	cbCardIndexTemp[0x7] = 1
+	cbCardIndexTemp[0x8] = 1
+	//cbCardIndexTemp[0x9] = 1
+	cbCardIndexTemp[lg.SwitchToCardIndex(0x35)] = 1
+	hu, cards := lg.AnalyseCard(cbCardIndexTemp, []*msg.WeaveItem{})
+	fmt.Println(hu, cards)
+	fmt.Println("===========================================")
+}
+
 func TestRandRandCard(t *testing.T) {
-	fmt.Println("111111111111111111111111111")
+	/*fmt.Println("111111111111111111111111111")
 	for i := 0; i < 100000; i++ {
 		m := make(map[int]int)
 		newCard := make([]int, len(cards[1]))
@@ -67,7 +88,7 @@ func TestRandRandCard(t *testing.T) {
 			}
 		}
 	}
-	fmt.Println("22222222222222222222222")
+	fmt.Println("22222222222222222222222")*/
 }
 
 func TestGameConclude(t *testing.T) {

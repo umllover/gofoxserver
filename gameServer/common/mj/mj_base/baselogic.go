@@ -397,164 +397,6 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	return cbOutCount
 }
 
-/*//分析扑克
-func (lg *BaseLogic) AnalyseCard(MaxCount int, cbCardIndex []int, WeaveItem []*msg.WeaveItem, TagAnalyseItemArray []*TagAnalyseItem) (bool, []*TagAnalyseItem) {
-	cbWeaveCount := len(WeaveItem)
-	//计算数目
-	cbCardCount := lg.GetCardCount(cbCardIndex)
-
-	//效验数目
-	if (cbCardCount < 2) || (cbCardCount > MaxCount) || ((cbCardCount-2)%3 != 0) {
-		log.Debug("at AnalyseCard (cbCardCount < 2) || (cbCardCount > room.GetCfg().MaxCount) || ((cbCardCount-2)mod3 != 0) %v, %v ", cbCardCount, (cbCardCount-2)%3)
-		return false, nil
-	}
-
-	//变量定义
-	cbKindItemCount := 0
-	KindItem := make([]*TagKindItem, 0)
-	//需求判断
-	cbLessKindItem := (cbCardCount - 2) / 3
-	//单吊判断
-	if cbLessKindItem == 0 {
-		//牌眼判断
-		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
-			if cbCardIndex[i] == 2 {
-				//变量定义
-				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
-				for i := range analyseItem.CardData {
-					analyseItem.CardData[i] = make([]int, 4)
-				}
-				//设置结果
-				for j := 0; j < cbWeaveCount; j++ {
-					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
-					analyseItem.CenterCard[j] = WeaveItem[j].CenterCard
-				}
-				analyseItem.CardEye = lg.SwitchToCard(i)
-				//插入结果
-				TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
-				return true, TagAnalyseItemArray
-			}
-		}
-		return false, nil
-	}
-	//多牌判断
-	if cbCardCount >= 3 {
-		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
-			if cbCardIndex[i] >= 3 {
-				tg := &TagKindItem{CardIndex: make([]int, 4)}
-				tg.CenterCard = i
-				tg.CardIndex[0] = i
-				tg.CardIndex[1] = i
-				tg.CardIndex[2] = i
-				tg.IsAnalyseGet = true
-				tg.WeaveKind = WIK_PENG
-				KindItem = append(KindItem, tg)
-				cbKindItemCount++
-			}
-			if (i < (lg.GetCfg().MaxIdx - 2 - 15)) && (cbCardIndex[i] > 0) && ((i % 9) < 7) {
-				for j := 1; j <= cbCardIndex[i]; j++ {
-					if (cbCardIndex[i+1] >= j) && (cbCardIndex[i+2] >= j) {
-						tg := &TagKindItem{CardIndex: make([]int, 4)}
-						tg.CenterCard = i
-						tg.CardIndex[0] = i
-						tg.CardIndex[1] = i + 1
-						tg.CardIndex[2] = i + 2
-						tg.IsAnalyseGet = true
-						tg.WeaveKind = WIK_LEFT
-						KindItem = append(KindItem, tg)
-						cbKindItemCount++
-					}
-				}
-			}
-		}
-	}
-
-	//组合分析
-	if cbKindItemCount >= cbLessKindItem {
-		//变量定义
-		cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-		cbIndex := []int{0, 1, 2, 3}
-		pKindItem := make([]*TagKindItem, 4)
-		//开始组合
-		for {
-			//设置变量
-			util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-			for i := 0; i < cbLessKindItem; i++ {
-				pKindItem[i] = KindItem[cbIndex[i]]
-			}
-			//数量判断
-			bEnoughCard := true
-			for i := 0; i < cbLessKindItem*3; i++ {
-				//存在判断
-				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
-				if cbCardIndexTemp[cbCardIndex] == 0 {
-					bEnoughCard = false
-					break
-				} else {
-					cbCardIndexTemp[cbCardIndex]--
-				}
-			}
-			//胡牌判断
-			if bEnoughCard == true {
-				//牌眼判断
-				cbCardEye := 0
-				for i := 0; i < lg.GetCfg().MaxIdx; i++ {
-					if cbCardIndexTemp[i] == 2 {
-						cbCardEye = lg.SwitchToCard(i)
-						break
-					}
-				}
-				//组合类型
-				if cbCardEye != 0 {
-					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
-					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
-						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
-					}
-					//设置组合
-					for i := 0; i < cbWeaveCount; i++ {
-						analyseItem.WeaveKind[i] = WeaveItem[i].WeaveKind
-						analyseItem.CenterCard[i] = WeaveItem[i].CenterCard
-						lg.GetWeaveCard(WeaveItem[i].WeaveKind, WeaveItem[i].CenterCard, analyseItem.CardData[i])
-					}
-					//设置牌型
-					for i := 0; i < cbLessKindItem; i++ {
-						analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
-						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
-						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
-						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
-						lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
-					}
-					//设置牌眼
-					analyseItem.CardEye = cbCardEye
-					//插入结果
-					TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
-				}
-			}
-			//设置索引
-			if cbIndex[cbLessKindItem-1] == (cbKindItemCount - 1) {
-				i := cbLessKindItem - 1
-				for ; i > 0; i-- {
-					if (cbIndex[i-1] + 1) != cbIndex[i] {
-						cbNewIndex := cbIndex[i-1]
-						for j := (i - 1); j < cbLessKindItem; j++ {
-							cbIndex[j] = cbNewIndex + j - i + 2
-						}
-						break
-					}
-				}
-				if i == 0 {
-					break
-				}
-			} else {
-				cbIndex[cbLessKindItem-1]++
-			}
-		}
-	}
-
-	return true, TagAnalyseItemArray
-}*/
-
 //分析扑克
 func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (bool, []*TagAnalyseItem) {
 	TagAnalyseItemArray := make([]*TagAnalyseItem, 0)
@@ -602,6 +444,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 		}
 		return false, nil
 	}
+
 	//多牌判断
 	if cbCardCount >= 3 {
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
@@ -609,7 +452,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			if cbCardIndex[i] >= 3 || (cbCardIndex[i]+cbMagicCount >= 3 && i != cbMagicIndex) {
 				for {
 					nTempCount := cbCardIndex[i]
-					KindItem = lg.AddKindItem(KindItem, WIK_PENG, i, cbMagicIndex, nTempCount)
+					KindItem = lg.AddKindItem(KindItem, i, cbMagicIndex, nTempCount)
 					cbKindItemCount++
 					//当前索引牌未与万能牌组合且万能牌个数不为0
 					if nTempCount >= 3 && cbMagicCount > 0 {
@@ -620,7 +463,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 							nRange = 2
 						}
 						for t := 1; t <= nRange; t++ {
-							KindItem = lg.AddKindItem(KindItem, WIK_PENG, i, cbMagicIndex, nTempCount)
+							KindItem = lg.AddKindItem(KindItem, i, cbMagicIndex, nTempCount)
 							cbKindItemCount++
 						}
 						nTempCount++
@@ -638,19 +481,20 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			//连牌判断
 			if (i < (lg.GetCfg().MaxIdx - 2 - 15)) && ((i % 9) < 7) {
 				if cbMagicCount+cbCardIndex[i]+cbCardIndex[i+1]+cbCardIndex[i+2] >= 3 {
-					if cbCardIndex[i]+cbCardIndex[i+1]+cbCardIndex[i+2] == 0 {
+					cbIndex := []int{cbCardIndex[i], cbCardIndex[i+1], cbCardIndex[i+2]}
+					if cbIndex[0]+cbIndex[1]+cbIndex[2] == 0 {
 						continue
 					}
 					nTempMagicCount := cbMagicCount
 					for {
-						if nTempMagicCount+cbCardIndex[i]+cbCardIndex[i+1]+cbCardIndex[i+2] < 3 {
+						if nTempMagicCount+cbIndex[0]+cbIndex[1]+cbIndex[2] < 3 {
 							break
 						}
 						tempArray := [3]int{}
 						tempCount := 0
 						for j := 0; j <= 2; j++ {
-							if cbCardIndex[i+j] > 0 {
-								cbCardIndex[i+j]--
+							if cbIndex[j] > 0 {
+								cbIndex[j]--
 								tempArray[j] = i + j
 							} else {
 								nTempMagicCount--
@@ -691,61 +535,85 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			if cbIndex == nil {
 				break
 			}
-
 			//设置变量
-			cbCardIndexTemp = util.CopySlicInt(cbCardIndex)
+			cbTempMagicCount := 0
 			for i := 0; i < cbLessKindItem; i++ {
-				pKindItem[i] = KindItem[cbIndex[i]]
+				cbTempMagicCount += KindItem[cbIndex[i]].MagicCount
 			}
-			//数量判断
-			bEnoughCard := true
-			for i := 0; i < cbLessKindItem*3; i++ {
-				//存在判断
-				cbCardIndex := pKindItem[i/3].CardIndex[i%3]
-				if cbCardIndexTemp[cbCardIndex] == 0 {
-					bEnoughCard = false
-					break
-				} else {
-					cbCardIndexTemp[cbCardIndex]--
+			if cbTempMagicCount <= cbMagicCount {
+				cbCardIndexTemp = util.CopySlicInt(cbCardIndex)
+				for i := 0; i < cbLessKindItem; i++ {
+					pKindItem[i] = KindItem[cbIndex[i]]
 				}
-			}
-			//胡牌判断
-			if bEnoughCard == true {
-				//牌眼判断
-				cbCardEye := 0
-				for i := 0; i < lg.GetCfg().MaxIdx; i++ {
-					if cbCardIndexTemp[i] == 2 {
-						cbCardEye = lg.SwitchToCard(i)
-						break
+				bEnoughCard := true
+				for i := 0; i < cbLessKindItem*3; i++ {
+					cbCardIndex := pKindItem[i/3].CardIndex[i%3]
+					if cbCardIndexTemp[cbCardIndex] == 0 {
+						if cbMagicIndex != 0 && cbCardIndexTemp[cbMagicIndex] > 0 {
+							pKindItem[i/3].CardIndex[i%3] = cbMagicIndex
+							cbCardIndexTemp[cbMagicIndex]--
+						} else {
+							bEnoughCard = false
+							break
+						}
+					} else {
+						cbCardIndexTemp[cbCardIndex]--
 					}
 				}
-				//组合类型
-				if cbCardEye != 0 {
-					//变量定义
-					analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
-					for i := 0; i < lg.GetCfg().MaxWeave; i++ {
-						analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
+				//胡牌判断
+				if bEnoughCard == true {
+					cbCardEye := 0
+					bMagicEye := false
+					if lg.GetCardCount(cbCardIndexTemp) == 2 {
+						if cbMagicIndex != 0 && cbCardIndexTemp[cbMagicIndex] == 2 {
+							cbCardEye = lg.SwitchToCard(cbMagicIndex)
+							bMagicEye = true
+						} else {
+							for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+								if cbCardIndexTemp[i] == 2 {
+									cbCardEye = lg.SwitchToCard(i)
+									if cbMagicIndex != 0 && i == cbMagicIndex {
+										bMagicEye = true
+									}
+									break
+								} else if i != cbMagicIndex && cbMagicIndex != 0 && cbCardIndexTemp[i]+cbCardIndexTemp[cbMagicIndex] == 2 {
+									cbCardEye = lg.SwitchToCard(i)
+									bMagicEye = true
+									break
+								}
+							}
+						}
 					}
-					//设置组合
-					for i := 0; i < cbWeaveCount; i++ {
-						analyseItem.WeaveKind[i] = WeaveItem[i].WeaveKind
-						analyseItem.CenterCard[i] = WeaveItem[i].CenterCard
-						lg.GetWeaveCard(WeaveItem[i].WeaveKind, WeaveItem[i].CenterCard, analyseItem.CardData[i])
+					//组合类型
+					if cbCardEye != 0 {
+						//变量定义
+						analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
+						for i := 0; i < lg.GetCfg().MaxWeave; i++ {
+							analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
+						}
+						//设置组合
+						for i := 0; i < cbWeaveCount; i++ {
+							analyseItem.WeaveKind[i] = WeaveItem[i].WeaveKind
+							analyseItem.CenterCard[i] = WeaveItem[i].CenterCard
+							lg.GetWeaveCard(WeaveItem[i].WeaveKind, WeaveItem[i].CenterCard, analyseItem.CardData[i])
+						}
+						//设置牌型
+						for i := 0; i < cbLessKindItem; i++ {
+							analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
+							analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
+							cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
+							analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
+							lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
+						}
+						//设置牌眼
+						analyseItem.CardEye = cbCardEye
+						analyseItem.MagicEye = bMagicEye
+						//插入结果
+						TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 					}
-					//设置牌型
-					for i := 0; i < cbLessKindItem; i++ {
-						analyseItem.IsAnalyseGet[i+cbWeaveCount] = KindItem[i].IsAnalyseGet
-						analyseItem.WeaveKind[i+cbWeaveCount] = KindItem[i].WeaveKind
-						cbCenterCard := lg.SwitchToCard(KindItem[i].CenterCard)
-						analyseItem.CenterCard[i+cbWeaveCount] = cbCenterCard
-						lg.GetWeaveCard(KindItem[i].WeaveKind, cbCenterCard, analyseItem.CardData[i+cbWeaveCount])
-					}
-					//设置牌眼
-					analyseItem.CardEye = cbCardEye
-					//插入结果
-					TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 				}
 			}
+
 		}
 	}
 
@@ -764,7 +632,7 @@ func (lg *BaseLogic) AddKindItem(KindItem []*TagKindItem, Index int, MagicIndex 
 		}
 	}
 	tg.IsAnalyseGet = true
-	tg.WeaveKind = WIK_LEFT
+	tg.WeaveKind = WIK_PENG
 	return append(KindItem, tg)
 }
 
