@@ -23,7 +23,7 @@ func SendToThisNodeUser(uid int, funcName string, data interface{}) {
 
 //发消息给大厅服务器上的玩家
 func SendDataToHallUser(HallNodeName string, uid int64, data interface{}) {
-	bdate, err := msg.Processor.Marshal(data)
+	bdate, err := cluster.Processor.Marshal(data)
 	if err != nil {
 		log.Error("at SendDataToHallUser error:%s", err.Error())
 		return

@@ -149,6 +149,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 				r.GetChanRPC().Go("userRelogin", user)
 				user.KindID = oldUser.KindID
 				user.RoomId = oldUser.RoomId
+				user.ChairId = oldUser.ChairId
 			}
 		}
 		oldUser.RoomId = 0
