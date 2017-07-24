@@ -222,22 +222,27 @@ func TestAnalyseCard(t *testing.T) {
 
 func TestCompareCard(t *testing.T) {
 	lg := new(ddz_logic)
+
+	c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
+	nMax, b := lg.recursionIsPlane(c0, 4)
+	log.Debug("测试飞机%d, %d", nMax, b)
+
 	//var card1 []int = []int{0x03, 0x13, 0x23, 0x33}
 	//var card2 []int = []int{0x0d, 0x1d, 0x2d, 0x3d}
 	//nType, isType := lg.CompareCardWithParam(card1, card2, []interface{}{lg.GetCardType(card1)})
 	//log.Debug("炸弹比牌结果%d,%d", nType, isType)
 
-	nType, isType := 0, false
-	//nType, isType = lg.CompareCardWithParam([]int{0xA}, []int{0x4}, []interface{}{lg.GetCardType([]int{0xA})})
-	//log.Debug("单牌比牌结果%#x,%d", nType, isType)
-
-	//c2 := []int{0x7, 0x17}
-	//nType, isType = lg.CompareCardWithParam(c2, []int{0x8, 0x8}, []interface{}{lg.GetCardType(c2)})
-	//log.Debug("对子比牌结果%#x, %b", nType, isType)
-
-	c3 := []int{0x03, 0x23, 0x33}
-	nType, isType = lg.CompareCardWithParam(c3, []int{0x8, 0x28, 0x18}, []interface{}{lg.GetCardType(c3)})
-	log.Debug("三根比牌结果%#x, %b", nType, isType)
+	//nType, isType := 0, false
+	////nType, isType = lg.CompareCardWithParam([]int{0xA}, []int{0x4}, []interface{}{lg.GetCardType([]int{0xA})})
+	////log.Debug("单牌比牌结果%#x,%d", nType, isType)
+	//
+	////c2 := []int{0x7, 0x17}
+	////nType, isType = lg.CompareCardWithParam(c2, []int{0x8, 0x8}, []interface{}{lg.GetCardType(c2)})
+	////log.Debug("对子比牌结果%#x, %b", nType, isType)
+	//
+	//c3 := []int{0x03, 0x23, 0x33}
+	//nType, isType = lg.CompareCardWithParam(c3, []int{0x8, 0x28, 0x18}, []interface{}{lg.GetCardType(c3)})
+	//log.Debug("三根比牌结果%#x, %b", nType, isType)
 
 	//c31 := [...]int{0x04, 0x34, 0x24, 0x08}
 	//log.Debug("三代一%#x", lg.GetCardType(c31[:]))
@@ -276,6 +281,7 @@ func TestCompareCard(t *testing.T) {
 }
 
 func init() {
+	return
 	Wg.Add(1)
 	conf.Init("/Users/zhangyudong/Documents/GIT/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
