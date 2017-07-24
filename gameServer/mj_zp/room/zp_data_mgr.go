@@ -393,10 +393,11 @@ func (room *ZP_RoomData) InitBankerAction() {
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
 	//胡牌判断
-	chr := 0
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
-	huKind, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData, chr, room.GetCfg().MaxCount, true)
-	room.UserAction[room.BankerUser] |= huKind
+	huKind, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
+	if huKind {
+		room.UserAction[room.BankerUser] |= WIK_CHI_HU
+	}
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
 	if room.UserAction[room.BankerUser] != 0 {
@@ -929,8 +930,10 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 		log.Error("not foud card at Operater")
 		return
 	}
-	kind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData, room.ChiHuRight[u.ChairId], room.GetCfg().MaxCount, false)
-	room.ChiHuKind[u.ChairId] = int(kind)
+	kind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData)
+	if kind {
+		room.ChiHuKind[u.ChairId] = WIK_CHI_HU
+	}
 
 	if room.FlowerCnt[u.ChairId] == 8 {
 		room.ChiHuKind[u.ChairId] = WIK_CHI_HU
@@ -956,10 +959,10 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 
 		//胡牌判断
 		pWeaveItem := room.WeaveItemArray[wChiHuUser]
-		chihuKind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0], room.ChiHuRight[wChiHuUser], room.GetCfg().MaxCount, false)
-		room.ChiHuKind[wChiHuUser] = chihuKind
-
-		log.Debug("一炮 用户：%d chihuKind:%d", i, chihuKind) //todo,一炮
+		chihuKind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0])
+		if chihuKind {
+			room.ChiHuKind[wChiHuUser] = WIK_CHI_HU
+		}
 
 		//特殊胡牌类型
 		room.CurrentUser = wChiHuUser
