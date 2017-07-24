@@ -87,6 +87,8 @@ func init() {
 	Processor.Register(&G2C_LoadRoomOk{})
 	Processor.Register(&G2C_GameConclude{})
 	Processor.Register(&G2C_UserSitDownRst{})
+	Processor.Register(&L2C_KickOut{})
+	Processor.Register(&G2C_KickOut{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

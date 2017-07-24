@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -10,9 +11,8 @@ import (
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/kindList"
+	"mj/gameServer/user"
 	client "mj/gameServer/user"
-
-	"encoding/json"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -51,39 +51,40 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 //房间关闭的时候通知
 func (m *UserModule) LeaveRoom(args []interface{}) error {
 	log.Debug("at user LeaveRoom ...........")
-	user := m.a.UserData().(*client.User)
-	//if user.IsOffline() { //只有离线了， 才删除玩家 todo
-	DelUser(user.Id)
-	m.Close(common.UserOffline)
-	//}
+	m.Close(ServerKick)
 	return nil
 }
 
 //连接关闭的通知
 func (m *UserModule) CloseAgent(args []interface{}) error {
 	log.Debug("at game CloseAgent")
+	Reason := args[1].(int)
 	agent := m.a
-	user, ok := agent.UserData().(*client.User)
+	player, ok := agent.UserData().(*client.User)
 	if !ok {
 		return nil
 	}
-	if user.SetOffline(true) {
-		DelUser(user.Id)
-		m.Close(common.UserOffline)
-	} else {
-		if user.RoomId != 0 {
-			r := RoomMgr.GetRoom(user.RoomId)
-			if r != nil {
-				r.GetChanRPC().Go("userOffline", user)
-			}
-		}
+
+	if player.RoomId != 0 {
+		r := RoomMgr.GetRoom(player.RoomId)
+		r.GetChanRPC().Go("userOffline", player)
 	}
+
+	m.UserOffline()
+	if Reason != KickOutMsg {
+		DelUser(player.Id)
+	}
+
+	if Reason == UserOffline {
+		m.Close(UserOffline)
+	}
+
 	return nil
 }
 
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
-	m.Close(common.KickOutOffline)
+	m.Close(KickOutMsg)
 }
 
 func (m *UserModule) GetUserInfo(args []interface{}) {
@@ -121,44 +122,37 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	user, ok := getUser(accountData.UserID)
-	if ok && !user.IsOffline() {
-		retcode = ErrUserDoubleLogin
-		return
-	}
-
 	if accountData.LogonPass != recvMsg.Password {
 		retcode = ErrPasswd
 		return
 	}
 
-	if user == nil {
-		user = client.NewUser(accountData.UserID)
-		user.KindID = recvMsg.KindID
-		user.ServerID = recvMsg.ServerID
-		user.Id = accountData.UserID
-		user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
-		lok := loadUser(user)
-		if !lok {
-			retcode = LoadUserInfoError
-			return
-		}
-		user.ChairId = INVALID_CHAIR
-	} else {
-		log.Debug("old user ====== %d  %d ", user.KindID, user.RoomId)
+	user := client.NewUser(accountData.UserID)
+	user.KindID = recvMsg.KindID
+	user.ServerID = recvMsg.ServerID
+	user.Id = accountData.UserID
+	user.Status = US_FREE
+	user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
+	lok := loadUser(user)
+	if !lok {
+		retcode = LoadUserInfoError
+		return
+	}
+	user.ChairId = INVALID_CHAIR
+
+	oldUser := getUser(accountData.UserID)
+	if oldUser != nil {
+		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		if user.KindID != 0 && user.RoomId != 0 {
 			r := RoomMgr.GetRoom(user.RoomId)
-			if r != nil {
+			if r != nil { //原来房间没关闭， 进入原来的房间
 				r.GetChanRPC().Go("userRelogin", user)
-			} else {
-				user.KindID = recvMsg.KindID
-				user.ServerID = recvMsg.ServerID
-				user.RoomId = 0
+				user.KindID = oldUser.KindID
+				user.RoomId = oldUser.RoomId
 			}
 		}
-		user.Status = US_FREE
-		user.ChanRPC().Go("ForceClose")
-		user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
+		oldUser.RoomId = 0
+		m.KickOutUser(oldUser)
 	}
 
 	user.Agent = agent
@@ -199,6 +193,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 ////////////////////// help
 func (m *UserModule) UserOffline() {
 
+}
+
+func (m *UserModule) KickOutUser(player *user.User) {
+	player.ChanRPC().Go("ForceClose")
 }
 
 func (m *UserModule) WriteUserScore(args []interface{}) {
