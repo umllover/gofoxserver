@@ -11,6 +11,7 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(Gamescoreinfo{}, "gamescoreinfo").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Gamescorelocker{}, "gamescorelocker").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(GoodsLive{}, "goods_live").SetKeys(false,"Id")
+	   db.DBMap.AddTableWithName(Mail{}, "mail").SetKeys(false,"UserId")
 	   db.DBMap.AddTableWithName(RaceMsgInfo{}, "race_msg_info").SetKeys(true, "MsgID")
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(RoomRecord{}, "room_record").SetKeys(false,"RoomId")
