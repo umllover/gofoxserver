@@ -68,8 +68,7 @@ func TestBaseLogic_AnalyseCard(t *testing.T) {
 }
 
 func TestRandRandCard(t *testing.T) {
-	/*fmt.Println("111111111111111111111111111")
-	for i := 0; i < 100000; i++ {
+	/*for i := 0; i < 100000; i++ {
 		m := make(map[int]int)
 		newCard := make([]int, len(cards[1]))
 		room.LogicMgr.RandCardList(newCard, cards[1])
@@ -87,8 +86,7 @@ func TestRandRandCard(t *testing.T) {
 				}
 			}
 		}
-	}
-	fmt.Println("22222222222222222222222")*/
+	}*/
 }
 
 func TestGameConclude(t *testing.T) {
@@ -198,3 +196,4 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func (t *TAgent) SetReason(int)                {}
