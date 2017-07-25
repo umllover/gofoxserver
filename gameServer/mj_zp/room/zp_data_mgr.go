@@ -74,28 +74,28 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 
 	getData, ok := setInfo["zhuaHua"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
+		log.Error("zpmj at NewDataMgr [zhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
 	getData2, ok := setInfo["wanFa"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithZiCard] error")
+		log.Error("zpmj at NewDataMgr [wanFa] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
 	getData3, ok := setInfo["suanFen"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ScoreType] error")
+		log.Error("zpmj at NewDataMgr [suanFen] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
 	getData4, ok := setInfo["chaHua"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithChaHua] error")
+		log.Error("zpmj at NewDataMgr [chaHua] error")
 		return nil
 	}
 	r.WithChaHua = getData4
@@ -617,11 +617,11 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
 					if hu {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
+						//抢杠胡特殊分
+						room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 					}
 				}
 			}
-			//抢杠胡特殊分
-			room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 		}
 
 		//结果判断
