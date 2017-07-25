@@ -119,28 +119,27 @@ func (op *systemgrantcountOp) InsertTx(ext sqlx.Ext, m *Systemgrantcount) (int64
 }
 
 //存在就更新， 不存在就插入
-func (op *systemgrantcountOp) InsertUpdate(obj *Systemgrantcount, m map[string]interface{}) ( error) {
-    sql := "insert into systemgrantcount(DateID,RegisterIP,RegisterMachine,GrantScore,GrantCount,CollectDate) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-    var params = []interface{}{ obj.DateID,
-        obj.RegisterIP,
-        obj.RegisterMachine,
-        obj.GrantScore,
-        obj.GrantCount,
-        obj.CollectDate,
-        }
-    var set_sql string
-    for k, v := range m{
+func (op *systemgrantcountOp) InsertUpdate(obj *Systemgrantcount, m map[string]interface{}) error {
+	sql := "insert into systemgrantcount(DateID,RegisterIP,RegisterMachine,GrantScore,GrantCount,CollectDate) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.DateID,
+		obj.RegisterIP,
+		obj.RegisterMachine,
+		obj.GrantScore,
+		obj.GrantCount,
+		obj.CollectDate,
+	}
+	var set_sql string
+	for k, v := range m {
 		if set_sql != "" {
 			set_sql += ","
 		}
-        set_sql += fmt.Sprintf(" %s=? ", k)
-        params = append(params, v)
-    }
+		set_sql += fmt.Sprintf(" %s=? ", k)
+		params = append(params, v)
+	}
 
-    _, err := db.StatsDB.Exec(sql + set_sql, params...)
-    return err
+	_, err := db.StatsDB.Exec(sql+set_sql, params...)
+	return err
 }
-
 
 /*
 func (i *Systemgrantcount) Update()  error {
