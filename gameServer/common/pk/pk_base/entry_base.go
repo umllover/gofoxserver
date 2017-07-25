@@ -35,6 +35,8 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
+
+	BtCardSpecialData []int
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
