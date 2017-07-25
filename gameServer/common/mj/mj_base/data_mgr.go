@@ -668,8 +668,8 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		//检查抢杠胡
 		if EstimatKind == EstimatKind_GangCard {
 			//只有庄家和闲家之间才能放炮
-			MogicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
-			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MogicCard) {
+			MagicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
+			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MagicCard) {
 				if u.UserLimit|LimitChiHu == 0 {
 					//吃胡判断
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
@@ -686,7 +686,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		}
 	})
 
-	//log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
+	//log.Debug("AAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
 	if bAroseAction {
 		//设置变量
@@ -952,14 +952,15 @@ func (room *RoomData) StartDispatchCard() {
 
 	////TODO 测试用
 	//newCard := make([]int, room.GetCfg().MaxIdx)
-	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 4
 	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x18)] = 1
+	//room.ProvideCard = 0x16
+	//room.SendCardData = 0x16
 	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x35
 

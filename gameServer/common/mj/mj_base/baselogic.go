@@ -349,7 +349,6 @@ func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cb
 }
 
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
-
 	cbOutCount := 0
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
@@ -466,8 +465,8 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 || (cbCardIndex[i]+cbMagicCount >= 3 && i != cbMagicIndex) {
+				nTempCount := cbCardIndex[i]
 				for {
-					nTempCount := cbCardIndex[i]
 					KindItem = lg.AddKindItem(KindItem, i, cbMagicIndex, nTempCount)
 					cbKindItemCount++
 					//当前索引牌未与万能牌组合且万能牌个数不为0
@@ -537,7 +536,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			}
 		}
 	}
-
+	
 	//组合分析
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
