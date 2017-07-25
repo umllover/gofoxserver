@@ -68,6 +68,12 @@ type C2L_SearchServerTable struct {
 	KindID  int
 }
 
+//查询房间的结果
+type L2C_SearchResult struct {
+	TableID  int //桌子 I D 返回0 是没匹配到
+	ServerIP string
+}
+
 //获取玩家显示信息
 type C2L_User_Individual struct {
 	UserId int
@@ -108,9 +114,25 @@ type C2L_SetElect struct {
 	ElectUid int64 //推荐人id
 }
 
+//设置推荐人结果
+type L2C_SetElectResult struct {
+	RetCode int // 0带表成功， 其他则是错误码
+}
+
+//请求获取验证号码
+type C2L_ReqBindMaskCode struct {
+	PhoneNumber string
+}
+
+//请求获取验证号码返回
+type L2C_ReqBindMaskCodeRsp struct {
+	Code int //非0位失败
+}
+
 //绑定手机号码
 type C2L_SetPhoneNumber struct {
 	PhoneNumber string
+	MaskCode    int
 }
 
 //绑定手机结果
@@ -120,10 +142,16 @@ type L2C_SetPhoneNumberRsp struct {
 
 //点赞
 type C2L_DianZhan struct {
+	UserID int64 //用户id
 }
 
 //点赞结果
-type C2L_DianZhanRsp struct {
+type L2C_DianZhanRsp struct {
+	Star int //当前赞数
+}
+
+// 通知被别人点赞了
+type L2C_BeStar struct {
 	Star int //当前赞数
 }
 
@@ -138,20 +166,24 @@ type L2C_RenewalFeesRsp struct {
 
 //修改名字
 type C2L_ChangeUserName struct {
+	NewName string
 }
 
 //修改名字结果
 type L2C_ChangeUserNameRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewName string
 }
 
 //修改个性签名
 type C2L_ChangeSign struct {
+	Sign string
 }
 
 //修改个性签名结果
 type L2C_ChangeSignRsp struct {
-	Code int //非0w位失败
+	Code    int //非0w位失败
+	NewSign string
 }
 
 /////////// l 2 c /////////////////////////
@@ -219,18 +251,13 @@ type L2C_UserIndividual struct {
 	HeadImgUrl  string
 	PhomeNumber string //电话号码
 	Sign        string //个性签名
+	Star        int    //赞数
 }
 
 //返回房间列表
 type L2C_GetRoomList struct {
 	Lists []*RoomInfo //房间信息
 	Count int         //有多少条C2L_ReqCreatorRoomRecord
-}
-
-//查询房间的结果
-type L2C_SearchResult struct {
-	TableID  int //桌子 I D 返回0 是没匹配到
-	ServerIP string
 }
 
 // 创建房间失败消息
@@ -273,7 +300,11 @@ type L2C_DrawSahreAwardResult struct {
 	RetCode int //领取成功还是失败的结果
 }
 
-//设置推荐人结果
-type L2C_SetElectResult struct {
-	RetCode int // 0带表成功， 其他则是错误码
+//踢出玩家
+type L2C_KickOut struct {
+	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
+}
+
+//买东西结果
+type L2C_RspTradeShopInfo struct {
 }

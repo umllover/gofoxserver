@@ -4,7 +4,6 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/conf"
 	"mj/hallServer/userHandle"
-
 	"strings"
 
 	"github.com/lovelly/leaf/gate"

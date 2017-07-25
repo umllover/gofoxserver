@@ -34,6 +34,7 @@ func (m *Module) OnInit() {
 	}
 
 	cluster.Start(cfg)
+
 }
 
 func (m *Module) OnDestroy() {

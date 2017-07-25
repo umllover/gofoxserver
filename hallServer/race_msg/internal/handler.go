@@ -69,9 +69,8 @@ func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 
 //发送消息给所有人
 func SendMsgToAll(data interface{}) {
-
 	log.Debug("即将发送消息给所有人：%v", data)
-	userHandle.UserMgr.ForEachUser(func(u *user.User) {
+	userHandle.ForEachUser(func(u *user.User) {
 		u.WriteMsg(data)
 	})
 }

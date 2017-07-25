@@ -5,14 +5,12 @@ import (
 	"mj/common/consul"
 	"mj/common/cost"
 	"mj/common/msg"
+	"mj/common/register"
 	"mj/hallServer/conf"
 	"mj/hallServer/user"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"mj/common/register"
-
-	"regexp"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -28,13 +26,15 @@ func init() {
 	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
 	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
 	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("SendMsgToHallUser", SendMsgToHallUser)
+
 	reg.RegisterRpc("ServerFaild", serverFaild)
 	reg.RegisterRpc("ServerStart", serverStart)
 
 	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
+	reg.RegisterS2S(&msg.S2S_HanldeFromUserMsg{}, HanldeFromGameMsg)
 
 	consul.SetHookRpc(ChanRPC)
 }
@@ -87,9 +87,42 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 	return
 }
 
+func SendMsgToHallUser(args []interface{}) {
+	sendMsg := &msg.S2S_HanldeFromUserMsg{}
+	sendMsg.Uid = args[0].(int64)
+	data, err := cluster.Processor.Marshal(args[1])
+	if err != nil {
+		log.Debug("SendMsgToHallUser error: %s", err.Error())
+		return
+	}
+	sendMsg.Data = data[0]
+
+	u := Users[sendMsg.Uid]
+	if u != nil {
+		HanldeFromGameMsg([]interface{}{sendMsg})
+		return
+	}
+
+	serverName := OtherUsers[sendMsg.Uid]
+	if serverName == "" {
+		return
+	}
+
+	cluster.Go(serverName, sendMsg)
+}
+
 //处理来自游戏服的消息
 func HanldeFromGameMsg(args []interface{}) {
-	SendMsgToSelfNotdeUser(args)
+	recvMsg := args[0].(*msg.S2S_HanldeFromUserMsg)
+	data, err := cluster.Processor.Unmarshal(recvMsg.Data)
+	if err != nil {
+		log.Error("at HanldeFromGameMsg Unmarshal error:%s", err.Error())
+	}
+	msgId, err1 := cluster.Processor.GetMsgId(data)
+	if err1 != nil {
+		log.Error("at HanldeFromGameMsg error:%s", err1.Error())
+	}
+	SendMsgToSelfNotdeUser([]interface{}{recvMsg.Uid, msgId, data})
 }
 
 func GetPlayerInfo(args []interface{}) (interface{}, error) {

@@ -1,9 +1,7 @@
 package mj_base
 
 import (
-	"fmt"
 	. "mj/common/cost"
-	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
@@ -13,7 +11,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/lovelly/leaf/log"
+	"mj/common/msg"
+
+	"fmt"
 
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
@@ -30,24 +30,70 @@ var (
 )
 
 func TestGameStart_1(t *testing.T) {
-	room.UserReady([]interface{}{nil, u1})
+	/*room.UserReady([]interface{}{nil, u1})
 	room.DataMgr.SetUserCard(0, []int{
 		0x1, 0x1, 0x1,
-		0x2, 0x2, 0x2,
 		0x3, 0x3, 0x3,
-		0x4, 0x4,
-		0x5, 0x5,
+		0x4, 0x4, 0x4,
+		0x6,
+		0x7,
+		0x8,
+		0x15, 0x15,
 	})
+	*/
 }
 
 func TestOutCard(t *testing.T) {
-	ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
-	log.Debug("at EstimateUserRespond ret :%v", ret)
-	room.OutCard([]interface{}{u1, 1})
+	//room.GetChanRPC().Go("OutCard", user, 5)
+	//ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
+	//log.Debug("at EstimateUserRespond ret :%v", ret)
+	//room.OutCard([]interface{}{u1, 1})
+}
+
+func TestBaseLogic_AnalyseCard(t *testing.T) {
+	fmt.Println("===========================================")
+	lg := room.LogicMgr.(*BaseLogic)
+	hzIndex := lg.SwitchToCardIndex(0x35)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+	/*cbCardIndexTemp[0x3] = 1
+	cbCardIndexTemp[0x4] = 1
+	cbCardIndexTemp[0x5] = 1
+	cbCardIndexTemp[0x6] = 1
+	cbCardIndexTemp[0x7] = 1
+	cbCardIndexTemp[0x8] = 1*/
+	cbCardIndexTemp[0x3] = 3
+	cbCardIndexTemp[0x6] = 3
+	cbCardIndexTemp[0x18] = 1
+	cbCardIndexTemp[hzIndex] = 1
+	lg.SetMagicIndex(hzIndex)
+	hu, cards := lg.AnalyseCard(cbCardIndexTemp, []*msg.WeaveItem{})
+	fmt.Println(hu, cards)
+	fmt.Println("===========================================")
+}
+
+func TestRandRandCard(t *testing.T) {
+	/*for i := 0; i < 100000; i++ {
+		m := make(map[int]int)
+		newCard := make([]int, len(cards[1]))
+		room.LogicMgr.RandCardList(newCard, cards[1])
+		for _, v := range newCard {
+			m[v]++
+			if v <= 0x37 {
+				if m[v] > 4 {
+					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)
+				}
+			}
+			if v > 0x37 {
+				if m[v] > 1 {
+					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)
+				}
+			}
+		}
+	}*/
 }
 
 func TestGameConclude(t *testing.T) {
-	room.UserOperateCard([]interface{}{u1, 1, []int{1}})
+	//room.UserOperateCard([]interface{}{u1, 1, []int{1}})
 }
 
 func TestDispatchCardData(t *testing.T) {
@@ -153,3 +199,4 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return nil }
+func (t *TAgent) SetReason(int)                {}

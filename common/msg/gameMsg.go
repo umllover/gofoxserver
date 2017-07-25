@@ -31,6 +31,16 @@ type C2G_GR_LogonMobile struct {
 	HallNodeID int
 }
 
+//登录成功
+type G2C_LogonFinish struct {
+}
+
+//登录失败
+type G2C_LogonFailure struct {
+	ResultCode     int
+	DescribeString string
+}
+
 // 请求更换椅子消息
 type C2G_GR_UserChairReq struct {
 }
@@ -53,6 +63,11 @@ type C2G_UserSitdown struct {
 	Password string //房间密码
 }
 
+//坐下结果
+type G2C_UserSitDownRst struct {
+	Code int //非0为失败
+}
+
 //请求玩家信息
 type C2G_REQUserInfo struct {
 	UserID   int
@@ -61,9 +76,7 @@ type C2G_REQUserInfo struct {
 
 //配置信息
 type C2G_GameOption struct {
-	AllowLookon   int //旁观标志
-	FrameVersion  int //框架版本
-	ClientVersion int //游戏版本
+	AllowLookon int //旁观标志
 }
 
 //请求用户信息
@@ -86,15 +99,6 @@ type C2G_UserReady struct {
 }
 
 //// s 2 c ////////////////////////////
-//登录成功
-type G2C_LogonFinish struct {
-}
-
-//登录失败
-type G2C_LogonFailure struct {
-	ResultCode     int
-	DescribeString string
-}
 
 //玩家状态
 type G2C_UserStatus struct {
@@ -102,7 +106,7 @@ type G2C_UserStatus struct {
 	UserStatus *UserStu
 }
 
-//发送提示信息
+//发送信息
 type G2C_PersonalTableTip struct {
 	TableOwnerUserID  int64  //桌主 I D
 	DrawCountLimit    int    //局数限制
@@ -284,6 +288,16 @@ type G2C_GameChart_ToAll struct {
 }
 
 type G2C_LoadRoomOk struct {
+}
+
+//结束消息， 各个游戏自己实现
+type G2C_GameConclude struct {
+}
+
+//踢出玩家
+
+type G2C_KickOut struct {
+	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
 }
 
 ///////////////////////// game chart end ///////////////////////////////

@@ -3,7 +3,12 @@ package user
 import (
 	"mj/common/msg"
 	"mj/hallServer/db/model"
+
 	"sync"
+
+	"time"
+
+	"mj/hallServer/db/model/base"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -13,6 +18,7 @@ import (
 
 type User struct {
 	gate.Agent
+	*base.FreeLimit
 	*model.Accountsmember
 	*model.Gamescorelocker
 	*model.Gamescoreinfo
@@ -24,7 +30,10 @@ type User struct {
 	Times     map[int]int64 //永久次数
 	DayTimes  map[int]int64 //每日次数
 	WeekTimes map[int]int64 //周次数
-	Id        int64
+
+	//非入库字段
+	MacKCodeTime *time.Time
+	Id           int64
 	sync.RWMutex
 }
 
@@ -182,4 +191,25 @@ func (u *User) DelGameLockInfo() {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+}
+
+//判断是否免费
+
+func (u *User) CheckFree() bool {
+	u.Lock()
+	defer u.Unlock()
+	t := time.Now()
+	tm := &t
+	b := false
+	for _, v := range base.FreeLimitCache.All() {
+		tBegin := *v.FreeBegin
+		tAfter := *v.FreeEnd
+		if tm.Before(tBegin) || tm.After(tAfter) {
+			continue
+		}
+
+		b = true
+		log.Debug("b", b)
+	}
+	return b
 }

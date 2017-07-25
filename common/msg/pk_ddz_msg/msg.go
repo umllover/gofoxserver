@@ -23,6 +23,7 @@ func init() {
 	Processor.Register(&C2G_DDZ_CallScore{})
 	Processor.Register(&C2G_DDZ_OutCard{})
 	Processor.Register(&C2G_DDZ_TRUSTEE{})
+	Processor.Register(&C2G_DDZ_SHOWCARD{})
 }
 
 // 游戏场景
@@ -99,8 +100,8 @@ type G2C_DDZ_StatusPlay struct {
 	LaiziCard   int  // 癞子牌
 
 	//出牌信息
-	TurnWiner    int   //出牌玩家
-	TurnCardData []int //出牌数据
+	TurnWiner    int             //出牌玩家
+	TurnCardData C2G_DDZ_OutCard //出牌数据
 
 	//扑克信息
 	BankerCard    [3]int //游戏底牌
@@ -140,9 +141,9 @@ type G2C_DDZ_BankerInfo struct {
 
 //用户出牌
 type G2C_DDZ_OutCard struct {
-	CurrentUser int   //当前玩家
-	OutCardUser int   //出牌玩家
-	CardData    []int //扑克列表
+	CurrentUser int             //当前玩家
+	OutCardUser int             //出牌玩家
+	CardData    C2G_DDZ_OutCard //扑克列表
 }
 
 //放弃出牌
@@ -210,8 +211,12 @@ type C2G_DDZ_TRUSTEE struct {
 	Trustee bool //托管标志
 }
 
+// 明牌
+type C2G_DDZ_SHOWCARD struct {
+}
+
 // 斗地主创建房间附带信息
 type C2G_DDZ_CreateRoomInfo struct {
-	GameType int
-	King     bool
+	GameType int  // (0：经典场 1：欢乐场 2：癞子场)
+	King     bool // (true：八王 false：非八王)
 }

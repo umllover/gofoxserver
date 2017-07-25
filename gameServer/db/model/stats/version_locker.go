@@ -106,6 +106,25 @@ func (op *versionLockerOp) InsertTx(ext sqlx.Ext, m *VersionLocker) (int64, erro
 	return affected, nil
 }
 
+//存在就更新， 不存在就插入
+func (op *versionLockerOp) InsertUpdate(obj *VersionLocker, m map[string]interface{}) ( error) {
+    sql := "insert into version_locker(id) values(?) ON DUPLICATE KEY UPDATE "
+    var params = []interface{}{ obj.Id,
+        }
+    var set_sql string
+    for k, v := range m{
+		if set_sql != "" {
+			set_sql += ","
+		}
+        set_sql += fmt.Sprintf(" %s=? ", k)
+        params = append(params, v)
+    }
+
+    _, err := db.StatsDB.Exec(sql + set_sql, params...)
+    return err
+}
+
+
 /*
 func (i *VersionLocker) Update()  error {
     _,err := db.StatsDBMap.Update(i)
