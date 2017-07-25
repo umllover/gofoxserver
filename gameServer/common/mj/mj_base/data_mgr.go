@@ -943,21 +943,21 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
+
 	//if conf.Test {
 	//	room.RepalceCard()
 	//}
 
 	////TODO 测试用
-	//newCar := make([]int, room.GetCfg().MaxIdx)
-	//newCar[gameLogic.SwitchToCardIndex(0x12)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x14)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x16)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x6)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x15)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x18)] = 1
-	//room.CardIndex[room.BankerUser] = newCar
+	//newCard := make([]int, room.GetCfg().MaxIdx)
+	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 4
+	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x18)] = 1
+	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x35
 
 	//堆立信息
