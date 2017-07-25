@@ -2,16 +2,16 @@ package user
 
 import (
 	"mj/hallServer/conf"
-	"time"
 
 	"github.com/lovelly/leaf/log"
 )
 
 var key int64
+var MaxInc = int64(1<<43 - 1)
 
 func GetKey() int64 {
 	key = key + 1
-	if key > 0xFFF {
+	if key > MaxInc {
 		key = 0
 	}
 	return key
@@ -25,22 +25,15 @@ func (u *Uuid) GetUUid() int64 {
 	return u.uid
 }
 
-func (u *Uuid) SetTimestamp(ti int64) {
+func (u *Uuid) SetNodeId(ti int64) {
 	if ti < 0 {
 		log.Error("SetTimestamp ti < 0 ")
 	}
-	ti = ti << 22
+	ti = ti << 43
 	u.uid |= ti
 }
 
-func (u *Uuid) SetMachineKey(key int64) {
-	key = key << 12
-	key = key & 0X3FF000
-	u.uid |= key
-}
-
 func (u *Uuid) SetSerial(s int64) {
-	s = s & 0xFFF
 	u.uid |= s
 }
 
@@ -49,11 +42,8 @@ func NewUUid() *Uuid {
 }
 
 func GetUUID() int64 {
-	time.Sleep(1 * time.Millisecond)
-	timeline := time.Now().UnixNano() / 1e6
 	uuid := NewUUid()
-	uuid.SetTimestamp(timeline)
-	uuid.SetMachineKey(int64(conf.Server.NodeId))
+	uuid.SetNodeId(int64(conf.Server.NodeId))
 	uuid.SetSerial(GetKey())
 	return uuid.GetUUid()
 }
