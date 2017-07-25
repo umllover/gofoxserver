@@ -26,7 +26,7 @@ func init() {
 	handlerC2S(&pk_ddz_msg.C2G_DDZ_CallScore{}, CallScore)
 	handlerC2S(&pk_ddz_msg.C2G_DDZ_OutCard{}, OutCard)
 	handlerC2S(&pk_ddz_msg.C2G_DDZ_TRUSTEE{}, TRUSTEE)
-	//handlerC2S(pk_ddz_msg.C2G_DDZ_SHOWCARD{}, ShowCard)
+	handlerC2S(&pk_ddz_msg.C2G_DDZ_SHOWCARD{}, ShowCard)
 }
 
 // 用户叫分
@@ -34,11 +34,11 @@ func CallScore(args []interface{}) {
 	log.Debug("接受到客户端叫分信息")
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_CallScore)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("CallScore", recvMsg, user)
+		r.GetChanRPC().Go("CallScore", recvMsg, u)
 	}
 }
 
@@ -47,11 +47,11 @@ func OutCard(args []interface{}) {
 	log.Debug("接受到客户端出牌信息")
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_OutCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OutCard", recvMsg, user)
+		r.GetChanRPC().Go("OutCard", recvMsg, u)
 	}
 }
 
@@ -60,23 +60,22 @@ func TRUSTEE(args []interface{}) {
 	log.Debug("接受到客户端托管信息")
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_TRUSTEE)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("Trustee", recvMsg, user)
+		r.GetChanRPC().Go("Trustee", recvMsg, u)
 	}
 }
 
 // 明牌
 func ShowCard(args []interface{}) {
 	log.Debug("接受到客户端明牌信息")
-	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_SHOWCARD)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
+	u := agent.UserData().(*user.User)
 
-	r := getRoom(user.RoomId)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("ShowCard", recvMsg, user)
+		r.GetChanRPC().Go("ShowCard", u)
 	}
 }
