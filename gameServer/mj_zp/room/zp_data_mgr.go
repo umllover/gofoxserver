@@ -21,6 +21,8 @@ import (
 
 	dbbase "mj/gameServer/db/model/base"
 
+	"mj/gameServer/conf"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -485,6 +487,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
+
+	if conf.Test {
+		room.RepalceCard()
+	}
 
 	////todo,测试手牌
 	//var temp []int
