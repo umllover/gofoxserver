@@ -195,18 +195,21 @@ func (u *User) DelGameLockInfo() {
 
 //判断是否免费
 
-func (u *User) CheckFree() {
-	//u.Lock()
-	//defer u.Unlock()
-	//t := time.Now()
-	//tm:=&t
-	//for _, v := range base.FreeLimitCache.All(){
-	//	if v.FreeBegin < tm.Before(u.FreeBegin) {
-	//		continue
-	//	}
-	//
-	//	t.Day() == v.da
-	//	if t.Before(v.beg) ad
-	//}
-	//2017-05-30
+func (u *User) CheckFree() bool {
+	u.Lock()
+	defer u.Unlock()
+	t := time.Now()
+	tm := &t
+	b := false
+	for _, v := range base.FreeLimitCache.All() {
+		tBegin := *v.FreeBegin
+		tAfter := *v.FreeEnd
+		if tm.Before(tBegin) || tm.After(tAfter) {
+			continue
+		}
+
+		b = true
+		log.Debug("b", b)
+	}
+	return b
 }
