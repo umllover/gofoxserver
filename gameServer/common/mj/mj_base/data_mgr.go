@@ -1588,7 +1588,6 @@ func (room *RoomData) IsHuaGang(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 func (room *RoomData) IsAnKe(pAnalyseItem *TagAnalyseItem) int {
 	anKeCount := 0
 	for k, v := range pAnalyseItem.WeaveKind {
-		log.Debug("test kind:%d IsAnalyseGet:%v", v, pAnalyseItem.IsAnalyseGet[k])
 		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true {
 			anKeCount++
 		}
@@ -1793,8 +1792,14 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG || v == WIK_GANG {
+		log.Debug("############ kind:%d IsAnalyseGet：%v", v, pAnalyseItem.IsAnalyseGet[k])
+		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
+				return 0
+			}
+		} else if v == WIK_GANG {
+			if pAnalyseItem.Param[k] == WIK_AN_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
+				log.Debug("有暗杠")
 				return 0
 			}
 		}

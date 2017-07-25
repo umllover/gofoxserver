@@ -726,8 +726,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		util.DeepCopy(&GameConclude.ScoreKind[u.ChairId], &room.HuKindScore[u.ChairId]) //游戏得分类型
 		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
 		//胡牌分
-		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-		GameConclude.GangScore[u.ChairId] += room.SumScore[u.ChairId]
+		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
 		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
@@ -1322,7 +1321,7 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 	log.Debug("总得分计算和得分类型统计 赢人：%d", len(WinUser))
 	log.Debug("补花数：%v", room.FlowerCnt)
-	log.Debug("$$$$$$$$$$$$$$$$$$$$ HuKindScore:%v", room.HuKindScore)
+
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
 		playerScore := room.HuKindScore[i]
