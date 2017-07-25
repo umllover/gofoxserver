@@ -227,7 +227,8 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 
 	StatusPlay.TurnWiner = room.TurnWiner
 	if StatusPlay.TurnWiner != cost.INVALID_CHAIR {
-		StatusPlay.TurnCardData = util.CopySlicInt(room.HandCardData[room.TurnWiner])
+		turnCardData := room.TurnCardData[room.TurnWiner][len(room.TurnCardData[room.TurnWiner])-1]
+		util.DeepCopy(&StatusPlay.TurnCardData, &turnCardData)
 	}
 	util.DeepCopy(&StatusPlay.BankerCard, &room.BankerCard)
 	StatusPlay.HandCardCount = make([]int, room.PlayerCount)
@@ -579,8 +580,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		DataOutCard.CurrentUser = r.CurrentUser
 	}
 	DataOutCard.OutCardUser = u.ChairId
-	DataOutCard.CardData = make([]int, len(cardData))
-	util.DeepCopy(&DataOutCard.CardData, &cardData)
+	util.DeepCopy(&DataOutCard.CardData, &nowCard)
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
 		log.Debug("出牌数据%v", DataOutCard)
 		u.WriteMsg(DataOutCard)

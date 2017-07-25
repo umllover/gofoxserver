@@ -23,11 +23,10 @@ func ForEachUser(f func(u *user.User)) {
 }
 
 //此函数不到处  要跟user 联络请用center
-func getUser(uid int64) (*user.User, bool) {
+func getUser(uid int64) *user.User {
 	UsersLock.RLock()
 	defer UsersLock.RUnlock()
-	u, ok := Users[uid]
-	return u, ok
+	return Users[uid]
 }
 
 func AddUser(uid int64, u *user.User) {

@@ -90,7 +90,7 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 func SendMsgToHallUser(args []interface{}) {
 	sendMsg := &msg.S2S_HanldeFromUserMsg{}
 	sendMsg.Uid = args[0].(int64)
-	data, err := msg.Processor.Marshal(args[1])
+	data, err := cluster.Processor.Marshal(args[1])
 	if err != nil {
 		log.Debug("SendMsgToHallUser error: %s", err.Error())
 		return
@@ -114,11 +114,11 @@ func SendMsgToHallUser(args []interface{}) {
 //处理来自游戏服的消息
 func HanldeFromGameMsg(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_HanldeFromUserMsg)
-	data, err := msg.Processor.Unmarshal(recvMsg.Data)
+	data, err := cluster.Processor.Unmarshal(recvMsg.Data)
 	if err != nil {
 		log.Error("at HanldeFromGameMsg Unmarshal error:%s", err.Error())
 	}
-	msgId, err1 := msg.Processor.GetMsgId(data)
+	msgId, err1 := cluster.Processor.GetMsgId(data)
 	if err1 != nil {
 		log.Error("at HanldeFromGameMsg error:%s", err1.Error())
 	}

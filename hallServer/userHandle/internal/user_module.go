@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"mj/common/msg"
 	"mj/hallServer/base"
 
 	"github.com/lovelly/leaf/chanrpc"
@@ -44,11 +45,10 @@ func (m *UserModule) Run() {
 }
 
 func (m *UserModule) Close(Reason int) {
-	defer func() {
-		m.a.Close()
-		m.closeCh <- true
-	}()
-	m.UserOffline()
+	m.a.WriteMsg(&msg.L2C_KickOut{Reason: Reason})
+	m.a.SetReason(Reason)
+	m.a.Close()
+	m.closeCh <- true
 }
 
 func (m *UserModule) GetChanRPC() *chanrpc.Server {

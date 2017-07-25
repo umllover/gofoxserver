@@ -947,18 +947,18 @@ func (room *RoomData) StartDispatchCard() {
 	//	room.RepalceCard()
 	//}
 
-	//TODO 测试用
+	////TODO 测试用
 	//newCar := make([]int, room.GetCfg().MaxIdx)
-	//newCar[gameLogic.SwitchToCardIndex(0x1)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x2)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x3)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x12)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x14)] = 3
+	//newCar[gameLogic.SwitchToCardIndex(0x16)] = 3
 	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x6)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x7)] = 1
+	//newCar[gameLogic.SwitchToCardIndex(0x15)] = 1
 	//newCar[gameLogic.SwitchToCardIndex(0x18)] = 1
 	//room.CardIndex[room.BankerUser] = newCar
-	//room.RepertoryCard[55] = 0x7
+	//room.RepertoryCard[55] = 0x35
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)

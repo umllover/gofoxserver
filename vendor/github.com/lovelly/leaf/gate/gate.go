@@ -115,6 +115,7 @@ type agent struct {
 	chanRPC     *chanrpc.Server
 	gate        *Gate
 	userData    interface{}
+	Reason      int
 }
 
 func (a *agent) Run() {
@@ -125,7 +126,7 @@ func (a *agent) Run() {
 		}
 
 		if a.chanRPC != nil {
-			err := a.chanRPC.Call0("CloseAgent", a)
+			err := a.chanRPC.Call0("CloseAgent", a, a.Reason)
 			if err != nil {
 				log.Error("chanrpc error: %v", err)
 			}
@@ -198,6 +199,10 @@ func (a *agent) Run() {
 
 func (a *agent) OnClose() {
 
+}
+
+func (a *agent) SetReason(r int) {
+	a.Reason = r
 }
 
 func (a *agent) WriteMsg(msg interface{}) {
