@@ -72,28 +72,28 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 		return nil
 	}
 
-	getData, ok := setInfo["ZhuaHua"].(float64)
+	getData, ok := setInfo["zhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
-	getData2, ok := setInfo["WithZiCard"].(bool)
+	getData2, ok := setInfo["wanFa"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [WithZiCard] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := setInfo["ScoreType"].(float64)
+	getData3, ok := setInfo["suanFen"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [ScoreType] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
-	getData4, ok := setInfo["WithChaHua"].(bool)
+	getData4, ok := setInfo["chaHua"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [WithChaHua] error")
 		return nil

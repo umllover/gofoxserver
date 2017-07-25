@@ -154,10 +154,10 @@ func init() {
 		ScoreType  int
 	}
 	setCfg := map[string]interface{}{
-		"ZhuaHua":    16,
-		"WithZiCard": false,
-		"ScoreType":  33,
-		"WithChaHua": false,
+		"zhuaHua": 16,
+		"wanFa":   true,
+		"suanFen": 1,
+		"chaHua":  false,
 	}
 	myCfg, cfgOk := json.Marshal(setCfg)
 	if cfgOk != nil {
