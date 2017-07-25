@@ -1058,12 +1058,14 @@ func (room *RoomData) RepalceCard() {
 				room.RepertoryCard = append(room.RepertoryCard, k)
 			}
 
-			for _, v := range TmpRepertoryCard {
-				room.RepertoryCard = append(room.RepertoryCard, v)
-			}
 			if len(room.RepertoryCard) != room.MinusHeadCount {
 				log.Debug("len(room.RepertoryCard) != room.MinusHeadCount")
 			}
+
+			for _, v := range TmpRepertoryCard {
+				room.RepertoryCard = append(room.RepertoryCard, v)
+			}
+
 
 			log.Debug("库存牌%v", room.RepertoryCard)
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
