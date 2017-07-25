@@ -167,7 +167,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.HuKindType = room.HuKindType[0:0]
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
-	room.LianZhuang = 0
+	room.LianZhuang = 1
 	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
 	room.BanCardCnt = [4][9]int{}
@@ -967,7 +967,7 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 	//结束信息
 	wChiHuUser := room.BankerUser
-	log.Debug("一炮: PerformAction:%v", room.PerformAction)
+
 	for i := 0; i < userCnt; i++ {
 		wChiHuUser = (room.BankerUser + i) % userCnt
 		//过虑判断
@@ -1324,7 +1324,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
-		playerScore := room.HuKindScore[i]
+		playerScore := &room.HuKindScore[i]
 
 		//暗杠
 		playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]

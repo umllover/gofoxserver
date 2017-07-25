@@ -154,7 +154,7 @@ func init() {
 		ScoreType  int
 	}
 	setCfg := map[string]interface{}{
-		"ZhuaHua":    0,
+		"ZhuaHua":    16,
 		"WithZiCard": false,
 		"ScoreType":  33,
 		"WithChaHua": false,

@@ -398,10 +398,11 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 		Wrave.CardData[1] = cbTargetCard
 		Wrave.CardData[2] = cbTargetCard
 		if cbTargetAction&WIK_GANG != 0 {
-			Wrave.Param = WIK_FANG_GANG
+			Wrave.Param = WIK_MING_GANG
 			Wrave.CardData[3] = cbTargetCard
 		}
 	}
+	log.Debug("###############杠牌：%v", Wrave)
 	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
@@ -1798,8 +1799,8 @@ func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 				return 0
 			}
 		} else if v == WIK_GANG {
-			if pAnalyseItem.Param[k] == WIK_AN_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
-				log.Debug("有暗杠")
+			log.Debug("有暗杠 Param:%d", pAnalyseItem.Param[k])
+			if pAnalyseItem.Param[k] == WIK_MING_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
 			}
 		}
