@@ -53,15 +53,19 @@ func TestOutCard(t *testing.T) {
 func TestBaseLogic_AnalyseCard(t *testing.T) {
 	fmt.Println("===========================================")
 	lg := room.LogicMgr.(*BaseLogic)
+	hzIndex := lg.SwitchToCardIndex(0x35)
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-	cbCardIndexTemp[0x1] = 3
-	cbCardIndexTemp[0x3] = 3
-	cbCardIndexTemp[0x4] = 3
-	cbCardIndexTemp[0x6] = 2
+	/*cbCardIndexTemp[0x3] = 1
+	cbCardIndexTemp[0x4] = 1
+	cbCardIndexTemp[0x5] = 1
+	cbCardIndexTemp[0x6] = 1
 	cbCardIndexTemp[0x7] = 1
-	cbCardIndexTemp[0x8] = 1
-	//cbCardIndexTemp[0x9] = 1
-	cbCardIndexTemp[lg.SwitchToCardIndex(0x35)] = 1
+	cbCardIndexTemp[0x8] = 1*/
+	cbCardIndexTemp[0x3] = 3
+	cbCardIndexTemp[0x6] = 3
+	cbCardIndexTemp[0x18] = 1
+	cbCardIndexTemp[hzIndex] = 1
+	lg.SetMagicIndex(hzIndex)
 	hu, cards := lg.AnalyseCard(cbCardIndexTemp, []*msg.WeaveItem{})
 	fmt.Println(hu, cards)
 	fmt.Println("===========================================")
@@ -79,7 +83,6 @@ func TestRandRandCard(t *testing.T) {
 					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)
 				}
 			}
-
 			if v > 0x37 {
 				if m[v] > 1 {
 					log.Debug("cards  ==== card :%d  ## :%v", v, newCard)

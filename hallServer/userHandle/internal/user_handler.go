@@ -423,13 +423,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
-	//if !hasMianfei(){
-
-	if !player.SubCurrency(feeTemp.TableFee) {
-		retcode = NotEnoughFee
-		return
+	if !player.CheckFree() {
+		if !player.SubCurrency(feeTemp.TableFee) {
+			retcode = NotEnoughFee
+			return
+		}
 	}
-	//}
 
 	if !player.HasRecord(roomInfo.RoomID) {
 		record := &model.TokenRecord{}
