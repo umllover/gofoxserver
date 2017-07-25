@@ -253,6 +253,8 @@ func (t *TAgent) UserData() interface{}        { return nil }
 func (t *TAgent) SetUserData(data interface{}) {}
 func (t *TAgent) Skeleton() *module.Skeleton   { return nil }
 func (t *TAgent) ChanRPC() *chanrpc.Server     { return t.Ch }
+func (t *TAgent) SetReason(int)                {}
+
 func InitLog() {
 	logger, err := log.New(conf.Server.LogLevel, "", conf.LogFlag)
 	if err != nil {

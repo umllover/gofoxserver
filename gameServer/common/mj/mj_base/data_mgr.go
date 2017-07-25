@@ -1849,6 +1849,24 @@ func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4
 	return 0
 }
 
+//字牌杠
+func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
+	for k, v := range pAnalyseItem.WeaveKind {
+		if v == WIK_GANG && pAnalyseItem.Param[k] == WIK_MING_GANG {
+			cardColor := pAnalyseItem.CenterCard[k] >> 4
+			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
+			if cardColor == 3 {
+				if cardValue > 4 {
+					return CHR_ZI_PAI_GANG, true
+				} else {
+					return CHR_ZI_PAI_GANG, false
+				}
+			}
+		}
+	}
+	return 0, false
+}
+
 //胡尾张
 func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 	logic := room.MjBase.LogicMgr
