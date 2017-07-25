@@ -2,26 +2,26 @@ package room
 
 import (
 	"mj/gameServer/common/pk/pk_base"
+
+	"mj/gameServer/common/pk"
+
 	"github.com/lovelly/leaf/log"
 )
 
-
 // 牛牛类逻辑
 const (
-	OX_VALUE0  =   0									//混合牌型
-    OX_THREE_SAME  =   11                            //三条：有三张相同点数的牌；（3倍）
-    OX_ORDER_NUMBER  =   12                           //顺子：五张牌是顺子，最小的顺子12345，最大的为91JQK；（3倍）
-    OX_FIVE_SAME_FLOWER  =   13                       //同花：五张牌花色一样；（3倍）
-    OX_THREE_SAME_TWAIN  =   14                       //葫芦：三张相同点数的牌+一对；（3倍）
-    OX_FOUR_SAME  =   15								//炸弹：有4张相同点数的牌；（4倍）
-    OX_STRAIGHT_FLUSH  =   16                          //同花顺：五张牌是顺子且是同一种花色；（4倍）
-    OX_FIVE_KING  =   17								//五花：五张牌都是KQJ；（5倍）
-    OX_FIVE_CALVES  =   18								//五小牛：5张牌都小于5点且加起来不超过1；（5倍）
+	OX_VALUE0           = 0  //混合牌型
+	OX_THREE_SAME       = 11 //三条：有三张相同点数的牌；（3倍）
+	OX_ORDER_NUMBER     = 12 //顺子：五张牌是顺子，最小的顺子12345，最大的为91JQK；（3倍）
+	OX_FIVE_SAME_FLOWER = 13 //同花：五张牌花色一样；（3倍）
+	OX_THREE_SAME_TWAIN = 14 //葫芦：三张相同点数的牌+一对；（3倍）
+	OX_FOUR_SAME        = 15 //炸弹：有4张相同点数的牌；（4倍）
+	OX_STRAIGHT_FLUSH   = 16 //同花顺：五张牌是顺子且是同一种花色；（4倍）
+	OX_FIVE_KING        = 17 //五花：五张牌都是KQJ；（5倍）
+	OX_FIVE_CALVES      = 18 //五小牛：5张牌都小于5点且加起来不超过1；（5倍）
 	// 牛一到牛牛 ： 1 - 10
-	OX_NiuNiu  		= 10
+	OX_NiuNiu = 10
 )
-
-
 
 func NewNNTBZLogic(ConfigIdx int) *nntb_logic {
 	l := new(nntb_logic)
@@ -32,8 +32,6 @@ func NewNNTBZLogic(ConfigIdx int) *nntb_logic {
 type nntb_logic struct {
 	*pk_base.BaseLogic
 }
-
-
 
 //获取牛牛牌值
 func (lg *nntb_logic) GetCardLogicValue(CardData int) int {
@@ -49,17 +47,16 @@ func (lg *nntb_logic) GetCardLogicValue(CardData int) int {
 	return CardValue
 }
 
-
 //牛牛牌型 -------------
 // 特殊牌型判断
 // 五小 // 五张都小于5 加起来不超过10
-func (lg *nntb_logic) IsWuXiao (cardData []int) bool   {
+func (lg *nntb_logic) IsWuXiao(cardData []int) bool {
 	if len(cardData) != 5 {
-		return  false
+		return false
 	}
 	sum := 0
-	for i:=0; i<5; i++ {
-		if lg.GetCardValue(cardData[i])<5 {
+	for i := 0; i < 5; i++ {
+		if lg.GetCardValue(cardData[i]) < 5 {
 			sum += lg.GetCardValue(cardData[i])
 		} else {
 			return false
@@ -74,24 +71,24 @@ func (lg *nntb_logic) IsWuXiao (cardData []int) bool   {
 // 五花 // 全部是jqk
 func (lg *nntb_logic) IsWuHua(cardData []int) bool {
 	if len(cardData) != 5 {
-		return  false
+		return false
 	}
-	for i:=0; i<5; i++ {
-		if !(lg.GetCardValue(cardData[i])>10 && lg.GetCardValue(cardData[i])<14) {
+	for i := 0; i < 5; i++ {
+		if !(lg.GetCardValue(cardData[i]) > 10 && lg.GetCardValue(cardData[i]) < 14) {
 			return false
 		}
 	}
-	return  true
+	return true
 }
 
 //  同花顺
 func (lg *nntb_logic) IsTongHuaShun(cardData []int) bool {
-	if len(cardData) != 5{
+	if len(cardData) != 5 {
 		return false
 	}
 	//排序
-	lg.SortCardList(cardData,len(cardData))
-	for i:=0; i<4; i++ {
+	lg.SortCardList(cardData, len(cardData))
+	for i := 0; i < 4; i++ {
 		if lg.GetCardValue(cardData[i])-1 != lg.GetCardValue(cardData[i+1]) ||
 			lg.GetCardColor(cardData[i]) != lg.GetCardColor(cardData[i+1]) {
 			return false
@@ -101,25 +98,25 @@ func (lg *nntb_logic) IsTongHuaShun(cardData []int) bool {
 }
 
 // 炸弹
-func (lg *nntb_logic) IsAllCardValueSame(cardData []int) bool  {
+func (lg *nntb_logic) IsAllCardValueSame(cardData []int) bool {
 	size := len(cardData)
-	for i:=0; i<size-1; i++ {
+	for i := 0; i < size-1; i++ {
 		if lg.GetCardValue(cardData[i]) != lg.GetCardValue(cardData[i+1]) {
 			return false
 		}
 	}
-	return  true
+	return true
 }
 func (lg *nntb_logic) IsBomb(cardData []int) bool {
-	if len(cardData)!= 5 {
+	if len(cardData) != 5 {
 		return false
 	}
 	// 5选4
-	for i:=0; i<5; i++ {
+	for i := 0; i < 5; i++ {
 		cardDataTemp := make([]int, 4)
 		iTemp := 0
-		for j:=0; j<5; j++ {
-			if j==i {
+		for j := 0; j < 5; j++ {
+			if j == i {
 				continue
 			}
 			cardDataTemp[iTemp] = cardData[j]
@@ -135,21 +132,21 @@ func (lg *nntb_logic) IsBomb(cardData []int) bool {
 
 // 葫芦
 func (lg *nntb_logic) IsHuLu(cardData []int) bool {
-	if len(cardData)!=5 {
+	if len(cardData) != 5 {
 		return false
 	}
 	//先选两张对子
-	for i:=0;i<5;i++ {
-		for j:=0;j<5;j++ {
-			if j==i {
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 5; j++ {
+			if j == i {
 				continue
 			}
 			if lg.GetCardValue(cardData[i]) == lg.GetCardValue(cardData[j]) { // 对子
 				// 再选三张
 				tempCardData := make([]int, 3)
 				indexTemp := 0
-				for k:=0;k<5;k++ {
-					if k==i || k==j {
+				for k := 0; k < 5; k++ {
+					if k == i || k == j {
 						continue
 					}
 					tempCardData[indexTemp] = cardData[k]
@@ -165,11 +162,11 @@ func (lg *nntb_logic) IsHuLu(cardData []int) bool {
 }
 
 // 同花
-func (lg *nntb_logic)  IsTongHua(cardData []int) bool {
-	if len(cardData) !=5 {
+func (lg *nntb_logic) IsTongHua(cardData []int) bool {
+	if len(cardData) != 5 {
 		return false
 	}
-	for i:=0; i<4; i++ {
+	for i := 0; i < 4; i++ {
 		if lg.GetCardColor(cardData[i]) != lg.GetCardColor(cardData[i+1]) {
 			return false
 		}
@@ -179,27 +176,27 @@ func (lg *nntb_logic)  IsTongHua(cardData []int) bool {
 
 // 顺子
 func (lg *nntb_logic) IsShunZi(cardData []int) bool {
-	if len(cardData)!=5 {
+	if len(cardData) != 5 {
 		return false
 	}
 	lg.SortCardList(cardData, 5)
-	for i:=0;i<4;i++ {
+	for i := 0; i < 4; i++ {
 		if lg.GetCardValue(cardData[i])-1 != lg.GetCardValue(cardData[i+1]) {
 			return false
 		}
 	}
-	return  true
+	return true
 }
 
 // 三条
 func (lg *nntb_logic) IsSanTiao(cardData []int) bool {
-	for i:=0; i<5; i++ {
-		for j:=0; j<5; j++ {
-			if j==i {
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 5; j++ {
+			if j == i {
 				continue
 			}
-			for k:=0; k<5; k++ {
-				if k==i || k==j {
+			for k := 0; k < 5; k++ {
+				if k == i || k == j {
 					continue
 				}
 				if lg.GetCardValue(cardData[i]) == lg.GetCardValue(cardData[j]) &&
@@ -212,15 +209,13 @@ func (lg *nntb_logic) IsSanTiao(cardData []int) bool {
 	return false
 }
 
-
-
 // 牛牛
 func (lg *nntb_logic) IsNiuNiu(cardData []int) bool {
-	if len(cardData) != 5{
+	if len(cardData) != 5 {
 		return false
 	}
 	sum := 0
-	for i:=0;i<5;i++ {
+	for i := 0; i < 5; i++ {
 		sum += lg.GetCardLogicValue(cardData[i])
 	}
 	if sum%10 == 0 {
@@ -229,12 +224,11 @@ func (lg *nntb_logic) IsNiuNiu(cardData []int) bool {
 	return false
 }
 
-
 func (lg *nntb_logic) GetCardType(CardData []int) int {
 
 	CardCount := len(CardData)
 	if CardCount != lg.GetCfg().MaxCount {
-		return  OX_VALUE0
+		return OX_VALUE0
 	}
 	//特殊牌型判断
 	if lg.IsWuXiao(CardData) {
@@ -273,36 +267,33 @@ func (lg *nntb_logic) GetCardType(CardData []int) int {
 		return OX_NiuNiu
 	}
 	//普通牌型 选3张 有牛
-	for i:=0;i<5;i++ {
-		for j:=0;j<5;j++ {
-			if j==i {
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 5; j++ {
+			if j == i {
 				continue
 			}
-			for k:=0;k<5;k++ {
-				if k==i || k==j {
+			for k := 0; k < 5; k++ {
+				if k == i || k == j {
 					continue
 				}
-				if (lg.GetCardLogicValue(CardData[i]) +
-					lg.GetCardLogicValue(CardData[j]) +
-					lg.GetCardLogicValue(CardData[k])) % 10 ==0 {
-				// 有牛 再选两张
+				if (lg.GetCardLogicValue(CardData[i])+
+					lg.GetCardLogicValue(CardData[j])+
+					lg.GetCardLogicValue(CardData[k]))%10 == 0 {
+					// 有牛 再选两张
 					sum := 0
-					for n:=0;n<5;n++ {
-						if n==i || n==j || n==k {
+					for n := 0; n < 5; n++ {
+						if n == i || n == j || n == k {
 							continue
 						}
 						sum += lg.GetCardLogicValue(CardData[n])
 					}
-					return sum%10
+					return sum % 10
 				}
 			}
 		}
 	}
 	return OX_VALUE0
 }
-
-
-
 
 //获取牛牛倍数
 func (lg *nntb_logic) NNGetTimes(cardData []int, cardCount int, niu int) int {
@@ -360,7 +351,7 @@ func (lg *nntb_logic) NNGetOxCard(cardData []int, cardCount int) bool {
 	}
 	maxNiuZi := 0
 	maxNiuPos := 0
-	niuTemp := make([][]int, 30,lg.GetCfg().MaxCount)
+	niuTemp := make([][]int, 30, lg.GetCfg().MaxCount)
 	var isKingPai [30]bool
 
 	niuCount := 0
@@ -437,16 +428,16 @@ func (lg *nntb_logic) NNIsIntValue(cardData []int, cardCount int) bool {
 }
 
 // 牛牛比牌
-func (lg *nntb_logic) CompareCard(firstData []int, nextData []int)  bool {
+func (lg *nntb_logic) CompareCard(firstData []int, nextData []int) bool {
 
 	firstType := lg.GetCardType(firstData)
 	nextType := lg.GetCardType(nextData)
 
 	// 先比牌型
-	if firstType!= nextType {
+	if firstType != nextType {
 		log.Debug("compare card type not same first type : %d, %v, next type %d, %v",
 			firstType, firstData, nextType, nextData)
-		return firstType>nextType
+		return firstType > nextType
 	} else {
 		// 牌型一样比点数跟花色 最多只需比到第三张的花色（共同用到两张公共牌）；
 		lg.SortCardList(firstData, len(firstData))
@@ -462,29 +453,29 @@ func (lg *nntb_logic) CompareCard(firstData []int, nextData []int)  bool {
 	return false
 }
 
-
 // 同种牌型比牌
 // 一种组合
-func (lg *nntb_logic) CompareCardOneType(firstData []int, nextData []int) bool  {
-	for i:=0;i<3;i++ {
+func (lg *nntb_logic) CompareCardOneType(firstData []int, nextData []int) bool {
+	for i := 0; i < 3; i++ {
 		if lg.GetCardValue(firstData[i]) != lg.GetCardValue(nextData[i]) {
-			return lg.GetCardValue(firstData[i])>lg.GetCardValue(nextData[i])
+			return lg.GetCardValue(firstData[i]) > lg.GetCardValue(nextData[i])
 		} else {
-			return lg.GetCardColor(firstData[i])>lg.GetCardValue(nextData[i])
+			return lg.GetCardColor(firstData[i]) > lg.GetCardValue(nextData[i])
 		}
 	}
 	return false
 }
+
 // 两种组合
 // 找出大牌点数
-func (lg *nntb_logic)FindCardValue(cardData []int) int {
-	for i:=0; i<5; i++ {
-		for j:=0; j<5; j++ {
-			if j==i {
+func (lg *nntb_logic) FindCardValue(cardData []int) int {
+	for i := 0; i < 5; i++ {
+		for j := 0; j < 5; j++ {
+			if j == i {
 				continue
 			}
-			for k:=0; k<5; k++ {
-				if k==i || k==j {
+			for k := 0; k < 5; k++ {
+				if k == i || k == j {
 					continue
 				}
 				if lg.GetCardValue(cardData[i]) == lg.GetCardValue(cardData[j]) &&
@@ -496,9 +487,10 @@ func (lg *nntb_logic)FindCardValue(cardData []int) int {
 	}
 	return 0
 }
+
 // 找出一张匹配点数的牌
 func (lg *nntb_logic) FindCardWithValue(cardData []int, cardValue int) int {
-	for i:=0;i<len(cardData);i++ {
+	for i := 0; i < len(cardData); i++ {
 		if lg.GetCardValue(cardData[i]) == cardValue {
 			return cardData[i]
 		}
@@ -506,13 +498,13 @@ func (lg *nntb_logic) FindCardWithValue(cardData []int, cardValue int) int {
 	return 0
 }
 
-func (lg *nntb_logic) CompareCardTwoType(firstData []int, nextData []int) bool  {
+func (lg *nntb_logic) CompareCardTwoType(firstData []int, nextData []int) bool {
 	// 大牌就两种可能 3张或4张 找出点数
 	firstValue := lg.FindCardValue(firstData)
 	nextValue := lg.FindCardValue(nextData)
 	// 比点数
 	if firstValue != nextValue {
-		return firstValue>nextValue
+		return firstValue > nextValue
 	}
 	// 点数一样比花色
 	firstCard := lg.FindCardWithValue(firstData, firstValue)
@@ -521,21 +513,21 @@ func (lg *nntb_logic) CompareCardTwoType(firstData []int, nextData []int) bool  
 	return lg.GetCardColor(firstCard) > lg.GetCardColor(nextCard)
 }
 
-func (lg *nntb_logic) GetCardTimes(cardType int) int  {
+func (lg *nntb_logic) GetCardTimes(cardType int) int {
 	switch {
-	case cardType>=17 && cardType<=18:
+	case cardType >= 17 && cardType <= 18:
 		return 5
-	case cardType>=15 && cardType<=16:
+	case cardType >= 15 && cardType <= 16:
 		return 4
-	case cardType>=11 && cardType<=14:
+	case cardType >= 11 && cardType <= 14:
 		return 3
-	case cardType==10:
+	case cardType == 10:
 		return 2
 	}
 	return 1
 
 }
 
-
-
-
+func (lg *nntb_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	return nil
+}
