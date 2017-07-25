@@ -436,18 +436,23 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 	if cbLessKindItem == 0 {
 		//牌眼判断
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
-			if cbCardIndex[i] == 2 {
+			if cbCardIndex[i] == 2 || (cbMagicIndex != 0 && i != cbMagicIndex && cbMagicCount+cbCardIndex[i] == 2) {
 				//变量定义
 				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 				for i := range analyseItem.CardData {
-					analyseItem.CardData[i] = make([]int, 4)
+					analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 				}
 				//设置结果
 				for j := 0; j < cbWeaveCount; j++ {
 					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
 					analyseItem.CenterCard[j] = WeaveItem[j].CenterCard
 				}
-				analyseItem.CardEye = lg.SwitchToCard(i)
+				analyseItem.MagicEye = cbCardIndex[i] < 2 || i == cbMagicIndex
+				if cbCardIndex[i] == 0 {
+					analyseItem.CardEye = lg.SwitchToCard(cbMagicIndex)
+				} else {
+					analyseItem.CardEye = lg.SwitchToCard(i)
+				}
 				//插入结果
 				TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 				return true, TagAnalyseItemArray
