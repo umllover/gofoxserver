@@ -15,6 +15,8 @@ import (
 
 	"strings"
 
+	"mj/gameServer/conf"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -943,9 +945,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-	//if conf.Test {
-	//	room.RepalceCard()
-	//}
+	if conf.Test {
+		room.RepalceCard()
+	}
 
 	////TODO 测试用
 	//newCar := make([]int, room.GetCfg().MaxIdx)
@@ -1012,12 +1014,14 @@ func (room *RoomData) StartDispatchCard() {
 }
 
 func (room *RoomData) RepalceCard() {
+	base.GameServiceOptionCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break
 			}
+			var TmpRepertoryCard []int
 			cards := strings.Split(v.Cards, "#")
 			if len(cards) < len(chairIds) {
 				break
@@ -1026,7 +1030,43 @@ func (room *RoomData) RepalceCard() {
 			for idx, chair := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
+				TmpRepertoryCard = append(TmpRepertoryCard, card...)
+
 			}
+
+			m := GetCardByIdx(room.ConfigIdx)
+			log.Debug("库存的牌%v", m)
+			log.Debug("TmpRepertoryCard:%d  %v", len(TmpRepertoryCard), TmpRepertoryCard)
+
+			tempCard := make([]int, len(m))
+
+			room.MjBase.LogicMgr.RandCardList(tempCard, m)
+
+			log.Debug("删除前%d   %v", len(tempCard), tempCard)
+			for _, v := range TmpRepertoryCard {
+				for idx, card := range tempCard {
+					if v == card {
+						tempCard = utils.IntSliceDelete(tempCard, idx)
+						break
+					}
+				}
+			}
+			log.Debug("删除后 %d   %v", len(tempCard), tempCard)
+
+			room.RepertoryCard = make([]int, 0)
+			for _, k := range tempCard {
+				room.RepertoryCard = append(room.RepertoryCard, k)
+			}
+
+			for _, v := range TmpRepertoryCard {
+				room.RepertoryCard = append(room.RepertoryCard, v)
+			}
+
+			log.Debug("库存牌%v", room.RepertoryCard)
+			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
+				log.Error(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
+			}
+
 		}
 	}
 }
@@ -1588,7 +1628,6 @@ func (room *RoomData) IsHuaGang(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 func (room *RoomData) IsAnKe(pAnalyseItem *TagAnalyseItem) int {
 	anKeCount := 0
 	for k, v := range pAnalyseItem.WeaveKind {
-		log.Debug("test kind:%d IsAnalyseGet:%v", v, pAnalyseItem.IsAnalyseGet[k])
 		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true {
 			anKeCount++
 		}
@@ -1793,8 +1832,14 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG || v == WIK_GANG {
+		log.Debug("############ kind:%d IsAnalyseGet：%v", v, pAnalyseItem.IsAnalyseGet[k])
+		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
+				return 0
+			}
+		} else if v == WIK_GANG {
+			if pAnalyseItem.Param[k] == WIK_AN_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
+				log.Debug("有暗杠")
 				return 0
 			}
 		}
@@ -1847,6 +1892,24 @@ func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4
 		return CHR_QING_BAI_LIU
 	}
 	return 0
+}
+
+//字牌杠
+func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
+	for k, v := range pAnalyseItem.WeaveKind {
+		if v == WIK_GANG && pAnalyseItem.Param[k] == WIK_MING_GANG {
+			cardColor := pAnalyseItem.CenterCard[k] >> 4
+			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
+			if cardColor == 3 {
+				if cardValue > 4 {
+					return CHR_ZI_PAI_GANG, true
+				} else {
+					return CHR_ZI_PAI_GANG, false
+				}
+			}
+		}
+	}
+	return 0, false
 }
 
 //胡尾张
