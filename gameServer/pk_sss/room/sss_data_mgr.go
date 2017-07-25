@@ -10,10 +10,9 @@ import (
 	"mj/common/msg/pk_sss_msg"
 
 	"mj/gameServer/common/pk"
-	//dbg "github.com/funny/debug"
 	"mj/gameServer/db/model"
 
-	dbg "github.com/funny/debug"
+	//dbg "github.com/funny/debug"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -870,7 +869,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 				}
 			}
 		})
-		dbg.Print(gameEnd)
+		//dbg.Print(gameEnd)
 		userMgr.ForEachUser(func(u *user.User) {
 			u.WriteMsg(gameEnd)
 		})
