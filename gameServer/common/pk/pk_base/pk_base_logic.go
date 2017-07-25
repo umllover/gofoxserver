@@ -1,6 +1,8 @@
 package pk_base
 
 import (
+	"mj/gameServer/common/pk"
+
 	"github.com/lovelly/leaf/util"
 )
 
@@ -108,4 +110,8 @@ func (lg *BaseLogic) GetCardTimes(cardType int) int {
 
 func (lg *BaseLogic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool) {
 	return 0, false
+}
+
+func (lg *BaseLogic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType {
+	return nil
 }

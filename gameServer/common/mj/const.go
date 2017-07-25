@@ -59,7 +59,7 @@ const (
 	CHR_SI_AN_KE        = 0x00000008 //四暗刻
 	CHR_WU_AN_KE        = 0x00000010 //五暗刻
 	CHR_DAN_DIAO        = 0x00000020 //单吊
-	CHR_SHI_SAN_LAN     = 0x00000040 //十三烂
+	CHR_ZI_PAI_GANG     = 0x00000040 //字牌杠
 	CHR_ZI_YI_SE        = 0x00000080 //字一色
 	CHR_TIAN_HU         = 0x00000100 //天胡
 	CHR_DI_HU           = 0x00000200 //地胡
@@ -114,6 +114,7 @@ type TagAnalyseItem struct {
 	IsAnalyseGet []bool  //非打出组合
 	CenterCard   []int   //中心扑克
 	CardData     [][]int //实际扑克
+	Param        []int   //类型标志
 }
 
 //类型子项

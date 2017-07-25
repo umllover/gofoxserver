@@ -496,10 +496,9 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
 	//temp[5] = 2
-	//temp[6] = 0
 	//
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x07
+	//room.SendCardData = 0x06
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -703,7 +702,6 @@ func (room *ZP_RoomData) NormalEnd() {
 		}
 		GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
-		util.DeepCopy(&GameConclude.ScoreKind[i], &room.HuKindScore[i]) //游戏得分类型
 	}
 
 	//计算胡牌输赢分
@@ -725,10 +723,10 @@ func (room *ZP_RoomData) NormalEnd() {
 		if u.Status != US_PLAYING {
 			return
 		}
+		util.DeepCopy(&GameConclude.ScoreKind[u.ChairId], &room.HuKindScore[u.ChairId]) //游戏得分类型
 		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
 		//胡牌分
-		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-		GameConclude.GangScore[u.ChairId] += room.SumScore[u.ChairId]
+		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
 		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
@@ -998,7 +996,7 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 //特殊胡牌类型及算分
 func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID int) {
 
-	winScore := room.HuKindScore[HuUserID]
+	winScore := &room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
 		kind := 0
 		kind = room.IsDaSanYuan(v) //大三元
@@ -1154,7 +1152,18 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		kind = room.IsZiYiSe(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_ZYS] = 12
-			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_WHZ])
+			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_ZYS])
+		}
+		var res bool
+		kind, res = room.IsZiPaiGang(v)
+		if kind > 0 {
+			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && !res ||
+				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && res {
+				//排除重复算分
+				continue
+			}
+			winScore[IDX_SUB_SCORE_ZPG] = 1
+			log.Debug("字牌杠，%d", winScore[IDX_SUB_SCORE_ZPG])
 		}
 	}
 	//单吊
@@ -1169,11 +1178,12 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
 		}
 	}
+
 }
 
 //特殊胡牌算分规则
 func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
-	winScore := room.HuKindScore[HuUserID]
+	winScore := &room.HuKindScore[HuUserID]
 	if room.ScoreType == GAME_TYPE_33 {
 		winScore[IDX_SUB_SCORE_JT] = 0
 		winScore[IDX_SUB_SCORE_KX] = 0
@@ -1236,6 +1246,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 4
 			case IDX_SUB_SCORE_ZYS:
 				winScore[k] = 16
+			case IDX_SUB_SCORE_ZPG:
+				winScore[k] = 1
 			}
 		}
 
@@ -1298,6 +1310,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 8
 			case IDX_SUB_SCORE_ZYS:
 				winScore[k] = 16
+			case IDX_SUB_SCORE_ZPG:
+				winScore[k] = 1
 			}
 		}
 	}
@@ -1656,7 +1670,6 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 }
 
 func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
-	log.Debug("########## cbOperateCode:%d", cbOperateCode)
 	room.SendStatus = Gang_Send
 	//变量定义
 	var cbWeave *msg.WeaveItem
@@ -1955,14 +1968,19 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//}
 
 	//构造数据
+	SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCardToMe.SendCardUser = wCurrentUser
+	SendCardToMe.CurrentUser = wCurrentUser
+	SendCardToMe.Tail = bTail
+	SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
+	SendCardToMe.CardData = room.ProvideCard
+	u.WriteMsg(SendCardToMe)
+
 	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser
 	SendCard.CurrentUser = wCurrentUser
 	SendCard.Tail = bTail
 	SendCard.ActionMask = room.UserAction[wCurrentUser]
-	SendCard.CardData = room.ProvideCard
-	//发送数据
-	u.WriteMsg(SendCard)
 	SendCard.CardData = 0
 	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
 

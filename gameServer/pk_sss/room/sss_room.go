@@ -16,7 +16,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
 	u := args[1].(*user.User)
 	if info.KindId != common.KIND_TYPE_SSS {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_SSS uid:%d", u.Id)
 		return nil
 	}
 
