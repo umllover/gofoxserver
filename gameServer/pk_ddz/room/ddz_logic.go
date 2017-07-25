@@ -2,11 +2,9 @@ package room
 
 import (
 	"encoding/json"
-	"mj/gameServer/common/pk/pk_base"
-
-	"mj/gameServer/db/model"
-
 	"mj/common/msg/pk_ddz_msg"
+	"mj/gameServer/common/pk/pk_base"
+	"mj/gameServer/db/model"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
@@ -258,70 +256,73 @@ func (dg *ddz_logic) isFourTakeTwo(cardArr []int) (int, bool) {
 	return CT_ERROR, false
 }
 
-// 是否是飞机带翅膀 9（未完待续）
+// 是否是飞机带翅膀 9
 func (dg *ddz_logic) isThreeLineTake(cardArr []int) (int, bool) {
 	if len(cardArr) < 8 {
 		log.Debug("飞机至少得有8张牌，当前只有%d", len(cardArr))
 		return CT_ERROR, false
 	}
 
-	tmpArr, nKingCount := dg.removeKingFromCard(cardArr)
-	tmpArr, nLaiziCount := dg.removeValuesFromCard(tmpArr, dg.LizeCard)
+	tmpArr, nLaiziCount := dg.removeValuesFromCard(cardArr, dg.LizeCard)
 
-	var AnalyseResult tagAnalyseResult
-	dg.AnalysebCardData(cardArr, len(cardArr), &AnalyseResult)
-
-	// 无癞子
-	if nLaiziCount == 0 {
-		if AnalyseResult.cbBlockCount[2] > 1 {
-
-			var maxValue int
-			for i := 0; i < AnalyseResult.cbBlockCount[2]-1; i++ {
-				if dg.GetCardLogicValue(AnalyseResult.cbCardData[2][i])-dg.GetCardLogicValue(AnalyseResult.cbCardData[2][i+3]) != 1 {
-					return CT_ERROR, false
-				}
-				maxValue = dg.maxValue(maxValue, dg.GetCardLogicValue(AnalyseResult.cbCardData[2][i*3]))
-			}
-			// 带单根的
-			if len(cardArr)-3*AnalyseResult.cbBlockCount[2] == AnalyseResult.cbBlockCount[2] {
-				return CT_THREE_LINE_TAKE | (maxValue << 4) | (AnalyseResult.cbBlockCount[2] << 1), true
-			}
-			// 带对子的
-			if len(cardArr)-3*AnalyseResult.cbBlockCount[2] == AnalyseResult.cbBlockCount[2]*2 && nKingCount == 0 {
-				if AnalyseResult.cbBlockCount[1] == AnalyseResult.cbBlockCount[2] {
-					return CT_THREE_LINE_TAKE | (maxValue << 4) | (AnalyseResult.cbBlockCount[2] << 1) | 1, true
-				}
-			}
-		}
-		return CT_ERROR, false
-	}
-
-	nCount := dg.getLaiziCount(cardArr)
-
-	if nCount == 0 {
-		// 至少两对三根
-		if AnalyseResult.cbBlockCount[2] < 2 {
-			return CT_ERROR, false
-		}
-		// 判断三根牌中是否连续
-		for i := 0; i < AnalyseResult.cbBlockCount[2]-1; i++ {
-			if AnalyseResult.cbCardData[2][i]-AnalyseResult.cbCardData[2][i+3] != 1 {
-				return CT_ERROR, false
-			}
-		}
-		// 是否带对子
-		if AnalyseResult.cbBlockCount[1] == AnalyseResult.cbBlockCount[2] {
-			return CT_THREE_LINE_TAKE | (AnalyseResult.cbBlockCount[1] << 4), true
-		}
-		// 是否是带单
-		if AnalyseResult.cbBlockCount[1]+AnalyseResult.cbBlockCount[0] == AnalyseResult.cbBlockCount[2] {
-			return CT_THREE_LINE_TAKE | AnalyseResult.cbBlockCount[2], true
-		}
-	} else if nCount == 1 {
-
+	nMax, b := dg.recursionIsPlane(tmpArr, nLaiziCount)
+	if b {
+		return CT_THREE_LINE_TAKE | nMax, true
 	}
 
 	return CT_ERROR, false
+}
+
+// 讲癞子牌递归插入到牌中并判断是否是飞机
+func (dg *ddz_logic) recursionIsPlane(cardArr []int, nLaiziCount int) (int, bool) {
+	if nLaiziCount == 0 {
+		return dg.isPlane(cardArr)
+	}
+
+	nLaiziCount--
+	for i := 14; i > 2; i-- {
+		tmpArr := util.CopySlicInt(cardArr)
+		tmpArr = append(tmpArr, i)
+		nMax, b := dg.recursionIsPlane(tmpArr, nLaiziCount)
+		if b {
+			return nMax, true
+		}
+	}
+
+	return 0, false
+}
+
+// 判断是否是飞机
+func (dg *ddz_logic) isPlane(tmpArr []int) (int, bool) {
+
+	cardArr := util.CopySlicInt(tmpArr)
+	cardArr, nKingCount := dg.removeKingFromCard(cardArr)
+
+	dg.SortCardList(cardArr, len(cardArr))
+
+	var AnalyseResult tagAnalyseResult
+	dg.AnalysebCardData(cardArr, len(cardArr), &AnalyseResult)
+	if AnalyseResult.cbBlockCount[2] > 1 {
+
+		var maxValue int
+		for i := 0; i < AnalyseResult.cbBlockCount[2]-1; i++ {
+			if dg.GetCardLogicValue(AnalyseResult.cbCardData[2][i*3])-dg.GetCardLogicValue(AnalyseResult.cbCardData[2][(i+1)*3]) != 1 {
+				return CT_ERROR, false
+			}
+			maxValue = dg.maxValue(maxValue, dg.GetCardLogicValue(AnalyseResult.cbCardData[2][i*3]))
+		}
+		// 带单根的
+		if len(tmpArr)-3*AnalyseResult.cbBlockCount[2] == AnalyseResult.cbBlockCount[2] {
+			return CT_THREE_LINE_TAKE | (maxValue << 4) | (AnalyseResult.cbBlockCount[2] << 1), true
+		}
+		// 带对子的
+		if len(cardArr)-3*AnalyseResult.cbBlockCount[2] == AnalyseResult.cbBlockCount[2]*2 && nKingCount == 0 {
+			if AnalyseResult.cbBlockCount[1] == AnalyseResult.cbBlockCount[2] {
+				return CT_THREE_LINE_TAKE | (maxValue << 4) | (AnalyseResult.cbBlockCount[2] << 1) | 1, true
+			}
+		}
+	}
+	return 0, false
 }
 
 // 是否是三顺子
@@ -339,101 +340,10 @@ func (dg *ddz_logic) isThreeLine(cardArr []int) (int, bool) {
 	}
 
 	tmpArr, nLaiziCount := dg.removeValuesFromCard(cardArr, dg.LizeCard)
-	// 无癞子
-	if nLaiziCount == 0 {
-		nMax, b := dg.isLine(tmpArr, 3)
-		if b {
-			return CT_THREE_LINE | nMax, true
-		}
-		return CT_ERROR, false
-	}
 
-	// 有癞子
-	if nLaiziCount == 1 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				nMax, b := dg.isLine(tmpArr1, 3)
-				if b {
-					return CT_THREE_LINE | nMax, true
-				}
-			}
-		}
-		return CT_ERROR, false
-	}
-
-	if nLaiziCount == 2 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						nMax, b := dg.isLine(tmpArr2, 3)
-						if b {
-							return CT_THREE_LINE | nMax, true
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 3 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								nMax, b := dg.isLine(tmpArr3, 3)
-								if b {
-									return CT_THREE_LINE | nMax, true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 4 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					if j != 2 {
-						tmpArr2 := util.CopySlicInt(tmpArr1)
-						tmpArr2 = append(tmpArr2, j)
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								for l := 14; l > 0; l++ {
-									tmpArr4 := util.CopySlicInt(tmpArr3)
-									tmpArr4 = append(tmpArr4, l)
-									nMax, b := dg.isLine(tmpArr4, 3)
-									if b {
-										return CT_THREE_LINE | nMax, true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 3)
+	if b {
+		return CT_SINGLE_LINE | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -454,101 +364,10 @@ func (dg *ddz_logic) isDoubleLine(cardArr []int) (int, bool) {
 	}
 
 	tmpArr, nLaiziCount := dg.removeValuesFromCard(cardArr, dg.LizeCard)
-	// 无癞子
-	if nLaiziCount == 0 {
-		nMax, b := dg.isLine(tmpArr, 2)
-		if b {
-			return CT_DOUBLE_LINE | nMax, true
-		}
-		return CT_ERROR, false
-	}
 
-	// 有癞子
-	if nLaiziCount == 1 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				nMax, b := dg.isLine(tmpArr1, 2)
-				if b {
-					return CT_DOUBLE_LINE | nMax, true
-				}
-			}
-		}
-		return CT_ERROR, false
-	}
-
-	if nLaiziCount == 2 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						nMax, b := dg.isLine(tmpArr2, 2)
-						if b {
-							return CT_DOUBLE_LINE | nMax, true
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 3 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								nMax, b := dg.isLine(tmpArr3, 2)
-								if b {
-									return CT_DOUBLE_LINE | nMax, true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 4 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					if j != 2 {
-						tmpArr2 := util.CopySlicInt(tmpArr1)
-						tmpArr2 = append(tmpArr2, j)
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								for l := 14; l > 0; l++ {
-									tmpArr4 := util.CopySlicInt(tmpArr3)
-									tmpArr4 = append(tmpArr4, l)
-									nMax, b := dg.isLine(tmpArr4, 2)
-									if b {
-										return CT_DOUBLE_LINE | nMax, true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 2)
+	if b {
+		return CT_SINGLE_LINE | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -570,105 +389,31 @@ func (dg *ddz_logic) isSingleLine(cardArr []int) (int, bool) {
 	}
 
 	tmpArr, nLaiziCount := dg.removeValuesFromCard(cardArr, dg.LizeCard)
-	// 无癞子
-	if nLaiziCount == 0 {
-		nMax, b := dg.isLine(tmpArr, 1)
-		log.Debug("无赖子%d", b)
-		if b {
-			return CT_SINGLE_LINE | nMax, true
-		}
-		return CT_ERROR, false
-	}
 
-	// 有癞子
-	if nLaiziCount == 1 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				nMax, b := dg.isLine(tmpArr1, 1)
-				if b {
-					return CT_SINGLE_LINE | nMax, true
-				}
-			}
-		}
-		return CT_ERROR, false
-	}
-
-	if nLaiziCount == 2 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						nMax, b := dg.isLine(tmpArr2, 1)
-						if b {
-							return CT_SINGLE_LINE | nMax, true
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 3 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					tmpArr2 := util.CopySlicInt(tmpArr1)
-					tmpArr2 = append(tmpArr2, j)
-					if j != 2 {
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								nMax, b := dg.isLine(tmpArr3, 1)
-								if b {
-									return CT_SINGLE_LINE | nMax, true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if nLaiziCount == 4 {
-		for i := 14; i > 0; i-- {
-			if i != 2 {
-				tmpArr1 := util.CopySlicInt(tmpArr)
-				tmpArr1 = append(tmpArr1, i)
-				for j := 14; j > 0; j-- {
-					if j != 2 {
-						tmpArr2 := util.CopySlicInt(tmpArr1)
-						tmpArr2 = append(tmpArr2, j)
-						for k := 14; k > 0; k-- {
-							if k != 2 {
-								tmpArr3 := util.CopySlicInt(tmpArr2)
-								tmpArr3 = append(tmpArr3, k)
-								for l := 14; l > 0; l++ {
-									tmpArr4 := util.CopySlicInt(tmpArr3)
-									tmpArr4 = append(tmpArr4, l)
-									nMax, b := dg.isLine(tmpArr4, 1)
-									if b {
-										return CT_SINGLE_LINE | nMax, true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 1)
+	if b {
+		return CT_SINGLE_LINE | nMax, b
 	}
 
 	return CT_ERROR, false
+}
+
+// 递归判断是否是顺子
+func (dg *ddz_logic) recursionIsLine(cardArr []int, nLaiziCount int, nType int) (int, bool) {
+
+	if nLaiziCount == 0 {
+		return dg.isLine(cardArr, nType)
+	}
+	nLaiziCount--
+	for i := 14; i > 2; i-- {
+		tmpArr := util.CopySlicInt(cardArr)
+		tmpArr = append(tmpArr, i)
+		nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, nType)
+		if b {
+			return nMax, true
+		}
+	}
+	return 0, false
 }
 
 // 是否是顺子，nType为单顺子、双顺子、三顺子

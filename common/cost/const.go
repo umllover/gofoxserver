@@ -154,6 +154,13 @@ const (
 	AA_PAY_TYPE   = 2 //AA付钱
 )
 
+//踢出玩家原因
+const (
+	UserOffline = 0 //socket 断开 主动断线
+	ServerKick  = 1 //服务器主动踢出
+	KickOutMsg  = 2 //踢号 重登
+)
+
 //////////////////////////////////////////////
 //标识前缀
 const (

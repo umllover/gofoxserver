@@ -401,10 +401,11 @@ func (room *RoomUserMgr) IsAllReady() bool {
 }
 
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
+	room.Users[u.ChairId] = u
 	if Status == RoomStatusStarting {
-		room.SetUsetStatus(u, US_PLAYING)
+		//room.SetUsetStatus(u, US_PLAYING)
 	} else {
-		room.SetUsetStatus(u, US_SIT)
+		//room.SetUsetStatus(u, US_SIT)
 	}
 }
 

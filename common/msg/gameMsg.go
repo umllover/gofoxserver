@@ -295,6 +295,7 @@ type G2C_GameConclude struct {
 }
 
 //踢出玩家
+
 type G2C_KickOut struct {
 	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
 }

@@ -32,4 +32,5 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_NotifyOtherNodelogout{})
 	cluster.Processor.Register(&msg.S2S_NotifyOtherNodeLogin{})
 	cluster.Processor.Register(&msg.S2S_GetPlayerInfoResult{})
+	cluster.Processor.Register(&msg.S2S_HanldeFromUserMsg{})
 }
