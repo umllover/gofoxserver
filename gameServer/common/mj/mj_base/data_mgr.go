@@ -1022,7 +1022,7 @@ func (room *RoomData) RepalceCard() {
 			if len(chairIds) < 1 {
 				break
 			}
-			var TmpRepertoryCard []int
+			var TmpRepertoryCard []int //玩家手里的牌
 			cards := strings.Split(v.Cards, "#")
 			if len(cards) < len(chairIds) {
 				break
@@ -1031,10 +1031,9 @@ func (room *RoomData) RepalceCard() {
 			for idx, chair := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
-				TmpRepertoryCard = append(TmpRepertoryCard, card...)
-
 			}
 
+			TmpRepertoryCard = room.GetUserCard()
 			m := GetCardByIdx(room.ConfigIdx)
 			log.Debug("库存的牌%v", m)
 			log.Debug("TmpRepertoryCard:%d  %v", len(TmpRepertoryCard), TmpRepertoryCard)
@@ -1062,6 +1061,9 @@ func (room *RoomData) RepalceCard() {
 			for _, v := range TmpRepertoryCard {
 				room.RepertoryCard = append(room.RepertoryCard, v)
 			}
+			if len(room.RepertoryCard) != room.MinusHeadCount {
+				log.Debug("len(room.RepertoryCard) != room.MinusHeadCount")
+			}
 
 			log.Debug("库存牌%v", room.RepertoryCard)
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
@@ -1077,14 +1079,6 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 	log.Debug("begin SetUserCard", room.CardIndex[charirID])
 	gameLogic := room.MjBase.LogicMgr
 
-	repalc := func(Oldcard int, newCard int) {
-		for i := room.MinusHeadCount; i < room.GetLeftCard(); i++ {
-			if room.RepertoryCard[i] == Oldcard {
-				room.RepertoryCard[i] = newCard
-			}
-		}
-	}
-
 	inc := 0
 	userCard := room.CardIndex[charirID]
 	for idx, cnt := range userCard {
@@ -1093,12 +1087,31 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 				break
 			}
 			userCard[idx]--
-			repalc(idx, gameLogic.SwitchToCardData(idx))
 			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
 			inc++
 		}
 	}
 	log.Debug("end SetUserCard %v", room.CardIndex[charirID])
+}
+
+//获取用户手牌
+func (room *RoomData) GetUserCard() []int {
+	var userCard = make([]int, 0)
+	log.Debug("%v", room.CardIndex)
+	var Poker int
+	for i := 0; i < 4; i++ {
+		for key, value := range room.CardIndex[i] {
+			if value != 0 {
+				for j := 0; j < value; j++ {
+					Poker = room.MjBase.LogicMgr.SwitchToCardData(key)
+					userCard = append(userCard, Poker)
+				}
+
+			}
+		}
+	}
+	log.Debug("userCard %v", userCard)
+	return userCard
 }
 
 func (room *RoomData) CheckZiMo() {
