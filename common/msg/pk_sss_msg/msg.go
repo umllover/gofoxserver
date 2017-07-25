@@ -21,10 +21,11 @@ func init() {
 
 type G2C_SSS_StatusFree struct {
 	//历史积分
-	lTurnScore    []int //积分信息
-	lCollectScore []int //积分信息
-
-	wUserToltalChip []int
+	//lTurnScore    []int //积分信息
+	//lCollectScore []int //积分信息
+	//
+	//wUserToltalChip []int
+	PlayerCount int `json:"playerCount"` //实际人数
 }
 
 //发送扑克
@@ -68,15 +69,15 @@ type G2C_SSS_GameEnd struct {
 	CbCompareDouble        []int      `json:"cbCompareDouble"`        //翻倍的道数
 	CbUserOverTime         []int      `json:"cbUserOverTime"`         //玩家超时得到的道数
 	CbCardData             [][]int    `json:"cbCardData"`             //扑克数据
-	BUnderScoreDescribe    [][]int    `json:"bUnderScoreDescribe"`    //底分描述
-	BCompCardDescribe      [][][]int  `json:"bCompCardDescribe"`      //牌比描述
+	BUnderScoreDescribe    []string   `json:"bUnderScoreDescribe"`    //底分描述
+	BCompCardDescribe      [][]string `json:"bCompCardDescribe"`      //牌比描述
 	BToltalWinDaoShu       []int      `json:"bToltalWinDaoShu"`       //总共道数
 	LUnderScore            int        `json:"lUnderScore"`            //底注分数
 	BAllDisperse           []bool     `json:"bAllDisperse"`           //所有散牌
 	BOverTime              []bool     `json:"bOverTime"`              //超时状态
 	BUserLeft              []bool     `json:"bUserLeft"`              //玩家逃跑
 	BLeft                  bool       `json:"bLeft"`
-	LeftszName             [][]string `json:"leftszName"`
+	LeftszName             []string   `json:"leftszName"`
 	LeftChairID            []int      `json:"leftChairID"`
 	BAllLeft               bool       `json:"bAllLeft"`
 	LeftScore              []int      `json:"leftScore"`

@@ -1,6 +1,7 @@
 package room
 
 import (
+	"encoding/json"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -9,6 +10,8 @@ import (
 	"mj/common/msg/pk_sss_msg"
 
 	"mj/gameServer/common/pk"
+	//dbg "github.com/funny/debug"
+	"mj/gameServer/db/model"
 
 	dbg "github.com/funny/debug"
 	"github.com/lovelly/leaf/log"
@@ -20,16 +23,25 @@ const (
 	GAME_START = 1002 // 游戏开始
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
+	var setInfo sssOtherInfo
+	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+		d.jiaPai = setInfo.jiaPai
+	}
 	return d
+}
+
+type sssOtherInfo struct {
+	jiaPai int
 }
 
 type sss_data_mgr struct {
 	*pk_base.RoomData
 
 	//游戏变量
+	jiaPai int
 
 	bCardData               []int                  //牌的总数
 	m_bUserCardData         map[*user.User][]int   //玩家扑克
@@ -673,8 +685,9 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	log.Debug("begin start game sss")
 	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
+	defaultCards := pk_base.GetCardByIdx(room.ConfigIdx)
 
-	gameLogic.RandCardList(room.bCardData, pk_base.GetCardByIdx(room.ConfigIdx))
+	gameLogic.RandCardList(room.bCardData, defaultCards)
 
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, US_PLAYING)
@@ -747,8 +760,11 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		gameEnd := &pk_sss_msg.G2C_SSS_GameEnd{}
 
 		//LGameTax               int        //游戏税收
+		gameEnd.LGameTax = 0
 		//LGameEveryTax          []int      //每个玩家的税收
+		gameEnd.LGameEveryTax = make([]int, room.PlayerCount)
 		//LGameScore             []int      //游戏积分
+		gameEnd.LGameScore = make([]int, room.PlayerCount)
 		//BEndMode               int        //结束方式
 		gameEnd.BEndMode = GER_NORMAL
 		//CbCompareResult        [][]int    //每一道比较结果
@@ -758,28 +774,45 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		//CbCompareDouble        []int      //翻倍的道数
 		gameEnd.CbCompareDouble = make([]int, room.PlayerCount)
 		//CbUserOverTime         []int      //玩家超时得到的道数
+		gameEnd.CbUserOverTime = make([]int, room.PlayerCount)
 		//CbCardData             [][]int    //扑克数据
 		gameEnd.CbCardData = make([][]int, room.PlayerCount)
 		//BUnderScoreDescribe    [][]int    //底分描述
+		gameEnd.BUnderScoreDescribe = make([]string, room.PlayerCount)
 		//BCompCardDescribe      [][][]int  //牌比描述
+		gameEnd.BCompCardDescribe = make([][]string, room.PlayerCount)
+		for i := 0; i < room.PlayerCount; i++ {
+			gameEnd.BCompCardDescribe[i] = make([]string, 3)
+		}
 		//BToltalWinDaoShu       []int      //总共道数
 		gameEnd.BToltalWinDaoShu = make([]int, room.PlayerCount)
 		//LUnderScore            int        //底注分数
+		gameEnd.LUnderScore = 0
 		//BAllDisperse           []bool     //所有散牌
+		gameEnd.BAllDisperse = make([]bool, room.PlayerCount)
 		//BOverTime              []bool     //超时状态
+		gameEnd.BOverTime = make([]bool, room.PlayerCount)
 		//copy(gameEnd.BOverTime, room.m_bOverTime)
 		//BUserLeft              []bool     //玩家逃跑
+		gameEnd.BUserLeft = make([]bool, room.PlayerCount)
 		//copy(gameEnd.BUserLeft, room.m_bUserLeft)
 		//BLeft                  bool       //
+		gameEnd.BLeft = false
 		//LeftszName             [][]string //
+		gameEnd.LeftszName = make([]string, room.PlayerCount)
 		//copy(gameEnd.LeftszName,room.)
 		//LeftChairID            []int      //
+		gameEnd.LeftChairID = make([]int, room.PlayerCount)
 		//BAllLeft               bool       //
+		gameEnd.BAllLeft = false
 		//LeftScore              []int      //
+		gameEnd.LeftScore = make([]int, room.PlayerCount)
 		//BSpecialCard           []bool     //是否为特殊牌
 		gameEnd.BSpecialCard = make([]bool, room.PlayerCount)
 		//BAllSpecialCard        bool       //全是特殊牌
+		gameEnd.BAllSpecialCard = false
 		//NTimer                 int        //结束后比牌、打枪时间
+		gameEnd.NTimer = 0
 		//ShootState             [][]int    //赢的玩家,输的玩家 2为赢的玩家，1为全输的玩家，0为没输没赢的玩家
 		gameEnd.ShootState = make([][]int, room.PlayerCount)
 		for i := range gameEnd.ShootState {
@@ -787,10 +820,13 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 		}
 		//M_nXShoot              int        //几家打枪
+		gameEnd.M_nXShoot = 0
 		//CbThreeKillResult      []int      //全垒打加减分
+		gameEnd.CbThreeKillResult = make([]int, room.PlayerCount)
 		//BEnterExit             bool       //是否一进入就离开
+		gameEnd.BEnterExit = false
 		//WAllUser               int        //全垒打用户
-
+		gameEnd.WAllUser = 0
 		//copy(room.m_lGameScore,room.m_lLeftScore)
 
 		nSpecialCard := 0
@@ -846,7 +882,9 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	//room.GameStatus = GAME_STATUS_FREE
-	StatusFree := &pk_sss_msg.G2C_SSS_StatusFree{}
+	StatusFree := &pk_sss_msg.G2C_SSS_StatusFree{
+		PlayerCount: room.PkBase.UserMgr.GetCurPlayerCnt(),
+	}
 
 	//StatusFree.CellScore = room.PkBase.Temp.CellScore // 基础积分
 	//
