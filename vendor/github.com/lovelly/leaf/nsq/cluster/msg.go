@@ -105,17 +105,18 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 	args := []interface{}{msg}
 	if recvMsg.CallType == callForResult {
 		sendMsgFunc := func(ret *chanrpc.RetInfo) {
-			data, err := Processor.Marshal(ret.Ret)
-			if err == nil {
-				sendMsg.Args = data[0]
+			if ret.Ret != nil {
+				data, err := Processor.Marshal(ret.Ret)
+				if err == nil {
+					sendMsg.Args = data[0]
+				} else {
+					log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
+					sendMsg.Err = err.Error()
+				}
 			} else {
-				log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
-				sendMsg.Err = err.Error()
-			}
-
-			if ret.Err != nil {
 				sendMsg.Err = ret.Err.Error()
 			}
+
 			Publish(sendMsg)
 		}
 

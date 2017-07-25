@@ -35,6 +35,8 @@ type Entry_base struct {
 
 	Temp   *base.GameServiceOption //模板
 	Status int
+
+	BtCardSpecialData []int
 }
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
@@ -77,9 +79,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 
 	retcode := 0
 	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
-		}
+		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
 	}()
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
 		retcode = GameIsStart
@@ -173,11 +173,13 @@ func (room *Entry_base) UserReady(args []interface{}) {
 //玩家重登
 func (room *Entry_base) UserReLogin(args []interface{}) {
 	u := args[0].(*user.User)
-	if u.Status == US_READY {
-		log.Debug("user status is ready at UserReady")
+	roomUser := room.getRoomUser(u.Id)
+	if roomUser == nil {
 		return
 	}
-
+	log.Debug("at ReLogin have old user ")
+	u.ChairId = roomUser.ChairId
+	u.RoomId = roomUser.RoomId
 	room.UserMgr.ReLogin(u, room.Status)
 }
 
@@ -345,4 +347,9 @@ func (r *Entry_base) ShowSSsCard(args []interface{}) {
 
 	//r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
 	return
+}
+
+func (r *Entry_base) getRoomUser(uid int64) *user.User {
+	u, _ := r.UserMgr.GetUserByUid(uid)
+	return u
 }

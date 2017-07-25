@@ -109,10 +109,7 @@ var cfg = []*MJ_CFG{
 }
 
 func GetCardByIdx(idx int) []int {
-	hzcard := make([]int, len(cards[idx]))
-	oldcard := cards[idx]
-	util.DeepCopy(&hzcard, &oldcard)
-	return hzcard
+	return util.CopySlicInt(cards[idx])
 }
 
 func GetCfg(idx int) *MJ_CFG {

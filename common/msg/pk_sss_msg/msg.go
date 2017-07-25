@@ -15,7 +15,7 @@ func init() {
 	Processor.Register(&CMD_SSS_GameEnd{})
 	Processor.Register(&CMD_S_StatusPlay{})
 	Processor.Register(&CMD_C_ShowCard{})
-
+	Processor.Register(&C2G_SSS_Open_Card{})
 }
 
 type G2C_SSS_StatusFree struct {
@@ -28,10 +28,32 @@ type G2C_SSS_StatusFree struct {
 
 //发送扑克
 type G2C_SSS_SendCard struct {
-	wCurrentUser    int     //当前玩家
-	AllHandCardData [][]int //所有玩家的扑克数据
-	bCardData       []int   //手上扑克
-	CellScore       int     //游戏底分
+	//wCurrentUser int   //当前玩家
+	CardData  []int //手上扑克
+	CellScore int   //游戏底分
+}
+
+//用户摊牌
+type C2G_SSS_Open_Card struct {
+	FrontCard   []int //前墩扑克
+	MidCard     []int //中墩扑克
+	BackCard    []int //后墩扑克
+	SpecialType bool  //是否是特殊牌
+	SpecialData []int //特殊扑克
+	Dragon      bool  //是否乌龙
+}
+
+//用户摊牌
+type G2C_SSS_Open_Card struct {
+	CurrentUser    int   //当前玩家
+	FrontCard      []int //前墩扑克
+	MidCard        []int //中墩扑克
+	BackCard       []int //后墩扑克
+	CanSeeShowCard bool  //能否看牌
+	SpecialType    bool  //是否是特殊牌
+	SpecialData    []int //特殊扑克
+	ShowUser       int   //摊牌的玩家
+	Dragon         bool  //是否乌龙
 }
 
 //游戏结束

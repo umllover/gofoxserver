@@ -49,7 +49,7 @@ func (room *DDZ_Entry) CTrustee(args []interface{}) {
 
 // 明牌
 func (r *DDZ_Entry) ShowCard(args []interface{}) {
-	u := args[1].(*user.User)
+	u := args[0].(*user.User)
 	r.DataMgr.OtherOperation([]interface{}{"ShowCard", u})
 }
 
