@@ -21,6 +21,8 @@ import (
 
 	dbbase "mj/gameServer/db/model/base"
 
+	"mj/gameServer/conf"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -72,30 +74,30 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 		return nil
 	}
 
-	getData, ok := setInfo["ZhuaHua"].(float64)
+	getData, ok := setInfo["zhuaHua"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
+		log.Error("zpmj at NewDataMgr [zhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
-	getData2, ok := setInfo["WithZiCard"].(bool)
+	getData2, ok := setInfo["wanFa"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithZiCard] error")
+		log.Error("zpmj at NewDataMgr [wanFa] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := setInfo["ScoreType"].(float64)
+	getData3, ok := setInfo["suanFen"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ScoreType] error")
+		log.Error("zpmj at NewDataMgr [suanFen] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
-	getData4, ok := setInfo["WithChaHua"].(bool)
+	getData4, ok := setInfo["chaHua"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithChaHua] error")
+		log.Error("zpmj at NewDataMgr [chaHua] error")
 		return nil
 	}
 	r.WithChaHua = getData4
@@ -167,7 +169,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.HuKindType = room.HuKindType[0:0]
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
-	room.LianZhuang = 0
+	room.LianZhuang = 1
 	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
 	room.BanCardCnt = [4][9]int{}
@@ -486,6 +488,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
+	if conf.Test {
+		room.RepalceCard()
+	}
+
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
@@ -617,11 +623,11 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
 					if hu {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
+						//抢杠胡特殊分
+						room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 					}
 				}
 			}
-			//抢杠胡特殊分
-			room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 		}
 
 		//结果判断
@@ -967,7 +973,7 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 	//结束信息
 	wChiHuUser := room.BankerUser
-	log.Debug("一炮: PerformAction:%v", room.PerformAction)
+
 	for i := 0; i < userCnt; i++ {
 		wChiHuUser = (room.BankerUser + i) % userCnt
 		//过虑判断
@@ -1324,7 +1330,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
-		playerScore := room.HuKindScore[i]
+		playerScore := &room.HuKindScore[i]
 
 		//暗杠
 		playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
