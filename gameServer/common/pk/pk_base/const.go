@@ -1,6 +1,5 @@
 package pk_base
 
-
 const (
 	//税收定义
 	REVENUE_BENCHMARK   = 0    //税收起点
@@ -16,7 +15,7 @@ type HistoryScore struct {
 //分析子项
 type TagAnalyseItem struct {
 	CardEye    int     //牌眼扑克
-	bMagicEye  bool    //牌眼是否是王霸
+	MagicEye   bool    //牌眼是否是王霸
 	WeaveKind  []int   //组合类型
 	CenterCard []int   //中心扑克
 	CardData   [][]int //实际扑克
@@ -51,10 +50,8 @@ type AnalyseResult struct {
 
 }
 
-
 // 扑克通用逻辑
 const (
 	LOGIC_MASK_COLOR = 0xF0 //花色掩码
 	LOGIC_MASK_VALUE = 0x0F //数值掩码
 )
-
