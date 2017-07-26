@@ -11,13 +11,13 @@ const (
 const (
 	IDX_SUB_SCORE_JC = 0 //基础分(底分1台)
 	//桌面分
-	IDX_SUB_SCORE_LZ   = 1 //连庄
-	IDX_SUB_SCORE_HUA  = 2 //花牌
-	IDX_SUB_SCORE_AG   = 3 //暗杠
-	IDX_SUB_SCORE_CH   = 4 //分饼
-	IDX_SUB_SCORE_ZH   = 5 //抓花
-	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
+	IDX_SUB_SCORE_LZ  = 1 //连庄
+	IDX_SUB_SCORE_HUA = 2 //花牌
+	IDX_SUB_SCORE_AG  = 3 //暗杠
+	IDX_SUB_SCORE_CH  = 4 //分饼
+	IDX_SUB_SCORE_ZH  = 5 //抓花
 	//胡牌+分
+	IDX_SUB_SCORE_ZPKZ = 6  //字牌刻字
 	IDX_SUB_SCORE_HP   = 7  //平胡
 	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
 	IDX_SUB_SCORE_HDLZ = 9  //海底捞针(算自摸，不能额外加自摸分)
