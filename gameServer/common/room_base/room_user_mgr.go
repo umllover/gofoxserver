@@ -16,6 +16,7 @@ import (
 
 func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
+	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
 	r.id = info.RoomId
 	r.PayType = info.PayType
@@ -34,6 +35,7 @@ type RoomUserMgr struct {
 	PayType     int //支付类型
 	Public      int
 	EendTime    int64              //结束时间
+	MinUserCount int  //最少用户数量
 	UserCnt     int                //可以容纳的用户数量
 	PlayerCount int                //当前用户人数
 	JoinCount   int                //房主设置的游戏人数
@@ -431,11 +433,21 @@ func (room *RoomUserMgr) RoomDissume() {
 }
 
 func (room *RoomUserMgr) IsAllReady() bool {
+	PlayerCount := 0
 	for _, u := range room.Users {
-		if u == nil || u.Status != US_READY {
+		if u == nil {
+			continue
+		}
+
+		if u.Status != US_READY {
 			return false
 		}
+		PlayerCount++
 	}
+	if PlayerCount< room.MinUserCount || PlayerCount> room.UserCnt {
+		return false
+	}
+
 	return true
 }
 
