@@ -17,7 +17,7 @@ import (
 
 func NewXSDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *xs_entry, set string) *xs_data {
 	d := new(xs_data)
-	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)
+	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, set)
 
 	//房间游戏设置
 	info := make(map[string]interface{})
@@ -69,7 +69,6 @@ func (room *xs_data) InitRoom(UserCnt int) {
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
-	room.HistoryScores = make([]*HistoryScore, UserCnt)
 	room.MinusLastCount = 0
 	room.MinusHeadCount = 0
 	room.OutCardCount = 0

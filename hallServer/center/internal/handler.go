@@ -114,6 +114,7 @@ func SendMsgToHallUser(args []interface{}) {
 //处理来自游戏服的消息
 func HanldeFromGameMsg(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_HanldeFromUserMsg)
+	log.Debug("at HanldeFromGameMsg == ", msg.S2S_HanldeFromUserMsg{})
 	data, err := cluster.Processor.Unmarshal(recvMsg.Data)
 	if err != nil {
 		log.Error("at HanldeFromGameMsg Unmarshal error:%s", err.Error())

@@ -1,6 +1,7 @@
 package pk_base
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, setinfo string) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -32,6 +33,14 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 
 	r.KindID = temp.KindID
 	r.ServerID = temp.ServerID
+	r.OtherInfo = make(map[string]interface{})
+	if setinfo != "" {
+		err := json.Unmarshal([]byte(setinfo), &r.OtherInfo)
+		if err != nil {
+			log.Error("pk_data_mgr at NewDataMgr error:%s", err.Error())
+			return nil
+		}
+	}
 
 	return r
 }
@@ -68,6 +77,8 @@ type RoomData struct {
 
 	HistoryScores    []*HistoryScore //历史积分
 	CurrentPlayCount int
+
+	OtherInfo map[string]interface{} //其他配置信息
 }
 
 func (r *RoomData) OnCreateRoom() {
@@ -131,6 +142,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		ServerID:          strconv.Itoa(room.id),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
+		OtherInfo:         room.OtherInfo,
 	})
 }
 
@@ -213,7 +225,7 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	}
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
+		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
 	})
 
 }

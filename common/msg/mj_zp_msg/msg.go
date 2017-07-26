@@ -250,9 +250,6 @@ type G2C_PersonalTableTip struct {
 	IsJoinGame        int    //是否参与游戏
 	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
 
-	ZhuaHua    int  //抓花数
-	WithZiCard bool //是否带大字
-	ScoreType  int  //得分类型
-	WithChaHua bool //是否插花
-	PayType    int  //付费方式 支付方式 1是全服 2是AA
+	OtherInfo map[string]interface{}
+	PayType   int //付费方式 支付方式 1是全服 2是AA
 }

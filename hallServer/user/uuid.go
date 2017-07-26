@@ -3,17 +3,36 @@ package user
 import (
 	"mj/hallServer/conf"
 
+	"mj/hallServer/db/model"
+
 	"github.com/lovelly/leaf/log"
 )
 
 var key int64
-var MaxInc = int64(1<<43 - 1)
+var MaxInc = int64(1<<42 - 1)
+
+func LoadIncId() {
+	inc, err := model.IncUseridOp.Get(conf.Server.NodeId)
+	if !err {
+		model.IncUseridOp.Insert(&model.IncUserid{NodeId: conf.Server.NodeId, IncId: 0})
+	}
+
+	inc, err = model.IncUseridOp.Get(conf.Server.NodeId)
+	if !err {
+		log.Fatal("LoadIncId faild ")
+	}
+
+	key = inc.IncId
+}
 
 func GetKey() int64 {
 	key = key + 1
 	if key > MaxInc {
 		key = 0
 	}
+	model.IncUseridOp.UpdateWithMap(conf.Server.NodeId, map[string]interface{}{
+		"inc_id": key,
+	})
 	return key
 }
 
