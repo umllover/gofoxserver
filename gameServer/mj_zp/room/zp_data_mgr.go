@@ -448,21 +448,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.MinusHeadCount = len(room.RepertoryCard)
 	}
 
-	m := make(map[int]int)
-	for _, v := range room.RepertoryCard {
-		m[v]++
-		if v <= 0x37 {
-			if m[v] > 4 {
-				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
-			}
-		}
-
-		if v > 0x37 {
-			if m[v] > 1 {
-				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
-			}
-		}
-	}
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
 		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
@@ -1525,11 +1510,10 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			if WinCount > 1 && k < WinCount-1 {
 				var error error
 				room.ZhuaHuaCnt, error = utils.RandInt(1, leftZhuaHuaCnt)
-				if error == nil {
+				if error != nil {
 					return
 				}
 			}
-
 			//room.ZhuaHuaCnt = 10 //todo,测试代码
 			//进行抓花
 			ZhongCard, BuZhong := room.OnZhuaHua(v)
@@ -1565,6 +1549,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				}
 			}
 			leftZhuaHuaCnt -= room.ZhuaHuaCnt
+			room.ZhuaHuaCnt = leftZhuaHuaCnt
 		}
 
 		room.ZhuaHuaCnt = tempZhuaHuaCnt
