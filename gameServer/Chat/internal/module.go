@@ -46,7 +46,7 @@ func createRoom(args []interface{}) (interface{}, error) {
 	user.ChatRoomId = roomID
 	roomID++
 	log.Debug("createRoom ok, RoomID = %d", roomID)
-	return roomID, nil
+	return user.ChatRoomId, nil
 }
 
 //增加聊天房间成员

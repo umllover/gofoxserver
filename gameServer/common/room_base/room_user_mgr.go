@@ -16,6 +16,7 @@ import (
 
 func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
+	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
 	r.id = info.RoomId
 	r.PayType = info.PayType
@@ -23,6 +24,7 @@ func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *R
 	r.Trustee = make([]bool, r.UserCnt)
 	r.Public = info.Public
 	r.Onlookers = make(map[int]*user.User)
+	r.ReqLeave = make(map[int64]*ReqLeaveSet)
 	return r
 }
 
@@ -33,6 +35,7 @@ type RoomUserMgr struct {
 	PayType     int //支付类型
 	Public      int
 	EendTime    int64              //结束时间
+	MinUserCount int  //最少用户数量
 	UserCnt     int                //可以容纳的用户数量
 	PlayerCount int                //当前用户人数
 	JoinCount   int                //房主设置的游戏人数
@@ -40,6 +43,12 @@ type RoomUserMgr struct {
 	Onlookers   map[int]*user.User /// 旁观的玩家
 	ChatRoomId  int                //聊天房间id
 	Trustee     []bool             //是否托管 index 就是椅子id
+	ReqLeave    map[int64]*ReqLeaveSet
+}
+
+type ReqLeaveSet struct {
+	Refuse int8
+	Agree  int8
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
@@ -151,6 +160,37 @@ func (r *RoomUserMgr) GetChairId() int {
 		}
 	}
 	return -1
+}
+
+func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) bool {
+	reqPlayer, _ := r.GetUserByUid(ReplyUid)
+	if reqPlayer == nil {
+		return false
+	}
+	if Agree {
+		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
+		req := r.ReqLeave[ReplyUid]
+		if req == nil {
+			req = &ReqLeaveSet{}
+			r.ReqLeave[ReplyUid] = req
+		}
+		req.Agree++
+		if int(req.Agree) >= r.UserCnt {
+			r.LeaveRoom(reqPlayer, status)
+			r.DeleteReply(reqPlayer.Id)
+			return true
+		}
+	} else {
+		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
+		r.DeleteReply(reqPlayer.Id)
+		return true
+	}
+
+	return false
+}
+
+func (r *RoomUserMgr) DeleteReply(uid int64) {
+	delete(r.ReqLeave, uid)
 }
 
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
@@ -388,11 +428,21 @@ func (room *RoomUserMgr) RoomDissume() {
 }
 
 func (room *RoomUserMgr) IsAllReady() bool {
+	PlayerCount := 0
 	for _, u := range room.Users {
-		if u == nil || u.Status != US_READY {
+		if u == nil {
+			continue
+		}
+
+		if u.Status != US_READY {
 			return false
 		}
+		PlayerCount++
 	}
+	if PlayerCount< room.MinUserCount || PlayerCount> room.UserCnt {
+		return false
+	}
+
 	return true
 }
 

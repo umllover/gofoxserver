@@ -146,7 +146,6 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 
 //玩家准备
 func (room *Entry_base) UserReady(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2G_UserReady)
 	u := args[1].(*user.User)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
@@ -159,7 +158,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
 		//派发初始扑克
-		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
 
@@ -297,7 +296,7 @@ func (room *Entry_base) AfertEnd(Forced bool) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.SetUsetStatus(u, US_FREE)
+		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
 }
 
