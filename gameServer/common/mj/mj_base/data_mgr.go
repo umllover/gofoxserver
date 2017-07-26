@@ -1,6 +1,7 @@
 package mj_base
 
 import (
+	"encoding/json"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -22,7 +23,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base) *RoomData {
+func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base, setinfo string) *RoomData {
 	r := new(RoomData)
 	r.ID = id
 	if name == "" {
@@ -31,8 +32,17 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 		r.Name = name
 	}
 	r.CreateUser = uid
+	r.OtherInfo = make(map[string]interface{}) //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
+	if setinfo != "" {
+		err := json.Unmarshal([]byte(setinfo), &r.OtherInfo)
+		if err != nil {
+			log.Error("zpmj at NewDataMgr error:%s", err.Error())
+			return nil
+		}
+	}
+
 	return r
 }
 
@@ -59,35 +69,36 @@ type RoomData struct {
 	MinusHeadCount    int    //头部空缺
 	MinusLastCount    int    //尾部空缺
 
-	SiceCount       int                //色子大小
-	UserActionDone  bool               //操作完成
-	SendStatus      int                //发牌状态
-	GangStatus      int                //杠牌状态
-	GangOutCard     bool               //杠后出牌
-	ProvideGangUser int                //供杠用户
-	GangCard        []bool             //杠牌状态
-	GangCount       []int              //杠牌次数
-	RepertoryCard   []int              //库存扑克
-	UserGangScore   []int              //游戏中杠的输赢
-	ChiHuKind       []int              //吃胡结果
-	ChiHuRight      []int              //胡牌类型
-	UserAction      []int              //用户动作
-	OperateCard     [][]int            //操作扑克
-	ChiPengCount    []int              //吃碰杠次数
-	CardIndex       [][]int            //用户扑克[GAME_PLAYER][MAX_INDEX]
-	WeaveItemArray  [][]*msg.WeaveItem //组合扑克
-	DiscardCard     [][]int            //丢弃记录
-	OutCardData     int                //出牌扑克
-	OutCardUser     int                //当前出牌用户
-	HeapHead        int                //堆立头部
-	HeapTail        int                //堆立尾部
-	HeapCardInfo    [][]int            //堆牌信息
-	SendCardData    int                //发牌扑克
-	HistorySe       *HistoryScore      //历史积分
-	CurrentUser     int                //当前操作用户
-	Ting            []bool             //是否听牌
-	BankerUser      int                //庄家用户
-	FlowerCnt       [4]int             //补花数
+	SiceCount       int                    //色子大小
+	UserActionDone  bool                   //操作完成
+	SendStatus      int                    //发牌状态
+	GangStatus      int                    //杠牌状态
+	GangOutCard     bool                   //杠后出牌
+	ProvideGangUser int                    //供杠用户
+	GangCard        []bool                 //杠牌状态
+	GangCount       []int                  //杠牌次数
+	RepertoryCard   []int                  //库存扑克
+	UserGangScore   []int                  //游戏中杠的输赢
+	ChiHuKind       []int                  //吃胡结果
+	ChiHuRight      []int                  //胡牌类型
+	UserAction      []int                  //用户动作
+	OperateCard     [][]int                //操作扑克
+	ChiPengCount    []int                  //吃碰杠次数
+	CardIndex       [][]int                //用户扑克[GAME_PLAYER][MAX_INDEX]
+	WeaveItemArray  [][]*msg.WeaveItem     //组合扑克
+	DiscardCard     [][]int                //丢弃记录
+	OutCardData     int                    //出牌扑克
+	OutCardUser     int                    //当前出牌用户
+	HeapHead        int                    //堆立头部
+	HeapTail        int                    //堆立尾部
+	HeapCardInfo    [][]int                //堆牌信息
+	SendCardData    int                    //发牌扑克
+	HistorySe       *HistoryScore          //历史积分
+	CurrentUser     int                    //当前操作用户
+	Ting            []bool                 //是否听牌
+	BankerUser      int                    //庄家用户
+	FlowerCnt       [4]int                 //补花数
+	OtherInfo       map[string]interface{} //客户端动态的配置信息
 
 	BanUser    [4]int    //是否出牌禁忌
 	BanCardCnt [4][9]int //禁忌卡牌
@@ -161,6 +172,7 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusFree)
 }
 
@@ -228,7 +240,7 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 	//历史积分
 	StatusPlay.TurnScore = room.HistorySe.AllScore
 	StatusPlay.CollectScore = room.HistorySe.DetailScore
-
+	StatusPlay.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusPlay)
 }
 
@@ -1006,7 +1018,7 @@ func (room *RoomData) StartDispatchCard() {
 func (room *RoomData) RepalceCard() {
 	base.GameServiceOptionCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
-		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 {
+		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && v.RoomID == room.ID {
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break

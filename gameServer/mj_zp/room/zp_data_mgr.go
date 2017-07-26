@@ -1,7 +1,6 @@
 package room
 
 import (
-	"encoding/json"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -54,7 +53,7 @@ type ZP_RoomData struct {
 func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base)
+	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
 	persionalTableFee, ok := dbbase.PersonalTableFeeCache.Get(info.KindId, info.ServiceId, info.Num)
 	if ok {
@@ -64,36 +63,28 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 		log.Error("zpmj at NewDataMgr initScore error")
 	}
 
-	//房间游戏设置
-	setInfo := make(map[string]interface{})
-	err := json.Unmarshal([]byte(info.OtherInfo), &setInfo)
-	if err != nil {
-		log.Error("zpmj at NewDataMgr error:%s", err.Error())
-		return nil
-	}
-
-	getData, ok := setInfo["zhuaHua"].(float64)
+	getData, ok := r.OtherInfo["zhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [zhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
-	getData2, ok := setInfo["wanFa"].(bool)
+	getData2, ok := r.OtherInfo["wanFa"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [wanFa] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := setInfo["suanFen"].(float64)
+	getData3, ok := r.OtherInfo["suanFen"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [suanFen] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
-	getData4, ok := setInfo["chaHua"].(bool)
+	getData4, ok := r.OtherInfo["chaHua"].(bool)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [chaHua] error")
 		return nil
@@ -1462,7 +1453,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 
 	StatusPlay.TurnScore = room.HistorySe.AllScore
 	StatusPlay.CollectScore = room.HistorySe.DetailScore
-
+	StatusPlay.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusPlay)
 }
 
@@ -2024,6 +2015,7 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
+	StatusFree.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusFree)
 }
 

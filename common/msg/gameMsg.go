@@ -158,6 +158,9 @@ type G2C_StatusFree struct {
 	MaCount         int     //码数
 	CountLimit      int     //局数限制
 	ZhuaHuaCnt      int     //抓花数
+
+	//其他配置信息
+	OtherInfo map[string]interface{}
 }
 
 //游戏状态 游戏已经开始了发送的结构
@@ -214,6 +217,9 @@ type G2C_StatusPlay struct {
 	//历史积分
 	TurnScore    []int   //总积分信息 index 是chairId
 	CollectScore [][]int //积分信息 index1 是局数 2是chairID
+
+	//其他配置信息
+	OtherInfo map[string]interface{}
 }
 
 //约战类型特殊属性
