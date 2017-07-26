@@ -22,9 +22,9 @@ const (
 	GAME_START = 1002 // 游戏开始
 )
 
-func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry, otherInfo string) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, otherInfo)
 	var setInfo sssOtherInfo
 	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
 		d.jiaPai = setInfo.jiaPai

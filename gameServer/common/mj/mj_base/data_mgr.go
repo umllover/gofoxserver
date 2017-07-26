@@ -158,6 +158,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		ServerID:          strconv.Itoa(room.ID),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
+		OtherInfo:         room.OtherInfo,
 	})
 }
 
@@ -172,7 +173,6 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
-	StatusFree.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusFree)
 }
 
@@ -240,7 +240,6 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 	//历史积分
 	StatusPlay.TurnScore = room.HistorySe.AllScore
 	StatusPlay.CollectScore = room.HistorySe.DetailScore
-	StatusPlay.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusPlay)
 }
 

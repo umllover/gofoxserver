@@ -105,11 +105,8 @@ func (room *ZP_RoomData) SendPersonalTableTip(u *user.User) {
 		ServerID:          strconv.Itoa(room.ID),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
-		ZhuaHua:           room.ZhuaHuaCnt,                                               //抓花数
-		WithZiCard:        room.WithZiCard,                                               //是否带大字
-		ScoreType:         room.ScoreType,                                                //得分类型
-		WithChaHua:        room.WithChaHua,                                               //是否插花
 		PayType:           room.MjBase.UserMgr.GetPayType(),                              //付费方式
+		OtherInfo:         room.OtherInfo,
 	})
 }
 
@@ -1453,7 +1450,6 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 
 	StatusPlay.TurnScore = room.HistorySe.AllScore
 	StatusPlay.CollectScore = room.HistorySe.DetailScore
-	StatusPlay.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusPlay)
 }
 
@@ -2015,7 +2011,6 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
 	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
-	StatusFree.OtherInfo = room.OtherInfo
 	u.WriteMsg(StatusFree)
 }
 

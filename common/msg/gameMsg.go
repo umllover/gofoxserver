@@ -134,16 +134,17 @@ type G2C_UserStatus struct {
 
 //发送信息
 type G2C_PersonalTableTip struct {
-	TableOwnerUserID  int64  //桌主 I D
-	DrawCountLimit    int    //局数限制
-	DrawTimeLimit     int    //时间限制
-	PlayCount         int    //已玩局数
-	PlayTime          int    //已玩时间
-	CellScore         int    //游戏底分
-	IniScore          int    //初始分数
-	ServerID          string //房间编号
-	IsJoinGame        int    //是否参与游戏
-	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
+	TableOwnerUserID  int64                  //桌主 I D
+	DrawCountLimit    int                    //局数限制
+	DrawTimeLimit     int                    //时间限制
+	PlayCount         int                    //已玩局数
+	PlayTime          int                    //已玩时间
+	CellScore         int                    //游戏底分
+	IniScore          int                    //初始分数
+	ServerID          string                 //房间编号
+	IsJoinGame        int                    //是否参与游戏
+	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
+	OtherInfo         map[string]interface{} //客户端的配置信息
 }
 
 //游戏属性 ， 游戏未开始发送的结构
@@ -158,9 +159,6 @@ type G2C_StatusFree struct {
 	MaCount         int     //码数
 	CountLimit      int     //局数限制
 	ZhuaHuaCnt      int     //抓花数
-
-	//其他配置信息
-	OtherInfo map[string]interface{}
 }
 
 //游戏状态 游戏已经开始了发送的结构
@@ -218,8 +216,6 @@ type G2C_StatusPlay struct {
 	TurnScore    []int   //总积分信息 index 是chairId
 	CollectScore [][]int //积分信息 index1 是局数 2是chairID
 
-	//其他配置信息
-	OtherInfo map[string]interface{}
 }
 
 //约战类型特殊属性

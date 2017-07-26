@@ -36,9 +36,9 @@ const (
 	TIME_OPEN_CARD  = 30
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry) *nntb_data_mgr {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, otherInfo string) *nntb_data_mgr {
 	d := new(nntb_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base, otherInfo)
 	return d
 }
 
@@ -104,23 +104,23 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	//游戏变量
 	StatusPlay.CellScore = room.CellScore
 
-	for i:=0;i<room.PlayerCount;i++ {
+	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.PlayStatus = append(StatusPlay.PlayStatus, room.UserGameStatusMap[room.PkBase.UserMgr.GetUserByChairId(i)])
 	}
 
 	StatusPlay.BankerUser = room.BankerUser.ChairId
 	StatusPlay.HandCardData = make([][]int, room.PlayerCount)
-	for i:=0;i<room.PlayerCount;i++ {
+	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.HandCardData[i] = append(StatusPlay.HandCardData[i], room.CardData[i]...)
 	}
-	
-	for i:=0;i<room.PlayerCount;i++ {
+
+	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.InitScore = append(StatusPlay.InitScore, room.InitScoreMap[i])
 	}
 	StatusPlay.GameRoomName = room.Name
 	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	StatusPlay.EachRoundScore = make([][]int, room.PlayerCount)
-	for i:=0;i<room.PlayerCount;i++ {
+	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.EachRoundScore[i] = append(StatusPlay.EachRoundScore[i], room.EachRoundScoreMap[i]...)
 	}
 	u.WriteMsg(StatusPlay)
