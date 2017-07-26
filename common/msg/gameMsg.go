@@ -148,16 +148,16 @@ type G2C_PersonalTableTip struct {
 
 //游戏属性 ， 游戏未开始发送的结构
 type G2C_StatusFree struct {
-	CellScore       int   //基础积分
-	TimeOutCard     int   //出牌时间
-	TimeOperateCard int   //操作时间
-	CreateTime      int64 //开始时间
-	TurnScore       []int //积分信息
-	CollectScore    []int //积分信息
-	PlayerCount     int   //玩家人数
-	MaCount         int   //码数
-	CountLimit      int   //局数限制
-	ZhuaHuaCnt      int   //抓花数
+	CellScore       int     //基础积分
+	TimeOutCard     int     //出牌时间
+	TimeOperateCard int     //操作时间
+	CreateTime      int64   //开始时间
+	TurnScore       []int   //总积分信息 index 是chairId
+	CollectScore    [][]int //积分信息 index1 是局数 2是chairID
+	PlayerCount     int     //玩家人数
+	MaCount         int     //码数
+	CountLimit      int     //局数限制
+	ZhuaHuaCnt      int     //抓花数
 }
 
 //游戏状态 游戏已经开始了发送的结构
@@ -212,8 +212,8 @@ type G2C_StatusPlay struct {
 	OutCardCount  int
 	OutCardDataEx []int
 	//历史积分
-	TurnScore    []int //积分信息
-	CollectScore []int //积分信息
+	TurnScore    []int   //总积分信息 index 是chairId
+	CollectScore [][]int //积分信息 index1 是局数 2是chairID
 }
 
 //约战类型特殊属性
