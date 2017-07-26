@@ -50,6 +50,32 @@ type C2G_LoadTable struct {
 	RoomID int //房间id
 }
 
+//请求退出房间
+type C2G_LeaveRoom struct {
+}
+
+//请求退出房间结果
+type G2C_LeaveRoomRsp struct {
+	Code int //非0为失败
+}
+
+//别人退出房间的广播
+type G2C_LeaveRoomBradcast struct {
+	UserID int64 //用户id
+}
+
+//别人同意或拒绝的结果通知
+type G2C_ReplyRsp struct {
+	UserID int64 //谁同意或者拒绝你了
+	Agree  bool  //ture 是同意你了， false 是拒绝你了
+}
+
+//同意还是拒绝解散房间
+type C2G_ReplyLeaveRoom struct {
+	Agree  bool  //true是同意玩家退出， false 是拒绝
+	UserID int64 //同意或者拒绝谁
+}
+
 //解散房间
 type C2G_HostlDissumeRoom struct{}
 
