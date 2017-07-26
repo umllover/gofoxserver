@@ -78,21 +78,17 @@ type G2C_TBNN_StatusScore struct {
 }
 
 type G2C_TBNN_StatusPlay struct {
-	CellScore       		int							//基础积分
+	CellScore       		int		//基础积分
 
 	PlayStatus      		[]int          //用户状态
-	DynamicJoin     		int                 //动态加入
-	BankerUser				int					//庄家用户
-
+	BankerUser			int	       //庄家用户
 	HandCardData  			[][]int         //桌面扑克
 
-	TurnScore 				[]int			//积分信息
-	CollectScore 			[]int			//积分信息
-	GameRoomName			string						//房间名称
+	InitScore 			[]int		//积分信息
+	GameRoomName			string		//房间名称
 
-	IsOpenCard				[]bool			//用户是否摊牌
-	CurrentPlayCount		int							    //房间已玩局数
-	EachRoundScore			[][]int			//房间每局游戏比分
+	CurrentPlayCount		int		//房间已玩局数
+	EachRoundScore			[][]int		//房间每局游戏比分
 }
 
 //叫分结果
