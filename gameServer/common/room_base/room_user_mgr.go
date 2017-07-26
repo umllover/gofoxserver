@@ -29,21 +29,21 @@ func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *R
 }
 
 type RoomUserMgr struct {
-	id          int //唯一id 房间id
-	Kind        int //模板表第一类型
-	ServerId    int //模板表第二类型 注意 非房间id
-	PayType     int //支付类型
-	Public      int
-	EendTime    int64              //结束时间
-	MinUserCount int  //最少用户数量
-	UserCnt     int                //可以容纳的用户数量
-	PlayerCount int                //当前用户人数
-	JoinCount   int                //房主设置的游戏人数
-	Users       []*user.User       /// index is chairId
-	Onlookers   map[int]*user.User /// 旁观的玩家
-	ChatRoomId  int                //聊天房间id
-	Trustee     []bool             //是否托管 index 就是椅子id
-	ReqLeave    map[int64]*ReqLeaveSet
+	id           int //唯一id 房间id
+	Kind         int //模板表第一类型
+	ServerId     int //模板表第二类型 注意 非房间id
+	PayType      int //支付类型
+	Public       int
+	EendTime     int64              //结束时间
+	MinUserCount int                //最少用户数量
+	UserCnt      int                //可以容纳的用户数量
+	PlayerCount  int                //当前用户人数
+	JoinCount    int                //房主设置的游戏人数
+	Users        []*user.User       /// index is chairId
+	Onlookers    map[int]*user.User /// 旁观的玩家
+	ChatRoomId   int                //聊天房间id
+	Trustee      []bool             //是否托管 index 就是椅子id
+	ReqLeave     map[int64]*ReqLeaveSet
 }
 
 type ReqLeaveSet struct {
@@ -439,7 +439,7 @@ func (room *RoomUserMgr) IsAllReady() bool {
 		}
 		PlayerCount++
 	}
-	if PlayerCount< room.MinUserCount || PlayerCount> room.UserCnt {
+	if PlayerCount < room.MinUserCount || PlayerCount > room.UserCnt {
 		return false
 	}
 
@@ -449,9 +449,9 @@ func (room *RoomUserMgr) IsAllReady() bool {
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 	room.Users[u.ChairId] = u
 	if Status == RoomStatusStarting {
-		//room.SetUsetStatus(u, US_PLAYING)
+		room.SetUsetStatus(u, US_PLAYING)
 	} else {
-		//room.SetUsetStatus(u, US_SIT)
+		room.SetUsetStatus(u, US_SIT)
 	}
 }
 
