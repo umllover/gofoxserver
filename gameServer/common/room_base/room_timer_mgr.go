@@ -113,3 +113,12 @@ func (room *RoomTimerMgr) StopOfflineTimer(uid int64) {
 		timer.Stop()
 	}
 }
+
+//请求离开超时
+func (room *RoomTimerMgr) StartReplytIimer(uid int64, cb func()) {
+
+}
+
+func (room *RoomTimerMgr) StopReplytIimer(uid int64) {
+
+}

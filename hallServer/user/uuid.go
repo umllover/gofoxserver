@@ -7,7 +7,7 @@ import (
 )
 
 var key int64
-var MaxInc = int64(1<<43 - 1)
+var MaxInc = int64(1<<42 - 1)
 
 func GetKey() int64 {
 	key = key + 1

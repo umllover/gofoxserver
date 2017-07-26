@@ -25,12 +25,14 @@ type TimerManager interface {
 	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
 	StartKickoutTimer(Skeleton *module.Skeleton, uid int64, cb func())
 	StopOfflineTimer(uid int64)
+	StartReplytIimer(uid int64, cb func())
+	StopReplytIimer(uid int64)
 
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
 	GetMaxPayCnt() int
-	AddMaxPayCnt(int )
+	AddMaxPayCnt(int)
 	GetCreatrTime() int64
 	GetTimeOutCard() int
 	GetTimeOperateCard() int
@@ -49,8 +51,10 @@ type UserManager interface {
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int64, data interface{})
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
-	SendDataToHallUser(chiairID int,  data interface{})
+	SendDataToHallUser(chiairID int, data interface{})
 	SendMsgToHallServerAll(data interface{})
+	ReplyLeave(*user.User, bool, int64, int) bool
+	DeleteReply(uid int64)
 
 	GetCurPlayerCnt() int
 	GetPayType() int

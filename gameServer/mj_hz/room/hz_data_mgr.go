@@ -146,6 +146,7 @@ func (room *hz_data) NormalEnd() {
 	GameConclude.ProvideCard = room.ProvideCard
 
 	//统计积分
+	DetailScore := make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		if u.Status != US_PLAYING {
 			return
@@ -171,13 +172,11 @@ func (room *hz_data) NormalEnd() {
 		}
 
 		//历史积分
-		if room.HistoryScores[u.ChairId] == nil {
-			room.HistoryScores[u.ChairId] = &HistoryScore{}
-		}
-		room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
-		room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
-
+		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
+		DetailScore[u.ChairId] = GameConclude.GameScore[u.ChairId]
 	})
+
+	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)

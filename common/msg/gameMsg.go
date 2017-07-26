@@ -50,6 +50,32 @@ type C2G_LoadTable struct {
 	RoomID int //房间id
 }
 
+//请求退出房间
+type C2G_LeaveRoom struct {
+}
+
+//请求退出房间结果
+type G2C_LeaveRoomRsp struct {
+	Code int //非0为失败
+}
+
+//别人退出房间的广播
+type G2C_LeaveRoomBradcast struct {
+	UserID int64 //用户id
+}
+
+//别人同意或拒绝的结果通知
+type G2C_ReplyRsp struct {
+	UserID int64 //谁同意或者拒绝你了
+	Agree  bool  //ture 是同意你了， false 是拒绝你了
+}
+
+//同意还是拒绝解散房间
+type C2G_ReplyLeaveRoom struct {
+	Agree  bool  //true是同意玩家退出， false 是拒绝
+	UserID int64 //同意或者拒绝谁
+}
+
 //解散房间
 type C2G_HostlDissumeRoom struct{}
 
@@ -122,16 +148,16 @@ type G2C_PersonalTableTip struct {
 
 //游戏属性 ， 游戏未开始发送的结构
 type G2C_StatusFree struct {
-	CellScore       int   //基础积分
-	TimeOutCard     int   //出牌时间
-	TimeOperateCard int   //操作时间
-	CreateTime      int64 //开始时间
-	TurnScore       []int //积分信息
-	CollectScore    []int //积分信息
-	PlayerCount     int   //玩家人数
-	MaCount         int   //码数
-	CountLimit      int   //局数限制
-	ZhuaHuaCnt      int   //抓花数
+	CellScore       int     //基础积分
+	TimeOutCard     int     //出牌时间
+	TimeOperateCard int     //操作时间
+	CreateTime      int64   //开始时间
+	TurnScore       []int   //总积分信息 index 是chairId
+	CollectScore    [][]int //积分信息 index1 是局数 2是chairID
+	PlayerCount     int     //玩家人数
+	MaCount         int     //码数
+	CountLimit      int     //局数限制
+	ZhuaHuaCnt      int     //抓花数
 }
 
 //游戏状态 游戏已经开始了发送的结构
@@ -186,8 +212,8 @@ type G2C_StatusPlay struct {
 	OutCardCount  int
 	OutCardDataEx []int
 	//历史积分
-	TurnScore    []int //积分信息
-	CollectScore []int //积分信息
+	TurnScore    []int   //总积分信息 index 是chairId
+	CollectScore [][]int //积分信息 index1 是局数 2是chairID
 }
 
 //约战类型特殊属性

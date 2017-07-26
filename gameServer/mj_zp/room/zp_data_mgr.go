@@ -153,7 +153,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.SendStatus = Not_Send
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
-	room.HistoryScores = make([]*HistoryScore, UserCnt)
 	room.MinusLastCount = 0
 	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
@@ -694,6 +693,7 @@ func (room *ZP_RoomData) NormalEnd() {
 	GameConclude.ProvideCard = room.ProvideCard
 
 	//统计积分
+	DetailScore := make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		if u.Status != US_PLAYING {
 			return
@@ -719,13 +719,11 @@ func (room *ZP_RoomData) NormalEnd() {
 		}
 
 		//历史积分
-		if room.HistoryScores[u.ChairId] == nil {
-			room.HistoryScores[u.ChairId] = &HistoryScore{}
-		}
-		room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
-		room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
-
+		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
+		DetailScore[u.ChairId] = GameConclude.GameScore[u.ChairId]
 	})
+
+	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
@@ -1411,8 +1409,6 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	}
 	StatusPlay.OutCardDataEx = make([]int, room.GetCfg().MaxCount)
 	StatusPlay.CardCount = make([]int, UserCnt)
-	StatusPlay.TurnScore = make([]int, UserCnt)
-	StatusPlay.CollectScore = make([]int, UserCnt)
 	StatusPlay.BuHuaCnt = make([]int, UserCnt)
 	StatusPlay.ChaHuaCnt = make([]int, UserCnt)
 
@@ -1464,14 +1460,8 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 		StatusPlay.SendCardData = 0x00
 	}
 
-	//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}
+	StatusPlay.TurnScore = room.HistorySe.AllScore
+	StatusPlay.CollectScore = room.HistorySe.DetailScore
 
 	u.WriteMsg(StatusPlay)
 }
@@ -2026,10 +2016,10 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 	StatusFree.TimeOutCard = room.MjBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.MjBase.TimerMgr.GetTimeOperateCard() //操作时间
 	StatusFree.CreateTime = room.MjBase.TimerMgr.GetCreatrTime()           //开始时间
-	for _, v := range room.HistoryScores {
-		StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
-		StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	}
+
+	StatusFree.TurnScore = room.HistorySe.AllScore
+	StatusFree.CollectScore = room.HistorySe.DetailScore
+
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
 	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
