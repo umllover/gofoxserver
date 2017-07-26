@@ -53,7 +53,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 //房间关闭的时候通知
 func (m *UserModule) LeaveRoom(args []interface{}) error {
 	log.Debug("at user LeaveRoom ...........")
-	m.Close(ServerKick)
+	m.Close(KickOutGameEnd)
 	return nil
 }
 
@@ -149,6 +149,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if oldUser != nil {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
+		user.Status = oldUser.Status
 		m.KickOutUser(oldUser)
 	}
 

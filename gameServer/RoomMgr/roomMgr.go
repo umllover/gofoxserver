@@ -6,8 +6,8 @@ import (
 	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
-	"github.com/lovelly/leaf/cluster"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 type IRoom interface {
@@ -42,6 +42,7 @@ func GetRoom(id int) IRoom {
 }
 
 func DelRoom(id int) {
+	log.Debug("at aaaaaaaaaaaaaaaaaaaaaa ")
 	cluster.Broadcast(HallPrefix, &msg.S2S_notifyDelRoom{RoomID: id})
 	mgrLock.Lock()
 	defer mgrLock.Unlock()
