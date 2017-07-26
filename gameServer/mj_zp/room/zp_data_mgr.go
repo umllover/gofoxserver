@@ -6,6 +6,7 @@ import (
 	"mj/common/msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -20,8 +21,6 @@ import (
 	"time"
 
 	dbbase "mj/gameServer/db/model/base"
-
-	"mj/gameServer/conf"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
@@ -62,7 +61,7 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 	if ok {
 		r.IniSource = persionalTableFee.IniScore
 	} else {
-		persionalTableFee.IniScore = 1000
+		r.IniSource = 1000
 		log.Error("zpmj at NewDataMgr initScore error")
 	}
 
@@ -509,16 +508,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
-	//
-	//var temp2 []int
-	//temp2 = make([]int, 42)
-	//temp2[0] = 3 //三张一同
-	//temp2[1] = 3 //三张二同
-	//temp2[2] = 3 //三张三同
-	//temp2[3] = 3 //三张四同
-	//temp2[4] = 3 //三张五同
-	//temp2[5] = 2
-	//room.CardIndex[1] = temp2
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1369,6 +1358,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			room.SumScore[room.BankerUser] += room.LianZhuang
 		} else { //边W
 			log.Debug("连庄 len1:%d len2:%d len3:%d len4:%d i:%d", len(playerScore), room.LianZhuang, room.ProvideUser, room.BankerUser, i)
+			playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang
 			room.SumScore[room.ProvideUser] += room.LianZhuang
 			room.SumScore[room.BankerUser] -= room.LianZhuang
 		}

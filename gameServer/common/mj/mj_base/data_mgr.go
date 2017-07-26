@@ -1067,7 +1067,7 @@ func (room *RoomData) RepalceCard() {
 
 			log.Debug("库存牌%v", room.RepertoryCard)
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
-				log.Error(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
+				log.Debug(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
 			}
 
 		}
