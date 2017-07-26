@@ -11,24 +11,22 @@ import (
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/user"
 	"time"
-	
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
-
 )
 
 // 游戏状态
 const (
-	GAME_STATUS_NULL        = 0 // 空
+	GAME_STATUS_NULL = 0 // 空
 	//PLAYER_ENTER_ROOM  	= 1001 // 玩家进入房间
-	GAME_STATUS_START       = 1002 // 游戏开始
-	GAME_STATUS_CALL_SCORE  = 1003 // 抢庄
-	GAME_STATUS_ADD_SCORE        = 1004 // 加注
-	GAME_STATUS_SEND_LAST_CARD   = 1005 // 发最后一张牌
-	GAME_STATUS_OPEN_CARD        = 1006 // 亮牌
-	
-	GAME_STATUS_CAL_SCORE        = 1007 // 结算
+	GAME_STATUS_START          = 1002 // 游戏开始
+	GAME_STATUS_CALL_SCORE     = 1003 // 抢庄
+	GAME_STATUS_ADD_SCORE      = 1004 // 加注
+	GAME_STATUS_SEND_LAST_CARD = 1005 // 发最后一张牌
+	GAME_STATUS_OPEN_CARD      = 1006 // 亮牌
+
+	GAME_STATUS_CAL_SCORE = 1007 // 结算
 )
 
 // 定时器 -- for test
@@ -59,12 +57,11 @@ type nntb_data_mgr struct {
 	RepertoryCard  []int   //库存扑克
 	LeftCardCount  int     //库存剩余扑克数量
 
-
 	OpenCardMap       map[*user.User]OpenCardInfo //记录亮牌数据
 	CallScoreTimesMap map[*user.User]int          //记录叫分信息
 	CalScoreMap       map[*user.User]int          //记录算分
 	AddScoreMap       map[*user.User]int          //记录用户加注信息
-	UserGameStatusMap       map[*user.User]int    //记录用户游戏状态信息 用于断线重连
+	UserGameStatusMap map[*user.User]int          //记录用户游戏状态信息 用于断线重连
 
 	BankerUser *user.User //庄家用户
 
@@ -103,15 +100,29 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay := &nn_tb_msg.G2C_TBNN_StatusPlay{}
 
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
+	log.Debug("at sendstatus play")
 	//游戏变量
-	StatusPlay.BankerUser = room.BankerUser.ChairId
 	StatusPlay.CellScore = room.CellScore
 
-	StatusPlay.TurnScore = make([]int, UserCnt)
-	StatusPlay.CollectScore = make([]int, UserCnt)
-	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.PlayStatus = append(StatusPlay.PlayStatus, room.UserGameStatusMap[room.PkBase.UserMgr.GetUserByChairId(i)])
+	}
 
+	StatusPlay.BankerUser = room.BankerUser.ChairId
+	StatusPlay.HandCardData = make([][]int, room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.HandCardData[i] = append(StatusPlay.HandCardData[i], room.CardData[i]...)
+	}
+	
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.InitScore = append(StatusPlay.InitScore, room.InitScoreMap[i])
+	}
+	StatusPlay.GameRoomName = room.Name
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusPlay.EachRoundScore = make([][]int, room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.EachRoundScore[i] = append(StatusPlay.EachRoundScore[i], room.EachRoundScoreMap[i]...)
+	}
 	u.WriteMsg(StatusPlay)
 }
 
@@ -247,7 +258,6 @@ func (room *nntb_data_mgr) NormalEnd() {
 		// 更新积分
 		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u]
 	})
-
 
 	log.Debug("normal end init score map %v", room.InitScoreMap)
 
@@ -476,7 +486,6 @@ func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool {
 	return false
 }
 
-
 func (r *nntb_data_mgr) IsValidCardData(chairID int, cardData []int) bool {
 	for i := 0; i < len(cardData); i++ {
 		if !r.IsValidCard(chairID, cardData[i]) {
@@ -543,7 +552,6 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	logicMgr := r.PkBase.LogicMgr
 	userMgr := r.PkBase.UserMgr
 
-
 	userMgr.ForEachUser(func(u *user.User) {
 		if u != r.BankerUser { // 闲家与庄家比
 			if logicMgr.CompareCard(r.OpenCardMap[r.BankerUser].CardData, r.OpenCardMap[u].CardData) { // 庄家比闲家大
@@ -571,7 +579,6 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 			}
 		}
 	})
-
 
 	log.Debug("cal score map %v", r.CalScoreMap)
 
@@ -635,7 +642,6 @@ func (r *nntb_data_mgr) AfterEnd(Forced bool) {
 	r.PkBase.TimerMgr.AddPlayCount()
 	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-
 
 		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 			RoomId: r.PkBase.DataMgr.GetRoomId(),

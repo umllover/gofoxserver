@@ -400,10 +400,11 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 		Wrave.CardData[1] = cbTargetCard
 		Wrave.CardData[2] = cbTargetCard
 		if cbTargetAction&WIK_GANG != 0 {
-			Wrave.Param = WIK_FANG_GANG
+			Wrave.Param = WIK_MING_GANG
 			Wrave.CardData[3] = cbTargetCard
 		}
 	}
+	log.Debug("###############杠牌：%v", Wrave)
 	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
@@ -668,8 +669,8 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		//检查抢杠胡
 		if EstimatKind == EstimatKind_GangCard {
 			//只有庄家和闲家之间才能放炮
-			MogicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
-			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MogicCard) {
+			MagicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
+			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MagicCard) {
 				if u.UserLimit|LimitChiHu == 0 {
 					//吃胡判断
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
@@ -686,7 +687,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		}
 	})
 
-	//log.Debug("AaaaaaaaaaAAAAAAAAAAAAAAAA : %v", bAroseAction)
+	//log.Debug("AAAAAAAAAAAAAAAA : %v", bAroseAction)
 	//结果处理
 	if bAroseAction {
 		//设置变量
@@ -945,21 +946,23 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
+
 	if conf.Test {
 		room.RepalceCard()
 	}
 
 	////TODO 测试用
-	//newCar := make([]int, room.GetCfg().MaxIdx)
-	//newCar[gameLogic.SwitchToCardIndex(0x12)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x14)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x16)] = 3
-	//newCar[gameLogic.SwitchToCardIndex(0x4)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x5)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x6)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x15)] = 1
-	//newCar[gameLogic.SwitchToCardIndex(0x18)] = 1
-	//room.CardIndex[room.BankerUser] = newCar
+	//newCard := make([]int, room.GetCfg().MaxIdx)
+	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 4
+	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 1
+	//room.ProvideCard = 0x16
+	//room.SendCardData = 0x16
+	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x35
 
 	//堆立信息
@@ -1021,7 +1024,7 @@ func (room *RoomData) RepalceCard() {
 			if len(chairIds) < 1 {
 				break
 			}
-			var TmpRepertoryCard []int
+			var TmpRepertoryCard []int //玩家手里的牌
 			cards := strings.Split(v.Cards, "#")
 			if len(cards) < len(chairIds) {
 				break
@@ -1030,10 +1033,9 @@ func (room *RoomData) RepalceCard() {
 			for idx, chair := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
-				TmpRepertoryCard = append(TmpRepertoryCard, card...)
-
 			}
 
+			TmpRepertoryCard = room.GetUserCard()
 			m := GetCardByIdx(room.ConfigIdx)
 			log.Debug("库存的牌%v", m)
 			log.Debug("TmpRepertoryCard:%d  %v", len(TmpRepertoryCard), TmpRepertoryCard)
@@ -1061,10 +1063,13 @@ func (room *RoomData) RepalceCard() {
 			for _, v := range TmpRepertoryCard {
 				room.RepertoryCard = append(room.RepertoryCard, v)
 			}
+			if len(room.RepertoryCard) != room.MinusHeadCount {
+				log.Debug("len(room.RepertoryCard) != room.MinusHeadCount")
+			}
 
 			log.Debug("库存牌%v", room.RepertoryCard)
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
-				log.Error(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
+				log.Debug(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
 			}
 
 		}
@@ -1076,14 +1081,6 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 	log.Debug("begin SetUserCard", room.CardIndex[charirID])
 	gameLogic := room.MjBase.LogicMgr
 
-	repalc := func(Oldcard int, newCard int) {
-		for i := room.MinusHeadCount; i < room.GetLeftCard(); i++ {
-			if room.RepertoryCard[i] == Oldcard {
-				room.RepertoryCard[i] = newCard
-			}
-		}
-	}
-
 	inc := 0
 	userCard := room.CardIndex[charirID]
 	for idx, cnt := range userCard {
@@ -1092,12 +1089,31 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 				break
 			}
 			userCard[idx]--
-			repalc(idx, gameLogic.SwitchToCardData(idx))
 			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
 			inc++
 		}
 	}
 	log.Debug("end SetUserCard %v", room.CardIndex[charirID])
+}
+
+//获取用户手牌
+func (room *RoomData) GetUserCard() []int {
+	var userCard = make([]int, 0)
+	log.Debug("%v", room.CardIndex)
+	var Poker int
+	for i := 0; i < 4; i++ {
+		for key, value := range room.CardIndex[i] {
+			if value != 0 {
+				for j := 0; j < value; j++ {
+					Poker = room.MjBase.LogicMgr.SwitchToCardData(key)
+					userCard = append(userCard, Poker)
+				}
+
+			}
+		}
+	}
+	log.Debug("userCard %v", userCard)
+	return userCard
 }
 
 func (room *RoomData) CheckZiMo() {
@@ -1838,8 +1854,8 @@ func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 				return 0
 			}
 		} else if v == WIK_GANG {
-			if pAnalyseItem.Param[k] == WIK_AN_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
-				log.Debug("有暗杠")
+			log.Debug("有暗杠 Param:%d", pAnalyseItem.Param[k])
+			if pAnalyseItem.Param[k] == WIK_MING_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
 			}
 		}

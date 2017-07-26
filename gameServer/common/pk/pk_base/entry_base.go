@@ -146,7 +146,6 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 
 //玩家准备
 func (room *Entry_base) UserReady(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2G_UserReady)
 	u := args[1].(*user.User)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
