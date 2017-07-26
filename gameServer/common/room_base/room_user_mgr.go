@@ -29,30 +29,38 @@ func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *R
 }
 
 type RoomUserMgr struct {
-	id          int //唯一id 房间id
-	Kind        int //模板表第一类型
-	ServerId    int //模板表第二类型 注意 非房间id
-	PayType     int //支付类型
-	Public      int
-	EendTime    int64              //结束时间
-	MinUserCount int  //最少用户数量
-	UserCnt     int                //可以容纳的用户数量
-	PlayerCount int                //当前用户人数
-	JoinCount   int                //房主设置的游戏人数
-	Users       []*user.User       /// index is chairId
-	Onlookers   map[int]*user.User /// 旁观的玩家
-	ChatRoomId  int                //聊天房间id
-	Trustee     []bool             //是否托管 index 就是椅子id
-	ReqLeave    map[int64]*ReqLeaveSet
+	id           int //唯一id 房间id
+	Kind         int //模板表第一类型
+	ServerId     int //模板表第二类型 注意 非房间id
+	PayType      int //支付类型
+	Public       int
+	EendTime     int64              //结束时间
+	MinUserCount int                //最少用户数量
+	UserCnt      int                //可以容纳的用户数量
+	PlayerCount  int                //当前用户人数
+	JoinCount    int                //房主设置的游戏人数
+	Users        []*user.User       /// index is chairId
+	Onlookers    map[int]*user.User /// 旁观的玩家
+	ChatRoomId   int                //聊天房间id
+	Trustee      []bool             //是否托管 index 就是椅子id
+	ReqLeave     map[int64]*ReqLeaveSet
 }
 
 type ReqLeaveSet struct {
-	Refuse int8
-	Agree  int8
+	Refuse []int64 //J拒绝的人uid
+	Agree  []int64 //同意的人uid
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
 	return r.Trustee
+}
+
+func (r *RoomUserMgr) GetLeaveInfo() map[int64][]int64 {
+	m := make(map[int64][]int64)
+	for uid, v := range r.ReqLeave {
+		m[uid] = v.Agree
+	}
+	return m
 }
 
 func (r *RoomUserMgr) SetUsetTrustee(chairId int, isTruste bool) {
@@ -174,8 +182,8 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			req = &ReqLeaveSet{}
 			r.ReqLeave[ReplyUid] = req
 		}
-		req.Agree++
-		if int(req.Agree) >= r.UserCnt {
+		req.Agree = append(req.Agree, player.Id)
+		if len(req.Agree) >= r.UserCnt {
 			r.LeaveRoom(reqPlayer, status)
 			r.DeleteReply(reqPlayer.Id)
 			return true
@@ -321,11 +329,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	_, chairId := room.GetUserByUid(u.Id)
-	if chairId > 0 {
-		room.LeaveRoom(u, 1)
-	}
-
 	room.EnterRoom(ChairID, u)
 
 	//把自己的信息推送给所有玩家
@@ -444,7 +447,7 @@ func (room *RoomUserMgr) IsAllReady() bool {
 		}
 		PlayerCount++
 	}
-	if PlayerCount< room.MinUserCount || PlayerCount> room.UserCnt {
+	if PlayerCount < room.MinUserCount || PlayerCount > room.UserCnt {
 		return false
 	}
 
