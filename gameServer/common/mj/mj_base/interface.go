@@ -12,6 +12,7 @@ import (
 type DataManager interface {
 	BeforeStartGame(UserCnt int)                                     //开始前的处理
 	StartGameing()                                                   //游戏开始种的处理
+	InitRoomOne()                                                        //
 	AfterStartGame()                                                 //开始游戏的善后处理
 	SendPersonalTableTip(*user.User)                                 //发送没开始前的场景信息
 	SendStatusPlay(u *user.User)                                     //发送开始后的处理

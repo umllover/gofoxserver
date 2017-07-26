@@ -356,6 +356,8 @@ func FaildServerAgent(args []interface{}) {
 		}
 	}
 
+	delete(gameLists, id)
+
 	log.Debug("AT 			FaildServerAgent  ok")
 }
 

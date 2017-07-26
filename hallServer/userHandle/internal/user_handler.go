@@ -57,6 +57,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
+
+	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
 //连接进来的通知
@@ -971,4 +973,9 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	}
 
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
+}
+
+/// 游戏服发来的结束消息
+func (m *UserModule) RoomEndInfo(args []interface{}) {
+
 }

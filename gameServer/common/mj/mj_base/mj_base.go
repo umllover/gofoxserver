@@ -55,6 +55,8 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
+
+	r.DataMgr.InitRoomOne()
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -522,7 +524,7 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.SetUsetStatus(u, US_FREE)
+		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
 }
 

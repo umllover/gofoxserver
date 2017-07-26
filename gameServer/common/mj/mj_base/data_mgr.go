@@ -33,7 +33,6 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 	r.CreateUser = uid
 	r.MjBase = base
 	r.ConfigIdx = configIdx
-	r.InitRoomOne()
 	return r
 }
 
@@ -95,6 +94,11 @@ type RoomData struct {
 
 	//timer
 	OperateTime []*timer.Timer //操作定时器
+}
+
+func (room *RoomData) InitRoomOne() {
+	log.Debug("AAAAAAAAAAAAAA ", room.MjBase.UserMgr)
+	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
 func (room *RoomData) GetCreater() int64 {
@@ -847,11 +851,6 @@ func (room *RoomData) AfterStartGame() {
 	room.CheckZiMo()
 	//通知客户端开始了
 	room.SendGameStart()
-}
-
-//只在开始前执行一次
-func (room *RoomData) InitRoomOne() {
-	room.HistorySe = &HistoryScore{}
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {

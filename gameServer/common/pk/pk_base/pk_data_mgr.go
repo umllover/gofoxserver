@@ -207,7 +207,7 @@ func (r *RoomData) AfterEnd(Forced bool) {
 	}
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
+		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
 	})
 
 }

@@ -296,7 +296,7 @@ func (room *Entry_base) AfertEnd(Forced bool) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.SetUsetStatus(u, US_FREE)
+		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
 }
 
