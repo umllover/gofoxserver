@@ -149,6 +149,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if oldUser != nil {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
+		user.Status = oldUser.Status
 		m.KickOutUser(oldUser)
 	}
 
