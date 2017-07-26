@@ -281,11 +281,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	_, chairId := room.GetUserByUid(u.Id)
-	if chairId > 0 {
-		room.LeaveRoom(u, 1)
-	}
-
 	room.EnterRoom(ChairID, u)
 
 	//把自己的信息推送给所有玩家
