@@ -2043,19 +2043,6 @@ func (room *ZP_RoomData) ResetUserOperateEx(u *user.User) {
 	room.StopOperateCardTimer(u)
 }
 
-//权位过滤
-func (room *ZP_RoomData) FiltrateRight(wWinner int, chr *int) {
-	//自摸
-	if wWinner == room.ProvideUser {
-		*chr |= CHR_ZI_MO
-	} else if room.GangStatus == WIK_MING_GANG {
-		*chr |= CHR_QIANG_GANG_HU
-	} else {
-		*chr |= CHR_PING_HU
-	}
-	return
-}
-
 ///////////////////////////////////////////////////////////////////////////////////
 //定时器
 
