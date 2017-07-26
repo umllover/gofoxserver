@@ -1,6 +1,7 @@
 package room
 
 import (
+	"encoding/json"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -13,8 +14,6 @@ import (
 	"strconv"
 
 	"mj/common/msg/mj_zp_msg"
-
-	"encoding/json"
 
 	"mj/common/utils"
 
@@ -193,7 +192,6 @@ func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
 func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
-		log.Debug("开始11111111111111")
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
 		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
@@ -220,7 +218,6 @@ func (room *ZP_RoomData) StartGameing() {
 			room.InitOutCardTimer(u)
 		})
 	} else {
-		log.Debug("开始2222222222222222")
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -253,7 +250,6 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
-		log.Debug("开始333333333333")
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -451,21 +447,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.MinusHeadCount = len(room.RepertoryCard)
 	}
 
-	m := make(map[int]int)
-	for _, v := range room.RepertoryCard {
-		m[v]++
-		if v <= 0x37 {
-			if m[v] > 4 {
-				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
-			}
-		}
-
-		if v > 0x37 {
-			if m[v] > 1 {
-				log.Debug("cards  ==== card :%d  ## :%v", v, room.RepertoryCard)
-			}
-		}
-	}
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
 		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
@@ -493,7 +474,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
-	//
 	//temp[0] = 3 //三张一同
 	//temp[1] = 3 //三张二同
 	//temp[2] = 3 //三张三同
@@ -763,11 +743,12 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 
 	//抓花规则
 	var getInedx [3]int
+	userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	index := [4][3]int{{1, 5, 9}, {0, 2, 6}, {0, 3, 7}, {0, 4, 8}}
 	if room.BankerUser == CenterUser {
 		getInedx = index[0]
 	} else {
-		v := math.Abs(float64(room.BankerUser - CenterUser))
+		v := int(math.Abs(float64(CenterUser-room.BankerUser))) % userCnt
 		getInedx = index[int(v)]
 	}
 
@@ -1519,11 +1500,10 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			if WinCount > 1 && k < WinCount-1 {
 				var error error
 				room.ZhuaHuaCnt, error = utils.RandInt(1, leftZhuaHuaCnt)
-				if error == nil {
+				if error != nil {
 					return
 				}
 			}
-
 			//room.ZhuaHuaCnt = 10 //todo,测试代码
 			//进行抓花
 			ZhongCard, BuZhong := room.OnZhuaHua(v)
@@ -1559,6 +1539,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				}
 			}
 			leftZhuaHuaCnt -= room.ZhuaHuaCnt
+			room.ZhuaHuaCnt = leftZhuaHuaCnt
 		}
 
 		room.ZhuaHuaCnt = tempZhuaHuaCnt
