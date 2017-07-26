@@ -578,8 +578,16 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 
 	if room.jiaGongGong {
+		len := len(defaultCards)
+		tempCards := make([]int, len)
+		copy(tempCards, defaultCards)
 		for i := 0; i < 3; i++ {
-			room.publicCards = append(room.publicCards, defaultCards[rand.Intn(len(defaultCards))])
+			randNum := rand.Intn(len)
+			room.publicCards = append(room.publicCards, tempCards[randNum])
+			if randNum != len-1 {
+				tempCards[randNum], tempCards[len-1] = tempCards[len-1], tempCards[randNum]
+			}
+			len--
 		}
 	}
 	addCardNum := 0
