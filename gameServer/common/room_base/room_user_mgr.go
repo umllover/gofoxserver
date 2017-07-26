@@ -47,12 +47,20 @@ type RoomUserMgr struct {
 }
 
 type ReqLeaveSet struct {
-	Refuse int8
-	Agree  int8
+	Refuse []int64 //J拒绝的人uid
+	Agree  []int64 //同意的人uid
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
 	return r.Trustee
+}
+
+func (r *RoomUserMgr) GetLeaveInfo() map[int64][]int64 {
+	m := make(map[int64][]int64)
+	for uid, v := range r.ReqLeave {
+		m[uid] = v.Agree
+	}
+	return m
 }
 
 func (r *RoomUserMgr) SetUsetTrustee(chairId int, isTruste bool) {
@@ -174,8 +182,8 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			req = &ReqLeaveSet{}
 			r.ReqLeave[ReplyUid] = req
 		}
-		req.Agree++
-		if int(req.Agree) >= r.UserCnt {
+		req.Agree = append(req.Agree, player.Id)
+		if len(req.Agree) >= r.UserCnt {
 			r.LeaveRoom(reqPlayer, status)
 			r.DeleteReply(reqPlayer.Id)
 			return true
@@ -319,11 +327,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 			return ErrCreateRoomFaild
 		}
 		room.ChatRoomId = id.(int)
-	}
-
-	_, chairId := room.GetUserByUid(u.Id)
-	if chairId > 0 {
-		room.LeaveRoom(u, 1)
 	}
 
 	room.EnterRoom(ChairID, u)
