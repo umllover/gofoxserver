@@ -23,7 +23,12 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 	r.CreateUser = uid
 	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
-	r.PlayerCount = temp.MaxPlayer
+
+	r.MinPlayerCount = temp.MinPlayer
+	r.MaxPlayerCount = temp.MaxPlayer
+
+	log.Debug("new data min player count %d, max %d",
+		r.MinPlayerCount, r.MaxPlayerCount)
 
 	r.KindID = temp.KindID
 	r.ServerID = temp.ServerID
@@ -50,6 +55,8 @@ type RoomData struct {
 	InitScoreMap map[int]int // 初始积分
 
 	PlayerCount int //游戏人数，
+	MinPlayerCount int // 最少游戏人数
+	MaxPlayerCount int // 最大游戏人数
 
 	FisrtCallUser   int     //始叫用户
 	CurrentUser     int     //当前用户
@@ -74,14 +81,15 @@ func (r *RoomData) OnCreateRoom() {
 	if ok {
 		log.Debug("get persional table fee ok")
 		initScore := persionalTableFee.IniScore
-		for i := 0; i < r.PlayerCount; i++ { //每个玩家初始积分1000
+		for i := 0; i < r.MaxPlayerCount; i++ { //初始6个玩家积分1000
 			r.InitScoreMap[i] = initScore
 		}
 	} else {
-		for i := 0; i < r.PlayerCount; i++ {
+		for i := 0; i < r.MaxPlayerCount; i++ {
 			r.InitScoreMap[i] = 1000
 		}
 	}
+	log.Debug("on create room init score map %v", r.InitScoreMap)
 
 	//  每局积分
 	r.EachRoundScoreMap = make(map[int][]int)
@@ -137,8 +145,6 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
-	room.PlayerCount = UserCnt
-	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始

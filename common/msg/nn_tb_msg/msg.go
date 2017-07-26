@@ -33,25 +33,24 @@ func init() {
 // ------------ s2c ----------------
 //---------- 游戏状态-------
 type G2C_TBNN_StatusFree struct {
-	CellScore	 			int						//基础积分
+	CellScore	 		int			//基础积分
 
-	//历史积分
-	TurnScore 				[]int			//积分信息
+	TurnScore 			[]int			//积分信息
 	CollectScore 			[]int			//积分信息
-	GameRoomName			string						//房间名称
+	GameRoomName			string			//房间名称
 
-	TimeOutCard				int							//出牌时间
-	TimeOperateCard			int 						//操作时间
-	TimeStartGame			int64 						//开始时间
+	TimeOutCard			int			//出牌时间
+	TimeOperateCard			int 			//操作时间
+	TimeStartGame			int64 			//开始时间
 
-	PlayerCount				int							//玩家人数
-	TimesCount				int								//倍数
-	PlayMode				int								//游戏模式
-	CountLimit				int								//局数限制
+	TimesCount			int			//倍数
+	PlayMode			int			//游戏模式
+	CountLimit			int			//局数限制
 
-	CurrentPlayCount		int							    //房间已玩局数
-	EachRoundScore			[][]int			//房间每局游戏比分
-	InitScore				[]int 	//积分信息
+	PlayerCount int // 游戏人数
+	CurrentPlayCount		int		    //房间已玩局数
+	EachRoundScore			[][]int		//房间每局游戏比分
+	InitScore			[]int 	//积分信息
 }
 
 type G2C_TBNN_StatusCall struct {
@@ -81,6 +80,7 @@ type G2C_TBNN_StatusPlay struct {
 	CellScore       		int		//基础积分
 
 	PlayStatus      		[]int          //用户状态
+	PlayerCount                     int            //玩家人数
 	BankerUser			int	       //庄家用户
 	HandCardData  			[][]int         //桌面扑克
 
@@ -100,11 +100,7 @@ type G2C_TBNN_CallScoreEnd struct {
 
 //游戏开始
 type G2C_TBNN_GameStart struct {
-	CellScore				int64							//单元下注
-
-	DrawMaxScore			int64							//最大下注
-	TurnMaxScore			int64			//最大下注
-	BankerUser				int				//庄家用户
+	PlayerCount int //游戏人数
 }
 
 //广播用户下注
