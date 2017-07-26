@@ -1,6 +1,7 @@
 package room
 
 import (
+	"encoding/json"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -13,8 +14,6 @@ import (
 	"strconv"
 
 	"mj/common/msg/mj_zp_msg"
-
-	"encoding/json"
 
 	"mj/common/utils"
 
@@ -761,6 +760,7 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 
 	//抓花规则
 	var getInedx [3]int
+	userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	index := [4][3]int{{1, 5, 9}, {0, 2, 6}, {0, 3, 7}, {0, 4, 8}}
 	if room.BankerUser == CenterUser {
 		getInedx = index[0]
