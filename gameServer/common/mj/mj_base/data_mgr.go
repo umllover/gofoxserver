@@ -949,14 +949,12 @@ func (room *RoomData) StartDispatchCard() {
 	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 2
 	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 4
+	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 2
-	//room.ProvideCard = 0x16
-	//room.SendCardData = 0x16
 	//room.CardIndex[room.BankerUser] = newCard
-	//room.RepertoryCard[55] = 0x35
+	//room.RepertoryCard[55] = 0x16
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
