@@ -31,8 +31,10 @@ type G2C_SSS_StatusFree struct {
 //发送扑克
 type G2C_SSS_SendCard struct {
 	//wCurrentUser int   //当前玩家
-	CardData  []int //手上扑克
-	CellScore int   //游戏底分
+	CardData    []int //手上扑克
+	Laizi       []int //癞子牌
+	PublicCards []int //公共牌
+	CellScore   int   //游戏底分
 }
 
 //用户摊牌
@@ -89,6 +91,11 @@ type G2C_SSS_GameEnd struct {
 	CbThreeKillResult      []int      `json:"cbThreeKillResult"` //全垒打加减分
 	BEnterExit             bool       `json:"bEnterExit"`        //是否一进入就离开
 	WAllUser               int        `json:"wAllUser"`          //全垒打用户
+}
+
+// 结算
+type G2C_SSS_Record struct {
+	AllResult [][]int `json:"allResult"` //每一局每一道比较结果
 }
 
 //游戏状态
