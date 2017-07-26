@@ -100,15 +100,29 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay := &nn_tb_msg.G2C_TBNN_StatusPlay{}
 
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
+	log.Debug("at sendstatus play")
 	//游戏变量
-	StatusPlay.BankerUser = room.BankerUser.ChairId
 	StatusPlay.CellScore = room.CellScore
 
-	StatusPlay.TurnScore = make([]int, UserCnt)
-	StatusPlay.CollectScore = make([]int, UserCnt)
-	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.PlayStatus = append(StatusPlay.PlayStatus, room.UserGameStatusMap[room.PkBase.UserMgr.GetUserByChairId(i)])
+	}
 
+	StatusPlay.BankerUser = room.BankerUser.ChairId
+	StatusPlay.HandCardData = make([][]int, room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.HandCardData[i] = append(StatusPlay.HandCardData[i], room.CardData[i]...)
+	}
+	
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.InitScore = append(StatusPlay.InitScore, room.InitScoreMap[i])
+	}
+	StatusPlay.GameRoomName = room.Name
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusPlay.EachRoundScore = make([][]int, room.PlayerCount)
+	for i:=0;i<room.PlayerCount;i++ {
+		StatusPlay.EachRoundScore[i] = append(StatusPlay.EachRoundScore[i], room.EachRoundScoreMap[i]...)
+	}
 	u.WriteMsg(StatusPlay)
 }
 

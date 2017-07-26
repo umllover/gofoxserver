@@ -287,6 +287,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 	}
 
 	room.EnterRoom(ChairID, u)
+
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
 	//把所有玩家信息推送给自己
