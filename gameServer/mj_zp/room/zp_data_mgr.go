@@ -701,6 +701,7 @@ func (room *ZP_RoomData) NormalEnd() {
 	GameConclude.ProvideCard = room.ProvideCard
 
 	//统计积分
+	GameConclude.CellScore = room.Source
 	DetailScore := make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		if u.Status != US_PLAYING {
