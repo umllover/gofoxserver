@@ -10,6 +10,5 @@ func RegisterHandler(r *SSS_Entry) {
 	r.GetChanRPC().Register("userOffline", r.UserOffline)
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
 	//
-	//r.GetChanRPC().Register("OutCard", r.OutCard)
-	//r.GetChanRPC().Register("OperateCard", r.UserOperateCard)
+	r.GetChanRPC().Register("ShowCard", r.ShowSSsCard)
 }

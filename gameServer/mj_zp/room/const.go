@@ -2,9 +2,9 @@ package room
 
 //游戏积分制
 const (
-	GAME_TYPE_33 = 33
-	GAME_TYPE_48 = 48
-	GAME_TYPE_88 = 88
+	GAME_TYPE_33 = 0
+	GAME_TYPE_48 = 1
+	GAME_TYPE_88 = 2
 )
 
 //积分类型
@@ -51,7 +51,8 @@ const (
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
 	IDX_SUB_SCORE_WUAK  = 34 //五暗刻
 	IDX_SUB_SCORE_ZYS   = 35 //字一色
+	IDX_SUB_SCORE_ZPG   = 36 //字牌杠
 
-	COUNT_KIND_SCORE = 36 //分数子项个数
+	COUNT_KIND_SCORE = 37 //分数子项个数
 
 )

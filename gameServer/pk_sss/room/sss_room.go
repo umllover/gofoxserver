@@ -16,7 +16,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*model.CreateRoomInfo)
 	u := args[1].(*user.User)
 	if info.KindId != common.KIND_TYPE_SSS {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_HZMJ uid:%d", u.Id)
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_SSS uid:%d", u.Id)
 		return nil
 	}
 
@@ -28,7 +28,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewSSSEntry(info)
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

@@ -21,6 +21,8 @@ import (
 
 	dbbase "mj/gameServer/db/model/base"
 
+	"mj/gameServer/conf"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -72,30 +74,30 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 		return nil
 	}
 
-	getData, ok := setInfo["ZhuaHua"].(float64)
+	getData, ok := setInfo["zhuaHua"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ZhuaHua] error")
+		log.Error("zpmj at NewDataMgr [zhuaHua] error")
 		return nil
 	}
 	r.ZhuaHuaCnt = int(getData)
 
-	getData2, ok := setInfo["WithZiCard"].(bool)
+	getData2, ok := setInfo["wanFa"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithZiCard] error")
+		log.Error("zpmj at NewDataMgr [wanFa] error")
 		return nil
 	}
 	r.WithZiCard = getData2
 
-	getData3, ok := setInfo["ScoreType"].(float64)
+	getData3, ok := setInfo["suanFen"].(float64)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [ScoreType] error")
+		log.Error("zpmj at NewDataMgr [suanFen] error")
 		return nil
 	}
 	r.ScoreType = int(getData3)
 
-	getData4, ok := setInfo["WithChaHua"].(bool)
+	getData4, ok := setInfo["chaHua"].(bool)
 	if !ok {
-		log.Error("zpmj at NewDataMgr [WithChaHua] error")
+		log.Error("zpmj at NewDataMgr [chaHua] error")
 		return nil
 	}
 	r.WithChaHua = getData4
@@ -167,7 +169,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.HuKindType = room.HuKindType[0:0]
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
-	room.LianZhuang = 0
+	room.LianZhuang = 1
 	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
 	room.BanCardCnt = [4][9]int{}
@@ -486,6 +488,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 
+	if conf.Test {
+		room.RepalceCard()
+	}
+
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
@@ -496,10 +502,9 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
 	//temp[5] = 2
-	//temp[6] = 0
 	//
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x07
+	//room.SendCardData = 0x06
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -618,11 +623,11 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
 					if hu {
 						room.UserAction[u.ChairId] |= WIK_CHI_HU
+						//抢杠胡特殊分
+						room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 					}
 				}
 			}
-			//抢杠胡特殊分
-			room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 		}
 
 		//结果判断
@@ -703,7 +708,6 @@ func (room *ZP_RoomData) NormalEnd() {
 		}
 		GameConclude.HandCardData[i] = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[i])
 		GameConclude.CardCount[i] = len(GameConclude.HandCardData[i])
-		util.DeepCopy(&GameConclude.ScoreKind[i], &room.HuKindScore[i]) //游戏得分类型
 	}
 
 	//计算胡牌输赢分
@@ -725,10 +729,10 @@ func (room *ZP_RoomData) NormalEnd() {
 		if u.Status != US_PLAYING {
 			return
 		}
+		util.DeepCopy(&GameConclude.ScoreKind[u.ChairId], &room.HuKindScore[u.ChairId]) //游戏得分类型
 		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
 		//胡牌分
-		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-		GameConclude.GangScore[u.ChairId] += room.SumScore[u.ChairId]
+		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
 		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
@@ -969,7 +973,7 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 	//结束信息
 	wChiHuUser := room.BankerUser
-	log.Debug("一炮: PerformAction:%v", room.PerformAction)
+
 	for i := 0; i < userCnt; i++ {
 		wChiHuUser = (room.BankerUser + i) % userCnt
 		//过虑判断
@@ -998,7 +1002,7 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 //特殊胡牌类型及算分
 func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID int) {
 
-	winScore := room.HuKindScore[HuUserID]
+	winScore := &room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
 		kind := 0
 		kind = room.IsDaSanYuan(v) //大三元
@@ -1154,7 +1158,18 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		kind = room.IsZiYiSe(v, room.FlowerCnt)
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_ZYS] = 12
-			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_WHZ])
+			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_ZYS])
+		}
+		var res bool
+		kind, res = room.IsZiPaiGang(v)
+		if kind > 0 {
+			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && !res ||
+				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && res {
+				//排除重复算分
+				continue
+			}
+			winScore[IDX_SUB_SCORE_ZPG] = 1
+			log.Debug("字牌杠，%d", winScore[IDX_SUB_SCORE_ZPG])
 		}
 	}
 	//单吊
@@ -1169,11 +1184,12 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
 		}
 	}
+
 }
 
 //特殊胡牌算分规则
 func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
-	winScore := room.HuKindScore[HuUserID]
+	winScore := &room.HuKindScore[HuUserID]
 	if room.ScoreType == GAME_TYPE_33 {
 		winScore[IDX_SUB_SCORE_JT] = 0
 		winScore[IDX_SUB_SCORE_KX] = 0
@@ -1236,6 +1252,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 4
 			case IDX_SUB_SCORE_ZYS:
 				winScore[k] = 16
+			case IDX_SUB_SCORE_ZPG:
+				winScore[k] = 1
 			}
 		}
 
@@ -1298,6 +1316,8 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 				winScore[k] = 8
 			case IDX_SUB_SCORE_ZYS:
 				winScore[k] = 16
+			case IDX_SUB_SCORE_ZPG:
+				winScore[k] = 1
 			}
 		}
 	}
@@ -1310,7 +1330,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
-		playerScore := room.HuKindScore[i]
+		playerScore := &room.HuKindScore[i]
 
 		//暗杠
 		playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
@@ -1656,7 +1676,6 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 }
 
 func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
-	log.Debug("########## cbOperateCode:%d", cbOperateCode)
 	room.SendStatus = Gang_Send
 	//变量定义
 	var cbWeave *msg.WeaveItem
@@ -1955,14 +1974,19 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//}
 
 	//构造数据
+	SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCardToMe.SendCardUser = wCurrentUser
+	SendCardToMe.CurrentUser = wCurrentUser
+	SendCardToMe.Tail = bTail
+	SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
+	SendCardToMe.CardData = room.ProvideCard
+	u.WriteMsg(SendCardToMe)
+
 	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser
 	SendCard.CurrentUser = wCurrentUser
 	SendCard.Tail = bTail
 	SendCard.ActionMask = room.UserAction[wCurrentUser]
-	SendCard.CardData = room.ProvideCard
-	//发送数据
-	u.WriteMsg(SendCard)
 	SendCard.CardData = 0
 	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
 

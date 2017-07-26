@@ -213,6 +213,7 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 	//todo 名字排重等等等 验证
 	now := time.Now()
 	accInfo := &model.Accountsinfo{
+		UserID:           user.GetUUID(),
 		Gender:           recvMsg.Gender,   //用户性别
 		Accounts:         recvMsg.Accounts, //登录帐号
 		LogonPass:        recvMsg.LogonPass,
@@ -228,12 +229,12 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 		RegisterIP:       agent.RemoteAddr().String(), //连接地址
 	}
 
-	lastid, err := model.AccountsinfoOp.Insert(accInfo)
+	_, err := model.AccountsinfoOp.Insert(accInfo)
 	if err != nil {
 		log.Error("RegistUser err :%s", err.Error())
 		return InsertAccountError, nil, nil
 	}
-	accInfo.UserID = int64(lastid)
+
 	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
 		return CreateUserError, nil, nil
