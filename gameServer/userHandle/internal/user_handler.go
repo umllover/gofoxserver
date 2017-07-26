@@ -53,7 +53,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 //房间关闭的时候通知
 func (m *UserModule) LeaveRoom(args []interface{}) error {
 	log.Debug("at user LeaveRoom ...........")
-	m.Close(ServerKick)
+	m.Close(KickOutGameEnd)
 	return nil
 }
 

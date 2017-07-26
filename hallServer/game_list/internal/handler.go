@@ -48,7 +48,6 @@ func init() {
 	reg.RegisterRpc("delGameList", delGameList)
 	reg.RegisterRpc("CloseServerAgent", CloseServerAgent)
 	reg.RegisterRpc("addyNewRoom", addyNewRoom)
-	reg.RegisterRpc("notifyDelRoom", notifyDelRoom)
 	reg.RegisterRpc("NewServerAgent", NewServerAgent)
 	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
@@ -57,8 +56,9 @@ func init() {
 	reg.RegisterRpc("GetRoomByRoomId", GetRoomByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
 
+	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
-	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
+	//reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
 	center.SetGameListRpc(ChanRPC)
 }
@@ -155,8 +155,8 @@ func addRoom(recvMsg *msg.RoomInfo) {
 
 func notifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
-	roomId := args[0].(int)
-	delRoom(roomId)
+	recvMsg := args[0].(*msg.S2S_notifyDelRoom)
+	delRoom(recvMsg.RoomID)
 }
 
 func delRoom(roomId int) {
