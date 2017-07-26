@@ -1333,7 +1333,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		log.Debug("连庄得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_LZ], room.SumScore[i])
 		//胡牌类型分+加分项分总和
 		testCnt := 0 //todo,测试代码
-		for j := IDX_SUB_SCORE_HP; j < COUNT_KIND_SCORE; j++ {
+		for j := IDX_SUB_SCORE_ZPKZ; j < COUNT_KIND_SCORE; j++ {
 			room.SumScore[i] += playerScore[j]
 			testCnt += playerScore[j]
 		}
