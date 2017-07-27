@@ -658,7 +658,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.NickName = user.NickName
 
 	//用户成绩
-	retMsg.UserScore = user.Score
+	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
 	retMsg.Medal = user.UserMedal
 	retMsg.UnderWrite = user.UnderWrite
@@ -683,7 +683,8 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.Currency
+	//retMsg.RoomCard = user.Currency
+	retMsg.UserScore = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID

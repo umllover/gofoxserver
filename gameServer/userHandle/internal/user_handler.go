@@ -167,7 +167,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: common.TableFullCount,
 		ChairCount: 4,
-		ServerType: template.ServerType,
+		ServerType: template.GameType,
 		ServerRule: 0, //废弃字段
 	})
 
