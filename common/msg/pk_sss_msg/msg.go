@@ -17,14 +17,11 @@ func init() {
 	Processor.Register(&CMD_C_ShowCard{})
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
+	Processor.Register(&G2C_SSS_Record{})
 }
 
 type G2C_SSS_StatusFree struct {
-	//历史积分
-	//lTurnScore    []int //积分信息
-	//lCollectScore []int //积分信息
-	//
-	//wUserToltalChip []int
+	SubCmd      int `json:"subCmd"`      //当前状态
 	PlayerCount int `json:"playerCount"` //实际人数
 }
 
@@ -95,7 +92,7 @@ type G2C_SSS_GameEnd struct {
 
 // 结算
 type G2C_SSS_Record struct {
-	AllResult [][]int `json:"allResult"` //每一局每一道比较结果
+	AllResult [][]int `json:"allResult"` //每一局总分
 }
 
 //游戏状态

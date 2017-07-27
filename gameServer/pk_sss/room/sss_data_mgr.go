@@ -24,7 +24,12 @@ import (
 
 // 游戏状态
 const (
-	GAME_START = 1002 // 游戏开始
+	GAME_FREE       = 100 // 空闲
+	GAME_SEND_CARD  = 101 // 发牌
+	GAME_SETSEGMENT = 102 //组牌
+	GAME_COMPARE    = 103 //比牌
+	GAME_END        = 104 //结束
+
 )
 
 func init() {
@@ -552,7 +557,7 @@ func (room *sss_data_mgr) DismissEnd() {
 }
 
 func (room *sss_data_mgr) BeforeStartGame(UserCnt int) {
-	room.GameStatus = GAME_START
+	room.GameStatus = GAME_FREE
 	room.InitRoom(UserCnt)
 }
 
@@ -819,9 +824,9 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 // 空闲状态场景
 func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
-	//room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_sss_msg.G2C_SSS_StatusFree{
 		PlayerCount: room.PkBase.UserMgr.GetCurPlayerCnt(),
+		SubCmd:      room.GameStatus,
 	}
 
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {

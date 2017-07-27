@@ -1092,7 +1092,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	util.DeepCopy(&CardData, &bCardData)
 	log.Debug("%d   xxxxxxxxxxxxx", CardData)
 	lg.SortCardList(CardData, 5)
-	Index := make([]int, 5)
+	Index := make([]int, 13)
 	Number := 0
 	SameValueCount := 1
 	Num := make([]int, 8)
@@ -1157,6 +1157,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 			}
 			Number = 0
 			//ZeroMemory(Index,sizeof(Index));
+			Index = make([]int, 13)
 			Index[Number] = i
 			Number++
 			SameValueCount = 1
@@ -1208,6 +1209,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	//判断顺子及同花顺
 	Number = 0
 	//ZeroMemory(Index,sizeof(Index))
+	Index = make([]int, 13)
 	Straight := 1
 	bStraight := lg.GetCardLogicValue(CardData[0])
 	Index[Number] = 0
@@ -1266,6 +1268,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 				Straight = 1
 				Number = 0
 				//ZeroMemory(Index,sizeof(Index));
+				Index = make([]int, 13)
 				Index[Number] = i
 				Number++
 			}
@@ -1326,6 +1329,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 				Straight = 1
 				Number = 0
 				//ZeroMemory(Index,sizeof(Index));
+				Index = make([]int, 13)
 				Index[Number] = i
 				Number++
 			}
@@ -1336,6 +1340,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 			FrontA := 1
 			bStraight = lg.GetCardLogicValue(CardData[0])
 			//ZeroMemory(Index,sizeof(Index));
+			Index = make([]int, 13)
 			Index[Number] = 0
 			Number++
 			bStraight = lg.GetCardLogicValue(CardData[bCardCount-1])
@@ -1374,6 +1379,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	//判断同花及同花顺
 	Number = 0
 	//ZeroMemory(Index,sizeof(Index));
+	Index = make([]int, 13)
 	lg.SortCardList(CardData, bCardCount)
 	cbCardData := make([]int, 13)
 	util.DeepCopy(&cbCardData, &bCardData)
@@ -1491,7 +1497,6 @@ func (lg *sss_logic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirs
 
 	FirstAnalyseData = lg.AnalyseCard(bFirstList, bFirstCount, FirstAnalyseData)
 	NextAnalyseData = lg.AnalyseCard(bNextList, bNextCount, NextAnalyseData)
-
 
 	if bFirstCount != (FirstAnalyseData.bOneCount + FirstAnalyseData.bTwoCount*2 + FirstAnalyseData.bThreeCount*3 + FirstAnalyseData.bFourCount*4 + FirstAnalyseData.bFiveCount*5) {
 		return false
