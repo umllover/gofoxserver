@@ -100,7 +100,7 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
-	
+
 	StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
 
 	StatusFree.GameType = room.GameType
