@@ -97,7 +97,7 @@ func (r *RoomData) OnCreateRoom() {
 		}
 	} else {
 		for i := 0; i < r.MaxPlayerCount; i++ {
-			r.InitScoreMap[i] = 1000
+			r.InitScoreMap[i] = 0
 		}
 	}
 	log.Debug("on create room init score map %v", r.InitScoreMap)

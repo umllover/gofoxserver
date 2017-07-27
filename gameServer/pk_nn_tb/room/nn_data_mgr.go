@@ -31,8 +31,8 @@ const (
 
 // 定时器 -- for test
 const (
-	TIME_CALL_SCORE = 20
-	TIME_ADD_SCORE  = 20
+	TIME_CALL_SCORE = 30
+	TIME_ADD_SCORE  = 30
 	TIME_OPEN_CARD  = 30
 )
 
@@ -144,6 +144,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 	log.Debug("call score")
 	room.GameStatus = GAME_STATUS_CALL_SCORE
 	room.SetAllUserGameStatus(GAME_STATUS_CALL_SCORE)
+	log.Debug("call score user game status map %v", room.UserGameStatusMap)
 	log.Debug("begin call score timer")
 
 	room.CallScoreTimer = room.PkBase.AfterFunc(TIME_CALL_SCORE*time.Second, func() {
@@ -382,6 +383,7 @@ func (r *nntb_data_mgr) CallScoreEnd() {
 	// 进入加注
 	r.GameStatus = GAME_STATUS_ADD_SCORE
 	r.SetAllUserGameStatus(GAME_STATUS_ADD_SCORE)
+	log.Debug("add score user game status map %v", r.UserGameStatusMap)
 	log.Debug("begin add score timer ")
 	r.AddScoreTimer = r.PkBase.AfterFunc(TIME_ADD_SCORE*time.Second, func() { // 超时加注结束
 		log.Debug("end add score timer")
@@ -437,6 +439,7 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 	log.Debug("enter send last card")
 	r.GameStatus = GAME_STATUS_SEND_LAST_CARD
 	r.SetAllUserGameStatus(GAME_STATUS_SEND_LAST_CARD)
+	log.Debug("last card game user status map %v", r.UserGameStatusMap)
 
 	// 发最后一张牌
 	userMgr.ForEachUser(func(u *user.User) {
@@ -458,6 +461,7 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 	// 进入亮牌
 	r.GameStatus = GAME_STATUS_OPEN_CARD
 	r.SetAllUserGameStatus(GAME_STATUS_OPEN_CARD)
+	log.Debug("enter open card game user status map %v", r.UserGameStatusMap)
 	r.EnterOpenCard()
 
 }
@@ -578,6 +582,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	log.Debug("enter cal score")
 	r.GameStatus = GAME_STATUS_CAL_SCORE
 	r.SetAllUserGameStatus(GAME_STATUS_CAL_SCORE)
+	log.Debug("cal score user game status map %v", r.UserGameStatusMap)
 	logicMgr := r.PkBase.LogicMgr
 	userMgr := r.PkBase.UserMgr
 
