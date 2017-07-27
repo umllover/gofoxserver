@@ -42,6 +42,8 @@ const (
 	ErrNotFoundCreateRecord = 121 //没有找到房间记录
 	ErrDoubleCreaterRoom    = 122 //重复创建房间
 	ErrCreaterError         = 123 //创建错误
+	ErrPlayerNotInRoom      = 124 //玩家不在房间内
+	ErrLoveRoomFaild        = 125 //离开房间异常
 )
 
 //红中麻将错误码
@@ -110,11 +112,8 @@ const (
 
 ///////////////游戏模式.
 const (
-	GAME_GENRE_GOLD     = 0x0001 //金币类型
-	GAME_GENRE_SCORE    = 0x0002 //点值类型
-	GAME_GENRE_MATCH    = 0x0004 //比赛类型
-	GAME_GENRE_EDUCATE  = 0x0008 //训练类型
-	GAME_GENRE_PERSONAL = 0x0010 //约战类型
+	GAME_GENRE_ZhuanShi = 1 // 比赛类型
+
 )
 
 /// 通用状态
@@ -156,9 +155,10 @@ const (
 
 //踢出玩家原因
 const (
-	UserOffline = 0 //socket 断开 主动断线
-	ServerKick  = 1 //服务器主动踢出
-	KickOutMsg  = 2 //踢号 重登
+	UserOffline    = 0 //socket 断开 主动断线
+	ServerKick     = 1 //服务器主动踢出
+	KickOutMsg     = 2 //踢号 重登
+	KickOutGameEnd = 3 //游戏结束，关闭房间踢出房间
 )
 
 //////////////////////////////////////////////

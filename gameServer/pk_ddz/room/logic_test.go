@@ -27,6 +27,7 @@ import (
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"github.com/lovelly/leaf/gate"
 )
 
 var (
@@ -39,10 +40,10 @@ var (
 
 var Wg sync.WaitGroup
 
-//func TestGameStart_1(t *testing.T) {
-//	room.UserReady([]interface{}{nil, u1})
-//
-//}
+func TestGameStart_1(t *testing.T) {
+	room.UserReady([]interface{}{nil, u1})
+
+}
 //
 //func TestShowCard(t *testing.T) {
 //	args := []interface{}{nil, u2}
@@ -221,6 +222,7 @@ func TestAnalyseCard(t *testing.T) {
 //}
 
 func TestCompareCard(t *testing.T) {
+	return
 	lg := new(ddz_logic)
 
 	c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
@@ -281,7 +283,6 @@ func TestCompareCard(t *testing.T) {
 }
 
 func init() {
-	return
 	Wg.Add(1)
 	conf.Init("/Users/zhangyudong/Documents/GIT/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
@@ -372,7 +373,7 @@ func newTestUser(uid int64) *user.User {
 	}
 
 	u.ChairId = 0
-	u.Agent = new(TAgent)
+	u.Agent = *new(gate.Agent)
 	return u
 }
 

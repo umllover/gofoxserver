@@ -5,6 +5,7 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/common/pk"
+
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model"
@@ -40,13 +41,28 @@ type Entry_base struct {
 
 func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
+	log.Debug("new pk base %d %d", info.KindId, info.ServiceId)
 	if !ok1 {
+		log.Error("at NewPKBase not foud config .... ")
 		return nil
 	}
 
 	pk := new(Entry_base)
 	pk.Temp = Temp
 	return pk
+}
+
+func (r *Entry_base) RegisterBaseFunc() {
+	r.GetChanRPC().Register("Sitdown", r.Sitdown)
+	r.GetChanRPC().Register("UserStandup", r.UserStandup)
+	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
+	r.GetChanRPC().Register("DissumeRoom", r.DissumeRoom)
+	r.GetChanRPC().Register("UserReady", r.UserReady)
+	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
+	r.GetChanRPC().Register("userOffline", r.UserOffline)
+	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
+	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
+	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
 }
 
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
@@ -118,6 +134,36 @@ func (room *Entry_base) GetUserChairInfo(args []interface{}) {
 	u.WriteMsg(info)
 }
 
+//玩家离开房间
+func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	leaveFunc := func() {
+		if room.UserMgr.LeaveRoom(player, room.Status) {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{})
+		} else {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrLoveRoomFaild})
+		}
+		room.UserMgr.DeleteReply(player.Id)
+	}
+	if room.Status == RoomStatusReady {
+		leaveFunc()
+	} else {
+		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
+		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+	}
+}
+
+//其他玩家响应玩家离开房间的请求
+func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	Agree := args[1].(bool)
+	ReplyUid := args[2].(int64)
+	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if stop {
+		room.TimerMgr.StopReplytIimer(ReplyUid)
+	}
+}
+
 //解散房间
 func (room *Entry_base) DissumeRoom(args []interface{}) {
 	u := args[0].(*user.User)
@@ -143,7 +189,6 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 
 //玩家准备
 func (room *Entry_base) UserReady(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2G_UserReady)
 	u := args[1].(*user.User)
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
@@ -156,7 +201,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
 		//派发初始扑克
-		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
 
@@ -294,7 +339,7 @@ func (room *Entry_base) AfertEnd(Forced bool) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.SetUsetStatus(u, US_FREE)
+		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
 }
 

@@ -30,7 +30,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewHZEntry(info)
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewHZDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r),
+		DataMgr:  NewHZDataMgr(info.RoomId, u.Id, mj_base.IDX_HZMJ, "", temp, r, info),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewHZlogic(mj_base.IDX_HZMJ),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

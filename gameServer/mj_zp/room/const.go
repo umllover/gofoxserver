@@ -2,22 +2,22 @@ package room
 
 //游戏积分制
 const (
-	GAME_TYPE_33 = 33
-	GAME_TYPE_48 = 48
-	GAME_TYPE_88 = 88
+	GAME_TYPE_33 = 0
+	GAME_TYPE_48 = 1
+	GAME_TYPE_88 = 2
 )
 
 //积分类型
 const (
 	IDX_SUB_SCORE_JC = 0 //基础分(底分1台)
 	//桌面分
-	IDX_SUB_SCORE_LZ   = 1 //连庄
-	IDX_SUB_SCORE_HUA  = 2 //花牌
-	IDX_SUB_SCORE_AG   = 3 //暗杠
-	IDX_SUB_SCORE_CH   = 4 //分饼
-	IDX_SUB_SCORE_ZH   = 5 //抓花
-	IDX_SUB_SCORE_ZPKZ = 6 //字牌刻字
+	IDX_SUB_SCORE_LZ  = 1 //连庄
+	IDX_SUB_SCORE_HUA = 2 //花牌
+	IDX_SUB_SCORE_AG  = 3 //暗杠
+	IDX_SUB_SCORE_CH  = 4 //分饼
+	IDX_SUB_SCORE_ZH  = 5 //抓花
 	//胡牌+分
+	IDX_SUB_SCORE_ZPKZ = 6  //字牌刻字
 	IDX_SUB_SCORE_HP   = 7  //平胡
 	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
 	IDX_SUB_SCORE_HDLZ = 9  //海底捞针(算自摸，不能额外加自摸分)
@@ -51,7 +51,8 @@ const (
 	IDX_SUB_SCORE_SIAK  = 33 //四暗刻
 	IDX_SUB_SCORE_WUAK  = 34 //五暗刻
 	IDX_SUB_SCORE_ZYS   = 35 //字一色
+	IDX_SUB_SCORE_ZPG   = 36 //字牌杠
 
-	COUNT_KIND_SCORE = 36 //分数子项个数
+	COUNT_KIND_SCORE = 37 //分数子项个数
 
 )

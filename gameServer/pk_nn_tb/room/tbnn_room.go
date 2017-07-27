@@ -26,12 +26,12 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	r := NewNNTBEntry(info)
-	if r== nil {
+	if r == nil {
 		log.Error("at create room create entry failed")
 	}
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_TBNN, temp.RoomName, temp, r, info.OtherInfo),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewNNTBZLogic(pk_base.IDX_TBNN),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

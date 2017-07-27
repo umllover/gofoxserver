@@ -58,6 +58,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 
+	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
 //连接进来的通知
@@ -72,7 +73,7 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	agent := args[0].(gate.Agent)
 	Reason := args[1].(int)
 	player, ok := agent.UserData().(*user.User)
-	if !ok {
+	if !ok || player == nil {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
@@ -213,6 +214,7 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 	//todo 名字排重等等等 验证
 	now := time.Now()
 	accInfo := &model.Accountsinfo{
+		UserID:           user.GetUUID(),
 		Gender:           recvMsg.Gender,   //用户性别
 		Accounts:         recvMsg.Accounts, //登录帐号
 		LogonPass:        recvMsg.LogonPass,
@@ -228,12 +230,12 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 		RegisterIP:       agent.RemoteAddr().String(), //连接地址
 	}
 
-	lastid, err := model.AccountsinfoOp.Insert(accInfo)
+	_, err := model.AccountsinfoOp.Insert(accInfo)
 	if err != nil {
 		log.Error("RegistUser err :%s", err.Error())
 		return InsertAccountError, nil, nil
 	}
-	accInfo.UserID = int64(lastid)
+
 	player, cok := createUser(accInfo.UserID, accInfo)
 	if !cok {
 		return CreateUserError, nil, nil
@@ -656,7 +658,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.NickName = user.NickName
 
 	//用户成绩
-	retMsg.UserScore = user.Score
+	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
 	retMsg.Medal = user.UserMedal
 	retMsg.UnderWrite = user.UnderWrite
@@ -681,7 +683,8 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.Currency
+	//retMsg.RoomCard = user.Currency
+	retMsg.UserScore = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
@@ -971,4 +974,9 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	}
 
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
+}
+
+/// 游戏服发来的结束消息
+func (m *UserModule) RoomEndInfo(args []interface{}) {
+
 }

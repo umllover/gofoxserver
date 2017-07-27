@@ -11,11 +11,14 @@ import (
 
 	"mj/gameServer/center"
 
+	"time"
+
 	"github.com/lovelly/leaf/log"
 )
 
 func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
+	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
 	r.id = info.RoomId
 	r.PayType = info.PayType
@@ -23,27 +26,47 @@ func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *R
 	r.Trustee = make([]bool, r.UserCnt)
 	r.Public = info.Public
 	r.Onlookers = make(map[int]*user.User)
+	r.ReqLeave = make(map[int64]*ReqLeaveSet)
 	return r
 }
 
 type RoomUserMgr struct {
-	id          int //唯一id 房间id
-	Kind        int //模板表第一类型
-	ServerId    int //模板表第二类型 注意 非房间id
-	PayType     int //支付类型
-	Public      int
-	EendTime    int64              //结束时间
-	UserCnt     int                //可以容纳的用户数量
-	PlayerCount int                //当前用户人数
-	JoinCount   int                //房主设置的游戏人数
-	Users       []*user.User       /// index is chairId
-	Onlookers   map[int]*user.User /// 旁观的玩家
-	ChatRoomId  int                //聊天房间id
-	Trustee     []bool             //是否托管 index 就是椅子id
+	id           int //唯一id 房间id
+	Kind         int //模板表第一类型
+	ServerId     int //模板表第二类型 注意 非房间id
+	PayType      int //支付类型
+	Public       int
+	EendTime     int64              //结束时间
+	MinUserCount int                //最少用户数量
+	UserCnt      int                //可以容纳的用户数量
+	PlayerCount  int                //当前用户人数
+	JoinCount    int                //房主设置的游戏人数
+	Users        []*user.User       /// index is chairId
+	Onlookers    map[int]*user.User /// 旁观的玩家
+	ChatRoomId   int                //聊天房间id
+	Trustee      []bool             //是否托管 index 就是椅子id
+	ReqLeave     map[int64]*ReqLeaveSet
+}
+
+type ReqLeaveSet struct {
+	Refuse  []int64 //J拒绝的人uid
+	Agree   []int64 //同意的人uid
+	CreTime int64   //创建是按
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
 	return r.Trustee
+}
+
+func (r *RoomUserMgr) GetLeaveInfo(uid int64) *msg.LeaveReq {
+	info := r.ReqLeave[uid]
+	if info != nil {
+		m := &msg.LeaveReq{}
+		m.AgreeInfo = info.Agree
+		m.LeftTimes = time.Now().Unix() - info.CreTime
+		return m
+	}
+	return nil
 }
 
 func (r *RoomUserMgr) SetUsetTrustee(chairId int, isTruste bool) {
@@ -151,6 +174,37 @@ func (r *RoomUserMgr) GetChairId() int {
 		}
 	}
 	return -1
+}
+
+func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) bool {
+	reqPlayer, _ := r.GetUserByUid(ReplyUid)
+	if reqPlayer == nil {
+		return false
+	}
+	if Agree {
+		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
+		req := r.ReqLeave[ReplyUid]
+		if req == nil {
+			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
+			r.ReqLeave[ReplyUid] = req
+		}
+		req.Agree = append(req.Agree, player.Id)
+		if len(req.Agree) >= r.UserCnt {
+			r.LeaveRoom(reqPlayer, status)
+			r.DeleteReply(reqPlayer.Id)
+			return true
+		}
+	} else {
+		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
+		r.DeleteReply(reqPlayer.Id)
+		return true
+	}
+
+	return false
+}
+
+func (r *RoomUserMgr) DeleteReply(uid int64) {
+	delete(r.ReqLeave, uid)
 }
 
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
@@ -281,11 +335,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	_, chairId := room.GetUserByUid(u.Id)
-	if chairId > 0 {
-		room.LeaveRoom(u, 1)
-	}
-
 	room.EnterRoom(ChairID, u)
 
 	//把自己的信息推送给所有玩家
@@ -393,20 +442,30 @@ func (room *RoomUserMgr) RoomDissume() {
 }
 
 func (room *RoomUserMgr) IsAllReady() bool {
+	PlayerCount := 0
 	for _, u := range room.Users {
-		if u == nil || u.Status != US_READY {
+		if u == nil {
+			continue
+		}
+
+		if u.Status != US_READY {
 			return false
 		}
+		PlayerCount++
 	}
+	if PlayerCount < room.MinUserCount || PlayerCount > room.UserCnt {
+		return false
+	}
+
 	return true
 }
 
 func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 	room.Users[u.ChairId] = u
 	if Status == RoomStatusStarting {
-		//room.SetUsetStatus(u, US_PLAYING)
+		room.SetUsetStatus(u, US_PLAYING)
 	} else {
-		//room.SetUsetStatus(u, US_SIT)
+		room.SetUsetStatus(u, US_SIT)
 	}
 }
 

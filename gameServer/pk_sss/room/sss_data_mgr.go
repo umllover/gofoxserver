@@ -38,7 +38,7 @@ func init() {
 
 func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 	var setInfo sssOtherInfo
 	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
 		d.wanFa = setInfo.WanFa

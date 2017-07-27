@@ -19,6 +19,8 @@ import (
 
 	"fmt"
 
+	"sync"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -26,7 +28,8 @@ import (
 
 var (
 	reg          = rgst.NewRegister(ChanRPC)
-	gameLists    = make(map[int]*ServerInfo)      //k1 NodeID,
+	gameLists    = make(map[int]*ServerInfo) //k1 NodeID,
+	gameListLock sync.RWMutex
 	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
 	roomKindList = make(map[int]map[int]struct{}) //key1 is kind Id key2 incId
 	Test         = false
@@ -45,7 +48,6 @@ func init() {
 	reg.RegisterRpc("delGameList", delGameList)
 	reg.RegisterRpc("CloseServerAgent", CloseServerAgent)
 	reg.RegisterRpc("addyNewRoom", addyNewRoom)
-	reg.RegisterRpc("notifyDelRoom", notifyDelRoom)
 	reg.RegisterRpc("NewServerAgent", NewServerAgent)
 	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
@@ -54,8 +56,9 @@ func init() {
 	reg.RegisterRpc("GetRoomByRoomId", GetRoomByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
 
+	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
-	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
+	//reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
 	center.SetGameListRpc(ChanRPC)
 }
@@ -152,8 +155,8 @@ func addRoom(recvMsg *msg.RoomInfo) {
 
 func notifyDelRoom(args []interface{}) {
 	log.Debug("at NotifyDelRoom === %v", args)
-	roomId := args[0].(int)
-	delRoom(roomId)
+	recvMsg := args[0].(*msg.S2S_notifyDelRoom)
+	delRoom(recvMsg.RoomID)
 }
 
 func delRoom(roomId int) {
@@ -259,11 +262,15 @@ func CloseServerAgent(args []interface{}) {
 
 ///////////////// help
 func delGameList(args []interface{}) {
+	gameListLock.Lock()
+	defer gameListLock.Unlock()
 	NodeId := args[0].(int)
 	delete(gameLists, NodeId)
 }
 
 func addGameList(v *msg.TagGameServer) {
+	gameListLock.Lock()
+	defer gameListLock.Unlock()
 	gminfo, ok := gameLists[v.NodeID]
 	if !ok {
 		gminfo = new(ServerInfo)
@@ -275,6 +282,8 @@ func addGameList(v *msg.TagGameServer) {
 }
 
 func GetSvrByKind(kindId int) (string, int) {
+	gameListLock.RLock()
+	defer gameListLock.RUnlock()
 	var minv *ServerInfo
 	for _, v := range gameLists {
 		if _, ok := v.list[kindId]; !ok {
@@ -289,7 +298,7 @@ func GetSvrByKind(kindId int) (string, int) {
 			minv = v
 		}
 
-		if Test {
+		if conf.Test {
 			log.Debug("node id =%d,  self node id =%d", v.list[kindId].NodeID, conf.Server.NodeId)
 			if v.list[kindId].NodeID == conf.Server.NodeId {
 				minv = v
@@ -301,6 +310,12 @@ func GetSvrByKind(kindId int) (string, int) {
 
 	if minv == nil || len(minv.list) < 1 {
 		return "", 0
+	}
+
+	if conf.Test {
+		if minv.list[kindId].NodeID != conf.Server.NodeId {
+			return "", 0
+		}
 	}
 	minv.wight++
 	return minv.list[kindId].ServerAddr + ":" + strconv.Itoa(minv.list[kindId].ServerPort), minv.list[kindId].NodeID
@@ -319,7 +334,9 @@ func GetSvrByNodeID(nodeid int) string {
 }
 
 func FaildServerAgent(args []interface{}) {
+	log.Debug("AT 			FaildServerAgent  ")
 	id := args[0].(int)
+	ids := make(map[int]bool)
 	for roomId, v := range roomList {
 		if v.NodeID == id {
 			for uid, _ := range v.MachPlayer { //房间因为服务器宕机关闭
@@ -327,8 +344,21 @@ func FaildServerAgent(args []interface{}) {
 				center.SendToThisNodeUser(uid, "RoomCloseInfo", &msg.RoomEndInfo{RoomId: roomId, Status: v.Status, CreateUid: v.CreateUserId})
 			}
 			delete(roomList, roomId)
+			ids[roomId] = true
 		}
 	}
+
+	for _, m := range roomKindList {
+		for roomid, _ := range m {
+			if ids[roomid] {
+				delete(m, roomid)
+			}
+		}
+	}
+
+	delete(gameLists, id)
+
+	log.Debug("AT 			FaildServerAgent  ok")
 }
 
 func sendPlayerBrief(args []interface{}) {
