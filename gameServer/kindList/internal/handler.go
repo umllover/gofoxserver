@@ -40,10 +40,10 @@ func GetKindList(args []interface{}) (interface{}, error) {
 			svrInfo.SortID = template.SortID
 			svrInfo.ServerID = template.ServerID
 			svrInfo.ServerPort = port
-			svrInfo.ServerType = int64(template.ServerType)
+			svrInfo.ServerType = int64(template.GameType)
 			svrInfo.OnLineCount = int64(v.GetClientCount())
 			svrInfo.FullCount = common.TableFullCount
-			svrInfo.MinTableScore = int64(template.MinTableScore)
+			svrInfo.MinTableScore = 0 //暂时无效
 			svrInfo.MinEnterScore = int64(template.MinEnterScore)
 			svrInfo.MaxEnterScore = int64(template.MaxEnterScore)
 			svrInfo.ServerAddr = ip
@@ -82,7 +82,7 @@ func RenewalFee(args []interface{}) {
 		return
 	}
 
-	_, err := room.GetChanRPC().Call1("AddPayCnt", recvMsg.AddCnt)
+	_, err := room.GetChanRPC().Call1("AddPlayCnt", recvMsg.AddCnt)
 	if err != nil {
 		retCode = 2
 		return

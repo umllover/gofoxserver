@@ -205,7 +205,7 @@ type L2C_LogonSuccess struct {
 	NickName   string `json:"szNickName"`   //用户昵称
 
 	//用户成绩
-	UserScore    int64     `json:"lUserScore"`   //用户欢乐豆
+	UserScore    int       `json:"lUserScore"`   //用户欢乐豆
 	UserInsure   int64     `json:"lUserInsure"`  //用户银行
 	Medal        int       `json:"dwMedal"`      //用户钻石
 	UnderWrite   string    `json:"szUnderWrite"` //个性签名
@@ -309,8 +309,7 @@ type L2C_KickOut struct {
 type L2C_RspTradeShopInfo struct {
 }
 
-
-//客户端通知价钱ok
-type C2L_RechangerOk struct {
-	OrderId int
+//更新玩家属性信息
+type L2C_UpdateUserAttr struct {
+	Data map[string]interface{} //key value 结构
 }

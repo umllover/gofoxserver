@@ -14,6 +14,7 @@ import (
 	"mj/hallServer/match_room"
 	"mj/hallServer/race_msg"
 	"mj/hallServer/times_mgr"
+	"mj/hallServer/user"
 	"mj/hallServer/userHandle"
 	"os"
 
@@ -49,6 +50,7 @@ func main() {
 	consul.SetSelfId(lconf.ServerName)
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
+	user.LoadIncId()
 	leaf.Run(
 		userHandle.UserMgr,
 		gate.Module,

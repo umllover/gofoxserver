@@ -6,13 +6,14 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 )
 
-func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry) *hz_data {
+func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *model.CreateRoomInfo) *hz_data {
 	d := new(hz_data)
-	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base)
+	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 	return d
 }
 
@@ -25,12 +26,13 @@ type hz_data struct {
 func (room *hz_data) AfterStartGame() {
 	//检查自摸
 	room.CheckZiMo()
+	//检测起手杠牌
+	room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
 }
 
 func (room *hz_data) SendGameStart() {
-
 	//构造变量
 	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
@@ -44,7 +46,6 @@ func (room *hz_data) SendGameStart() {
 		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
 		u.WriteMsg(GameStart)
 	})
-
 }
 
 func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
@@ -146,6 +147,7 @@ func (room *hz_data) NormalEnd() {
 	GameConclude.ProvideCard = room.ProvideCard
 
 	//统计积分
+	DetailScore := make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		if u.Status != US_PLAYING {
 			return
@@ -154,12 +156,6 @@ func (room *hz_data) NormalEnd() {
 		//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
 		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
 		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
-
-		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
-			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-		}
 
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
@@ -171,13 +167,11 @@ func (room *hz_data) NormalEnd() {
 		}
 
 		//历史积分
-		if room.HistoryScores[u.ChairId] == nil {
-			room.HistoryScores[u.ChairId] = &HistoryScore{}
-		}
-		room.HistoryScores[u.ChairId].TurnScore = GameConclude.GameScore[u.ChairId]
-		room.HistoryScores[u.ChairId].CollectScore += GameConclude.GameScore[u.ChairId]
-
+		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
+		DetailScore[u.ChairId] = GameConclude.GameScore[u.ChairId]
 	})
+
+	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)

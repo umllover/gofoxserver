@@ -52,6 +52,8 @@ func init() {
 	Processor.Register(&L2C_ChangeUserNameRsp{})
 	Processor.Register(&C2L_ChangeSign{})
 	Processor.Register(&L2C_ChangeSignRsp{})
+	Processor.Register(&L2C_KickOut{})
+	Processor.Register(&L2C_UpdateUserAttr{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})
@@ -87,8 +89,12 @@ func init() {
 	Processor.Register(&G2C_LoadRoomOk{})
 	Processor.Register(&G2C_GameConclude{})
 	Processor.Register(&G2C_UserSitDownRst{})
-	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&G2C_KickOut{})
+	Processor.Register(&C2G_LeaveRoom{})
+	Processor.Register(&G2C_LeaveRoomRsp{})
+	Processor.Register(&G2C_LeaveRoomBradcast{})
+	Processor.Register(&G2C_ReplyRsp{})
+	Processor.Register(&C2G_ReplyLeaveRoom{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

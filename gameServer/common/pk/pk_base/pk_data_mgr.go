@@ -1,10 +1,10 @@
 package pk_base
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
-	"mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -12,7 +12,7 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, setinfo string) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -23,10 +23,23 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 	r.CreateUser = uid
 	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
-	r.PlayerCount = temp.MaxPlayer
+
+	r.MinPlayerCount = temp.MinPlayer
+	r.MaxPlayerCount = temp.MaxPlayer
+
+	log.Debug("new data min player count %d, max %d",
+		r.MinPlayerCount, r.MaxPlayerCount)
 
 	r.KindID = temp.KindID
 	r.ServerID = temp.ServerID
+	r.OtherInfo = make(map[string]interface{})
+	if setinfo != "" {
+		err := json.Unmarshal([]byte(setinfo), &r.OtherInfo)
+		if err != nil {
+			log.Error("pk_data_mgr at NewDataMgr error:%s", err.Error())
+			return nil
+		}
+	}
 
 	return r
 }
@@ -49,7 +62,9 @@ type RoomData struct {
 
 	InitScoreMap map[int]int // 初始积分
 
-	PlayerCount int //游戏人数，
+	PlayerCount    int //游戏人数，
+	MinPlayerCount int // 最少游戏人数
+	MaxPlayerCount int // 最大游戏人数
 
 	FisrtCallUser   int     //始叫用户
 	CurrentUser     int     //当前用户
@@ -61,27 +76,29 @@ type RoomData struct {
 
 	HistoryScores    []*HistoryScore //历史积分
 	CurrentPlayCount int
+
+	OtherInfo map[string]interface{} //其他配置信息
 }
 
 func (r *RoomData) OnCreateRoom() {
 	log.Debug("at pk data mgr create room")
 	// 初始化积分
-	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	r.InitScoreMap = make(map[int]int)
-	persionalTalbleFeeCache := dbase.PersonalTableFeeCache
-	persionalTableFee, ok := persionalTalbleFeeCache.Get(r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	template, ok := dbase.GameServiceOptionCache.Get(r.KindID, r.ServerID)
 	if ok {
 		log.Debug("get persional table fee ok")
-		initScore := persionalTableFee.IniScore
-		for i := 0; i < r.PlayerCount; i++ { //每个玩家初始积分1000
+		initScore := template.IniScore
+		for i := 0; i < r.MaxPlayerCount; i++ { //初始6个玩家积分1000
 			r.InitScoreMap[i] = initScore
 		}
 	} else {
-		for i := 0; i < r.PlayerCount; i++ {
+		for i := 0; i < r.MaxPlayerCount; i++ {
 			r.InitScoreMap[i] = 1000
 		}
 	}
+	log.Debug("on create room init score map %v", r.InitScoreMap)
 
 	//  每局积分
 	r.EachRoundScoreMap = make(map[int][]int)
@@ -114,7 +131,7 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
+		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                           //局数限制
 		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.PkBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
@@ -123,6 +140,8 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		ServerID:          strconv.Itoa(room.id),                                         //房间编号
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
+		OtherInfo:         room.OtherInfo,
+		LeaveInfo:         room.PkBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
 	})
 }
 
@@ -137,8 +156,6 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
-	room.PlayerCount = UserCnt
-	room.CellScore = room.PkBase.Temp.CellScore
 }
 
 // 游戏开始
@@ -190,24 +207,3 @@ func (r *RoomData) ShowCard(u *user.User) {
 }
 
 func (r *RoomData) Trustee(u *user.User) {}
-
-func (r *RoomData) AfterEnd(Forced bool) {
-	log.Debug("at pk data mgr after end")
-	r.PkBase.TimerMgr.AddPlayCount()
-	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
-		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
-			RoomId: r.PkBase.DataMgr.GetRoomId(),
-			Status: r.PkBase.Status,
-		})
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
-		r.PkBase.UserMgr.RoomDissume()
-
-		return
-	}
-
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_FREE)
-	})
-
-}

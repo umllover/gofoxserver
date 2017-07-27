@@ -5,12 +5,13 @@ package model
 
 func InitTableMap() {
 	/*
-	   db.DBMap.AddTableWithName(Accountsinfo{}, "accountsinfo").SetKeys(true, "UserID")
+	   db.DBMap.AddTableWithName(Accountsinfo{}, "accountsinfo").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Accountsmember{}, "accountsmember").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(CreateRoomInfo{}, "create_room_info").SetKeys(false,"RoomId")
 	   db.DBMap.AddTableWithName(Gamescoreinfo{}, "gamescoreinfo").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Gamescorelocker{}, "gamescorelocker").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(GoodsLive{}, "goods_live").SetKeys(false,"Id")
+	   db.DBMap.AddTableWithName(IncUserid{}, "inc_userid").SetKeys(false,"NodeId")
 	   db.DBMap.AddTableWithName(Mail{}, "mail").SetKeys(false,"MailId","UserId")
 	   db.DBMap.AddTableWithName(RaceMsgInfo{}, "race_msg_info").SetKeys(true, "MsgID")
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")

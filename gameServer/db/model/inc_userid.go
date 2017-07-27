@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
-	"mj/hallServer/db"
+	"mj/gameServer/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -11,31 +11,26 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//version_update_test
+//inc_userid
 //
 
 // +gen *
-type VersionUpdateTest struct {
-	Id     int `db:"id" json:"id"`         //
-	Test21 int `db:"test21" json:"test21"` //
-	Test22 int `db:"test22" json:"test22"` //
-	Test23 int `db:"test23" json:"test23"` //
-	Test31 int `db:"test31" json:"test31"` //
-	Test32 int `db:"test32" json:"test32"` //
-	Test33 int `db:"test33" json:"test33"` //
+type IncUserid struct {
+	NodeId int   `db:"node_id" json:"node_id"` //
+	IncId  int64 `db:"inc_id" json:"inc_id"`   //
 }
 
-type versionUpdateTestOp struct{}
+type incUseridOp struct{}
 
-var VersionUpdateTestOp = &versionUpdateTestOp{}
-var DefaultVersionUpdateTest = &VersionUpdateTest{}
+var IncUseridOp = &incUseridOp{}
+var DefaultIncUserid = &IncUserid{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
-	obj := &VersionUpdateTest{}
-	sql := "select * from version_update_test where id=? "
+func (op *incUseridOp) Get(node_id int) (*IncUserid, bool) {
+	obj := &IncUserid{}
+	sql := "select * from inc_userid where node_id=? "
 	err := db.DB.Get(obj, sql,
-		id,
+		node_id,
 	)
 
 	if err != nil {
@@ -44,9 +39,9 @@ func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
 	}
 	return obj, true
 }
-func (op *versionUpdateTestOp) SelectAll() ([]*VersionUpdateTest, error) {
-	objList := []*VersionUpdateTest{}
-	sql := "select * from version_update_test "
+func (op *incUseridOp) SelectAll() ([]*IncUserid, error) {
+	objList := []*IncUserid{}
+	sql := "select * from inc_userid "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -55,11 +50,11 @@ func (op *versionUpdateTestOp) SelectAll() ([]*VersionUpdateTest, error) {
 	return objList, nil
 }
 
-func (op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionUpdateTest, error) {
-	result := []*VersionUpdateTest{}
+func (op *incUseridOp) QueryByMap(m map[string]interface{}) ([]*IncUserid, error) {
+	result := []*IncUserid{}
 	var params []interface{}
 
-	sql := "select * from version_update_test where 1=1 "
+	sql := "select * from inc_userid where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -72,7 +67,7 @@ func (op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionU
 	return result, nil
 }
 
-func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdateTest, error) {
+func (op *incUseridOp) GetByMap(m map[string]interface{}) (*IncUserid, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -84,7 +79,7 @@ func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdat
 }
 
 /*
-func (i *VersionUpdateTest) Insert() error {
+func (i *IncUserid) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -94,21 +89,16 @@ func (i *VersionUpdateTest) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *versionUpdateTestOp) Insert(m *VersionUpdateTest) (int64, error) {
+func (op *incUseridOp) Insert(m *IncUserid) (int64, error) {
 	return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *versionUpdateTestOp) InsertTx(ext sqlx.Ext, m *VersionUpdateTest) (int64, error) {
-	sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?)"
+func (op *incUseridOp) InsertTx(ext sqlx.Ext, m *IncUserid) (int64, error) {
+	sql := "insert into inc_userid(node_id,inc_id) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.Id,
-		m.Test21,
-		m.Test22,
-		m.Test23,
-		m.Test31,
-		m.Test32,
-		m.Test33,
+		m.NodeId,
+		m.IncId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -119,15 +109,10 @@ func (op *versionUpdateTestOp) InsertTx(ext sqlx.Ext, m *VersionUpdateTest) (int
 }
 
 //存在就更新， 不存在就插入
-func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string]interface{}) error {
-	sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.Id,
-		obj.Test21,
-		obj.Test22,
-		obj.Test23,
-		obj.Test31,
-		obj.Test32,
-		obj.Test33,
+func (op *incUseridOp) InsertUpdate(obj *IncUserid, m map[string]interface{}) error {
+	sql := "insert into inc_userid(node_id,inc_id) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.NodeId,
+		obj.IncId,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -143,7 +128,7 @@ func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string
 }
 
 /*
-func (i *VersionUpdateTest) Update()  error {
+func (i *IncUserid) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -153,21 +138,16 @@ func (i *VersionUpdateTest) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionUpdateTestOp) Update(m *VersionUpdateTest) error {
+func (op *incUseridOp) Update(m *IncUserid) error {
 	return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionUpdateTestOp) UpdateTx(ext sqlx.Ext, m *VersionUpdateTest) error {
-	sql := `update version_update_test set test21=?,test22=?,test23=?,test31=?,test32=?,test33=? where id=?`
+func (op *incUseridOp) UpdateTx(ext sqlx.Ext, m *IncUserid) error {
+	sql := `update inc_userid set inc_id=? where node_id=?`
 	_, err := ext.Exec(sql,
-		m.Test21,
-		m.Test22,
-		m.Test23,
-		m.Test31,
-		m.Test32,
-		m.Test33,
-		m.Id,
+		m.IncId,
+		m.NodeId,
 	)
 
 	if err != nil {
@@ -179,14 +159,14 @@ func (op *versionUpdateTestOp) UpdateTx(ext sqlx.Ext, m *VersionUpdateTest) erro
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionUpdateTestOp) UpdateWithMap(id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, id, m)
+func (op *incUseridOp) UpdateWithMap(node_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, node_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionUpdateTestOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[string]interface{}) error {
+func (op *incUseridOp) UpdateWithMapTx(ext sqlx.Ext, node_id int, m map[string]interface{}) error {
 
-	sql := `update version_update_test set %s where 1=1 and id=? ;`
+	sql := `update inc_userid set %s where 1=1 and node_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -197,39 +177,39 @@ func (op *versionUpdateTestOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[strin
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, id)
+	params = append(params, node_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *VersionUpdateTest) Delete() error{
+func (i *IncUserid) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *versionUpdateTestOp) Delete(id int) error {
-	return op.DeleteTx(db.DB, id)
+func (op *incUseridOp) Delete(node_id int) error {
+	return op.DeleteTx(db.DB, node_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *versionUpdateTestOp) DeleteTx(ext sqlx.Ext, id int) error {
-	sql := `delete from version_update_test where 1=1
-        and id=?
+func (op *incUseridOp) DeleteTx(ext sqlx.Ext, node_id int) error {
+	sql := `delete from inc_userid where 1=1
+        and node_id=?
         `
 	_, err := ext.Exec(sql,
-		id,
+		node_id,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from version_update_test where 1=1 `
+	sql := `select count(*) from inc_userid where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -243,13 +223,13 @@ func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, erro
 	return count, nil
 }
 
-func (op *versionUpdateTestOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *versionUpdateTestOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from version_update_test where 1=1 "
+	sql := "delete from inc_userid where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)

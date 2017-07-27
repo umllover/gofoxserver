@@ -349,7 +349,6 @@ func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cb
 }
 
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
-
 	cbOutCount := 0
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
 	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
@@ -436,18 +435,23 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 	if cbLessKindItem == 0 {
 		//牌眼判断
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ {
-			if cbCardIndex[i] == 2 {
+			if cbCardIndex[i] == 2 || (cbMagicIndex != 0 && i != cbMagicIndex && cbMagicCount+cbCardIndex[i] == 2) {
 				//变量定义
 				analyseItem := &TagAnalyseItem{WeaveKind: make([]int, lg.GetCfg().MaxWeave), CenterCard: make([]int, lg.GetCfg().MaxWeave), CardData: make([][]int, lg.GetCfg().MaxIdx), IsAnalyseGet: make([]bool, lg.GetCfg().MaxWeave)}
 				for i := range analyseItem.CardData {
-					analyseItem.CardData[i] = make([]int, 4)
+					analyseItem.CardData[i] = make([]int, lg.GetCfg().MaxWeave)
 				}
 				//设置结果
 				for j := 0; j < cbWeaveCount; j++ {
 					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
 					analyseItem.CenterCard[j] = WeaveItem[j].CenterCard
 				}
-				analyseItem.CardEye = lg.SwitchToCard(i)
+				analyseItem.MagicEye = cbCardIndex[i] < 2 || i == cbMagicIndex
+				if cbCardIndex[i] == 0 {
+					analyseItem.CardEye = lg.SwitchToCard(cbMagicIndex)
+				} else {
+					analyseItem.CardEye = lg.SwitchToCard(i)
+				}
 				//插入结果
 				TagAnalyseItemArray = append(TagAnalyseItemArray, analyseItem)
 				return true, TagAnalyseItemArray
@@ -461,8 +465,8 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 		for i := 0; i < lg.GetCfg().MaxIdx; i++ { //不计算花牌
 			//同牌判断
 			if cbCardIndex[i] >= 3 || (cbCardIndex[i]+cbMagicCount >= 3 && i != cbMagicIndex) {
+				nTempCount := cbCardIndex[i]
 				for {
-					nTempCount := cbCardIndex[i]
 					KindItem = lg.AddKindItem(KindItem, i, cbMagicIndex, nTempCount)
 					cbKindItemCount++
 					//当前索引牌未与万能牌组合且万能牌个数不为0
@@ -532,7 +536,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			}
 		}
 	}
-
+	
 	//组合分析
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
