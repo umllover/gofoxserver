@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	dbbase "mj/gameServer/db/model/base"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -54,14 +52,7 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 	r.ChaHuaMap = make(map[int]int)
 	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
-	persionalTableFee, ok := dbbase.PersonalTableFeeCache.Get(info.KindId, info.ServiceId, info.Num)
-	if ok {
-		r.IniSource = persionalTableFee.IniScore
-	} else {
-		r.IniSource = 1000
-		log.Error("zpmj at NewDataMgr initScore error")
-	}
-
+	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [zhuaHua] error")
@@ -677,7 +668,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
+		if GameConclude.GameScore[u.ChairId] > 0 && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi {
 			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
 			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
 		}
@@ -1880,6 +1871,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
 	if u == nil {
 		log.Error("at DispatchCardData not foud user ")
+		return -1
 	}
 
 	//清除禁止胡牌的牌
@@ -2040,7 +2032,7 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt() //局数限制
 	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
 	u.WriteMsg(StatusFree)
 }

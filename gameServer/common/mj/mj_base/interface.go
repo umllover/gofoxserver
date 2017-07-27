@@ -2,17 +2,14 @@ package mj_base
 
 import (
 	"mj/common/msg"
-	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"strconv"
 )
 
 type DataManager interface {
 	BeforeStartGame(UserCnt int)                                     //开始前的处理
 	StartGameing()                                                   //游戏开始种的处理
-	InitRoomOne()                                                        //
+	InitRoomOne()                                                    //
 	AfterStartGame()                                                 //开始游戏的善后处理
 	SendPersonalTableTip(*user.User)                                 //发送没开始前的场景信息
 	SendStatusPlay(u *user.User)                                     //发送开始后的处理
@@ -82,46 +79,4 @@ type LogicManager interface {
 
 	GetMagicIndex() int
 	SetMagicIndex(int)
-}
-
-////////////////////////////////////////////
-//全局变量
-// TODO 增加 默认(错误)值 参数
-func getGlobalVar(key string) string {
-	if globalVar, ok := base.GlobalVarCache.Get(key); ok {
-		return globalVar.V
-	}
-	return ""
-}
-
-func getGlobalVarFloat64(key string) float64 {
-	if value := getGlobalVar(key); value != "" {
-		v, _ := strconv.ParseFloat(value, 10)
-		return v
-	}
-	return 0
-}
-
-func getGlobalVarInt64(key string, val int64) int64 {
-	if value := getGlobalVar(key); value != "" {
-		if v, err := strconv.ParseInt(value, 10, 64); err == nil {
-			return v
-		}
-	}
-	return val
-}
-
-func getGlobalVarInt(key string) int {
-	if value := getGlobalVar(key); value != "" {
-		v, _ := strconv.Atoi(value)
-		return v
-	}
-	return 0
-}
-
-func getGlobalVarIntList(key string) []int {
-	if value := getGlobalVar(key); value != "" {
-		return utils.GetStrIntList(value)
-	}
-	return nil
 }

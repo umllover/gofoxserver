@@ -41,7 +41,7 @@ func (room *SSS_Entry) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 
 		room.Status = RoomStatusStarting
-		room.TimerMgr.StartPlayingTimer(room.GetSkeleton(), func() {
+		room.TimerMgr.StartPlayingTimer( func() {
 			room.OnEventGameConclude(0, nil, GER_DISMISS)
 		})
 	}

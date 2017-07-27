@@ -315,15 +315,17 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	//检测是否有限时免费
+	//if !player.CheckFree() {
+	money := feeTemp.TableFee
 	if recvMsg.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / template.MaxPlayer
+		money = feeTemp.TableFee / template.MaxPlayer
 	}
-
-	if !player.EnoughCurrency(monrey) {
+	if !player.EnoughCurrency(money) {
 		retCode = NotEnoughFee
 		return
 	}
+	//}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
@@ -420,13 +422,14 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	money := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.AATableFee
+		money = feeTemp.AATableFee
 	}
 
-	if !player.CheckFree() {
-		if !player.SubCurrency(feeTemp.TableFee) {
+	//非限时免费 并且 不是全付方式 并且 钱大于零
+	if !player.CheckFree() && roomInfo.PayType != SELF_PAY_TYPE && money > 0 {
+		if !player.SubCurrency(money) {
 			retcode = NotEnoughFee
 			return
 		}
@@ -436,12 +439,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = roomInfo.RoomID
-		record.Amount = monrey
+		record.Amount = money
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
 		if !player.AddRecord(record) {
 			retcode = ErrServerError
-			player.AddCurrency(monrey)
+			player.AddCurrency(money)
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
@@ -658,7 +661,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.NickName = user.NickName
 
 	//用户成绩
-	retMsg.UserScore = user.Score
+	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
 	retMsg.Medal = user.UserMedal
 	retMsg.UnderWrite = user.UnderWrite
@@ -683,7 +686,8 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.Currency
+	//retMsg.RoomCard = user.Currency
+	retMsg.UserScore = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID

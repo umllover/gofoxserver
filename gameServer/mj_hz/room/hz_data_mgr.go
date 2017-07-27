@@ -26,12 +26,13 @@ type hz_data struct {
 func (room *hz_data) AfterStartGame() {
 	//检查自摸
 	room.CheckZiMo()
+	//检测起手杠牌
+	room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
 }
 
 func (room *hz_data) SendGameStart() {
-
 	//构造变量
 	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
@@ -45,7 +46,6 @@ func (room *hz_data) SendGameStart() {
 		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
 		u.WriteMsg(GameStart)
 	})
-
 }
 
 func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
@@ -156,12 +156,6 @@ func (room *hz_data) NormalEnd() {
 		//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
 		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
 		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
-
-		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
-			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-		}
 
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]

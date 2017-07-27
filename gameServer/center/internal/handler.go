@@ -20,7 +20,7 @@ func init() {
 	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
 	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
 	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("HanldeFromHallMsg", HanldeFromHallMsg)
 	reg.RegisterRpc("ServerFaild", serverFaild)
 	reg.RegisterRpc("ServerStart", serverStart)
 
@@ -67,7 +67,7 @@ func NotifyOtherNodelogout(args []interface{}) {
 }
 
 //处理来自游戏服的消息
-func HanldeFromGameMsg(args []interface{}) {
+func HanldeFromHallMsg(args []interface{}) {
 	SendMsgToSelfNotdeUser(args)
 }
 

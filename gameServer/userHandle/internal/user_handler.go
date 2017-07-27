@@ -150,6 +150,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
 		user.Status = oldUser.Status
+		user.ChatRoomId = oldUser.ChatRoomId
 		m.KickOutUser(oldUser)
 	}
 
@@ -167,7 +168,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: common.TableFullCount,
 		ChairCount: 4,
-		ServerType: template.ServerType,
+		ServerType: template.GameType,
 		ServerRule: 0, //废弃字段
 	})
 

@@ -26,12 +26,13 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	r := NewSSSEntry(info)
+	base := room_base.NewRoomBase()
 	cfg := &pk_base.NewPKCtlConfig{
-		BaseMgr:  room_base.NewRoomBase(),
+		BaseMgr:  base,
 		DataMgr:  NewDataMgr(info, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r, info.OtherInfo),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	if r == nil {
