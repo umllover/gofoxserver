@@ -184,7 +184,7 @@ func init() {
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	RegisterHandler(r)

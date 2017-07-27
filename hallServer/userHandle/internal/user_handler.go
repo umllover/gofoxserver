@@ -57,7 +57,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
-
+	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
 	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
@@ -173,6 +173,8 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	})
 	BuildClientMsg(retMsg, player, accountData)
 	game_list.ChanRPC.Go("sendGameList", agent)
+
+	m.Recharge(nil)
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -981,7 +983,11 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
 }
 
+func (m *UserModule) RechangerOk(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_RechangerOk)
+	m.Recharge(nil)
+}
+
 /// 游戏服发来的结束消息
 func (m *UserModule) RoomEndInfo(args []interface{}) {
-
 }
