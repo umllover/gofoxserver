@@ -1997,6 +1997,26 @@ func (room *ZP_RoomData) ResetUserOperateEx(u *user.User) {
 	room.StopOperateCardTimer(u)
 }
 
+func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
+	cardindex := INVALID_BYTE
+	if room.SendCardData != 0 {
+		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
+	} else {
+		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
+			cardindex = i
+			if room.CardIndex[wChairID][cardindex] > 0 {
+				card := room.MjBase.LogicMgr.SwitchToCardData(cardindex)
+				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BankerUser == wChairID) {
+					break
+				} else {
+					log.Debug("超时吃啥打啥")
+				}
+			}
+		}
+	}
+	return cardindex
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 //定时器
 
@@ -2024,21 +2044,7 @@ func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
 
 	room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
 		log.Debug("超时---出牌 %d", u.ChairId)
-		card := room.SendCardData
-		if !room.MjBase.LogicMgr.IsValidCard(card) {
-			for j := room.GetCfg().MaxIdx - 1; j > 0; j-- {
-				if room.CardIndex[u.ChairId][j] > 0 {
-					card = room.MjBase.LogicMgr.SwitchToCardData(j)
-					if !(card == room.BanCardCnt[u.ChairId][LimitChi] && room.BankerUser == u.ChairId) {
-						break
-					} else {
-						log.Debug("超时吃啥打啥")
-					}
-				}
-			}
-		}
-		log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-		room.MjBase.OutCard([]interface{}{u, card, true})
+		room.MjBase.OnUserTrustee(u.ChairId, true)
 	})
 }
 
