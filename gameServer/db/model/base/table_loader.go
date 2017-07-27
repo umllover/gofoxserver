@@ -5,19 +5,27 @@ package base
 
 import (
 	"mj/gameServer/db"
-	"time"
-
-	"github.com/lovelly/leaf/log"
+    "github.com/lovelly/leaf/log"
+    "time"
 )
 
 func LoadBaseData() {
 	var start = time.Now().UnixNano()
+<<<<<<< .mine
 	ActivityCache.LoadAll()
 	FreeLimitCache.LoadAll()
 	GameServiceOptionCache.LoadAll()
 	GameTestpaiCache.LoadAll()
 	GlobalVarCache.LoadAll()
-	GoodsCache.LoadAll()
+=======
+    ActivityCache.LoadAll()
+    FreeLimitCache.LoadAll()
+    GameServiceOptionCache.LoadAll()
+    GameTestpaiCache.LoadAll()
+    GlobalVarCache.LoadAll()
+>>>>>>> .theirs
+    GoodsCache.LoadAll()
+<<<<<<< .mine
 	PersonalTableFeeCache.LoadAll()
 	RefreshInTimeCache.LoadAll()
 	ServerListCache.LoadAll()
@@ -32,3 +40,19 @@ func LoadBaseData() {
 	db.BaseDataCaches["ServerList"] = ServerListCache
 	log.Debug("loadBaseData %v, %v %v", 9, time.Now().UnixNano()-start, "ns")
 }
+=======
+    PersonalTableFeeCache.LoadAll()
+    RefreshInTimeCache.LoadAll()
+    ServerListCache.LoadAll()
+    db.BaseDataCaches["Activity"] = ActivityCache
+    db.BaseDataCaches["FreeLimit"] = FreeLimitCache
+    db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
+    db.BaseDataCaches["GameTestpai"] = GameTestpaiCache
+    db.BaseDataCaches["GlobalVar"] = GlobalVarCache
+    db.BaseDataCaches["Goods"] = GoodsCache
+    db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
+    db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
+    db.BaseDataCaches["ServerList"] = ServerListCache
+    log.Debug("loadBaseData %v, %v %v", 9,  time.Now().UnixNano()-start, "ns")
+}
+>>>>>>> .theirs

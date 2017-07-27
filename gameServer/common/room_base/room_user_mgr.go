@@ -344,6 +344,8 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
+
+
 	return 0
 }
 
