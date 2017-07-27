@@ -313,3 +313,8 @@ type L2C_RspTradeShopInfo struct {
 type L2C_UpdateUserAttr struct {
 	Data map[string]interface{} //key value 结构
 }
+
+//客户端通知充值成功
+type C2L_RechangerOk struct {
+	OrderId int
+}

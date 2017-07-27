@@ -21,9 +21,9 @@ type Module interface {
 }
 
 type TimerManager interface {
-	StartCreatorTimer(Skeleton *module.Skeleton, cb func())
-	StartPlayingTimer(Skeleton *module.Skeleton, cb func())
-	StartKickoutTimer(Skeleton *module.Skeleton, uid int64, cb func())
+	StartCreatorTimer(cb func())
+	StartPlayingTimer(cb func())
+	StartKickoutTimer(uid int64, cb func())
 	StopOfflineTimer(uid int64)
 	StartReplytIimer(uid int64, cb func())
 	StopReplytIimer(uid int64)
@@ -31,8 +31,8 @@ type TimerManager interface {
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
-	GetMaxPayCnt() int
-	AddMaxPayCnt(int)
+	GetMaxPlayCnt() int
+	AddMaxPlayCnt(int)
 	GetCreatrTime() int64
 	GetTimeOutCard() int
 	GetTimeOperateCard() int

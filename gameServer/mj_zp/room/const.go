@@ -14,7 +14,7 @@ const (
 	IDX_SUB_SCORE_LZ  = 1 //连庄
 	IDX_SUB_SCORE_HUA = 2 //花牌
 	IDX_SUB_SCORE_AG  = 3 //暗杠
-	IDX_SUB_SCORE_CH  = 4 //分饼
+	IDX_SUB_SCORE_FB  = 4 //分饼
 	IDX_SUB_SCORE_ZH  = 5 //抓花
 	//胡牌+分
 	IDX_SUB_SCORE_ZPKZ = 6  //字牌刻字
