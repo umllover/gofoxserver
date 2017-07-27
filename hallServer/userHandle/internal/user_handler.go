@@ -315,15 +315,17 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	//检测是否有限时免费
+	//if !player.CheckFree() {
+	money := feeTemp.TableFee
 	if recvMsg.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / template.MaxPlayer
+		money = feeTemp.TableFee / template.MaxPlayer
 	}
-
-	if !player.EnoughCurrency(monrey) {
+	if !player.EnoughCurrency(money) {
 		retCode = NotEnoughFee
 		return
 	}
+	//}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}

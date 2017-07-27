@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -208,24 +207,3 @@ func (r *RoomData) ShowCard(u *user.User) {
 }
 
 func (r *RoomData) Trustee(u *user.User) {}
-
-func (r *RoomData) AfterEnd(Forced bool) {
-	log.Debug("at pk data mgr after end")
-	r.PkBase.TimerMgr.AddPlayCount()
-	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
-		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
-			RoomId: r.PkBase.DataMgr.GetRoomId(),
-			Status: r.PkBase.Status,
-		})
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
-		r.PkBase.UserMgr.RoomDissume()
-
-		return
-	}
-
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
-	})
-
-}
