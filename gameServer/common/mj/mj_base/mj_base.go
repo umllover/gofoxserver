@@ -15,7 +15,8 @@ import (
 
 	"github.com/lovelly/leaf/timer"
 
-	"github.com/juju/errors"
+	"errors"
+
 	"github.com/lovelly/leaf/log"
 )
 
