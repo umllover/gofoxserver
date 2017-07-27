@@ -52,6 +52,19 @@ func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	return pk
 }
 
+func (r *Entry_base) RegisterBaseFunc() {
+	r.GetChanRPC().Register("Sitdown", r.Sitdown)
+	r.GetChanRPC().Register("UserStandup", r.UserStandup)
+	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
+	r.GetChanRPC().Register("DissumeRoom", r.DissumeRoom)
+	r.GetChanRPC().Register("UserReady", r.UserReady)
+	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
+	r.GetChanRPC().Register("userOffline", r.UserOffline)
+	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
+	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
+	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
+}
+
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr
@@ -119,6 +132,36 @@ func (room *Entry_base) GetUserChairInfo(args []interface{}) {
 		return
 	}
 	u.WriteMsg(info)
+}
+
+//玩家离开房间
+func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	leaveFunc := func() {
+		if room.UserMgr.LeaveRoom(player, room.Status) {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{})
+		} else {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrLoveRoomFaild})
+		}
+		room.UserMgr.DeleteReply(player.Id)
+	}
+	if room.Status == RoomStatusReady {
+		leaveFunc()
+	} else {
+		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
+		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+	}
+}
+
+//其他玩家响应玩家离开房间的请求
+func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	Agree := args[1].(bool)
+	ReplyUid := args[2].(int64)
+	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if stop {
+		room.TimerMgr.StopReplytIimer(ReplyUid)
+	}
 }
 
 //解散房间

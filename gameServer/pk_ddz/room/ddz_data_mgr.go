@@ -58,6 +58,9 @@ type ddz_data_mgr struct {
 	BankerCard   [3]int       // 游戏底牌
 	HandCardData [][]int      // 手上扑克
 	ShowCardSign map[int]bool // 用户明牌标识
+
+	// 定时器
+	CardTimer *time.Timer
 }
 
 func (room *ddz_data_mgr) resetData() {
@@ -93,12 +96,12 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 }
 
 // 空闲状态场景
-func (room *ddz_data_mgr) SendStatusReady(usr *user.User) {
+func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
 
-	StatusFree.CellScore = room.PkBase.Temp.IniScore // 基础积分
+	StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
 
 	StatusFree.GameType = room.GameType
 	StatusFree.EightKing = room.EightKing
@@ -125,13 +128,7 @@ func (room *ddz_data_mgr) SendStatusReady(usr *user.User) {
 	StatusFree.TrusteeSign = make([]bool, len(trustees))
 	util.DeepCopy(&StatusFree.TrusteeSign, &trustees)
 
-	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-
-		if u.ChairId == usr.ChairId || u.Status < cost.US_READY {
-			u.WriteMsg(StatusFree)
-		}
-
-	})
+	u.WriteMsg(StatusFree)
 
 }
 
@@ -183,20 +180,16 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 
 	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
 	//发送数据
-	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-
-		StatusCall.ShowCardData = append([][]int{})
-		for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
-			if room.ShowCardSign[i] || u.ChairId == i {
-				StatusCall.ShowCardData = append(StatusCall.ShowCardData, room.HandCardData[i])
-			} else {
-				StatusCall.ShowCardData = append(StatusCall.ShowCardData, nil)
-			}
+	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
+		if room.ShowCardSign[i] || u.ChairId == i {
+			StatusCall.ShowCardData = append(StatusCall.ShowCardData, room.HandCardData[i])
+		} else {
+			StatusCall.ShowCardData = append(StatusCall.ShowCardData, nil)
 		}
+	}
 
-		log.Debug("叫分进行时%v", StatusCall)
-		u.WriteMsg(StatusCall)
-	})
+	log.Debug("叫分进行时%v", StatusCall)
+	u.WriteMsg(StatusCall)
 }
 
 // 游戏状态
@@ -253,22 +246,18 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 
 	util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
 
-	//发送数据
-	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-
-		StatusPlay.ShowCardData = append([][]int{})
-		for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
-			if room.ShowCardSign[i] || u.ChairId == i {
-				StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, room.HandCardData[i])
-				//util.DeepCopy(GameStart.CardData[i], cardData[i])
-			} else {
-				StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, nil)
-			}
+	// 发送数据
+	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
+		if room.ShowCardSign[i] || u.ChairId == i {
+			StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, room.HandCardData[i])
+			//util.DeepCopy(GameStart.CardData[i], cardData[i])
+		} else {
+			StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, nil)
 		}
+	}
 
-		log.Debug("游戏进行时%v", StatusPlay)
-		u.WriteMsg(StatusPlay)
-	})
+	log.Debug("游戏进行时%v", StatusPlay)
+	u.WriteMsg(StatusPlay)
 }
 
 // 开始游戏，发送扑克
@@ -360,6 +349,8 @@ func (room *ddz_data_mgr) SendGameStart() {
 		u.WriteMsg(GameStart)
 	})
 
+	// 启动定时器
+	room.startOperateCardTimer(room.GetCfg().CallScoreTime)
 }
 
 // 用户叫分(抢庄)
@@ -399,6 +390,7 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 
 	if !isEnd {
 		r.ScoreInfo[nextCallUser] = CALLSCORE_CALLING
+		r.resetOperateCardTimer(r.GetCfg().CallScoreTime)
 	} else {
 		// 叫分结束，看谁叫的分数大就是地主
 		var score int
@@ -416,6 +408,7 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 			r.ScoreTimes = 1
 		}
 		r.CurrentUser = r.BankerUser
+		r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	}
 
 	// 发送叫分信息
@@ -430,6 +423,8 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		// 叫分结束，发庄家信息
 		r.BankerInfo()
 	}
+
+	r.checkNextUserTrustee()
 }
 
 // 庄家信息
@@ -591,6 +586,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
 		return
 	}
+	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	r.checkNextUserTrustee()
 }
 
@@ -599,15 +595,21 @@ func (r *ddz_data_mgr) checkNextUserTrustee() {
 	log.Debug("当前玩家%d,上次出牌玩家%d,托管状态%v", r.CurrentUser, r.TurnWiner, r.PkBase.UserMgr.GetTrustees())
 	if r.PkBase.UserMgr.IsTrustee(r.CurrentUser) {
 		// 出牌玩家为托管状态
-		if r.CurrentUser == r.TurnWiner {
-			// 上一个出牌玩家是自己，则选最小牌
-			var cardData []int
-			cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
-			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 1, cardData)
-		} else {
-			// 上一个出牌玩家不是自己，则不出
-			log.Debug("玩家不出%d,%d,%d", r, r.PkBase, r.PkBase.UserMgr)
-			r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0, nil)
+		if r.GameStatus == GAME_STATUS_CALL {
+			// 叫分状态，托管则不叫
+			r.CallScore(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0)
+		} else if r.GameStatus == GAME_STATUS_PLAY {
+			// 出牌状态
+			if r.CurrentUser == r.TurnWiner {
+				// 上一个出牌玩家是自己，则选最小牌
+				var cardData []int
+				cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
+				r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 1, cardData)
+			} else {
+				// 上一个出牌玩家不是自己，则不出
+				log.Debug("玩家不出%d,%d,%d", r, r.PkBase, r.PkBase.UserMgr)
+				r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0, nil)
+			}
 		}
 	}
 }
@@ -730,10 +732,7 @@ func (r *ddz_data_mgr) NormalEnd() {
 		}
 	}
 
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		log.Debug("游戏结算信息%v", DataGameConclude)
-		u.WriteMsg(DataGameConclude)
-	})
+	r.sendGameEndMsg(DataGameConclude)
 }
 
 //解散房间结束
@@ -748,8 +747,18 @@ func (r *ddz_data_mgr) DismissEnd() {
 	DataGameConclude.BankerScore = r.ScoreTimes
 	util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
 
+	r.sendGameEndMsg(DataGameConclude)
+}
+
+// 发送游戏结束消息
+func (r *ddz_data_mgr) sendGameEndMsg(DataGameConclude *pk_ddz_msg.G2C_DDZ_GameConclude) {
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		log.Debug("游戏结算信息%v", DataGameConclude)
 		u.WriteMsg(DataGameConclude)
+		// 取消所有人的托管状态
+		r.PkBase.UserMgr.SetUsetTrustee(u.ChairId, false)
+		// 取消定时器
+		r.stopOperateCardTimer()
 	})
 }
 
@@ -764,6 +773,8 @@ func (room *ddz_data_mgr) Trustee(u *user.User, t bool) {
 		log.Debug("托管状态%v", DataTrustee)
 		u.WriteMsg(DataTrustee)
 	})
+
+	room.checkNextUserTrustee()
 }
 
 // 托管、明牌、放弃出牌
@@ -781,5 +792,38 @@ func (r *ddz_data_mgr) OtherOperation(args []interface{}) {
 	case "PassCard":
 		r.PassCard(u)
 		break
+	}
+}
+
+// 启动操作定时器
+func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
+	if r.CardTimer != nil {
+		r.CardTimer.Stop()
+		r.CardTimer = nil
+	}
+
+	f := func() {
+		u := r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser)
+		log.Debug("当前操作玩家ID%v", u)
+		r.Trustee(u, true)
+	}
+
+	r.CardTimer = time.AfterFunc(time.Duration(nTime)*time.Second, f)
+}
+
+// 重置定时器
+func (r *ddz_data_mgr) resetOperateCardTimer(nTime int) {
+	log.Debug("重置定时器时间%d", nTime)
+	if r.CardTimer != nil {
+		r.CardTimer.Reset(time.Duration(nTime) * time.Second)
+	}
+}
+
+// 停止定时器
+func (r *ddz_data_mgr) stopOperateCardTimer() {
+	if r.CardTimer != nil {
+		log.Debug("停止定时器")
+		r.CardTimer.Stop()
+		r.CardTimer = nil
 	}
 }
