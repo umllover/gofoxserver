@@ -313,18 +313,18 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
-		room.AfertEnd(false)
+		room.AfterEnd(false)
 		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
-		room.AfertEnd(true)
+		room.AfterEnd(true)
 	}
 	log.Error("at OnEventGameConclude error  ")
 	return
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Entry_base) AfertEnd(Forced bool) {
+func (room *Entry_base) AfterEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())

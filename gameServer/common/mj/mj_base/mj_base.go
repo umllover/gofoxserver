@@ -226,7 +226,7 @@ func (room *Mj_base) OffLineTimeOut(u *user.User) {
 	} else {
 		if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
 			log.Debug("at OffLineTimeOut ======= ")
-			room.AfertEnd(true)
+			room.AfterEnd(true)
 		}
 	}
 }
@@ -513,10 +513,10 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
-		room.AfertEnd(false)
+		room.AfterEnd(false)
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
-		room.AfertEnd(true)
+		room.AfterEnd(true)
 	}
 	room.Status = RoomStatusEnd
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
@@ -524,7 +524,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Mj_base) AfertEnd(Forced bool) {
+func (room *Mj_base) AfterEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
