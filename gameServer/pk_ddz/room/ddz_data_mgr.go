@@ -814,14 +814,14 @@ func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
 // 重置定时器
 func (r *ddz_data_mgr) resetOperateCardTimer(nTime int) {
 	log.Debug("重置定时器时间%d", nTime)
-	if r.CardTimer {
+	if r.CardTimer != nil {
 		r.CardTimer.Reset(time.Duration(nTime) * time.Second)
 	}
 }
 
 // 停止定时器
 func (r *ddz_data_mgr) stopOperateCardTimer() {
-	if r.CardTimer {
+	if r.CardTimer != nil {
 		log.Debug("停止定时器")
 		r.CardTimer.Stop()
 		r.CardTimer = nil
