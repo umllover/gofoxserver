@@ -112,11 +112,8 @@ const (
 
 ///////////////游戏模式.
 const (
-	GAME_GENRE_GOLD     = 0x0001 //金币类型
-	GAME_GENRE_SCORE    = 0x0002 //点值类型
-	GAME_GENRE_MATCH    = 0x0004 //比赛类型
-	GAME_GENRE_EDUCATE  = 0x0008 //训练类型
-	GAME_GENRE_PERSONAL = 0x0010 //约战类型
+	GAME_GENRE_ZhuanShi = 1 // 比赛类型
+
 )
 
 /// 通用状态

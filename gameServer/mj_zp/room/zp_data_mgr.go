@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	dbbase "mj/gameServer/db/model/base"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -54,14 +52,7 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 	r.ChaHuaMap = make(map[int]int)
 	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
-	persionalTableFee, ok := dbbase.PersonalTableFeeCache.Get(info.KindId, info.ServiceId, info.Num)
-	if ok {
-		r.IniSource = persionalTableFee.IniScore
-	} else {
-		r.IniSource = 1000
-		log.Error("zpmj at NewDataMgr initScore error")
-	}
-
+	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [zhuaHua] error")
@@ -676,7 +667,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
+		if GameConclude.GameScore[u.ChairId] > 0 && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi {
 			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
 			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
 		}
@@ -2006,6 +1997,26 @@ func (room *ZP_RoomData) ResetUserOperateEx(u *user.User) {
 	room.StopOperateCardTimer(u)
 }
 
+func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
+	cardindex := INVALID_BYTE
+	if room.SendCardData != 0 {
+		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
+	} else {
+		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
+			cardindex = i
+			if room.CardIndex[wChairID][cardindex] > 0 {
+				card := room.MjBase.LogicMgr.SwitchToCardData(cardindex)
+				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BankerUser == wChairID) {
+					break
+				} else {
+					log.Debug("超时吃啥打啥")
+				}
+			}
+		}
+	}
+	return cardindex
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 //定时器
 
@@ -2033,21 +2044,7 @@ func (room *ZP_RoomData) OutCardTimerEx(u *user.User) {
 
 	room.OutCardTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
 		log.Debug("超时---出牌 %d", u.ChairId)
-		card := room.SendCardData
-		if !room.MjBase.LogicMgr.IsValidCard(card) {
-			for j := room.GetCfg().MaxIdx - 1; j > 0; j-- {
-				if room.CardIndex[u.ChairId][j] > 0 {
-					card = room.MjBase.LogicMgr.SwitchToCardData(j)
-					if !(card == room.BanCardCnt[u.ChairId][LimitChi] && room.BankerUser == u.ChairId) {
-						break
-					} else {
-						log.Debug("超时吃啥打啥")
-					}
-				}
-			}
-		}
-		log.Debug("用户%d超时打牌：%x", u.ChairId, card)
-		room.MjBase.OutCard([]interface{}{u, card, true})
+		room.MjBase.OnUserTrustee(u.ChairId, true)
 	})
 }
 
