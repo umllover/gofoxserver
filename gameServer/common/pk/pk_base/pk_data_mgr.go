@@ -63,7 +63,7 @@ type RoomData struct {
 
 	InitScoreMap map[int]int // 初始积分
 
-	PlayerCount int //游戏人数，
+	PlayerCount    int //游戏人数，
 	MinPlayerCount int // 最少游戏人数
 	MaxPlayerCount int // 最大游戏人数
 
@@ -143,6 +143,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
+		LeaveInfo:         room.PkBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
 	})
 }
 

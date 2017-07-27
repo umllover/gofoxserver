@@ -11,6 +11,8 @@ import (
 
 	"mj/gameServer/center"
 
+	"time"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -47,12 +49,24 @@ type RoomUserMgr struct {
 }
 
 type ReqLeaveSet struct {
-	Refuse int8
-	Agree  int8
+	Refuse  []int64 //J拒绝的人uid
+	Agree   []int64 //同意的人uid
+	CreTime int64   //创建是按
 }
 
 func (r *RoomUserMgr) GetTrustees() []bool {
 	return r.Trustee
+}
+
+func (r *RoomUserMgr) GetLeaveInfo(uid int64) *msg.LeaveReq {
+	info := r.ReqLeave[uid]
+	if info != nil {
+		m := &msg.LeaveReq{}
+		m.AgreeInfo = info.Agree
+		m.LeftTimes = time.Now().Unix() - info.CreTime
+		return m
+	}
+	return nil
 }
 
 func (r *RoomUserMgr) SetUsetTrustee(chairId int, isTruste bool) {
@@ -171,11 +185,11 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
 		if req == nil {
-			req = &ReqLeaveSet{}
+			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
 			r.ReqLeave[ReplyUid] = req
 		}
-		req.Agree++
-		if int(req.Agree) >= r.UserCnt {
+		req.Agree = append(req.Agree, player.Id)
+		if len(req.Agree) >= r.UserCnt {
 			r.LeaveRoom(reqPlayer, status)
 			r.DeleteReply(reqPlayer.Id)
 			return true

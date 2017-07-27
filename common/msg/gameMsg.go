@@ -145,6 +145,13 @@ type G2C_PersonalTableTip struct {
 	IsJoinGame        int                    //是否参与游戏
 	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	OtherInfo         map[string]interface{} //客户端的配置信息
+	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
+}
+
+//请求退出房间的信息
+type LeaveReq struct {
+	LeftTimes int64
+	AgreeInfo []int64
 }
 
 //游戏属性 ， 游戏未开始发送的结构
