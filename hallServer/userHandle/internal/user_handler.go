@@ -57,7 +57,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
-
+	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
 }
 
 //连接进来的通知
@@ -971,4 +971,8 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	}
 
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
+}
+
+func (m *UserModule) RechangerOk(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_RechangerOk)
 }

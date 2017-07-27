@@ -308,3 +308,9 @@ type L2C_KickOut struct {
 //买东西结果
 type L2C_RspTradeShopInfo struct {
 }
+
+
+//客户端通知价钱ok
+type C2L_RechangerOk struct {
+	OrderId int
+}
