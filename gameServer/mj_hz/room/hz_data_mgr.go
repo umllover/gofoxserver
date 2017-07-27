@@ -157,12 +157,6 @@ func (room *hz_data) NormalEnd() {
 		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
 		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
 
-		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
-			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-		}
-
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
 		ScoreInfoArray[u.ChairId].Score = GameConclude.GameScore[u.ChairId]

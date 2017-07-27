@@ -53,6 +53,7 @@ func init() {
 	Processor.Register(&C2L_ChangeSign{})
 	Processor.Register(&L2C_ChangeSignRsp{})
 	Processor.Register(&L2C_KickOut{})
+	Processor.Register(&L2C_UpdateUserAttr{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})

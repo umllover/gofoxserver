@@ -87,11 +87,10 @@ func (r *RoomData) OnCreateRoom() {
 	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
 
 	r.InitScoreMap = make(map[int]int)
-	persionalTalbleFeeCache := dbase.PersonalTableFeeCache
-	persionalTableFee, ok := persionalTalbleFeeCache.Get(r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	template, ok := dbase.GameServiceOptionCache.Get(r.KindID, r.ServerID)
 	if ok {
 		log.Debug("get persional table fee ok")
-		initScore := persionalTableFee.IniScore
+		initScore := template.IniScore
 		for i := 0; i < r.MaxPlayerCount; i++ { //初始6个玩家积分1000
 			r.InitScoreMap[i] = initScore
 		}

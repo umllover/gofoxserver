@@ -75,7 +75,7 @@ type nntb_data_mgr struct {
 func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
 
-	StatusFree.CellScore = room.PkBase.Temp.CellScore                      //基础积分
+	StatusFree.CellScore = room.PkBase.Temp.IniScore                       //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetCreatrTime()        //开始时间
@@ -168,7 +168,7 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
 	room.PlayerCount = UserCnt
-	room.CellScore = room.PkBase.Temp.CellScore
+	room.CellScore = room.PkBase.Temp.IniScore
 
 	room.CallScoreTimesMap = make(map[*user.User]int)
 	room.AddScoreMap = make(map[*user.User]int)
@@ -184,11 +184,10 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.FisrtCallUser = cost.INVALID_CHAIR
 	room.CurrentUser = cost.INVALID_CHAIR
 
-
 	userMgr := room.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(&nn_tb_msg.G2C_TBNN_GameStart{
-			PlayerCount:room.PlayerCount,
+			PlayerCount: room.PlayerCount,
 		})
 	})
 
@@ -297,11 +296,10 @@ func (room *nntb_data_mgr) NormalEnd() {
 
 func (room *nntb_data_mgr) SetAllUserGameStatus(gameStatus int) {
 	userMgr := room.PkBase.UserMgr
-	userMgr.ForEachUser(func(u *user.User){
+	userMgr.ForEachUser(func(u *user.User) {
 		room.UserGameStatusMap[u] = gameStatus
 	})
 }
-
 
 //解散接触
 func (room *nntb_data_mgr) DismissEnd() {
@@ -427,7 +425,7 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 
 	userMgr.ForEachUser(func(u *user.User) {
 		// 没有加过的默认一倍
-		if _, found := r.AddScoreMap[u]; found{
+		if _, found := r.AddScoreMap[u]; found {
 		} else {
 			r.AddScoreMap[u] = 1
 		}

@@ -17,13 +17,13 @@ type Goods struct {
 	GoodsId           int        `db:"goods_id" json:"goods_id"`                       //
 	Rmb               int        `db:"rmb" json:"rmb"`                                 //
 	Diamond           int        `db:"diamond" json:"diamond"`                         //
-	Name              string     `db:"name" json:"name"`                               // 商品名称
-	LeftCnt           int        `db:"left_cnt" json:"left_cnt"`                       // 剩余数量
-	SpecialOffer      int        `db:"special_offer" json:"special_offer"`             // 特价
-	GivePresent       int        `db:"give_present" json:"give_present"`               // 赠送
-	SpecialOfferBegin *time.Time `db:"special_offer_begin" json:"special_offer_begin"` // 特价开始时间
-	SpecialOfferEnd   *time.Time `db:"special_offer_end" json:"special_offer_end"`     // 特价结束时间
-	GoodsType         string     `db:"goods_type" json:"goods_type"`                   // 类别
+	Name              string     `db:"name" json:"name"`                               //
+	LeftCnt           int        `db:"left_cnt" json:"left_cnt"`                       //
+	SpecialOffer      int        `db:"special_offer" json:"special_offer"`             //
+	GivePresent       int        `db:"give_present" json:"give_present"`               //
+	SpecialOfferBegin *time.Time `db:"special_offer_begin" json:"special_offer_begin"` //
+	SpecialOfferEnd   *time.Time `db:"special_offer_end" json:"special_offer_end"`     //
+	GoodsType         string     `db:"goods_type" json:"goods_type"`                   //
 }
 
 var DefaultGoods = Goods{}
