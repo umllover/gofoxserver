@@ -31,7 +31,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		DataMgr:  NewDataMgr(info, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, r.GetSkeleton()),
 	}
 	r.Init(cfg)
 	if r == nil {

@@ -130,7 +130,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.laiZi = make([]int, 0, 6)
 	room.publicCards = make([]int, 0, 3)
 
-	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPayCnt())
+	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 }
 func (room *sss_data_mgr) ComputeChOut() {
 	userMgr := room.PkBase.UserMgr
@@ -815,7 +815,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
 		room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
-		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
+		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
 			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
 			util.DeepCopy(&gameRecord, &room.AllResult)
 			userMgr.ForEachUser(func(u *user.User) {
