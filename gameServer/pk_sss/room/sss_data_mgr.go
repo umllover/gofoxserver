@@ -794,6 +794,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 			copy(gameEnd.CbCompareResult[u.ChairId], room.m_bCompareResult[u])
 			gameEnd.CbCompareDouble[u.ChairId] = room.m_bCompareDouble[u]
 			gameEnd.BToltalWinDaoShu[u.ChairId] = room.m_lGameScore[u]
+			gameEnd.LGameScore[u.ChairId] = room.m_lGameScore[u]
 			gameEnd.CbSpecialCompareResult[u.ChairId] = room.m_bSpecialCompareResult[u]
 			gameEnd.BSpecialCard[u.ChairId] = room.SpecialTypeTable[u]
 			for i := range room.m_bShootState {
@@ -811,7 +812,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		userMgr.ForEachUser(func(u *user.User) {
 			u.WriteMsg(gameEnd)
 		})
-		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.BToltalWinDaoShu
+		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
 		room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
 		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
