@@ -36,7 +36,7 @@ func (room *SSS_Entry) UserReady(args []interface{}) {
 	log.Debug("ren shu %d", room.UserMgr.GetCurPlayerCnt()) //|| room.UserMgr.GetCurPlayerCnt() >= 1
 	if room.UserMgr.IsAllReady() {
 		//派发初始扑克
-		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
 
