@@ -313,8 +313,7 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
-		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
-		room.DataMgr.AfterEnd(false)
+		room.AfertEnd(false)
 		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
