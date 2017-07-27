@@ -416,15 +416,9 @@ func (room *RoomUserMgr) SetUsetStatus(u *user.User, stu int) {
 
 //通知房间解散
 func (room *RoomUserMgr) RoomDissume() {
-	Cance := &msg.G2C_CancelTable{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Cance)
-	})
 
-	Diis := &msg.G2C_PersonalTableEnd{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Diis)
-	})
+	room.SendMsgAll(&msg.G2C_CancelTable{})
+	room.SendMsgAll(&msg.G2C_PersonalTableEnd{})
 
 	for _, u := range room.Users {
 		if u != nil {

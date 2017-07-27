@@ -83,7 +83,7 @@ type RoomData struct {
 func (r *RoomData) OnCreateRoom() {
 	log.Debug("at pk data mgr create room")
 	// 初始化积分
-	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	r.InitScoreMap = make(map[int]int)
 	template, ok := dbase.GameServiceOptionCache.Get(r.KindID, r.ServerID)
@@ -131,7 +131,7 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
+		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                           //局数限制
 		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.PkBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间

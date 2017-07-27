@@ -151,7 +151,7 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
+		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPlayCnt(),                           //局数限制
 		DrawTimeLimit:     room.MjBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.MjBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.MjBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
@@ -175,7 +175,7 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.CollectScore = room.HistorySe.DetailScore
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
 }
 

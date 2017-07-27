@@ -1824,6 +1824,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	u := room.MjBase.UserMgr.GetUserByChairId(wCurrentUser)
 	if u == nil {
 		log.Error("at DispatchCardData not foud user ")
+		return -1
 	}
 
 	//清除禁止胡牌的牌
@@ -1984,7 +1985,7 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 
 	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
 	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPayCnt()  //局数限制
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt() //局数限制
 	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
 	u.WriteMsg(StatusFree)
 }

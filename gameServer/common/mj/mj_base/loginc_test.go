@@ -13,12 +13,13 @@ import (
 
 	"fmt"
 
+	"mj/common/utils"
+
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
-	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/log"
-	"mj/common/utils"
+	"github.com/lovelly/leaf/module"
 )
 
 var (
@@ -50,11 +51,10 @@ func TestOutCard(t *testing.T) {
 	//room.OutCard([]interface{}{u1, 1})
 }
 
-
 func TestBaseLogic_ReplaceCard(t *testing.T) {
 	m := GetCardByIdx(0)
 	log.Debug("库存的牌%v", m)
-	TmpRepertoryCard := []int{1, 1,3, 17, 25, 24}
+	TmpRepertoryCard := []int{1, 1, 3, 17, 25, 24}
 	log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	//tempCard := make([]int, len(m))
 
@@ -71,7 +71,6 @@ func TestBaseLogic_ReplaceCard(t *testing.T) {
 	}
 	log.Debug("删除后%d  %v", len(m), m)
 }
-
 
 func TestBaseLogic_AnalyseCard(t *testing.T) {
 	//fmt.Println("===========================================")
@@ -165,13 +164,13 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r)
+	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r, info.OtherInfo)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(IDX_HZMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	room = r

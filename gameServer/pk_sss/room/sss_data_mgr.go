@@ -886,7 +886,7 @@ func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 	//StatusFree.GameType = room.GameType
 	//StatusFree.EightKing = room.EightKing
 	//
-	//StatusFree.PlayCount = room.PkBase.TimerMgr.GetMaxPayCnt()
+	//StatusFree.PlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
 	//
 	//StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
 	//StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
