@@ -316,16 +316,16 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 
 	//检测是否有限时免费
-	if !player.CheckFree() {
-		money := feeTemp.TableFee
-		if recvMsg.PayType == AA_PAY_TYPE {
-			money = feeTemp.TableFee / template.MaxPlayer
-		}
-		if !player.EnoughCurrency(money) {
-			retCode = NotEnoughFee
-			return
-		}
+	//if !player.CheckFree() {
+	money := feeTemp.TableFee
+	if recvMsg.PayType == AA_PAY_TYPE {
+		money = feeTemp.TableFee / template.MaxPlayer
 	}
+	if !player.EnoughCurrency(money) {
+		retCode = NotEnoughFee
+		return
+	}
+	//}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
