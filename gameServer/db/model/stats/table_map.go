@@ -10,6 +10,7 @@ import (
 func InitTableMap() {
 	/*
 	    db.StatsDBMap.AddTableWithName(Activity{}, "activity").SetKeys(false,"ActivityName")
+	    db.StatsDBMap.AddTableWithName(GetinRoomLog{}, "getin_room_log").SetKeys(true, "GetinRecodeId")
 	    db.StatsDBMap.AddTableWithName(Globalspreadinfo{}, "globalspreadinfo").SetKeys(false,"ID")
 	    db.StatsDBMap.AddTableWithName(RoomLog{}, "room_log").SetKeys(true, "RecodeId")
 	    db.StatsDBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")

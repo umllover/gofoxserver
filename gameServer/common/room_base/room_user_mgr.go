@@ -13,6 +13,8 @@ import (
 
 	"time"
 
+	"mj/gameServer/db/model/stats"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -345,6 +347,29 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
 
+	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
+		"room_id": room.id,
+	})
+	if err != nil || info == nil {
+		log.Error("获取房间创建信息失败:%v", err)
+	}
+
+	getInLog := &stats.GetinRoomLog{}
+	log.Debug("info ======= %v", info)
+	if info.Public == 1 {
+		getInLog.PublicGetin = 1
+	} else {
+		getInLog.PrivateGetin = 1
+	}
+	getInLog.RoomId = info.RoomId
+	getInLog.UserId = u.Id
+	now := time.Now()
+	getInLog.GetInTime = &now
+
+	_, err = stats.GetinRoomLogOp.Insert(getInLog)
+	if err != nil {
+		log.Error("添加进入房间信息到数据库失败：%s", err.Error())
+	}
 
 	return 0
 }

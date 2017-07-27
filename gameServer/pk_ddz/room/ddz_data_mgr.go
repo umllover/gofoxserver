@@ -102,7 +102,7 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
 
-		StatusFree.CellScore = room.PkBase.Temp.CellScore // 基础积分
+	StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
 
 	StatusFree.GameType = room.GameType
 	StatusFree.EightKing = room.EightKing
