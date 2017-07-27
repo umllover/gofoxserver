@@ -347,7 +347,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 	//派发扑克
 	if !bAroseAction {
-		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
+ 		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
