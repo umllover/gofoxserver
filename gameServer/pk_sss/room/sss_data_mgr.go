@@ -628,10 +628,6 @@ func (room *sss_data_mgr) NormalEnd() {
 //	*/
 //}
 
-func (room *sss_data_mgr) AfertEnd(a bool) {
-
-}
-
 //解散结束
 func (room *sss_data_mgr) DismissEnd() {
 	/*

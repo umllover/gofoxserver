@@ -52,6 +52,19 @@ func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
 	return pk
 }
 
+func (r *Entry_base) RegisterBaseFunc() {
+	r.GetChanRPC().Register("Sitdown", r.Sitdown)
+	r.GetChanRPC().Register("UserStandup", r.UserStandup)
+	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
+	r.GetChanRPC().Register("DissumeRoom", r.DissumeRoom)
+	r.GetChanRPC().Register("UserReady", r.UserReady)
+	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
+	r.GetChanRPC().Register("userOffline", r.UserOffline)
+	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
+	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
+	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
+}
+
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr
@@ -119,6 +132,36 @@ func (room *Entry_base) GetUserChairInfo(args []interface{}) {
 		return
 	}
 	u.WriteMsg(info)
+}
+
+//玩家离开房间
+func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	leaveFunc := func() {
+		if room.UserMgr.LeaveRoom(player, room.Status) {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{})
+		} else {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrLoveRoomFaild})
+		}
+		room.UserMgr.DeleteReply(player.Id)
+	}
+	if room.Status == RoomStatusReady {
+		leaveFunc()
+	} else {
+		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
+		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+	}
+}
+
+//其他玩家响应玩家离开房间的请求
+func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	Agree := args[1].(bool)
+	ReplyUid := args[2].(int64)
+	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if stop {
+		room.TimerMgr.StopReplytIimer(ReplyUid)
+	}
 }
 
 //解散房间
@@ -270,19 +313,18 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd()
-		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
-		room.DataMgr.AfterEnd(false)
+		room.AfterEnd(false)
 		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd()
-		room.AfertEnd(true)
+		room.AfterEnd(true)
 	}
 	log.Error("at OnEventGameConclude error  ")
 	return
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Entry_base) AfertEnd(Forced bool) {
+func (room *Entry_base) AfterEnd(Forced bool) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
 		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
