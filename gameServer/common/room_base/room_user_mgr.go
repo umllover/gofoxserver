@@ -153,6 +153,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+	u.ChatRoomId = r.ChatRoomId
 
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -225,6 +226,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	r.Users[u.ChairId] = nil
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
+	u.ChatRoomId = 0
+
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "DelPlayerId",
