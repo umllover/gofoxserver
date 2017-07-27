@@ -950,7 +950,7 @@ func (room *RoomData) StartDispatchCard() {
 	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 2
 	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 2
 	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 2
 	//room.CardIndex[room.BankerUser] = newCard
@@ -1008,7 +1008,7 @@ func (room *RoomData) StartDispatchCard() {
 }
 
 func (room *RoomData) RepalceCard() {
-	base.GameServiceOptionCache.LoadAll()
+	base.GameTestpaiCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && v.RoomID == room.ID {
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
