@@ -89,8 +89,9 @@ func (room *ddz_data_mgr) resetData() {
 }
 
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
-	log.Debug("初始化房间参数")
+	log.Debug("初始化房间参数%d", UserCnt)
 	room.RoomData.InitRoom(UserCnt)
+	room.PlayerCount = UserCnt
 
 	room.resetData()
 }
@@ -154,7 +155,7 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 	StatusCall.GameType = room.GameType
 	StatusCall.LaiziCard = room.LiziCard
 	StatusCall.EightKing = room.EightKing
-	StatusCall.CellScore = room.CellScore
+	StatusCall.CellScore = room.PkBase.Temp.Source
 	StatusCall.CurrentUser = room.CurrentUser
 	StatusCall.BankerScore = room.ScoreTimes
 	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
@@ -209,7 +210,7 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
 
 	//游戏变量
-	StatusPlay.CellScore = room.CellScore
+	StatusPlay.CellScore = room.PkBase.Temp.Source
 
 	StatusPlay.BankerUser = room.BankerUser
 	StatusPlay.CurrentUser = room.CurrentUser
@@ -600,7 +601,7 @@ func (r *ddz_data_mgr) checkNextUserTrustee() {
 			r.CallScore(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 0)
 		} else if r.GameStatus == GAME_STATUS_PLAY {
 			// 出牌状态
-			if r.CurrentUser == r.TurnWiner {
+			if r.CurrentUser == r.TurnWiner || r.TurnWiner == cost.INVALID_CHAIR {
 				// 上一个出牌玩家是自己，则选最小牌
 				var cardData []int
 				cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
@@ -665,7 +666,7 @@ func (r *ddz_data_mgr) NormalEnd() {
 	log.Debug("游戏正常结束了")
 	r.GameStatus = GAME_STATUS_FREE
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
-	DataGameConclude.CellScore = r.CellScore
+	DataGameConclude.CellScore = r.PkBase.Temp.Source
 
 	// 算分数
 	nMultiple := r.ScoreTimes
@@ -718,7 +719,7 @@ func (r *ddz_data_mgr) NormalEnd() {
 	util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
 
 	// 计算积分
-	gameScore := r.CellScore * nMultiple
+	gameScore := r.PkBase.Temp.Source * nMultiple
 
 	if len(r.HandCardData[r.BankerUser]) <= 0 {
 		gameScore = 0 - gameScore
@@ -738,7 +739,7 @@ func (r *ddz_data_mgr) NormalEnd() {
 //解散房间结束
 func (r *ddz_data_mgr) DismissEnd() {
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
-	DataGameConclude.CellScore = r.CellScore
+	DataGameConclude.CellScore = r.PkBase.Temp.Source
 	DataGameConclude.GameScore = make([]int, r.PlayerCount)
 
 	// 炸弹
