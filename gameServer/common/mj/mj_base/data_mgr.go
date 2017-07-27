@@ -795,15 +795,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		//log.Debug("after %v ", room.UserAction[wCurrentUser])
 		room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)]++
 
-		//下发胡牌消息
-		if hu {
-			log.Debug("##################### huKind=%v", hu)
-			//u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
-			//	ActionMask: huKind,
-			//	ActionCard: room.ProvideCard,
-			//})
-		}
-
 		//杠牌判断
 		if room.IsEnoughCard() && !room.Ting[wCurrentUser] {
 			GangCardResult := &TagGangCardResult{}
@@ -863,6 +854,8 @@ func (room *RoomData) StartGameing() {
 func (room *RoomData) AfterStartGame() {
 	//检查自摸
 	room.CheckZiMo()
+	//检测起手杠牌
+	room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
 }
@@ -955,16 +948,14 @@ func (room *RoomData) StartDispatchCard() {
 	////TODO 测试用
 	//newCard := make([]int, room.GetCfg().MaxIdx)
 	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 2
 	//newCard[gameLogic.SwitchToCardIndex(0x15)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 4
+	//newCard[gameLogic.SwitchToCardIndex(0x16)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 2
 	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 1
-	//room.ProvideCard = 0x16
-	//room.SendCardData = 0x16
+	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 2
 	//room.CardIndex[room.BankerUser] = newCard
-	//room.RepertoryCard[55] = 0x35
+	//room.RepertoryCard[55] = 0x16
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1118,7 +1109,7 @@ func (room *RoomData) GetUserCard() []int {
 }
 
 func (room *RoomData) CheckZiMo() {
-	//听牌判断
+	////听牌判断
 	//Count := 0
 	//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
 	//HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
@@ -1139,6 +1130,33 @@ func (room *RoomData) CheckZiMo() {
 	//		OwnerUser.WriteMsg(HuData)
 	//	}
 	//}
+}
+
+//检测游戏开始起手杠牌
+func (room *RoomData) CheckGameStartGang() {
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		//用户过滤
+		if u.ChairId != room.CurrentUser {
+			return
+		}
+		if room.IsEnoughCard() && u.UserLimit&LimitGang == 0 {
+			gangCard := 0
+			for i := 0; i < room.GetCfg().MaxIdx-room.GetCfg().HuaIndex; i++ {
+				if room.CardIndex[u.ChairId][i] == 4 {
+					gangCard = room.MjBase.LogicMgr.SwitchToCardData(i)
+					break
+				}
+			}
+			if gangCard != 0 {
+				room.UserAction[u.ChairId] |= WIK_GANG
+				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+					ActionMask: room.UserAction[u.ChairId],
+					ActionCard: gangCard, //room.ProvideCard,
+				})
+				log.Debug("####################################")
+			}
+		}
+	})
 }
 
 //向客户端发牌

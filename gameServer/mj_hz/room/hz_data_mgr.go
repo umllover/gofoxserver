@@ -26,12 +26,13 @@ type hz_data struct {
 func (room *hz_data) AfterStartGame() {
 	//检查自摸
 	room.CheckZiMo()
+	//检测起手杠牌
+	room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
 }
 
 func (room *hz_data) SendGameStart() {
-
 	//构造变量
 	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
@@ -45,7 +46,6 @@ func (room *hz_data) SendGameStart() {
 		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
 		u.WriteMsg(GameStart)
 	})
-
 }
 
 func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
