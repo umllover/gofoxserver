@@ -74,6 +74,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
 	r.TimerMgr.StartCreatorTimer(func() {
+		log.Debug("not start game, close ")
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -193,11 +194,11 @@ func (room *Mj_base) UserReady(args []interface{}) {
 			log.Debug("Max Play cnt")
 			retCode = ErrRenewalFee
 			return
+		} else {
+			log.Debug("ErrRoomIsClose")
+			retCode = ErrRoomIsClose
+			return
 		}
-	} else {
-		log.Debug("Max Play cnt")
-		retCode = ErrRoomIsClose
-		return
 	}
 
 	log.Debug("at UserReady ==== ")

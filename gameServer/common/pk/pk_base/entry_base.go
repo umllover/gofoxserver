@@ -82,6 +82,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.DataMgr.OnCreateRoom()
 
 	r.TimerMgr.StartCreatorTimer(func() {
+		log.Debug("not start game close ")
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
