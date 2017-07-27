@@ -173,6 +173,8 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	})
 	BuildClientMsg(retMsg, player, accountData)
 	game_list.ChanRPC.Go("sendGameList", agent)
+
+	m.Recharge(nil)
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -980,8 +982,10 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {
-	recvMsg := args[0].(*msg.C2L_RechangerOk)
+	//recvMsg := args[0].(*msg.C2L_RechangerOk)
+	m.Recharge(nil)
 }
+
 /// 游戏服发来的结束消息
 func (m *UserModule) RoomEndInfo(args []interface{}) {
 }
