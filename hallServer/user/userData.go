@@ -109,12 +109,18 @@ func (u *User) SubCurrency(sub int) bool {
 		return false
 	}
 
+	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,
 	})
 	if err != nil {
+		u.Currency += sub
 		log.Error("at SubCurrency UpdateWithMap error, %v,  sub Currency:%v", err.Error(), sub)
 	}
+
+	u.UpdateUserAttr(map[string]interface{}{
+		"Diamond": u.Currency,
+	})
 	return true
 }
 
@@ -191,6 +197,11 @@ func (u *User) DelGameLockInfo() {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+}
+
+//同步变动属性给客户端
+func (u *User) UpdateUserAttr(m map[string]interface{}) {
+	u.WriteMsg(&msg.L2C_UpdateUserAttr{Data: m})
 }
 
 //判断是否免费

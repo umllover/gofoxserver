@@ -55,6 +55,8 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
+
+	r.DataMgr.InitRoomOne()
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -177,7 +179,7 @@ func (room *Mj_base) UserReLogin(args []interface{}) {
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
-	u.RoomId = roomUser.RoomId
+	u.RoomId = room.DataMgr.GetRoomId()
 	room.UserMgr.ReLogin(u, room.Status)
 	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
@@ -463,6 +465,35 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 	}
 }
 
+//玩家离开房间
+func (room *Mj_base) ReqLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	leaveFunc := func() {
+		if room.UserMgr.LeaveRoom(player, room.Status) {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{})
+		} else {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrLoveRoomFaild})
+		}
+		room.UserMgr.DeleteReply(player.Id)
+	}
+	if room.Status == RoomStatusReady {
+		leaveFunc()
+	} else {
+		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+	}
+}
+
+//其他玩家响应玩家离开房间的请求
+func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
+	player := args[0].(*user.User)
+	Agree := args[1].(bool)
+	ReplyUid := args[2].(int64)
+	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if stop {
+		room.TimerMgr.StopReplytIimer(ReplyUid)
+	}
+}
+
 //游戏结束
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
@@ -493,7 +524,7 @@ func (room *Mj_base) AfertEnd(Forced bool) {
 	}
 
 	room.UserMgr.ForEachUser(func(u *user.User) {
-		room.UserMgr.SetUsetStatus(u, US_FREE)
+		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
 }
 

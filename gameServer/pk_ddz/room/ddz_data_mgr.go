@@ -19,7 +19,7 @@ import (
 
 func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base)
+	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
 	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
@@ -98,7 +98,7 @@ func (room *ddz_data_mgr) SendStatusReady(usr *user.User) {
 	room.GameStatus = GAME_STATUS_FREE
 	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
 
-	StatusFree.CellScore = room.PkBase.Temp.CellScore // 基础积分
+	StatusFree.CellScore = room.PkBase.Temp.IniScore // 基础积分
 
 	StatusFree.GameType = room.GameType
 	StatusFree.EightKing = room.EightKing

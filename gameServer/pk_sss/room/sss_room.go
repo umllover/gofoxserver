@@ -28,7 +28,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	r := NewSSSEntry(info)
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  room_base.NewRoomBase(),
-		DataMgr:  NewDataMgr(info.RoomId, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r, info.OtherInfo),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
 		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),

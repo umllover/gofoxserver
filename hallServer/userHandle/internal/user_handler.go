@@ -58,6 +58,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 
+	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
 //连接进来的通知
@@ -72,7 +73,7 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	agent := args[0].(gate.Agent)
 	Reason := args[1].(int)
 	player, ok := agent.UserData().(*user.User)
-	if !ok {
+	if !ok || player == nil {
 		log.Error("at CloseAgent not foud user")
 		return nil
 	}
@@ -657,7 +658,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.NickName = user.NickName
 
 	//用户成绩
-	retMsg.UserScore = user.Score
+	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
 	retMsg.Medal = user.UserMedal
 	retMsg.UnderWrite = user.UnderWrite
@@ -682,7 +683,8 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	retMsg.RoomCard = user.Currency
+	//retMsg.RoomCard = user.Currency
+	retMsg.UserScore = user.Currency
 	retMsg.LockServerID = user.ServerID
 	retMsg.KindID = user.KindID
 	retMsg.LockServerID = user.ServerID
@@ -972,4 +974,9 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	}
 
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
+}
+
+/// 游戏服发来的结束消息
+func (m *UserModule) RoomEndInfo(args []interface{}) {
+
 }

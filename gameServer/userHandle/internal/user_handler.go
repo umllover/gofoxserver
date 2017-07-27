@@ -39,6 +39,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	reg.RegisterC2S(&msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
 	reg.RegisterC2S(&msg.C2G_LoadRoom{}, m.LoadRoom)
+	reg.RegisterC2S(&msg.C2G_LeaveRoom{}, m.ReqLeaveRoom)
+	reg.RegisterC2S(&msg.C2G_ReplyLeaveRoom{}, m.ReplyLeaveRoom)
 
 }
 
@@ -51,7 +53,7 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 //房间关闭的时候通知
 func (m *UserModule) LeaveRoom(args []interface{}) error {
 	log.Debug("at user LeaveRoom ...........")
-	m.Close(ServerKick)
+	m.Close(KickOutGameEnd)
 	return nil
 }
 
@@ -61,13 +63,16 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	Reason := args[1].(int)
 	agent := m.a
 	player, ok := agent.UserData().(*client.User)
-	if !ok {
+	if !ok || player == nil {
+		log.Error("at CloseAgent not foud user")
 		return nil
 	}
 
 	if player.RoomId != 0 {
 		r := RoomMgr.GetRoom(player.RoomId)
-		r.GetChanRPC().Go("userOffline", player)
+		if r != nil {
+			r.GetChanRPC().Go("userOffline", player)
+		}
 	}
 
 	m.UserOffline()
@@ -144,6 +149,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if oldUser != nil {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
+		user.Status = oldUser.Status
 		m.KickOutUser(oldUser)
 	}
 
@@ -161,7 +167,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: common.TableFullCount,
 		ChairCount: 4,
-		ServerType: template.ServerType,
+		ServerType: template.GameType,
 		ServerRule: 0, //废弃字段
 	})
 
@@ -414,6 +420,28 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	}
 
 	r.GetChanRPC().Go("DissumeRoom", user)
+}
+
+func (m *UserModule) ReqLeaveRoom(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2G_LeaveRoom)
+	player := m.a.UserData().(*user.User)
+	r := RoomMgr.GetRoom(player.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("ReqLeaveRoom", player)
+	} else {
+		player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrPlayerNotInRoom})
+	}
+}
+
+func (m *UserModule) ReplyLeaveRoom(args []interface{}) {
+	recvMsg := args[0].(*msg.C2G_ReplyLeaveRoom)
+	player := m.a.UserData().(*user.User)
+	r := RoomMgr.GetRoom(player.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("ReplyLeaveRoom", player, recvMsg.Agree, recvMsg.UserID)
+	} else {
+		log.Error("at ReplyLeaveRoom user not in room ")
+	}
 }
 
 /////////////////////////////// help 函数

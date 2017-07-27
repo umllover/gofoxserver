@@ -18,7 +18,6 @@ type PersonalTableFee struct {
 	DrawCountLimit int `db:"DrawCountLimit" json:"DrawCountLimit"` // 局数限制
 	AATableFee     int `db:"AATableFee" json:"AATableFee"`         // 时间限制
 	TableFee       int `db:"TableFee" json:"TableFee"`             // 创建费用
-	IniScore       int `db:"IniScore" json:"IniScore"`             // 初始分数
 }
 
 var DefaultPersonalTableFee = PersonalTableFee{}
