@@ -422,13 +422,14 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	money := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.AATableFee
+		money = feeTemp.AATableFee
 	}
 
-	if !player.CheckFree() {
-		if !player.SubCurrency(feeTemp.TableFee) {
+	//非限时免费 并且 不是全付方式 并且 钱大于零
+	if !player.CheckFree() && roomInfo.PayType != SELF_PAY_TYPE && money > 0 {
+		if !player.SubCurrency(money) {
 			retcode = NotEnoughFee
 			return
 		}
@@ -438,12 +439,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = roomInfo.RoomID
-		record.Amount = monrey
+		record.Amount = money
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
 		if !player.AddRecord(record) {
 			retcode = ErrServerError
-			player.AddCurrency(monrey)
+			player.AddCurrency(money)
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
