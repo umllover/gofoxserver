@@ -697,7 +697,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.ComputeChOut()
 		room.ComputeResult()
 
-		gameEnd := &pk_sss_msg.G2C_SSS_GameEnd{}
+		gameEnd := &pk_sss_msg.G2C_SSS_COMPARE{}
 
 		//LGameTax               int        //游戏税收
 		gameEnd.LGameTax = 0

@@ -12,7 +12,7 @@ func init() {
 	//sss msg
 	Processor.Register(&G2C_SSS_StatusFree{})
 	Processor.Register(&G2C_SSS_SendCard{})
-	Processor.Register(&G2C_SSS_GameEnd{})
+	Processor.Register(&G2C_SSS_COMPARE{})
 	Processor.Register(&CMD_S_StatusPlay{})
 	Processor.Register(&CMD_C_ShowCard{})
 	Processor.Register(&C2G_SSS_Open_Card{})
@@ -51,7 +51,7 @@ type G2C_SSS_Open_Card struct {
 }
 
 //游戏结束
-type G2C_SSS_GameEnd struct {
+type G2C_SSS_COMPARE struct {
 	LGameTax               int        `json:"lGameTax"`               //游戏税收
 	LGameEveryTax          []int      `json:"lGameEveryTax"`          //每个玩家的税收
 	LGameScore             []int      `json:"lGameScore"`             //游戏积分
@@ -101,7 +101,7 @@ type CMD_S_StatusPlay struct {
 	bSpecialTypeTable1 []bool          //是否特殊牌型
 	bDragon1           []bool          //是否倒水
 	bAllHandCardData   [][]int         //所有玩家的扑克数据
-	CMD_S_GameEnd      G2C_SSS_GameEnd //游戏结束数据
+	CMD_S_GameEnd      G2C_SSS_COMPARE //游戏结束数据
 }
 
 //分段信息
