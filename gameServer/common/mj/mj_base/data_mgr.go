@@ -32,7 +32,8 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 		r.Name = name
 	}
 	r.CreateUser = uid
-	r.Source = temp.CellScore
+	r.Source = temp.Source
+	r.IniSource = temp.IniScore
 	r.OtherInfo = make(map[string]interface{}) //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
@@ -1223,12 +1224,6 @@ func (room *RoomData) NormalEnd() {
 		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
 		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
 
-		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
-			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-		}
-
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
 		ScoreInfoArray[u.ChairId].Score = GameConclude.GameScore[u.ChairId]
@@ -2055,7 +2050,7 @@ func (room *RoomData) GetLastCard() (card int) {
 //选举庄家
 func (room *RoomData) ElectionBankerUser() {
 	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
-	if room.BankerUser == INVALID_CHAIR && (room.MjBase.Temp.ServerType&GAME_GENRE_PERSONAL) != 0 { //房卡模式下先把庄家给房主
+	if room.BankerUser == INVALID_CHAIR && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi { //房卡模式下先把庄家给房主
 		if OwnerUser != nil {
 			room.BankerUser = OwnerUser.ChairId
 		} else {

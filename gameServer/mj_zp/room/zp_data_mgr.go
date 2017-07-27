@@ -17,8 +17,6 @@ import (
 
 	"time"
 
-	dbbase "mj/gameServer/db/model/base"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 	"github.com/lovelly/leaf/util"
@@ -54,14 +52,7 @@ func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name strin
 	r.ChaHuaMap = make(map[int]int)
 	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
-	persionalTableFee, ok := dbbase.PersonalTableFeeCache.Get(info.KindId, info.ServiceId, info.Num)
-	if ok {
-		r.IniSource = persionalTableFee.IniScore
-	} else {
-		r.IniSource = 1000
-		log.Error("zpmj at NewDataMgr initScore error")
-	}
-
+	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
 	if !ok {
 		log.Error("zpmj at NewDataMgr [zhuaHua] error")
@@ -676,7 +667,7 @@ func (room *ZP_RoomData) NormalEnd() {
 		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
 		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && (room.MjBase.Temp.ServerType&GAME_GENRE_GOLD) != 0 {
+		if GameConclude.GameScore[u.ChairId] > 0 && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi {
 			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
 			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
 		}

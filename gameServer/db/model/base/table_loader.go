@@ -21,6 +21,7 @@ func LoadBaseData() {
 	PersonalTableFeeCache.LoadAll()
 	RefreshInTimeCache.LoadAll()
 	ServerListCache.LoadAll()
+	ShopCache.LoadAll()
 	db.BaseDataCaches["Activity"] = ActivityCache
 	db.BaseDataCaches["FreeLimit"] = FreeLimitCache
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
@@ -30,5 +31,6 @@ func LoadBaseData() {
 	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
 	db.BaseDataCaches["ServerList"] = ServerListCache
-	log.Debug("loadBaseData %v, %v %v", 9, time.Now().UnixNano()-start, "ns")
+	db.BaseDataCaches["Shop"] = ShopCache
+	log.Debug("loadBaseData %v, %v %v", 10, time.Now().UnixNano()-start, "ns")
 }
