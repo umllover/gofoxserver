@@ -12,6 +12,10 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
+	"mj/gameServer/db/model/stats"
+
+	"time"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -72,10 +76,27 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
-
 	r.DataMgr.OnCreateRoom()
-
+	logInfo := make(map[string]interface{})
+	myLogInfo := make(map[string]interface{})
+	AddLogDb := stats.RoomLogOp
+	logInfo["RoomId"] = r.DataMgr.GetRoomId()
+	logInfo["KindId"] = r.Temp.KindID
+	logInfo["ServiceId"] = r.Temp.ServerID
+	logData, err1 := AddLogDb.GetByMap(logInfo)
+	if err1 != nil {
+		log.Error("Select Data from recode Error:%v", err1.Error())
+	}
 	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
+		myLogInfo["TimeoutNostart"] = 1
+		now := time.Now()
+		myLogInfo["EndTime"] = now
+		log.Debug("mj超时未开启ddebug======================================================")
+		myLogInfo["StartEnderror"] = 1
+		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
+		if err != nil {
+			log.Error("pk超时未开启更新失败：%s", err.Error())
+		}
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -185,6 +206,26 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
 	room.Destroy(room.DataMgr.GetRoomId())
+	logInfo := make(map[string]interface{})
+	myLogInfo := make(map[string]interface{})
+	AddLogDb := stats.RoomLogOp
+	logInfo["RoomId"] = room.DataMgr.GetRoomId()
+	logInfo["KindId"] = room.Temp.KindID
+	logInfo["ServiceId"] = room.Temp.ServerID
+	logData, err1 := AddLogDb.GetByMap(logInfo)
+	if err1 != nil {
+		log.Error("Select Data from recode Error:%v", err1.Error())
+	}
+	now := time.Now()
+	myLogInfo["EndTime"] = now
+	myLogInfo["EndTime"] = now
+	if retcode != 0 && u != nil {
+		myLogInfo["StartEnderror"] = 1
+	}
+	err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
+	if err != nil {
+		log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+	}
 }
 
 //玩家准备
