@@ -91,6 +91,7 @@ type tagAnalyseData struct {
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
+	l.BtCardSpecialData = make([]int, 13)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	return l
 }
@@ -1482,7 +1483,6 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 	return Type
 }
 func (lg *sss_logic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {
-
 	FirstAnalyseData := new(TagAnalyseItem)
 	NextAnalyseData := new(TagAnalyseItem)
 

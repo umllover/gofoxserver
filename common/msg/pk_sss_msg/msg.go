@@ -18,6 +18,7 @@ func init() {
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Record{})
+
 }
 
 type G2C_SSS_StatusFree struct {
@@ -46,15 +47,7 @@ type C2G_SSS_Open_Card struct {
 
 //用户摊牌
 type G2C_SSS_Open_Card struct {
-	CurrentUser    int   //当前玩家
-	FrontCard      []int //前墩扑克
-	MidCard        []int //中墩扑克
-	BackCard       []int //后墩扑克
-	CanSeeShowCard bool  //能否看牌
-	SpecialType    bool  //是否是特殊牌
-	SpecialData    []int //特殊扑克
-	ShowUser       int   //摊牌的玩家
-	Dragon         bool  //是否乌龙
+	CurrentUser int //当前玩家
 }
 
 //游戏结束

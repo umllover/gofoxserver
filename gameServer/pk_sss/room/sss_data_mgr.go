@@ -664,6 +664,8 @@ func (room *sss_data_mgr) AfterStartGame() {
 
 //玩家摊牌
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
+	userMgr := room.PkBase.UserMgr
+
 	room.SpecialTypeTable[u] = bSpecialType
 	room.Dragon[u] = bDragon
 
@@ -679,6 +681,10 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	if bSpecialType {
 		util.DeepCopy(&btSpecialDataTemp, &btSpecialData)
 	}
+
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
+	})
 
 	room.OpenCardMap[u] = bFrontCard
 	log.Debug("%d cccccc", len(room.OpenCardMap))
@@ -766,7 +772,6 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		nSpecialCard := 0
 		nDragon := 0
 
-		userMgr := room.PkBase.UserMgr
 		userMgr.ForEachUser(func(u *user.User) {
 			if room.SpecialTypeTable[u] {
 				nSpecialCard++
