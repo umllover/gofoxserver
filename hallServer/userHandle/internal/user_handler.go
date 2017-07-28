@@ -763,16 +763,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := &msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
+
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-		retMsg.ServerIP = r.SvrHost
+		m.SrarchTableResult([]interface{}{r})
 	} else {
+		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE
+		u := m.a.UserData().(*user.User)
+		u.WriteMsg(retMsg)
 	}
-	u.WriteMsg(retMsg)
+
 }
 
 func (m *UserModule) leaveRoom(args []interface{}) {
@@ -803,7 +804,17 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
+		now := time.Now()
+		stats.RechargeLogOp.Insert(&stats.RechargeLog{
+			OnLineID:     v.OnLineID,
+			PayAmount:    v.PayAmount,
+			UserID:       v.UserID,
+			PayType:      v.PayType,
+			GoodsID:      v.GoodsID,
+			RechangeTime: &now,
+		})
 	}
+
 }
 
 //离线通知时间
