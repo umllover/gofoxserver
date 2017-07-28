@@ -502,6 +502,12 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 			return
 		}
 
+		//托管不响应
+		if room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+			log.Debug("at EstimateUserRespond ======== IsTrustee ChairId:%v", u.ChairId)
+			return
+		}
+
 		//出牌类型
 		if EstimatKind == EstimatKind_OutCard {
 			//吃碰判断
@@ -547,16 +553,13 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 		//检查抢杠胡
 		if EstimatKind == EstimatKind_GangCard {
 			//只有庄家和闲家之间才能放炮
-			MogicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
-			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MogicCard) {
-				if u.UserLimit|LimitChiHu == 0 {
-					//吃胡判断
-					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
-					if hu {
-						room.UserAction[u.ChairId] |= WIK_CHI_HU
-						//抢杠胡特殊分
-						room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
-					}
+			if u.UserLimit|LimitChiHu == 0 {
+				//吃胡判断
+				hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
+				if hu {
+					room.UserAction[u.ChairId] |= WIK_CHI_HU
+					//抢杠胡特殊分
+					room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 3
 				}
 			}
 		}
