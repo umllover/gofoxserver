@@ -1493,6 +1493,7 @@ func (lg *sss_logic) GetType(bCardData []int, bCardCount int) *pk.TagAnalyseType
 				break
 			}
 			Number = 0
+			Index = make([]int, 13)
 			SameColorCount = 1
 			Index[Number] = i
 			Number++
