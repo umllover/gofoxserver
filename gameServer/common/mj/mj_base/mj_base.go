@@ -214,6 +214,8 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		//派发初始扑克
 		room.Status = RoomStatusStarting
 		room.TimerMgr.StopCreatorTimer()
+	} else {
+		log.Debug(" not all ready")
 	}
 }
 
@@ -378,7 +380,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 
 	//派发扑克
 	if !bAroseAction {
- 		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
+		if room.DataMgr.DispatchCardData(room.DataMgr.GetCurrentUser(), false) > 0 {
 			room.OnEventGameConclude(room.DataMgr.GetProvideUser(), nil, GER_NORMAL)
 		}
 	}
