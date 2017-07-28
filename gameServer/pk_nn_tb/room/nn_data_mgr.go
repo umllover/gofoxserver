@@ -75,7 +75,7 @@ type nntb_data_mgr struct {
 func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
 
-	StatusFree.CellScore = room.PkBase.Temp.IniScore                       //基础积分
+	StatusFree.CellScore = room.PkBase.Temp.Source                       //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetCreatrTime()        //开始时间
@@ -107,6 +107,7 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.PlayStatus = append(StatusPlay.PlayStatus, room.UserGameStatusMap[room.PkBase.UserMgr.GetUserByChairId(i)])
 	}
+	StatusPlay.GameStatus = room.GameStatus
 	StatusPlay.PlayerCount = room.PlayerCount
 
 	StatusPlay.BankerUser = room.BankerUser.ChairId
@@ -168,7 +169,7 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
 	room.PlayerCount = UserCnt
-	room.CellScore = room.PkBase.Temp.IniScore
+	room.CellScore = room.PkBase.Temp.Source
 
 	room.CallScoreTimesMap = make(map[*user.User]int)
 	room.AddScoreMap = make(map[*user.User]int)
@@ -354,6 +355,7 @@ func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 // 叫分结束
 
 func (r *nntb_data_mgr) CallScoreEnd() {
+	r.CallScoreTimer.Stop()
 	log.Debug("call score end")
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
@@ -419,6 +421,7 @@ func (r *nntb_data_mgr) AddScore(u *user.User, score int) {
 
 // 加注结束
 func (r *nntb_data_mgr) AddScoreEnd() {
+	r.AddScoreTimer.Stop()
 	log.Debug("add score end")
 
 	userMgr := r.PkBase.UserMgr
@@ -575,6 +578,7 @@ func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 // 亮牌结束
 
 func (r *nntb_data_mgr) OpenCardEnd() {
+	r.OpenCardTimer.Stop()
 	// 结算
 	// 比牌
 	log.Debug("enter cal score")

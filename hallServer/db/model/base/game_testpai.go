@@ -14,8 +14,8 @@ import (
 // +gen
 type GameTestpai struct {
 	Id        int    `db:"id" json:"id"`               //
+	RoomID    int    `db:"RoomID" json:"RoomID"`       // 房间Id
 	KindID    int    `db:"KindID" json:"KindID"`       // 游戏第一类型
-	RoomID    int    `db:"RoomID" json:"RoomID"`       //
 	ServerID  int    `db:"ServerID" json:"ServerID"`   // 游戏第二类型
 	CardsName string `db:"CardsName" json:"CardsName"` // 卡牌类型名称
 	ChairId   string `db:"chair_id" json:"chair_id"`   // 座位id

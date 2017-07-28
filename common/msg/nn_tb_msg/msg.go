@@ -80,6 +80,7 @@ type G2C_TBNN_StatusPlay struct {
 	CellScore       		int		//基础积分
 
 	PlayStatus      		[]int          //用户状态
+	GameStatus int //游戏状态
 	PlayerCount                     int            //玩家人数
 	BankerUser			int	       //庄家用户
 	HandCardData  			[][]int         //桌面扑克
