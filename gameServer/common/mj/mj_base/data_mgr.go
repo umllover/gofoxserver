@@ -164,6 +164,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		OtherInfo:         room.OtherInfo,
 		LeaveInfo:         room.MjBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
 	})
+	log.Debug("@@@@@@@@@@@@@@@ 底分：%d", room.Source)
 }
 
 func (room *RoomData) SendStatusReady(u *user.User) {

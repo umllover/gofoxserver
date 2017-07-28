@@ -434,22 +434,22 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	//todo,测试手牌
-	var temp []int
-	temp = make([]int, 42)
-	temp[0] = 3 //三张一同
-	temp[1] = 3 //三张二同
-	temp[2] = 3 //三张三同
-	temp[3] = 3 //三张四同
-	temp[4] = 3 //三张五同
-	temp[5] = 2
-
-	//room.FlowerCnt[0] = 1 //花牌
-	room.SendCardData = 0x06
-	room.CardIndex[0] = temp
-	GetCardWordArray(room.CardIndex[0])
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	////todo,测试手牌
+	//var temp []int
+	//temp = make([]int, 42)
+	//temp[0] = 3 //三张一同
+	//temp[1] = 3 //三张二同
+	//temp[2] = 3 //三张三同
+	//temp[3] = 3 //三张四同
+	//temp[4] = 3 //三张五同
+	//temp[5] = 2
+	//
+	////room.FlowerCnt[0] = 1 //花牌
+	//room.SendCardData = 0x06
+	//room.CardIndex[0] = temp
+	//GetCardWordArray(room.CardIndex[0])
+	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1325,6 +1325,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				}
 
 				//插花分
+				playerScore[IDX_SUB_SCORE_CH] += room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				room.SumScore[index] -= room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				room.SumScore[i] += room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[index], room.SumScore[i])
@@ -1375,6 +1376,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			log.Debug("连庄得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_LZ], room.SumScore[i])
 
 			//插花分
+			playerScore[IDX_SUB_SCORE_CH] = room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			room.SumScore[room.ProvideUser] -= room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			room.SumScore[i] += room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[room.ProvideUser], room.SumScore[i])
