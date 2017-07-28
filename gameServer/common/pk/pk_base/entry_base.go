@@ -225,9 +225,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 
 		room.Status = RoomStatusStarting
-		room.TimerMgr.StartPlayingTimer(func() {
-			room.OnEventGameConclude(0, nil, GER_DISMISS)
-		})
+		room.TimerMgr.StopCreatorTimer()
 	}
 }
 
