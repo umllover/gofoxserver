@@ -92,13 +92,10 @@ func (room *RoomTimerMgr) StartCreatorTimer(cb func()) {
 	}
 }
 
-//开始多久没打完解散房间房间
-func (room *RoomTimerMgr) StartPlayingTimer(cb func()) {
+//停止创建房间没开始的定时器
+func (room *RoomTimerMgr) StopCreatorTimer() {
 	if room.EndTime != nil {
 		room.EndTime.Stop()
-	}
-	if room.TimeLimit != 0 {
-		room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimit)*time.Second, cb)
 	}
 }
 
