@@ -329,7 +329,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewSSSEntry(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, pk_base.IDX_SSS, "", temp, r)
+	datag := NewDataMgr(info, u1.Id, pk_base.IDX_SSS, "", temp, r)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
