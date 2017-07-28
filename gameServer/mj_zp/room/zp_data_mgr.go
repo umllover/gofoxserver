@@ -434,22 +434,22 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	////todo,测试手牌
-	//var temp []int
-	//temp = make([]int, 42)
-	//temp[0] = 4 //三张一同
-	//temp[1] = 3 //三张二同
-	//temp[2] = 3 //三张三同
-	//temp[3] = 3 //三张四同
-	//temp[4] = 3 //三张五同
-	//temp[5] = 1
-	//
-	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x06
-	//room.CardIndex[0] = temp
-	//GetCardWordArray(room.CardIndex[0])
-	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//todo,测试手牌
+	var temp []int
+	temp = make([]int, 42)
+	temp[0] = 3 //三张一同
+	temp[1] = 3 //三张二同
+	temp[2] = 3 //三张三同
+	temp[3] = 3 //三张四同
+	temp[4] = 3 //三张五同
+	temp[5] = 2
+
+	//room.FlowerCnt[0] = 1 //花牌
+	room.SendCardData = 0x06
+	room.CardIndex[0] = temp
+	GetCardWordArray(room.CardIndex[0])
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	log.Debug("room.CardIndex:%v", room.CardIndex[0])
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1046,12 +1046,6 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			winScore[IDX_SUB_SCORE_HDLZ] = 3
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("海底捞针 %d", winScore[IDX_SUB_SCORE_HDLZ])
-		}
-		kind = room.IsWuHuaZi(v, room.FlowerCnt) //无花字
-		if kind > 0 {
-			winScore[IDX_SUB_SCORE_HDLZ] = 3
-			room.HuKindType = append(room.HuKindType, kind)
-			log.Debug("无花字 %d", winScore[IDX_SUB_SCORE_HDLZ])
 		}
 		kind = room.IsAnKe(v) //暗刻
 		if kind > 0 {

@@ -1626,7 +1626,8 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) int {
 	if room.ProvideUser != room.CurrentUser {
 		return 0
 	}
-	if len(pAnalyseItem.WeaveKind) != 0 {
+
+	if room.GetLeftCard() != room.EndLeftCount {
 		return 0
 	}
 	return CHR_HAI_DI_LAO_ZHEN
