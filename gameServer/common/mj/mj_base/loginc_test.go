@@ -41,6 +41,14 @@ func TestOutCard(t *testing.T) {
 	//room.OutCard([]interface{}{u1, 1})
 }
 
+func TestMj_base_DissumeRoom(t *testing.T) {
+	base:=Mj_base{}
+	args:=*user.User{
+
+	}
+	base.DissumeRoom()
+}
+
 func TestBaseLogic_ReplaceCard(t *testing.T) {
 	//m := GetCardByIdx(0)
 	//log.Debug("库存的牌%v", m)

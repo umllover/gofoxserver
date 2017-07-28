@@ -20,6 +20,8 @@ import (
 
 	"mj/common/utils"
 
+	"mj/hallServer/db/model/stats"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -330,6 +332,25 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 	//}
 
+	//搜集创建房间数据
+	logInfo := &stats.RoomLog{}
+	logInfo.UserId = player.Id
+	logInfo.PayType = recvMsg.PayType
+	logInfo.RoomId = rid
+	logInfo.RoomName = recvMsg.RoomName
+	logInfo.NodeId = nodeId
+	logInfo.KindId = recvMsg.Kind
+	logInfo.ServiceId = recvMsg.ServerId
+	logNow := time.Now()
+	logInfo.CreateTime = &logNow
+	if retCode == 0 {
+		logInfo.NomalOpen = 1
+	} else {
+		logInfo.NomalOpen = 0
+	}
+	logInfo.CreateOthers = 1
+	player.AddCreateRoomLog(logInfo)
+
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
 	info.UserId = player.Id
@@ -435,6 +456,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
 			if !player.SubCurrency(money) {
 				retcode = NotEnoughFee
+				now := time.Now()
+				stats.ConsumLogOp.Insert(&stats.ConsumLog{
+					UserId:     player.Id,
+					ConsumType: 1,
+					ConsumNum:  money,
+					ConsumTime: &now,
+				})
 				return
 			}
 		}
@@ -783,7 +811,17 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
+		now := time.Now()
+		stats.RechargeLogOp.Insert(&stats.RechargeLog{
+			OnLineID:     v.OnLineID,
+			PayAmount:    v.PayAmount,
+			UserID:       v.UserID,
+			PayType:      v.PayType,
+			GoodsID:      v.GoodsID,
+			RechangeTime: &now,
+		})
 	}
+
 }
 
 //离线通知时间
@@ -901,6 +939,13 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		retCode = NotEnoughFee
 		return
 	}
+	now := time.Now()
+	stats.ConsumLogOp.Insert(&stats.ConsumLog{
+		UserId:     player.Id,
+		ConsumType: 1,
+		ConsumNum:  feeTemp.TableFee,
+		ConsumTime: &now,
+	})
 
 	if !player.HasRecord(room.RoomID) {
 		record := &model.TokenRecord{}

@@ -926,6 +926,7 @@ func (room *RoomData) StartDispatchCard() {
 		gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(room.GetCfg().MagicCard))
 	}
 
+	log.Debug("======房间Id：%d", room.ID)
 	//选取庄家
 	room.ElectionBankerUser()
 
@@ -942,7 +943,6 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-
 	if conf.Test {
 		room.RepalceCard()
 	}

@@ -6,8 +6,10 @@ import (
 	"github.com/lovelly/leaf/gate"
 
 	"mj/common/msg"
+	"mj/gameServer/db/model/stats"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/user"
+	"time"
 )
 
 ////注册rpc 消息
@@ -44,6 +46,7 @@ func GetShopInfo(args []interface{}) {
 	agent.WriteMsg(retMsg)
 }
 
+//购买商品
 func ExchangeGoods(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_TradeGoods)
 	agent := args[1].(gate.Agent)
@@ -58,6 +61,20 @@ func ExchangeGoods(args []interface{}) {
 	case 1: //vip
 		player.SetVip()
 	}
-
+	now := time.Now()
 	agent.WriteMsg(retMsg)
+	stats.MallBuyLogOp.Insert(&stats.MallBuyLog{
+		GoodsId:           goods.GoodsId,
+		Rmb:               goods.Rmb,
+		Diamond:           goods.Diamond,
+		Name:              goods.Name,
+		LeftCnt:           goods.LeftCnt,
+		SpecialOffer:      goods.SpecialOffer,
+		GivePresent:       goods.GivePresent,
+		SpecialOfferBegin: goods.SpecialOfferBegin,
+		SpecialOfferEnd:   goods.SpecialOfferEnd,
+		GoodsType:         goods.GoodsType,
+		BuyTime:           &now,
+	})
+
 }
