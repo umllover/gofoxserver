@@ -27,6 +27,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("WriteUserScore", m.WriteUserScore)
 	reg.RegisterRpc("LeaveRoom", m.LeaveRoom)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 
 	//c2s
 	reg.RegisterC2S(&msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
@@ -90,6 +91,11 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
 	m.Close(KickOutMsg)
+}
+
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
 }
 
 func (m *UserModule) GetUserInfo(args []interface{}) {
