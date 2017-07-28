@@ -25,9 +25,9 @@ import (
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
+	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"github.com/lovelly/leaf/gate"
 )
 
 var (
@@ -44,6 +44,7 @@ func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
 
 }
+
 //
 //func TestShowCard(t *testing.T) {
 //	args := []interface{}{nil, u2}
@@ -335,6 +336,7 @@ func init() {
 	userg.Users[0] = u1
 	r := NewDDZEntry(info)
 	ddzMrg = NewDDZDataMgr(info, u1.Id, pk_base.IDX_DDZ, "", temp, r)
+
 	if ddzMrg == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
