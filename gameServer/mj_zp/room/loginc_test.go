@@ -155,7 +155,7 @@ func init() {
 	}
 	setCfg := map[string]interface{}{
 		"zhuaHua": 16,
-		"wanFa":   true,
+		"wanFa":   false,
 		"suanFen": 1,
 		"chaHua":  false,
 	}
