@@ -430,10 +430,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	}
 
 	//非限时免费 并且 不是全付方式 并且 钱大于零
-	if !player.CheckFree() && roomInfo.PayType != SELF_PAY_TYPE && money > 0 {
-		if !player.SubCurrency(money) {
-			retcode = NotEnoughFee
-			return
+	if !player.CheckFree() && money > 0 {
+		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
+			if !player.SubCurrency(money) {
+				retcode = NotEnoughFee
+				return
+			}
 		}
 	}
 
