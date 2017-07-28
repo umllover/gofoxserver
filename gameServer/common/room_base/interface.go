@@ -22,7 +22,7 @@ type Module interface {
 
 type TimerManager interface {
 	StartCreatorTimer(cb func())
-	StartPlayingTimer(cb func())
+	StopCreatorTimer()
 	StartKickoutTimer(uid int64, cb func())
 	StopOfflineTimer(uid int64)
 	StartReplytIimer(uid int64, cb func())

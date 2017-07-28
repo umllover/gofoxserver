@@ -255,9 +255,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 		//派发初始扑克
 		room.Status = RoomStatusStarting
-		room.TimerMgr.StartPlayingTimer(func() {
-			room.OnEventGameConclude(0, nil, GER_DISMISS)
-		})
+		room.TimerMgr.StopCreatorTimer()
 	}
 }
 

@@ -20,6 +20,7 @@ import (
 func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.initParam()
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
 	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
@@ -55,9 +56,9 @@ type ddz_data_mgr struct {
 	RepertoryCard  []int                          // 库存扑克
 
 	// 扑克信息
-	BankerCard   [3]int       // 游戏底牌
-	HandCardData [][]int      // 手上扑克
-	ShowCardSign map[int]bool // 用户明牌标识
+	BankerCard   [3]int  // 游戏底牌
+	HandCardData [][]int // 手上扑克
+	ShowCardSign []bool  // 用户明牌标识
 
 	// 定时器
 	CardTimer *time.Timer
@@ -82,7 +83,6 @@ func (room *ddz_data_mgr) resetData() {
 	room.RepertoryCard = make([]int, nMaxCardCount)
 	room.BankerCard = [3]int{}
 	room.HandCardData = append([][]int{})
-	room.ShowCardSign = map[int]bool{}
 
 	room.ScoreTimes = 0
 	room.HistoryScores = make([]*pk_base.HistoryScore, room.PlayerCount)
@@ -94,6 +94,14 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
 
 	room.resetData()
+}
+
+// 初始化明牌标识
+func (r *ddz_data_mgr) initParam() {
+	r.ShowCardSign = append([]bool{})
+	for i := 0; i < 3; i++ {
+		r.ShowCardSign = append(r.ShowCardSign, false)
+	}
 }
 
 // 空闲状态场景
@@ -120,9 +128,8 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	//}
 
 	// 发送明牌标识
-	for k, v := range room.ShowCardSign {
-		StatusFree.ShowCardSign[k] = v
-	}
+	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
+	util.DeepCopy(&StatusFree.ShowCardSign, &room.ShowCardSign)
 
 	// 发送托管标识
 	trustees := room.PkBase.UserMgr.GetTrustees()
@@ -179,6 +186,7 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 		}
 	}
 
+	StatusCall.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
 	//发送数据
 	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
@@ -245,6 +253,7 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 		}
 	}
 
+	StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
 
 	// 发送数据
@@ -327,10 +336,7 @@ func (room *ddz_data_mgr) SendGameStart() {
 
 	GameStart.CallScoreUser = room.CurrentUser
 
-	if room.ShowCardSign == nil {
-		room.ShowCardSign = make(map[int]bool)
-	}
-
+	GameStart.ShowCard = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&GameStart.ShowCard, &room.ShowCardSign)
 
 	//发送数据
@@ -458,12 +464,17 @@ func (r *ddz_data_mgr) BankerInfo() {
 
 // 明牌
 func (r *ddz_data_mgr) ShowCard(u *user.User) {
+	log.Debug("当前明牌信息%v,玩家id", r.ShowCardSign, u.ChairId)
+
 	r.ShowCardSign[u.ChairId] = true
 
 	DataShowCard := &pk_ddz_msg.G2C_DDZ_ShowCard{}
 	DataShowCard.ShowCardUser = u.ChairId
-	util.DeepCopy(&DataShowCard.CardData, &r.HandCardData[u.ChairId])
-	log.Debug("明牌前%v", r.HandCardData[u.ChairId])
+	if len(r.HandCardData) > u.ChairId {
+		log.Debug("明牌前%v", r.HandCardData[u.ChairId])
+		DataShowCard.CardData = util.CopySlicInt(r.HandCardData[u.ChairId])
+	}
+
 	log.Debug("%v", r.HandCardData)
 
 	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
@@ -775,7 +786,10 @@ func (room *ddz_data_mgr) Trustee(u *user.User, t bool) {
 		u.WriteMsg(DataTrustee)
 	})
 
-	room.checkNextUserTrustee()
+	if u.ChairId == room.CurrentUser {
+		// 托管者是当前操作者
+		room.checkNextUserTrustee()
+	}
 }
 
 // 托管、明牌、放弃出牌
@@ -809,14 +823,14 @@ func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
 		r.Trustee(u, true)
 	}
 
-	r.CardTimer = time.AfterFunc(time.Duration(nTime)*time.Second, f)
+	r.CardTimer = time.AfterFunc(time.Duration(nTime+5)*time.Second, f)
 }
 
 // 重置定时器
 func (r *ddz_data_mgr) resetOperateCardTimer(nTime int) {
 	log.Debug("重置定时器时间%d", nTime)
 	if r.CardTimer != nil {
-		r.CardTimer.Reset(time.Duration(nTime) * time.Second)
+		r.CardTimer.Reset(time.Duration(nTime+5) * time.Second)
 	}
 }
 

@@ -138,6 +138,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		CellScore:         room.CellScore,                                                //游戏底分
 		IniScore:          0,                                                             //room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.id),                                         //房间编号
+		PayType:			room.PkBase.UserMgr.GetPayType(), //支付类型
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,

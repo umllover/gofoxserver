@@ -158,11 +158,13 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		CellScore:         room.Source,                                                   //游戏底分
 		IniScore:          room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.ID),                                         //房间编号
+		PayType:			room.MjBase.UserMgr.GetPayType(), //支付类型
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
 		LeaveInfo:         room.MjBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
 	})
+	log.Debug("@@@@@@@@@@@@@@@ 底分：%d", room.Source)
 }
 
 func (room *RoomData) SendStatusReady(u *user.User) {
@@ -1627,7 +1629,8 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) int {
 	if room.ProvideUser != room.CurrentUser {
 		return 0
 	}
-	if len(pAnalyseItem.WeaveKind) != 0 {
+
+	if room.GetLeftCard() != room.EndLeftCount {
 		return 0
 	}
 	return CHR_HAI_DI_LAO_ZHEN

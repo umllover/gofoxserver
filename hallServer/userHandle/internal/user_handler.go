@@ -43,6 +43,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -822,6 +823,11 @@ func (m *UserModule) KickOutUser(player *user.User) {
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
 	m.Close(KickOutMsg)
+}
+
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
 }
 
 //删除自己创建的房间
