@@ -42,6 +42,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
+	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -59,7 +60,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
-	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
 //连接进来的通知

@@ -90,6 +90,9 @@ func Assert(i interface{}) []interface{} {
 
 func (s *Server) HasFunc(id interface{}) (*FuncInfo, bool) {
 	f, ok := s.functions[id]
+	if !ok {
+		log.Debug("at HasFunc :%v    %v", id, s.functions)
+	}
 	return f, ok
 }
 
@@ -119,6 +122,7 @@ func (s *Server) RegisterFromType(id interface{}, f interface{}, fType int, this
 }
 
 func (s *Server) Register(id interface{}, f interface{}) {
+	log.Debug("regist msg :=== %s", id)
 	s.RegisterFromType(id, f, FuncCommon)
 }
 

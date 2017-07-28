@@ -55,7 +55,6 @@ func init() {
 	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&L2C_UpdateUserAttr{})
 	Processor.Register(&C2L_RechangerOk{})
-
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
