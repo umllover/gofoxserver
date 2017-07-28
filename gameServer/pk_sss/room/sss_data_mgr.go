@@ -817,7 +817,15 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		//最后一局
 		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
 			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
-			util.DeepCopy(&gameRecord, &room.AllResult)
+			util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
+			allScore := make([]int, room.PlayerCount)
+			for i := range room.AllResult {
+				for j := range allScore {
+					allScore[j] += room.AllResult[i][j]
+				}
+			}
+			gameRecord.AllScore = allScore
+
 			userMgr.ForEachUser(func(u *user.User) {
 				u.WriteMsg(gameRecord)
 			})

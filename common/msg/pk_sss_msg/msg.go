@@ -86,6 +86,7 @@ type G2C_SSS_COMPARE struct {
 // 结算
 type G2C_SSS_Record struct {
 	AllResult [][]int `json:"allResult"` //每一局总分
+	AllScore  []int   `json:"allScore"`  //总分
 }
 
 //游戏状态
