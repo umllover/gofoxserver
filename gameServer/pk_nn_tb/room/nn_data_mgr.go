@@ -17,7 +17,7 @@ import (
 
 // 游戏状态
 const (
-	GAME_STATUS_NULL = 0 // 空
+	GAME_STATUS_NULL = 1000 // 空
 	//PLAYER_ENTER_ROOM  	= 1001 // 玩家进入房间
 	GAME_STATUS_START          = 1002 // 游戏开始
 	GAME_STATUS_CALL_SCORE     = 1003 // 抢庄
@@ -99,17 +99,22 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay := &nn_tb_msg.G2C_TBNN_StatusPlay{}
 
-	log.Debug("at sendstatus play")
+	log.Debug("at send status play, player count%d", room.PlayerCount)
 	//游戏变量
 	StatusPlay.CellScore = room.CellScore
+	StatusPlay.GameStatus = room.GameStatus
+	if room.GameStatus > GAME_STATUS_CALL_SCORE {
+		StatusPlay.BankerUser = room.BankerUser.ChairId
+	}
+	StatusPlay.PlayerCount = room.PlayerCount
+	StatusPlay.GameRoomName = room.Name
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusPlay.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
 
 	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.PlayStatus = append(StatusPlay.PlayStatus, room.UserGameStatusMap[room.PkBase.UserMgr.GetUserByChairId(i)])
 	}
-	StatusPlay.GameStatus = room.GameStatus
-	StatusPlay.PlayerCount = room.PlayerCount
 
-	StatusPlay.BankerUser = room.BankerUser.ChairId
 	StatusPlay.HandCardData = make([][]int, room.PlayerCount)
 	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.HandCardData[i] = append(StatusPlay.HandCardData[i], room.CardData[i]...)
@@ -118,19 +123,15 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.InitScore = append(StatusPlay.InitScore, room.InitScoreMap[i])
 	}
-	StatusPlay.GameRoomName = room.Name
-	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-	StatusPlay.EachRoundScore = make([][]int, room.PlayerCount)
-	for i := 0; i < room.PlayerCount; i++ {
-		StatusPlay.EachRoundScore[i] = append(StatusPlay.EachRoundScore[i], room.EachRoundScoreMap[i]...)
-	}
+
 	u.WriteMsg(StatusPlay)
 }
 
 func (room *nntb_data_mgr) BeforeStartGame(UserCnt int) {
-	room.GameStatus = GAME_STATUS_START
 	log.Debug("init room")
 	room.InitRoom(UserCnt)
+	room.GameStatus = GAME_STATUS_START
+	room.SetAllUserGameStatus(GAME_STATUS_START)
 }
 
 func (room *nntb_data_mgr) StartGameing() {
@@ -278,7 +279,10 @@ func (room *nntb_data_mgr) NormalEnd() {
 		calScore.InitScore[i] = room.InitScoreMap[i]
 	}
 
-	// 每局积分
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(calScore)
+	})
+
 
 	roundScore := make([]int, room.PlayerCount)
 	for i := 0; i < room.PlayerCount; i++ {
@@ -287,8 +291,20 @@ func (room *nntb_data_mgr) NormalEnd() {
 	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
 
 	log.Debug("normal end each round score map %v", room.EachRoundScoreMap)
-	userMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(calScore)
+
+
+	gameEnd := &nn_tb_msg.G2C_TBNN_GameEnd{}
+	gameEnd.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	gameEnd.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
+	gameEnd.EachRoundScore = make([][]int, gameEnd.CurrentPlayCount)
+	for i:=0;i<gameEnd.CurrentPlayCount;i++ {
+		gameEnd.EachRoundScore[i] = append(gameEnd.EachRoundScore[i], room.EachRoundScoreMap[i+1]...)
+	}
+	for i:=0;i<room.PlayerCount;i++ {
+		gameEnd.InitScore = append(gameEnd.InitScore, room.InitScoreMap[i])
+	}
+	userMgr.ForEachUser(func(u *user.User){
+	     u.WriteMsg(gameEnd)
 	})
 	room.GameStatus = GAME_STATUS_NULL
 	room.SetAllUserGameStatus(GAME_STATUS_NULL)
@@ -427,10 +443,13 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 
 	userMgr.ForEachUser(func(u *user.User) {
 		// 没有加过的默认一倍
-		if _, found := r.AddScoreMap[u]; found {
-		} else {
+		if r.AddScoreMap[u] <=0 {
 			r.AddScoreMap[u] = 1
 		}
+		/*if _, found := r.AddScoreMap[u]; found {
+		} else {
+			r.AddScoreMap[u] = 1
+		}*/
 	})
 
 	log.Debug("add score end  map %v", r.AddScoreMap)

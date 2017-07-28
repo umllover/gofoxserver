@@ -17,13 +17,13 @@ import (
 
 // +gen *
 type GetinRoomLog struct {
-	GetinRecodeId int        `db:"getin_recode_id" json:"getin_recode_id"` // 加入游戏数据记录的Id
-	RoomId        int        `db:"room_id" json:"room_id"`                 // 房间id
-	UserId        int64      `db:"user_id" json:"user_id"`                 // 用户索引
-	PublicGetin   int        `db:"public_getIn" json:"public_getIn"`       // 公房加入 0否 1是
-	PrivateGetin  int        `db:"private_getIn" json:"private_getIn"`     // 私房加入 0否 1是
-	TypeGetin     int        `db:"type_getIn" json:"type_getIn"`           // 加入房间类型 0列表加入 2输房号加入 3快速加入 4点击链接加入
-	GetInTime     *time.Time `db:"getIn_time" json:"getIn_time"`           // 进入房间时间
+	RecodeId     int        `db:"recode_id" json:"recode_id"`         // 加入游戏数据记录的Id
+	RoomId       int        `db:"room_id" json:"room_id"`             // 房间id
+	UserId       int64      `db:"user_id" json:"user_id"`             // 用户索引
+	PublicGetin  int        `db:"public_getIn" json:"public_getIn"`   // 公房加入 0否 1是
+	PrivateGetin int        `db:"private_getIn" json:"private_getIn"` // 私房加入 0否 1是
+	TypeGetin    int        `db:"type_getIn" json:"type_getIn"`       // 加入房间类型 0列表加入 2输房号加入 3快速加入 4点击链接加入
+	GetInTime    *time.Time `db:"getIn_time" json:"getIn_time"`       // 进入房间时间
 }
 
 type getinRoomLogOp struct{}
@@ -32,11 +32,11 @@ var GetinRoomLogOp = &getinRoomLogOp{}
 var DefaultGetinRoomLog = &GetinRoomLog{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *getinRoomLogOp) Get(getin_recode_id int) (*GetinRoomLog, bool) {
+func (op *getinRoomLogOp) Get(recode_id int) (*GetinRoomLog, bool) {
 	obj := &GetinRoomLog{}
-	sql := "select * from getin_room_log where getin_recode_id=? "
+	sql := "select * from getin_room_log where recode_id=? "
 	err := db.StatsDB.Get(obj, sql,
-		getin_recode_id,
+		recode_id,
 	)
 
 	if err != nil {
@@ -158,7 +158,7 @@ func (op *getinRoomLogOp) Update(m *GetinRoomLog) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *getinRoomLogOp) UpdateTx(ext sqlx.Ext, m *GetinRoomLog) error {
-	sql := `update getin_room_log set room_id=?,user_id=?,public_getIn=?,private_getIn=?,type_getIn=?,getIn_time=? where getin_recode_id=?`
+	sql := `update getin_room_log set room_id=?,user_id=?,public_getIn=?,private_getIn=?,type_getIn=?,getIn_time=? where recode_id=?`
 	_, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
@@ -166,7 +166,7 @@ func (op *getinRoomLogOp) UpdateTx(ext sqlx.Ext, m *GetinRoomLog) error {
 		m.PrivateGetin,
 		m.TypeGetin,
 		m.GetInTime,
-		m.GetinRecodeId,
+		m.RecodeId,
 	)
 
 	if err != nil {
@@ -178,14 +178,14 @@ func (op *getinRoomLogOp) UpdateTx(ext sqlx.Ext, m *GetinRoomLog) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *getinRoomLogOp) UpdateWithMap(getin_recode_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.StatsDB, getin_recode_id, m)
+func (op *getinRoomLogOp) UpdateWithMap(recode_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.StatsDB, recode_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *getinRoomLogOp) UpdateWithMapTx(ext sqlx.Ext, getin_recode_id int, m map[string]interface{}) error {
+func (op *getinRoomLogOp) UpdateWithMapTx(ext sqlx.Ext, recode_id int, m map[string]interface{}) error {
 
-	sql := `update getin_room_log set %s where 1=1 and getin_recode_id=? ;`
+	sql := `update getin_room_log set %s where 1=1 and recode_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -196,7 +196,7 @@ func (op *getinRoomLogOp) UpdateWithMapTx(ext sqlx.Ext, getin_recode_id int, m m
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, getin_recode_id)
+	params = append(params, recode_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -209,17 +209,17 @@ func (i *GetinRoomLog) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *getinRoomLogOp) Delete(getin_recode_id int) error {
-	return op.DeleteTx(db.StatsDB, getin_recode_id)
+func (op *getinRoomLogOp) Delete(recode_id int) error {
+	return op.DeleteTx(db.StatsDB, recode_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *getinRoomLogOp) DeleteTx(ext sqlx.Ext, getin_recode_id int) error {
+func (op *getinRoomLogOp) DeleteTx(ext sqlx.Ext, recode_id int) error {
 	sql := `delete from getin_room_log where 1=1
-        and getin_recode_id=?
+        and recode_id=?
         `
 	_, err := ext.Exec(sql,
-		getin_recode_id,
+		recode_id,
 	)
 	return err
 }

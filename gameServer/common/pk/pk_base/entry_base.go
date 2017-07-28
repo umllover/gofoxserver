@@ -220,6 +220,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
 		//派发初始扑克
+		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
@@ -344,7 +345,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Entry_base) AfterEnd(Forced bool) {
-	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()

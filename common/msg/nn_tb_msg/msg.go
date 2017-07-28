@@ -89,7 +89,7 @@ type G2C_TBNN_StatusPlay struct {
 	GameRoomName			string		//房间名称
 
 	CurrentPlayCount		int		//房间已玩局数
-	EachRoundScore			[][]int		//房间每局游戏比分
+	LimitPlayCount int //总局数
 }
 
 //叫分结果
@@ -112,12 +112,10 @@ type G2C_TBNN_AddScore struct {
 
 //游戏结束
 type G2C_TBNN_GameEnd	struct {
-
-	GameTax					[]int				//游戏税收
-	GameScore				[]int64			//游戏得分
-	CardData				[]int			//用户扑克
-	AllbCardValue			[]int
-	MMcbCardData			[][]int     	//用户扑克
+	CurrentPlayCount int //当前局数
+	LimitPlayCount int //总局数
+	InitScore [] int //玩家积分
+	EachRoundScore [][]int //每局积分
 }
 
 // 比牌结果
