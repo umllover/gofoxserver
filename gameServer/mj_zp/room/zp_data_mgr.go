@@ -1325,6 +1325,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				}
 
 				//插花分
+				playerScore[IDX_SUB_SCORE_CH] += room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				room.SumScore[index] -= room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				room.SumScore[i] += room.ChaHuaMap[i] + room.ChaHuaMap[index]
 				log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[index], room.SumScore[i])
@@ -1375,6 +1376,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			log.Debug("连庄得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_LZ], room.SumScore[i])
 
 			//插花分
+			playerScore[IDX_SUB_SCORE_CH] = room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			room.SumScore[room.ProvideUser] -= room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			room.SumScore[i] += room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]
 			log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[room.ProvideUser], room.SumScore[i])
