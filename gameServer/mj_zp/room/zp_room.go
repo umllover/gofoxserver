@@ -44,12 +44,13 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	if zpData == nil {
 		return nil
 	}
+
 	cfg := &mj_base.NewMjCtlConfig{
 		BaseMgr:  zpBase,
 		DataMgr:  zpData,
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, zpBase.GetSkeleton()),
 	}
 	r.Init(cfg)
 	if r == nil {

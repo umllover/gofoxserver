@@ -155,6 +155,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+	u.ChatRoomId = r.ChatRoomId
 
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -227,6 +228,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	r.Users[u.ChairId] = nil
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
+	u.ChatRoomId = 0
+
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "DelPlayerId",
@@ -443,15 +446,9 @@ func (room *RoomUserMgr) SetUsetStatus(u *user.User, stu int) {
 
 //通知房间解散
 func (room *RoomUserMgr) RoomDissume() {
-	Cance := &msg.G2C_CancelTable{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Cance)
-	})
 
-	Diis := &msg.G2C_PersonalTableEnd{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Diis)
-	})
+	room.SendMsgAll(&msg.G2C_CancelTable{})
+	room.SendMsgAll(&msg.G2C_PersonalTableEnd{})
 
 	for _, u := range room.Users {
 		if u != nil {
