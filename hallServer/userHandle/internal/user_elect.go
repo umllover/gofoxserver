@@ -5,9 +5,12 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/db/model"
+	"mj/hallServer/db/model/stats"
 	"mj/hallServer/user"
+	"time"
 )
 
+//填写推荐人信息
 func (m *UserModule) SetElect(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SetElect)
 	retMsg := &msg.L2C_SetElectResult{}
@@ -28,6 +31,14 @@ func (m *UserModule) SetElect(args []interface{}) {
 		UserId:    recvMsg.ElectUid,
 		SpreadUid: player.Id,
 	})
+	now := time.Now()
+
+	stats.RecommendLogOp.Insert(&stats.RecommendLog{
+		SubElectUid: player.Id,
+		ElectUid:    recvMsg.ElectUid,
+		ElectTime:   &now,
+	})
+
 }
 
 //领取推举人奖励
