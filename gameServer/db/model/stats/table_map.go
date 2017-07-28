@@ -9,6 +9,7 @@ func InitTableMap() {
 	   db.StatsDBMap.AddTableWithName(DrawAwardLog{}, "draw_award_log").SetKeys(false,"Id")
 	   db.StatsDBMap.AddTableWithName(GetinRoomLog{}, "getin_room_log").SetKeys(true, "RecodeId")
 	   db.StatsDBMap.AddTableWithName(Globalspreadinfo{}, "globalspreadinfo").SetKeys(false,"ID")
+	   db.StatsDBMap.AddTableWithName(MallBuyLog{}, "mall_buy_log").SetKeys(false,"GoodsId")
 	   db.StatsDBMap.AddTableWithName(RecommendLog{}, "recommend_log").SetKeys(false,"SubElectUid")
 	   db.StatsDBMap.AddTableWithName(RoomLog{}, "room_log").SetKeys(true, "RecodeId")
 	   db.StatsDBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
