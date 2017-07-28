@@ -134,7 +134,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 }
 func (room *sss_data_mgr) ComputeChOut() {
 	userMgr := room.PkBase.UserMgr
-	gameLogic := room.PkBase.LogicMgr
+	gameLogic := room.PkBase.LogicMgr.(*sss_logic)
 
 	userMgr.ForEachUser(func(u *user.User) {
 		room.CbResult[u] = make([]int, 3)
@@ -403,7 +403,7 @@ func (room *sss_data_mgr) ComputeResult() {
 	for i := range room.m_bShootState {
 		room.m_bShootState[i] = make([]*user.User, 2)
 	}
-	gameLogic := room.PkBase.LogicMgr
+	gameLogic := room.PkBase.LogicMgr.(*sss_logic)
 	userMgrW := room.PkBase.UserMgr
 	userMgrW.ForEachUser(func(u *user.User) {
 		room.m_bCompareResult[u] = make([]int, 3)

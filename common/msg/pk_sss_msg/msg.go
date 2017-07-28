@@ -13,7 +13,7 @@ func init() {
 	Processor.Register(&G2C_SSS_StatusFree{})
 	Processor.Register(&G2C_SSS_SendCard{})
 	Processor.Register(&G2C_SSS_COMPARE{})
-	Processor.Register(&CMD_S_StatusPlay{})
+	Processor.Register(&G2C_SSS_StatusPlay{})
 	Processor.Register(&CMD_C_ShowCard{})
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
@@ -92,19 +92,19 @@ type G2C_SSS_Record struct {
 }
 
 //游戏状态
-type CMD_S_StatusPlay struct {
-	wCurrentUser       int             //当前玩家
-	lCellScore         int             //单元底分
-	nChip              []int           //下注大小
-	bHandCardData      []int           //扑克数据
-	bSegmentCard       [][][]int       //分段扑克
-	bFinishSegment     []bool          //完成分段
-	wUserToltalChip    int             //总共金币
-	bOverTime          []bool          //超时状态
-	bSpecialTypeTable1 []bool          //是否特殊牌型
-	bDragon1           []bool          //是否倒水
-	bAllHandCardData   [][]int         //所有玩家的扑克数据
-	CMD_S_GameEnd      G2C_SSS_COMPARE //游戏结束数据
+type G2C_SSS_StatusPlay struct {
+	WCurrentUser       int             `json:"wCurrentUser"`       //当前玩家
+	LCellScore         int             `json:"lCellScore"`         //单元底分
+	NChip              []int           `json:"nChip"`              //下注大小
+	BHandCardData      []int           `json:"bHandCardData"`      //扑克数据
+	BSegmentCard       [][][]int       `json:"bSegmentCard"`       //分段扑克
+	BFinishSegment     []bool          `json:"bFinishSegment"`     //完成分段
+	WUserToltalChip    int             `json:"wUserToltalChip"`    //总共金币
+	BOverTime          []bool          `json:"bOverTime"`          //超时状态
+	BSpecialTypeTable1 []bool          `json:"bSpecialTypeTable1"` //是否特殊牌型
+	BDragon1           []bool          `json:"bDragon1"`           //是否倒水
+	BAllHandCardData   [][]int         `json:"bAllHandCardData"`   //所有玩家的扑克数据
+	SGameEnd           G2C_SSS_COMPARE `json:"sGameEnd"`           //游戏结束数据
 }
 
 //分段信息
