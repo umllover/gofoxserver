@@ -742,16 +742,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := &msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
+
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-		retMsg.ServerIP = r.SvrHost
+		m.SrarchTableResult([]interface{}{r})
 	} else {
+		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE
+		u := m.a.UserData().(*user.User)
+		u.WriteMsg(retMsg)
 	}
-	u.WriteMsg(retMsg)
+
 }
 
 func (m *UserModule) leaveRoom(args []interface{}) {
