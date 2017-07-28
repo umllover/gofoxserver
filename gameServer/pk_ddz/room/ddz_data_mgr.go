@@ -821,6 +821,7 @@ func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
 		u := r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser)
 		log.Debug("当前操作玩家ID%v", u)
 		r.Trustee(u, true)
+		r.resetOperateCardTimer(nTime)
 	}
 
 	r.CardTimer = time.AfterFunc(time.Duration(nTime+5)*time.Second, f)
