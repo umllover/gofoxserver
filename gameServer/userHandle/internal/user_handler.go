@@ -27,6 +27,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("WriteUserScore", m.WriteUserScore)
 	reg.RegisterRpc("LeaveRoom", m.LeaveRoom)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 
 	//c2s
 	reg.RegisterC2S(&msg.C2G_GR_LogonMobile{}, m.handleMBLogin)
@@ -92,6 +93,11 @@ func (m *UserModule) ForceClose(args []interface{}) {
 	m.Close(KickOutMsg)
 }
 
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
+}
+
 func (m *UserModule) GetUserInfo(args []interface{}) {
 	log.Debug("at GetUserInfo ................ ")
 }
@@ -150,6 +156,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
 		user.Status = oldUser.Status
+		user.ChatRoomId = oldUser.ChatRoomId
 		m.KickOutUser(oldUser)
 	}
 

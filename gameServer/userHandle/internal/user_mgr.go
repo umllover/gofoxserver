@@ -3,6 +3,7 @@ package internal
 import (
 	"mj/gameServer/center"
 	"mj/gameServer/user"
+	"github.com/lovelly/leaf/log"
 	"sync"
 )
 
@@ -30,6 +31,7 @@ func getUser(uid int64) *user.User {
 }
 
 func AddUser(uid int64, u *user.User) {
+	log.Debug("at AddUser  ============== :%d", uid)
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
@@ -37,6 +39,7 @@ func AddUser(uid int64, u *user.User) {
 }
 
 func DelUser(uid int64) {
+	log.Debug("at DelUser  ============== :%d", uid)
 	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()

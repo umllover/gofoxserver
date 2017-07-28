@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -84,7 +83,7 @@ type RoomData struct {
 func (r *RoomData) OnCreateRoom() {
 	log.Debug("at pk data mgr create room")
 	// 初始化积分
-	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPayCnt())
+	log.Debug("at new data mgr %d %d %d ", r.KindID, r.ServerID, r.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	r.InitScoreMap = make(map[int]int)
 	template, ok := dbase.GameServiceOptionCache.Get(r.KindID, r.ServerID)
@@ -132,13 +131,14 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPayCnt(),                           //局数限制
+		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                           //局数限制
 		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.PkBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.CellScore,                                                //游戏底分
 		IniScore:          0,                                                             //room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.id),                                         //房间编号
+		PayType:			room.PkBase.UserMgr.GetPayType(), //支付类型
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
@@ -208,24 +208,3 @@ func (r *RoomData) ShowCard(u *user.User) {
 }
 
 func (r *RoomData) Trustee(u *user.User) {}
-
-func (r *RoomData) AfterEnd(Forced bool) {
-	log.Debug("at pk data mgr after end")
-	r.PkBase.TimerMgr.AddPlayCount()
-	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
-		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
-			RoomId: r.PkBase.DataMgr.GetRoomId(),
-			Status: r.PkBase.Status,
-		})
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
-		r.PkBase.UserMgr.RoomDissume()
-
-		return
-	}
-
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
-	})
-
-}

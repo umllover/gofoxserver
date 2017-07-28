@@ -7,7 +7,6 @@ import (
 	"github.com/lovelly/leaf/timer"
 
 	"mj/common/cost"
-	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
 	"mj/gameServer/user"
 	"time"
@@ -79,9 +78,9 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
 	StatusFree.TimeOperateCard = room.PkBase.TimerMgr.GetTimeOperateCard() //操作时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetCreatrTime()        //开始时间
-	StatusFree.TurnScore = make([]int, room.PkBase.TimerMgr.GetMaxPayCnt())
+	StatusFree.TurnScore = make([]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 	StatusFree.CollectScore = make([]int, room.PlayerCount)
-	StatusFree.EachRoundScore = make([][]int, room.PlayerCount, room.PkBase.TimerMgr.GetMaxPayCnt())
+	StatusFree.EachRoundScore = make([][]int, room.PlayerCount, room.PkBase.TimerMgr.GetMaxPlayCnt())
 	StatusFree.InitScore = make([]int, room.PlayerCount)
 	log.Debug("at send status ready %v", room.InitScoreMap)
 
@@ -91,7 +90,7 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 
 	StatusFree.PlayerCount = room.PlayerCount
 	StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPayCnt() //局数限制
+	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPlayCnt() //局数限制
 	StatusFree.GameRoomName = room.Name
 
 	u.WriteMsg(StatusFree)
@@ -662,31 +661,4 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 	}
 
 	return nil, 0
-}
-
-func (r *nntb_data_mgr) AfterEnd(Forced bool) {
-	log.Debug("at nn data mgr after end")
-	r.PkBase.TimerMgr.AddPlayCount()
-	if Forced || r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPayCnt() {
-		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, r.PkBase.TimerMgr.GetPlayCount(), r.PkBase.TimerMgr.GetMaxPayCnt())
-
-		r.PkBase.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
-			RoomId: r.PkBase.DataMgr.GetRoomId(),
-			Status: r.PkBase.Status,
-		})
-
-		r.PkBase.UserMgr.RoomDissume()
-
-		r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-			r.PkBase.UserMgr.LeaveRoom(u, r.PkBase.Status)
-		})
-
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
-
-		return
-	}
-
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		r.PkBase.UserMgr.SetUsetStatus(u, cost.US_SIT)
-	})
 }

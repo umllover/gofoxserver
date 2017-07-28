@@ -15,7 +15,3 @@ func NewNNTBEntry(info *model.CreateRoomInfo) *NNTB_Entry {
 type NNTB_Entry struct {
 	*pk_base.Entry_base
 }
-
-/*
-func (room *Entry_base) AfertEnd(Forced bool) {
-*/

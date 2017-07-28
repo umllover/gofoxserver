@@ -12,27 +12,27 @@ func init() {
 	//sss msg
 	Processor.Register(&G2C_SSS_StatusFree{})
 	Processor.Register(&G2C_SSS_SendCard{})
-	Processor.Register(&G2C_SSS_GameEnd{})
+	Processor.Register(&G2C_SSS_COMPARE{})
 	Processor.Register(&CMD_S_StatusPlay{})
 	Processor.Register(&CMD_C_ShowCard{})
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
+	Processor.Register(&G2C_SSS_Record{})
+
 }
 
 type G2C_SSS_StatusFree struct {
-	//历史积分
-	//lTurnScore    []int //积分信息
-	//lCollectScore []int //积分信息
-	//
-	//wUserToltalChip []int
+	SubCmd      int `json:"subCmd"`      //当前状态
 	PlayerCount int `json:"playerCount"` //实际人数
 }
 
 //发送扑克
 type G2C_SSS_SendCard struct {
 	//wCurrentUser int   //当前玩家
-	CardData  []int //手上扑克
-	CellScore int   //游戏底分
+	CardData    []int //手上扑克
+	Laizi       []int //癞子牌
+	PublicCards []int //公共牌
+	CellScore   int   //游戏底分
 }
 
 //用户摊牌
@@ -47,19 +47,11 @@ type C2G_SSS_Open_Card struct {
 
 //用户摊牌
 type G2C_SSS_Open_Card struct {
-	CurrentUser    int   //当前玩家
-	FrontCard      []int //前墩扑克
-	MidCard        []int //中墩扑克
-	BackCard       []int //后墩扑克
-	CanSeeShowCard bool  //能否看牌
-	SpecialType    bool  //是否是特殊牌
-	SpecialData    []int //特殊扑克
-	ShowUser       int   //摊牌的玩家
-	Dragon         bool  //是否乌龙
+	CurrentUser int //当前玩家
 }
 
 //游戏结束
-type G2C_SSS_GameEnd struct {
+type G2C_SSS_COMPARE struct {
 	LGameTax               int        `json:"lGameTax"`               //游戏税收
 	LGameEveryTax          []int      `json:"lGameEveryTax"`          //每个玩家的税收
 	LGameScore             []int      `json:"lGameScore"`             //游戏积分
@@ -91,6 +83,11 @@ type G2C_SSS_GameEnd struct {
 	WAllUser               int        `json:"wAllUser"`          //全垒打用户
 }
 
+// 结算
+type G2C_SSS_Record struct {
+	AllResult [][]int `json:"allResult"` //每一局总分
+}
+
 //游戏状态
 type CMD_S_StatusPlay struct {
 	wCurrentUser       int             //当前玩家
@@ -104,7 +101,7 @@ type CMD_S_StatusPlay struct {
 	bSpecialTypeTable1 []bool          //是否特殊牌型
 	bDragon1           []bool          //是否倒水
 	bAllHandCardData   [][]int         //所有玩家的扑克数据
-	CMD_S_GameEnd      G2C_SSS_GameEnd //游戏结束数据
+	CMD_S_GameEnd      G2C_SSS_COMPARE //游戏结束数据
 }
 
 //分段信息

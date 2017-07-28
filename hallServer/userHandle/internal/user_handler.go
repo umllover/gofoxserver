@@ -41,6 +41,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -57,7 +58,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeUserName{}, m.ChangeUserName)
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
-
+	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
 	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
@@ -173,6 +174,8 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	})
 	BuildClientMsg(retMsg, player, accountData)
 	game_list.ChanRPC.Go("sendGameList", agent)
+
+	m.Recharge(nil)
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -315,15 +318,17 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	//检测是否有限时免费
+	//if !player.CheckFree() {
+	money := feeTemp.TableFee
 	if recvMsg.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.TableFee / template.MaxPlayer
+		money = feeTemp.TableFee / template.MaxPlayer
 	}
-
-	if !player.EnoughCurrency(monrey) {
+	if !player.EnoughCurrency(money) {
 		retCode = NotEnoughFee
 		return
 	}
+	//}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
@@ -420,15 +425,18 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		return
 	}
 
-	monrey := feeTemp.TableFee
+	money := feeTemp.TableFee
 	if roomInfo.PayType == AA_PAY_TYPE {
-		monrey = feeTemp.AATableFee
+		money = feeTemp.AATableFee
 	}
 
-	if !player.CheckFree() {
-		if !player.SubCurrency(feeTemp.TableFee) {
-			retcode = NotEnoughFee
-			return
+	//非限时免费 并且 不是全付方式 并且 钱大于零
+	if !player.CheckFree() && money > 0 {
+		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
+			if !player.SubCurrency(money) {
+				retcode = NotEnoughFee
+				return
+			}
 		}
 	}
 
@@ -436,12 +444,12 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = roomInfo.RoomID
-		record.Amount = monrey
+		record.Amount = money
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
 		if !player.AddRecord(record) {
 			retcode = ErrServerError
-			player.AddCurrency(monrey)
+			player.AddCurrency(money)
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
@@ -734,16 +742,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := &msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
+
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-		retMsg.ServerIP = r.SvrHost
+		m.SrarchTableResult([]interface{}{r})
 	} else {
+		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE
+		u := m.a.UserData().(*user.User)
+		u.WriteMsg(retMsg)
 	}
-	u.WriteMsg(retMsg)
+
 }
 
 func (m *UserModule) leaveRoom(args []interface{}) {
@@ -794,6 +803,11 @@ func (m *UserModule) KickOutUser(player *user.User) {
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
 	m.Close(KickOutMsg)
+}
+
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
 }
 
 //删除自己创建的房间
@@ -976,7 +990,11 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 	ReqGetMaskCode(recvMsg.PhoneNumber, code)
 }
 
+func (m *UserModule) RechangerOk(args []interface{}) {
+	//recvMsg := args[0].(*msg.C2L_RechangerOk)
+	m.Recharge(nil)
+}
+
 /// 游戏服发来的结束消息
 func (m *UserModule) RoomEndInfo(args []interface{}) {
-
 }

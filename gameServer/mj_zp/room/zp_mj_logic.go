@@ -429,3 +429,43 @@ func (lg *ZP_Logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 func (lg *ZP_Logic) GetHuOfCard() int {
 	return lg.HuOfCard
 }
+
+func (lg *ZP_Logic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *mj_base.TagGangCardResult) int {
+
+	//设置变量
+	cbActionMask := WIK_NULL
+	cbWeaveCount := len(WeaveItem)
+	gangCardResult.CardData = make([]int, lg.GetCfg().MaxWeave)
+	//手上杠牌
+	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+		if cbCardIndex[i] == 4 {
+			cbActionMask |= WIK_GANG
+			gangCardResult.CardData = append(gangCardResult.CardData, lg.SwitchToCard(i))
+			gangCardResult.CardCount++
+		}
+	}
+
+	//组合杠牌
+	for i := 0; i < cbWeaveCount; i++ {
+		if WeaveItem[i].WeaveKind == WIK_PENG {
+			if WeaveItem[i].CenterCard == cbProvideCard { //之后抓来的的牌才能和碰组成杠
+				cbActionMask |= WIK_GANG
+				gangCardResult.CardData[gangCardResult.CardCount] = WeaveItem[i].CenterCard
+				gangCardResult.CardCount++
+			}
+			for j := 0; j < lg.GetCfg().MaxIdx; j++ { //碰来后的和手牌组成杠
+				if cbCardIndex[j] > 0 {
+					card := lg.SwitchToCard(j)
+					if WeaveItem[i].CenterCard == card {
+						cbActionMask |= WIK_GANG
+						gangCardResult.CardData[gangCardResult.CardCount] = WeaveItem[i].CenterCard
+						gangCardResult.CardCount++
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return cbActionMask
+}
