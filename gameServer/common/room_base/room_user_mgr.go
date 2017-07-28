@@ -357,15 +357,22 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		log.Error("获取房间创建信息失败:%v", err)
 	}
 
+	//搜集进入房间费信息
 	getInLog := &stats.GetinRoomLog{}
 	log.Debug("info ======= %v", info)
 	if info.Public == 1 {
-		getInLog.PublicGetin = 1
-	} else {
-		getInLog.PrivateGetin = 1
+		getInLog.Public = 1
 	}
 	getInLog.RoomId = info.RoomId
 	getInLog.UserId = u.Id
+	getInLog.KindId = info.KindId
+	getInLog.ServiceId = info.ServiceId
+	getInLog.RoomName = info.RoomName
+	getInLog.NodeId = info.NodeId
+	getInLog.Num = info.Num
+	getInLog.Status = info.Status
+	getInLog.MaxPlayerCnt = info.MaxPlayerCnt
+	getInLog.PayType = info.PayType
 	now := time.Now()
 	getInLog.GetInTime = &now
 
