@@ -40,7 +40,7 @@ func HasUser(uid int64) bool {
 }
 
 func AddUser(uid int64, u *user.User) {
-	log.Debug("AddUser: %d ===", uid)
+	log.Debug("AddUser: %d =======================", uid)
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
@@ -48,7 +48,7 @@ func AddUser(uid int64, u *user.User) {
 }
 
 func DelUser(uid int64) {
-	log.Debug("deluser %d ===", uid)
+	log.Debug("deluser %d ======================", uid)
 	center.ChanRPC.Go("SelfNodeDelPlayer", uid)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
