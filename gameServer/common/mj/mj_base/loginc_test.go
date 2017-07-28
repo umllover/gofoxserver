@@ -13,12 +13,11 @@ import (
 
 	"fmt"
 
-	"mj/common/utils"
+	"sync"
 
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
-	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 )
 
@@ -28,20 +27,11 @@ var (
 	u2   *user.User
 	u3   *user.User
 	u4   *user.User
+	wg   sync.WaitGroup
 )
 
 func TestGameStart_1(t *testing.T) {
-	/*room.UserReady([]interface{}{nil, u1})
-	room.DataMgr.SetUserCard(0, []int{
-		0x1, 0x1, 0x1,
-		0x3, 0x3, 0x3,
-		0x4, 0x4, 0x4,
-		0x6,
-		0x7,
-		0x8,
-		0x15, 0x15,
-	})
-	*/
+	room.UserReady([]interface{}{nil, u1})
 }
 
 func TestOutCard(t *testing.T) {
@@ -60,24 +50,24 @@ func TestMj_base_DissumeRoom(t *testing.T) {
 }
 
 func TestBaseLogic_ReplaceCard(t *testing.T) {
-	m := GetCardByIdx(0)
-	log.Debug("库存的牌%v", m)
-	TmpRepertoryCard := []int{1, 1, 3, 17, 25, 24}
-	log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	//tempCard := make([]int, len(m))
-
-	//room.LogicMgr.RandCardList(tempCard, m)
-
-	log.Debug("删除前 %d, %v", len(m), m)
-	for _, v := range TmpRepertoryCard {
-		for idx, v1 := range m {
-			if v == v1 {
-				m = utils.IntSliceDelete(m, idx)
-				break
-			}
-		}
-	}
-	log.Debug("删除后%d  %v", len(m), m)
+	//m := GetCardByIdx(0)
+	//log.Debug("库存的牌%v", m)
+	//TmpRepertoryCard := []int{1, 1, 3, 17, 25, 24}
+	//log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	////tempCard := make([]int, len(m))
+	//
+	////room.LogicMgr.RandCardList(tempCard, m)
+	//
+	//log.Debug("删除前 %d, %v", len(m), m)
+	//for _, v := range TmpRepertoryCard {
+	//	for idx, v1 := range m {
+	//		if v == v1 {
+	//			m = utils.IntSliceDelete(m, idx)
+	//			break
+	//		}
+	//	}
+	//}
+	//log.Debug("删除后%d  %v", len(m), m)
 }
 
 func TestBaseLogic_AnalyseCard(t *testing.T) {
@@ -145,6 +135,7 @@ func init() {
 	lconf.ProfilePath = conf.Server.ProfilePath
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
+	conf.Test = true
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	leaf.InitLog()

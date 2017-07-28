@@ -256,6 +256,8 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		//派发初始扑克
 		room.Status = RoomStatusStarting
 		room.TimerMgr.StopCreatorTimer()
+	} else {
+		log.Debug(" not all ready")
 	}
 }
 
