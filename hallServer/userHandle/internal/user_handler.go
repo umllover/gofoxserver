@@ -41,6 +41,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -741,16 +742,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := &msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
+
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-		retMsg.ServerIP = r.SvrHost
+		m.SrarchTableResult([]interface{}{r})
 	} else {
+		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE
+		u := m.a.UserData().(*user.User)
+		u.WriteMsg(retMsg)
 	}
-	u.WriteMsg(retMsg)
+
 }
 
 func (m *UserModule) leaveRoom(args []interface{}) {
@@ -801,6 +803,11 @@ func (m *UserModule) KickOutUser(player *user.User) {
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
 	m.Close(KickOutMsg)
+}
+
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
 }
 
 //删除自己创建的房间
