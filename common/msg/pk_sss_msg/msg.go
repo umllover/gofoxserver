@@ -22,8 +22,10 @@ func init() {
 }
 
 type G2C_SSS_StatusFree struct {
-	SubCmd      int `json:"subCmd"`      //当前状态
-	PlayerCount int `json:"playerCount"` //实际人数
+	SubCmd           int `json:"subCmd"`           //当前状态
+	PlayerCount      int `json:"playerCount"`      //实际人数
+	CurrentPlayCount int `json:"currentPlayCount"` //当前局数
+	MaxPlayCount     int `json:"maxPlayCount"`     //总局数
 }
 
 //发送扑克

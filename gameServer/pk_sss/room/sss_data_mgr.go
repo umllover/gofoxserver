@@ -839,8 +839,10 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	StatusFree := &pk_sss_msg.G2C_SSS_StatusFree{
-		PlayerCount: room.PkBase.UserMgr.GetCurPlayerCnt(),
-		SubCmd:      room.GameStatus,
+		PlayerCount:      room.PkBase.UserMgr.GetCurPlayerCnt(),
+		SubCmd:           room.GameStatus,
+		CurrentPlayCount: room.PkBase.TimerMgr.GetPlayCount(),
+		MaxPlayCount:     room.PkBase.TimerMgr.GetMaxPayCnt(),
 	}
 
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
