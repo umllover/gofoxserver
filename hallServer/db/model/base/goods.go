@@ -14,7 +14,7 @@ import (
 
 // +gen
 type Goods struct {
-	GoodsId           int        `db:"goods_id" json:"goods_id"`                       //
+	GoodsId           string     `db:"goods_id" json:"goods_id"`                       //
 	Rmb               int        `db:"rmb" json:"rmb"`                                 //
 	Diamond           int        `db:"diamond" json:"diamond"`                         //
 	Name              string     `db:"name" json:"name"`                               // 商品名称
@@ -29,7 +29,7 @@ type Goods struct {
 var DefaultGoods = Goods{}
 
 type goodsCache struct {
-	objMap  map[int]*Goods
+	objMap  map[string]*Goods
 	objList []*Goods
 }
 
@@ -42,7 +42,7 @@ func (c *goodsCache) LoadAll() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	c.objMap = make(map[int]*Goods)
+	c.objMap = make(map[string]*Goods)
 	log.Debug("Load all goods success %v", len(c.objList))
 	for _, v := range c.objList {
 		c.objMap[v.GoodsId] = v
@@ -57,11 +57,11 @@ func (c *goodsCache) Count() int {
 	return len(c.objList)
 }
 
-func (c *goodsCache) Get(goods_id int) (*Goods, bool) {
+func (c *goodsCache) Get(goods_id string) (*Goods, bool) {
 	return c.GetKey1(goods_id)
 }
 
-func (c *goodsCache) GetKey1(goods_id int) (*Goods, bool) {
+func (c *goodsCache) GetKey1(goods_id string) (*Goods, bool) {
 	v, ok := c.objMap[goods_id]
 	return v, ok
 }

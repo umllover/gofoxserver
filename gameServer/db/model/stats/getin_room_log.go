@@ -3,7 +3,7 @@ package stats
 import (
 	"errors"
 	"fmt"
-	"mj/hallServer/db"
+	"mj/gameServer/db"
 	"time"
 
 	"github.com/jmoiron/sqlx"
