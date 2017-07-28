@@ -155,7 +155,7 @@ func init() {
 	}
 	setCfg := map[string]interface{}{
 		"zhuaHua": 16,
-		"wanFa":   true,
+		"wanFa":   false,
 		"suanFen": 1,
 		"chaHua":  false,
 	}
@@ -184,7 +184,7 @@ func init() {
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	RegisterHandler(r)

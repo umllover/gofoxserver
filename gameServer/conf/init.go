@@ -13,7 +13,7 @@ import (
 
 const (
 	default_db_max_open      = 32
-	default_db_max_idle      = 2
+	default_db_max_idle      = 10
 	default_stat_log_workers = 64
 )
 
