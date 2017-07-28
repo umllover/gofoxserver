@@ -1281,16 +1281,17 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			continue
 		}
 
-		//基础分
-		playerScore[IDX_SUB_SCORE_JC] = 1
-		room.SumScore[i] += 1
-		log.Debug("基础分:%d,SumScore:%d", playerScore[IDX_SUB_SCORE_JC], room.SumScore[i])
-
 		if i == room.ProvideUser && winCnt == 1 { //自摸情况
 			for index := 0; index < UserCnt; index++ {
 				if index == i {
 					continue
 				}
+
+				//基础分
+				playerScore[IDX_SUB_SCORE_JC] += 1
+				room.SumScore[index] -= 1
+				room.SumScore[i] += 1
+				log.Debug("基础分:%d,SumScore:%d", playerScore[IDX_SUB_SCORE_JC], room.SumScore[i])
 
 				//胡牌
 				testScore := 0 //todo,测试
@@ -1344,6 +1345,12 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			log.Debug("自摸i:%d ,庄家：%d", i, room.BankerUser)
 			log.Debug("补分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 		} else {
+			//基础分
+			playerScore[IDX_SUB_SCORE_JC] += 1
+			room.SumScore[room.ProvideUser] -= 1
+			room.SumScore[i] += 1
+			log.Debug("基础分:%d,SumScore:%d", playerScore[IDX_SUB_SCORE_JC], room.SumScore[i])
+
 			//胡牌
 			testScore := 0 //todo,测试
 			for j := IDX_SUB_SCORE_ZPKZ; j < COUNT_KIND_SCORE; j++ {

@@ -1692,6 +1692,9 @@ func (room *RoomData) IsDuiDuiHu(pAnalyseItem *TagAnalyseItem) int {
 		if v&(WIK_PENG|WIK_GANG) == 0 && pAnalyseItem.IsAnalyseGet[k] == false {
 			return 0
 		}
+		if v&(WIK_LEFT|WIK_RIGHT|WIK_CENTER) != 0 {
+			return 0
+		}
 	}
 	return CHR_PENG_PENG
 }
