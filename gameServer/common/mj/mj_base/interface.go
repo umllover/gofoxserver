@@ -26,8 +26,8 @@ type DataManager interface {
 	ResetUserOperate()                                               //重置用户状态
 	ZiMo(u *user.User)                                               //自摸处理
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int //暗杠处理
-	NormalEnd()                                                      //正常结束
-	DismissEnd()                                                     //解散结束
+	NormalEnd(Reason int)                                            //正常结束
+	DismissEnd(Reason int)                                           //解散结束
 	GetTrusteeOutCard(wChairID int) int                              //获取托管的牌
 	CanOperatorRoom(uid int64) bool                                  //能否操作房间
 	SendStatusReady(u *user.User)                                    //发送准备

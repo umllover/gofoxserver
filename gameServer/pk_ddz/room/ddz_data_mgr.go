@@ -673,7 +673,7 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 }
 
 // 游戏正常结束
-func (r *ddz_data_mgr) NormalEnd() {
+func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	log.Debug("游戏正常结束了")
 	r.GameStatus = GAME_STATUS_FREE
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
@@ -744,15 +744,16 @@ func (r *ddz_data_mgr) NormalEnd() {
 		}
 	}
 
+	DataGameConclude.Reason = cbReason
 	r.sendGameEndMsg(DataGameConclude)
 }
 
 //解散房间结束
-func (r *ddz_data_mgr) DismissEnd() {
+func (r *ddz_data_mgr) DismissEnd(cbReason int) {
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
 	DataGameConclude.GameScore = make([]int, r.PlayerCount)
-
+	DataGameConclude.Reason = cbReason
 	// 炸弹
 	util.DeepCopy(&DataGameConclude.EachBombCount, &r.EachBombCount)
 

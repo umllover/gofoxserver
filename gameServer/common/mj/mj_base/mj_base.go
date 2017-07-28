@@ -526,17 +526,22 @@ func (room *Mj_base) ReqLeaveRoom(args []interface{}) {
 		leaveFunc()
 	} else {
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
-		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+		room.TimerMgr.StartReplytIimer(player.Id, func() {
+			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+		})
 	}
 }
 
 //其他玩家响应玩家离开房间的请求
 func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
+	log.Debug("at ReplyLeaveRoom ")
 	player := args[0].(*user.User)
 	Agree := args[1].(bool)
 	ReplyUid := args[2].(int64)
-	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
-	if stop {
+	ret := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if ret == 1 {
+		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+	} else if ret == 0 {
 		room.TimerMgr.StopReplytIimer(ReplyUid)
 	}
 }
@@ -545,10 +550,13 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
 	case GER_NORMAL: //常规结束
-		room.DataMgr.NormalEnd()
+		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(false)
 	case GER_DISMISS: //游戏解散
-		room.DataMgr.DismissEnd()
+		room.DataMgr.DismissEnd(cbReason)
+		room.AfterEnd(true)
+	case USER_LEAVE: //用户请求解散
+		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	room.Status = RoomStatusEnd

@@ -1186,7 +1186,7 @@ func (room *RoomData) SendGameStart() {
 }
 
 //正常结束房间
-func (room *RoomData) NormalEnd() {
+func (room *RoomData) NormalEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
@@ -1266,7 +1266,7 @@ func (room *RoomData) NormalEnd() {
 	})
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
-
+	GameConclude.Reason = cbReason
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
@@ -1275,7 +1275,7 @@ func (room *RoomData) NormalEnd() {
 }
 
 //解散接触
-func (room *RoomData) DismissEnd() {
+func (room *RoomData) DismissEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_hz_msg.G2C_GameConclude{}
@@ -1305,7 +1305,7 @@ func (room *RoomData) DismissEnd() {
 			}
 		}
 	}
-
+	GameConclude.Reason = cbReason
 	//发送信息
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }

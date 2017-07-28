@@ -177,10 +177,11 @@ func (r *RoomUserMgr) GetChairId() int {
 	return -1
 }
 
-func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) bool {
+func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) int {
 	reqPlayer, _ := r.GetUserByUid(ReplyUid)
 	if reqPlayer == nil {
-		return false
+		log.Debug("at ReplyLeave not foud user")
+		return 0
 	}
 	if Agree {
 		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
@@ -190,18 +191,17 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			r.ReqLeave[ReplyUid] = req
 		}
 		req.Agree = append(req.Agree, player.Id)
-		if len(req.Agree) >= r.UserCnt {
-			r.LeaveRoom(reqPlayer, status)
+		if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
 			r.DeleteReply(reqPlayer.Id)
-			return true
+			return 1
 		}
 	} else {
 		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
 		r.DeleteReply(reqPlayer.Id)
-		return true
+		return -1
 	}
 
-	return false
+	return 0
 }
 
 func (r *RoomUserMgr) DeleteReply(uid int64) {

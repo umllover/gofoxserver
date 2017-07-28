@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/log"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
+
+	"github.com/lovelly/leaf/log"
 
 	"mj/hallServer/user"
 
@@ -49,6 +50,11 @@ func SrarchTable(args []interface{}) {
 	if roomInfo == nil {
 		log.Error("at SrarchTable not foud room, %v", recvMsg)
 		retcode = ErrNoFoudRoom
+		return
+	}
+
+	if len(roomInfo.MachPlayer) >= roomInfo.MaxPlayerCnt {
+		retcode = ErrRoomFull
 		return
 	}
 

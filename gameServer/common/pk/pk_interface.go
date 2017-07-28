@@ -19,8 +19,8 @@ type DataManager interface {
 	AfterStartGame()
 
 	// 游戏结束
-	NormalEnd()
-	DismissEnd()
+	NormalEnd(Reason int)
+	DismissEnd(Reason int)
 
 	SendPersonalTableTip(*user.User)
 	SendStatusPlay(u *user.User)

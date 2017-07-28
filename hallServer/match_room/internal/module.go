@@ -101,6 +101,11 @@ func (m *MatchModule) Match() {
 			if bk {
 				break
 			}
+
+			if len(r.MachPlayer) >= r.MaxPlayerCnt {
+				continue
+			}
+
 			for i := len(r.MachPlayer); i < r.MaxPlayerCnt; i++ {
 				if li.Len() < 1 {
 					bk = true
