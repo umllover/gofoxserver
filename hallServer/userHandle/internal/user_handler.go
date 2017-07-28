@@ -456,6 +456,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
 			if !player.SubCurrency(money) {
 				retcode = NotEnoughFee
+				now := time.Now()
+				stats.ConsumLogOp.Insert(&stats.ConsumLog{
+					UserId:     player.Id,
+					ConsumType: 1,
+					ConsumNum:  money,
+					ConsumTime: &now,
+				})
 				return
 			}
 		}
@@ -932,6 +939,13 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		retCode = NotEnoughFee
 		return
 	}
+	now := time.Now()
+	stats.ConsumLogOp.Insert(&stats.ConsumLog{
+		UserId:     player.Id,
+		ConsumType: 1,
+		ConsumNum:  feeTemp.TableFee,
+		ConsumTime: &now,
+	})
 
 	if !player.HasRecord(room.RoomID) {
 		record := &model.TokenRecord{}
