@@ -28,13 +28,13 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	r := NewXSEntry(info)
-	base := room_base.NewRoomBase()
+	rbase := room_base.NewRoomBase()
 	cfg := &mj_base.NewMjCtlConfig{
-		BaseMgr:  base,
+		BaseMgr:  rbase,
 		DataMgr:  NewXSDataMgr(info.RoomId, u.Id, mj_base.IDX_XSMJ, "", temp, r, info.OtherInfo),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewXSlogic(mj_base.IDX_XSMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp,rbase.GetSkeleton()),
 	}
 
 	if cfg.BaseMgr == nil || cfg.DataMgr == nil || cfg.UserMgr == nil || cfg.LogicMgr == nil || cfg.TimerMgr == nil {

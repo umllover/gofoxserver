@@ -101,7 +101,6 @@ func (m *MatchModule) Match() {
 			if bk {
 				break
 			}
-
 			if len(r.MachPlayer) >= r.MaxPlayerCnt {
 				continue
 			}
@@ -111,9 +110,10 @@ func (m *MatchModule) Match() {
 					bk = true
 					break
 				}
+
 				v1 := li.Front()
-				li.Remove(v1)
 				player := v1.Value.(*MachPlayer)
+				li.Remove(v1)
 				r.MachPlayer[player.Uid] = struct{}{}
 				log.Debug("player %d match ok ", player.Uid)
 				player.ch.Go("matchResult", true, r)

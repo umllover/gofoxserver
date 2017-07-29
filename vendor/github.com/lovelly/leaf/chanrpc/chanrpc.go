@@ -122,7 +122,6 @@ func (s *Server) RegisterFromType(id interface{}, f interface{}, fType int, this
 }
 
 func (s *Server) Register(id interface{}, f interface{}) {
-	log.Debug("regist msg :=== %s", id)
 	s.RegisterFromType(id, f, FuncCommon)
 }
 

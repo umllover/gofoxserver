@@ -924,7 +924,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	}
 
 	room := info.(*msg.RoomInfo)
-	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/room.RenewalCnt)
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/(room.RenewalCnt+1))
 	if !ok {
 		retCode = ErrConfigError
 		return
@@ -962,7 +962,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	} else { //已近口过钱了， 还来搜索房间
 		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
 	}
-	room.PayCnt *= 2
+	room.PayCnt += feeTemp.DrawCountLimit
 	room.RenewalCnt++
 
 	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})

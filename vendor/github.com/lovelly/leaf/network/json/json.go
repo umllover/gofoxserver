@@ -107,7 +107,7 @@ func (p *Processor) Route(msg interface{}, userData interface{}) error {
 	if msgRaw, ok := msg.(MsgRaw); ok {
 		i, ok := p.msgInfo[msgRaw.msgID]
 		if !ok {
-			return fmt.Errorf("message %v not registered", msgRaw.msgID)
+			return fmt.Errorf("at Route message %v not registered", msgRaw.msgID)
 		}
 		if i.msgRawHandler != nil {
 			i.msgRawHandler([]interface{}{msgRaw.msgID, msgRaw.msgRawData, userData})
@@ -123,7 +123,7 @@ func (p *Processor) Route(msg interface{}, userData interface{}) error {
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]
 	if !ok {
-		return fmt.Errorf("message %v not registered", msgID)
+		return fmt.Errorf("at Route 11 message %v not registered", msgID)
 	}
 	if i.msgHandler != nil {
 		i.msgHandler([]interface{}{msg, userData})
@@ -142,7 +142,7 @@ func (p *Processor) RouteByType(msgType reflect.Type, msg interface{}, userData 
 	if msgRaw, ok := msg.(MsgRaw); ok {
 		i, ok := p.msgInfo[msgRaw.msgID]
 		if !ok {
-			return fmt.Errorf("message %v not registered", msgRaw.msgID)
+			return fmt.Errorf("at RouteByTypemessage %v not registered ", msgRaw.msgID)
 		}
 		if i.msgRawHandler != nil {
 			i.msgRawHandler([]interface{}{msgRaw.msgID, msgRaw.msgRawData, userData})
@@ -153,7 +153,7 @@ func (p *Processor) RouteByType(msgType reflect.Type, msg interface{}, userData 
 	msgID := msgType.Elem().Name()
 	i, ok := p.msgInfo[msgID]
 	if !ok {
-		return fmt.Errorf("message %v not registered", msgID)
+		return fmt.Errorf("at RouteByType 11 message %v not registered", msgID)
 	}
 	if i.msgHandler != nil {
 		i.msgHandler([]interface{}{msg, userData})
@@ -180,7 +180,7 @@ func (p *Processor) Unmarshal(data []byte) (interface{}, error) {
 	for msgID, data := range m {
 		i, ok := p.msgInfo[msgID]
 		if !ok {
-			return nil, fmt.Errorf("message %v not registered", msgID)
+			return nil, fmt.Errorf("at json Unmarshal message %v not registered", msgID)
 		}
 
 		// msg
@@ -203,7 +203,7 @@ func (p *Processor) Marshal(msg interface{}) ([][]byte, error) {
 	}
 	msgID := msgType.Elem().Name()
 	if _, ok := p.msgInfo[msgID]; !ok {
-		return nil, fmt.Errorf("message %v not registered", msgID)
+		return nil, fmt.Errorf("at json Marshal message %v not registered", msgID)
 	}
 
 	// data
@@ -219,7 +219,7 @@ func (p *Processor) GetMsgId(msg interface{}) (string, error) {
 	}
 	msgID := msgType.Elem().Name()
 	if _, ok := p.msgInfo[msgID]; !ok {
-		return "", fmt.Errorf("message %v not registered", msgID)
+		return "", fmt.Errorf("at json GetMsgId message %v not registered", msgID)
 	}
 	return msgID, nil
 }
