@@ -96,8 +96,9 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.resetData()
 }
 
-// 初始化明牌标识
+// 初始化部分数据
 func (r *ddz_data_mgr) initParam() {
+	// 明牌标识
 	r.ShowCardSign = append([]bool{})
 	for i := 0; i < 3; i++ {
 		r.ShowCardSign = append(r.ShowCardSign, false)
@@ -706,11 +707,9 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		}
 	}
 
-	// 明牌翻倍
-	for _, v := range r.ShowCardSign {
-		if v {
-			nMultiple <<= 1
-		}
+	// 地主明牌翻倍
+	if r.ShowCardSign[r.BankerUser] == true {
+		nMultiple <<= 1
 	}
 
 	// 八王
@@ -736,15 +735,22 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		gameScore = 0 - gameScore
 	}
 
+	var score int
+	DataGameConclude.GameScore = make([]int, r.PlayerCount)
 	for i := 0; i < r.PlayerCount; i++ {
-		if i == r.BankerUser {
-			DataGameConclude.GameScore = append(DataGameConclude.GameScore, (0-gameScore)*(r.PlayerCount-1))
-		} else {
-			DataGameConclude.GameScore = append(DataGameConclude.GameScore, gameScore)
+		if i != r.BankerUser {
+			if r.ShowCardSign[i] {
+				DataGameConclude.GameScore[i] = gameScore * 2
+			} else {
+				DataGameConclude.GameScore[i] = gameScore
+			}
+			score += DataGameConclude.GameScore[i]
 		}
 	}
 
 	DataGameConclude.Reason = cbReason
+	DataGameConclude.GameScore[r.BankerUser] = 0 - score
+
 	r.sendGameEndMsg(DataGameConclude)
 }
 
@@ -770,9 +776,13 @@ func (r *ddz_data_mgr) sendGameEndMsg(DataGameConclude *pk_ddz_msg.G2C_DDZ_GameC
 		u.WriteMsg(DataGameConclude)
 		// 取消所有人的托管状态
 		r.PkBase.UserMgr.SetUsetTrustee(u.ChairId, false)
-		// 取消定时器
-		r.stopOperateCardTimer()
 	})
+	// 取消定时器
+	r.stopOperateCardTimer()
+	// 明牌重置
+	r.initParam()
+	// 重置数据
+	r.resetData()
 }
 
 // 托管
