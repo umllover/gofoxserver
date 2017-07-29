@@ -53,11 +53,11 @@ func SrarchTable(args []interface{}) {
 		return
 	}
 
-	_, has := roomInfo.MachPlayer[player.Id]
-	if len(roomInfo.MachPlayer) >= roomInfo.MaxPlayerCnt && !has {
-		retcode = ErrRoomFull
-		return
-	}
+	//_, has := roomInfo.MachPlayer[player.Id]
+	//if len(roomInfo.MachPlayer) >= roomInfo.MaxPlayerCnt && !has {
+	//	retcode = ErrRoomFull
+	//	return
+	//}
 
 	roomInfo.MachPlayer[player.Id] = struct{}{}
 
