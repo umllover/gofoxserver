@@ -29,5 +29,5 @@ func (m *MgrModule) OnDestroy() {
 		log.Debug("111111111111111111 ")
 		player.ChanRPC().Go("SvrShutdown")
 	})
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 }

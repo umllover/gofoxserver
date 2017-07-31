@@ -47,6 +47,7 @@ const (
 	ErrPlayerIsReady        = 126 //玩家已经准备了
 	ErrRenewalFee           = 127 //请先续费
 	ErrRoomIsClose          = 128 //房间已经结束了
+	ErrRoomFull             = 129 //房间已满
 )
 
 //红中麻将错误码
@@ -140,8 +141,9 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL  = 0x00 //常规结束
-	GER_DISMISS = 0x01 //游戏解散
+	GER_NORMAL  = 0 //常规结束
+	GER_DISMISS = 1 //游戏解散
+	USER_LEAVE  = 2 //玩家请求解散
 )
 
 //积分修改类型

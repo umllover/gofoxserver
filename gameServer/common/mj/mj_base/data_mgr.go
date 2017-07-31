@@ -926,6 +926,7 @@ func (room *RoomData) StartDispatchCard() {
 		gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(room.GetCfg().MagicCard))
 	}
 
+	log.Debug("======房间Id：%d", room.ID)
 	//选取庄家
 	room.ElectionBankerUser()
 
@@ -942,7 +943,6 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
-
 	if conf.Test {
 		room.RepalceCard()
 	}
@@ -1012,7 +1012,8 @@ func (room *RoomData) StartDispatchCard() {
 func (room *RoomData) RepalceCard() {
 	base.GameTestpaiCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
-		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && v.RoomID == room.ID {
+		log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
+		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && room.ID == v.RoomID {
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break
@@ -1053,11 +1054,12 @@ func (room *RoomData) RepalceCard() {
 				room.RepertoryCard = append(room.RepertoryCard, k)
 			}
 
-			for _, v := range TmpRepertoryCard {
-				room.RepertoryCard = append(room.RepertoryCard, v)
-			}
 			if len(room.RepertoryCard) != room.MinusHeadCount {
 				log.Debug("len(room.RepertoryCard) != room.MinusHeadCount")
+			}
+
+			for _, v := range TmpRepertoryCard {
+				room.RepertoryCard = append(room.RepertoryCard, v)
 			}
 
 			log.Debug("库存牌%v", room.RepertoryCard)
@@ -1071,22 +1073,27 @@ func (room *RoomData) RepalceCard() {
 
 //注意这个函数仅供调试用
 func (room *RoomData) SetUserCard(charirID int, cards []int) {
-	log.Debug("begin SetUserCard", room.CardIndex[charirID])
+	log.Debug("begin SetUserCard len:%d", len(room.CardIndex[charirID]), room.CardIndex[charirID])
+	log.Debug("begin chairId %v =========card : %v", charirID, cards)
 	gameLogic := room.MjBase.LogicMgr
 
 	inc := 0
 	userCard := room.CardIndex[charirID]
-	for idx, cnt := range userCard {
+	temp := util.CopySlicInt(userCard)
+	for idx, cnt := range temp {
 		for i := 0; i < cnt; i++ {
 			if inc >= len(cards) {
+				log.Debug("%d======%d", inc, len(cards))
 				break
 			}
+			log.Debug("aaaaa ", cards[inc], "==========", gameLogic.SwitchToCardIndex(cards[inc]))
 			userCard[idx]--
 			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
 			inc++
 		}
 	}
-	log.Debug("end SetUserCard %v", room.CardIndex[charirID])
+
+	log.Debug("end SetUserCard %v", userCard)
 }
 
 //获取用户手牌
@@ -1178,7 +1185,7 @@ func (room *RoomData) SendGameStart() {
 }
 
 //正常结束房间
-func (room *RoomData) NormalEnd() {
+func (room *RoomData) NormalEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
@@ -1258,7 +1265,7 @@ func (room *RoomData) NormalEnd() {
 	})
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
-
+	GameConclude.Reason = cbReason
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
@@ -1267,7 +1274,7 @@ func (room *RoomData) NormalEnd() {
 }
 
 //解散接触
-func (room *RoomData) DismissEnd() {
+func (room *RoomData) DismissEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_hz_msg.G2C_GameConclude{}
@@ -1297,7 +1304,7 @@ func (room *RoomData) DismissEnd() {
 			}
 		}
 	}
-
+	GameConclude.Reason = cbReason
 	//发送信息
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }

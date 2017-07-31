@@ -410,6 +410,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.MinusHeadCount = len(room.RepertoryCard)
 	}
 
+	log.Debug("======房间Id：%d", room.ID)
+
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
 		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
@@ -606,7 +608,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 }
 
 //正常结束房间
-func (room *ZP_RoomData) NormalEnd() {
+func (room *ZP_RoomData) NormalEnd(cbReason int) {
 	//清理变量
 	room.ClearAllTimer()
 
@@ -688,7 +690,7 @@ func (room *ZP_RoomData) NormalEnd() {
 	})
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
-
+	GameConclude.Reason = cbReason
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
@@ -1983,7 +1985,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 }
 
 //解散接触
-func (room *ZP_RoomData) DismissEnd() {
+func (room *ZP_RoomData) DismissEnd(cbReason int) {
 	//清理变量
 	room.ClearAllTimer()
 
@@ -2019,7 +2021,7 @@ func (room *ZP_RoomData) DismissEnd() {
 			}
 		}
 	}
-
+	GameConclude.Reason = cbReason
 	//发送信息
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }

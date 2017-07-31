@@ -23,6 +23,8 @@ import (
 
 	"mj/common/cost"
 
+	"time"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/gate"
@@ -36,13 +38,19 @@ var (
 	u1     *user.User
 	u2     *user.User
 	u3     *user.User
+	tt     *time.Timer
 )
 
 var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
-	room.UserReady([]interface{}{nil, u1})
-
+	//room.UserReady([]interface{}{nil, u1})
+	f := func() {
+		log.Debug("出发了")
+		tt.Reset(time.Duration(2) * time.Second)
+	}
+	tt = time.AfterFunc(time.Duration(2)*time.Second, f)
+	Wg.Wait()
 }
 
 //
@@ -284,7 +292,9 @@ func TestCompareCard(t *testing.T) {
 }
 
 func init() {
+
 	Wg.Add(1)
+	return
 	conf.Init("/Users/zhangyudong/Documents/GIT/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -346,7 +356,7 @@ func init() {
 		DataMgr:  ddzMrg,
 		UserMgr:  userg,
 		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ, info),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, nil),
 	}
 	r.Init(cfg)
 	room = r

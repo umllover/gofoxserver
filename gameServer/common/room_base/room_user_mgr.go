@@ -13,6 +13,8 @@ import (
 
 	"time"
 
+	"mj/gameServer/db/model/stats"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -177,10 +179,11 @@ func (r *RoomUserMgr) GetChairId() int {
 	return -1
 }
 
-func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) bool {
+func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) int {
 	reqPlayer, _ := r.GetUserByUid(ReplyUid)
 	if reqPlayer == nil {
-		return false
+		log.Debug("at ReplyLeave not foud user")
+		return 0
 	}
 	if Agree {
 		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
@@ -190,18 +193,17 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			r.ReqLeave[ReplyUid] = req
 		}
 		req.Agree = append(req.Agree, player.Id)
-		if len(req.Agree) >= r.UserCnt {
-			r.LeaveRoom(reqPlayer, status)
+		if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
 			r.DeleteReply(reqPlayer.Id)
-			return true
+			return 1
 		}
 	} else {
 		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
 		r.DeleteReply(reqPlayer.Id)
-		return true
+		return -1
 	}
 
-	return false
+	return 0
 }
 
 func (r *RoomUserMgr) DeleteReply(uid int64) {
@@ -347,6 +349,38 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
+
+	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
+		"room_id": room.id,
+	})
+	if err != nil || info == nil {
+		log.Error("获取房间创建信息失败:%v", err)
+	}
+
+	//搜集进入房间费信息
+	getInLog := &stats.GetinRoomLog{}
+	log.Debug("info ======= %v", info)
+	if info.Public == 1 {
+		getInLog.Public = 1
+	}
+	getInLog.RoomId = info.RoomId
+	getInLog.UserId = u.Id
+	getInLog.KindId = info.KindId
+	getInLog.ServiceId = info.ServiceId
+	getInLog.RoomName = info.RoomName
+	getInLog.NodeId = info.NodeId
+	getInLog.Num = info.Num
+	getInLog.Status = info.Status
+	getInLog.MaxPlayerCnt = info.MaxPlayerCnt
+	getInLog.PayType = info.PayType
+	now := time.Now()
+	getInLog.GetInTime = &now
+
+	_, err = stats.GetinRoomLogOp.Insert(getInLog)
+	if err != nil {
+		log.Error("添加进入房间信息到数据库失败：%s", err.Error())
+	}
+
 	return 0
 }
 

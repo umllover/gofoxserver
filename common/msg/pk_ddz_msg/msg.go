@@ -171,6 +171,7 @@ type G2C_DDZ_GameConclude struct {
 	GameScore    []int   //游戏积分
 	// 八王信息
 	KingCount []int // 八王信息
+	Reason    int   //结算原因
 }
 
 //托管
