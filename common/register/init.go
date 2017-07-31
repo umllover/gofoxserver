@@ -33,4 +33,5 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_NotifyOtherNodeLogin{})
 	cluster.Processor.Register(&msg.S2S_GetPlayerInfoResult{})
 	cluster.Processor.Register(&msg.S2S_HanldeFromUserMsg{})
+	cluster.Processor.Register(&msg.S2S_RenewalFee{})
 }

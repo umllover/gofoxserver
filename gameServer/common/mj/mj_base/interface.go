@@ -56,7 +56,7 @@ type DataManager interface {
 }
 
 type LogicManager interface {
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
 	GetCardCount(cbCardIndex []int) int
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool

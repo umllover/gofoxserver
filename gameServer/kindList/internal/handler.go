@@ -31,6 +31,7 @@ func GetKindList(args []interface{}) (interface{}, error) {
 	for kind, v := range modules {
 		templates, ok := base.GameServiceOptionCache.GetKey1(kind)
 		if !ok {
+			log.Error("at get kind list not foud kind %d", kind)
 			continue
 		}
 		for _, template := range templates {

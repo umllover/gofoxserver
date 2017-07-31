@@ -17,8 +17,8 @@ type User struct {
 	ChairId      int    //当前椅子
 	UserLimit    int64  //限制行为
 	ChatRoomId   int    //聊天房间ID
-	Currency     int    //游戏豆
-	RoomCard     int    //房卡数
+	//Currency     int    //游戏豆
+	//RoomCard     int    //房卡数
 	FaceID       int8   // 头像标识
 	KindID       int    // 房间索引
 	ServerID     int    // 游戏标识
