@@ -416,43 +416,43 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	myLogInfo := make(map[string]interface{})
 	logInfo := make(map[string]interface{})
 	AddLogDb := stats.RoomLogOp
-	logInfo["RoomId"] = user.RoomId
-	logInfo["KindId"] = user.KindID
-	logInfo["ServiceId"] = user.ServerID
+	logInfo["room_id"] = user.RoomId
+	logInfo["kind_id"] = user.KindID
+	logInfo["service_id"] = user.ServerID
 	logData, err1 := AddLogDb.GetByMap(logInfo)
 	if err1 != nil {
 		log.Error("Select Data from recode Error:%v", err1.Error())
 	}
 	now := time.Now()
-	myLogInfo["EndTime"] = now
-	log.Debug("mj超时未开启ddebug======================================================")
+	myLogInfo["end_time"] = &now
+	log.Debug("超时未开启ddebug======================================================")
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}
 
 	if user.RoomId == 0 {
 		log.Error("at DissumeRoom not foud roomd id userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}

@@ -19,7 +19,6 @@ import (
 
 	"mj/gameServer/db/model/stats"
 
-
 	"github.com/lovelly/leaf/log"
 )
 
@@ -88,11 +87,11 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		log.Error("Select Data from recode Error:%v", err1.Error())
 	}
 	r.TimerMgr.StartCreatorTimer(func() {
-		myLogInfo["TimeoutNostart"] = 1
+		myLogInfo["timeout_nostart"] = 1
 		now := time.Now()
-		myLogInfo["EndTime"] = now
+		myLogInfo["end_time"] = now
 		log.Debug("mj超时未开启ddebug======================================================")
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
 			log.Error("mj超时未开启更新失败：%s", err.Error())
@@ -205,13 +204,13 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	}
 	now := time.Now()
 	myLogInfo["end_time"] = &now
-	log.Debug("mj超时未开启ddebug======================================================")
+	log.Debug("超时未开启ddebug======================================================")
 	if retcode != 0 && u != nil {
 		myLogInfo["start_endError"] = 1
 	}
 	err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 	if err != nil {
-		log.Error("mj结束时间和结束状态记录更新失败：%s", err.Error())
+		log.Error("结束时间和结束状态记录更新失败：%s----%d", err.Error(), room.DataMgr.GetRoomId())
 	}
 }
 
