@@ -334,7 +334,7 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 }
 
 //分析听牌
-func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int {
+func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
 
 	cbOutCount := 0
 	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)

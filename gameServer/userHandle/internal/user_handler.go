@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -248,10 +247,17 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 }
 
 func (m *UserModule) UserSitdown(args []interface{}) {
-	player := m.a.UserData().(*client.User)
+	player, _ := m.a.UserData().(*client.User)
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
+	retcode := 0
+	defer func() {
+		if retcode != 0 {
+			player.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
+		}
+	}()
 	if player.KindID == 0 {
 		log.Error("at UserSitdown not foud module userid:%d", player.Id)
+		retcode = ErrFindRoomError
 		return
 	}
 
@@ -265,6 +271,7 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 			}
 		}
 		if r == nil {
+			retcode = ErrFindRoomError
 			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
 			return
 		}
@@ -416,43 +423,43 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	myLogInfo := make(map[string]interface{})
 	logInfo := make(map[string]interface{})
 	AddLogDb := stats.RoomLogOp
-	logInfo["RoomId"] = user.RoomId
-	logInfo["KindId"] = user.KindID
-	logInfo["ServiceId"] = user.ServerID
+	logInfo["room_id"] = user.RoomId
+	logInfo["kind_id"] = user.KindID
+	logInfo["service_id"] = user.ServerID
 	logData, err1 := AddLogDb.GetByMap(logInfo)
 	if err1 != nil {
 		log.Error("Select Data from recode Error:%v", err1.Error())
 	}
 	now := time.Now()
-	myLogInfo["EndTime"] = now
-	log.Debug("mj超时未开启ddebug======================================================")
+	myLogInfo["end_time"] = &now
+	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}
 
 	if user.RoomId == 0 {
 		log.Error("at DissumeRoom not foud roomd id userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		myLogInfo["StartEnderror"] = 1
+		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
-			log.Error("pk结束时间和结束状态记录更新失败：%s", err.Error())
+			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
 		}
 		return
 	}
@@ -485,37 +492,54 @@ func (m *UserModule) ReplyLeaveRoom(args []interface{}) {
 /////////////////////////////// help 函数
 ///////
 func loadUser(u *client.User) bool {
-	data, err := cluster.TimeOutCall1(u.HallNodeName, 8, &msg.S2S_GetPlayerInfo{Uid: u.Id})
-	if err != nil {
-		log.Error("get room data error :%v", err.Error())
-		return false
-	}
+	//data, err := cluster.TimeOutCall1(u.HallNodeName, 8, &msg.S2S_GetPlayerInfo{Uid: u.Id})
+	//if err != nil {
+	//	log.Error("get room data error :%v", err.Error())
+	//	return false
+	//}
 
-	info, ok := data.(*msg.S2S_GetPlayerInfoResult)
+	//info, ok := data.(*msg.S2S_GetPlayerInfoResult)
+	//if !ok {
+	//	log.Error("loadUser data is error")
+	//	return false
+	//}
+	//log.Debug("get user data == %v", info)
+
+	attr, ok := model.UserattrOp.Get(u.Id)
 	if !ok {
-		log.Error("loadUser data is error")
+		log.Error("loadUser data is error 11")
 		return false
 	}
 
-	log.Debug("get user data == %v", info)
-	u.Id = info.Id
-	u.NickName = info.NickName
-	u.Currency = info.Currency
-	u.RoomCard = info.RoomCard
-	u.FaceID = info.FaceID
-	u.CustomID = info.CustomID
-	u.HeadImgUrl = info.HeadImgUrl
-	u.Experience = info.Experience
-	u.Gender = info.Gender
-	u.WinCount = info.WinCount
-	u.LostCount = info.LostCount
-	u.DrawCount = info.DrawCount
-	u.FleeCount = info.FleeCount
-	u.UserRight = info.UserRight
-	u.Score = info.Score
-	u.Revenue = info.Revenue
-	u.InsureScore = info.InsureScore
-	u.MemberOrder = info.MemberOrder
-	u.RoomId = info.RoomId
+	source, sok := model.GamescoreinfoOp.Get(u.Id)
+	if !sok {
+		log.Error("loadUser data is error source")
+		return false
+	}
+
+	locker, lok := model.GamescorelockerOp.Get(u.Id)
+	if !lok || locker.Roomid == 0 {
+		log.Error("loadUser data is error locker .roomID :%v", locker.Roomid)
+		return false
+	}
+
+	u.NickName = attr.NickName
+	u.FaceID = attr.FaceID
+	u.CustomID = attr.CustomID
+	u.HeadImgUrl = attr.HeadImgUrl
+	u.Experience = attr.Experience
+	u.Gender = attr.Gender
+	u.WinCount = source.WinCount
+	u.LostCount = source.LostCount
+	u.DrawCount = source.DrawCount
+	u.FleeCount = source.FleeCount
+	u.UserRight = attr.UserRight
+	u.Score = 0
+	u.Revenue = source.Revenue
+	u.InsureScore = source.InsureScore
+	u.MemberOrder = 0
+	u.RoomId = locker.Roomid
+	u.KindID = locker.KindID
+	u.ServerID = locker.ServerID
 	return true
 }

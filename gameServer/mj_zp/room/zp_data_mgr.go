@@ -269,7 +269,7 @@ func (room *ZP_RoomData) OnUserListenCard(u *user.User, bListenCard bool) bool {
 	gameLogic := room.MjBase.LogicMgr
 
 	if bListenCard {
-		if WIK_LISTEN == gameLogic.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], nil, nil, nil, room.GetCfg().MaxCount) {
+		if WIK_LISTEN == gameLogic.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], nil, nil, nil) {
 			room.Ting[u.ChairId] = true
 			//发给消息
 			room.MjBase.UserMgr.SendMsgAllNoSelf(u.GetUid(), &mj_zp_msg.G2C_MJZP_ListenCard{
@@ -1455,7 +1455,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.Ting = room.Ting
 	//当前能胡的牌
 	StatusPlay.OutCardCount = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId],
-		StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData, room.GetCfg().MaxCount)
+		StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData)
 
 	//历史记录
 	StatusPlay.OutCardUser = room.OutCardUser
