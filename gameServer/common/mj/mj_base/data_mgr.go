@@ -158,7 +158,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		CellScore:         room.Source,                                                   //游戏底分
 		IniScore:          room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.ID),                                         //房间编号
-		PayType:			room.MjBase.UserMgr.GetPayType(), //支付类型
+		PayType:           room.MjBase.UserMgr.GetPayType(),                              //支付类型
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
@@ -652,7 +652,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		//用户过滤
 		if wCenterUser == u.ChairId {
-			log.Debug("at EstimateUserRespond ======== wCenterUser:%v", wCenterUser)
+			//log.Debug("at EstimateUserRespond ======== wCenterUser:%v", wCenterUser)
 			return
 		}
 
@@ -683,7 +683,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 			//只有庄家和闲家之间才能放炮
 			MagicCard := room.MjBase.LogicMgr.SwitchToCardData(room.MjBase.LogicMgr.GetMagicIndex())
 			if room.MjBase.LogicMgr.GetMagicIndex() == room.GetCfg().MaxIdx || (room.MjBase.LogicMgr.GetMagicIndex() != room.GetCfg().MaxIdx && cbCenterCard != MagicCard) {
-				if u.UserLimit|LimitChiHu == 0 {
+				if u.UserLimit&LimitChiHu == 0 {
 					//吃胡判断
 					hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
 					if hu {
@@ -952,12 +952,11 @@ func (room *RoomData) StartDispatchCard() {
 	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x18)] = 2
 	//room.CardIndex[room.BankerUser] = newCard
-	//room.RepertoryCard[55] = 0x35
+	//room.RepertoryCard[55] = 0x1
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
