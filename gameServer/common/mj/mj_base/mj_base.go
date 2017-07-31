@@ -89,7 +89,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(func() {
 		myLogInfo["timeout_nostart"] = 1
 		now := time.Now()
-		myLogInfo["end_time"] = now
+		myLogInfo["end_time"] = &now
 		log.Debug("mj超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
 		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
