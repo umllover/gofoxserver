@@ -545,8 +545,8 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 						if hu {
 							log.Debug("有吃胡3")
 							room.UserAction[u.ChairId] |= WIK_CHI_HU
+							room.BanCardCnt[u.ChairId][LimitChiHu] = cbCenterCard
 						}
-						room.BanCardCnt[u.ChairId][LimitChiHu] = cbCenterCard
 					}
 				}
 			}
@@ -694,6 +694,9 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 	GameConclude.Reason = cbReason
+
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
@@ -815,10 +818,10 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	//放弃操作
 	if OperateCode == WIK_NULL {
 		log.Debug("放弃操作")
-		////禁止这轮吃胡
-		if room.HasOperator(u.ChairId, WIK_CHI_HU) {
-			u.UserLimit |= LimitChiHu
-		}
+		//////禁止这轮吃胡
+		//if room.HasOperator(u.ChairId, WIK_CHI_HU) {
+		//	u.UserLimit |= LimitChiHu
+		//}
 		//抢杠胡分
 		room.HuKindScore[u.ChairId][IDX_SUB_SCORE_QGH] = 0
 		//记录放弃操作
@@ -1320,14 +1323,12 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				}
 
 				//补花得分
-				if room.FlowerCnt[i] > 1 {
-					if room.FlowerCnt[i] < 8 {
-						playerScore[IDX_SUB_SCORE_HUA] += room.FlowerCnt[i]
-						room.SumScore[index] -= room.FlowerCnt[i]
-					} else { //八张花牌
-						playerScore[IDX_SUB_SCORE_HUA] += 16
-						room.SumScore[index] -= 16
-					}
+				if room.FlowerCnt[i] < 8 {
+					playerScore[IDX_SUB_SCORE_HUA] += room.FlowerCnt[i]
+					room.SumScore[index] -= room.FlowerCnt[i]
+				} else { //八张花牌
+					playerScore[IDX_SUB_SCORE_HUA] += 16
+					room.SumScore[index] -= 16
 				}
 
 				//插花分
@@ -1363,15 +1364,12 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			log.Debug("胡牌分：%d", testScore)
 
 			//补花分
-			if room.FlowerCnt[i] > 1 {
-				if room.FlowerCnt[i] < 8 {
-					playerScore[IDX_SUB_SCORE_HUA] = room.FlowerCnt[i]
-				} else { //八张花牌
-					playerScore[IDX_SUB_SCORE_HUA] = 16
-				}
-				room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
-				room.SumScore[room.ProvideUser] -= playerScore[IDX_SUB_SCORE_HUA]
+			if room.FlowerCnt[i] < 8 {
+				playerScore[IDX_SUB_SCORE_HUA] = room.FlowerCnt[i]
+			} else { //八张花牌
+				playerScore[IDX_SUB_SCORE_HUA] = 16
 			}
+			room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
 			log.Debug("补花得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 
 			//连庄
@@ -2080,6 +2078,10 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 		}
 	}
 	return cardindex
+}
+
+func (room *ZP_RoomData) CheckZiMo() {
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
