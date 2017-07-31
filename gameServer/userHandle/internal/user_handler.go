@@ -425,7 +425,7 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	}
 	now := time.Now()
 	myLogInfo["end_time"] = &now
-	log.Debug("超时未开启ddebug======================================================")
+	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)

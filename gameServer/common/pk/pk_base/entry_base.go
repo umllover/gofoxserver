@@ -96,7 +96,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 		myLogInfo["timeout_nostart"] = 1
 		now := time.Now()
 		myLogInfo["end_time"] = now
-		log.Debug("pk超时未开启ddebug======================================================")
+		log.Debug("pk超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
 		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
 		if err != nil {
