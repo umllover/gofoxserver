@@ -1028,8 +1028,8 @@ func (room *RoomData) RepalceCard() {
 				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
-
-			TmpRepertoryCard = room.GetUserCard()
+			bankUser := room.BankerUser
+			TmpRepertoryCard = room.GetUserCard(bankUser)
 			m := GetCardByIdx(room.ConfigIdx)
 			log.Debug("库存的牌%v", m)
 			log.Debug("TmpRepertoryCard:%d  %v", len(TmpRepertoryCard), TmpRepertoryCard)
@@ -1066,14 +1066,13 @@ func (room *RoomData) RepalceCard() {
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
 				log.Debug(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
 			}
-
 		}
 	}
 }
 
 //注意这个函数仅供调试用
 func (room *RoomData) SetUserCard(charirID int, cards []int) {
-	log.Debug("begin SetUserCard len:%d", len(room.CardIndex[charirID]), room.CardIndex[charirID])
+	log.Debug("begin SetUserCard len:%d---%v", len(room.CardIndex[charirID]), room.CardIndex[charirID])
 	log.Debug("begin chairId %v =========card : %v", charirID, cards)
 	gameLogic := room.MjBase.LogicMgr
 
@@ -1097,7 +1096,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 }
 
 //获取用户手牌
-func (room *RoomData) GetUserCard() []int {
+func (room *RoomData) GetUserCard(bankUser int) []int {
 	var userCard = make([]int, 0)
 	log.Debug("%v", room.CardIndex)
 	var Poker int
@@ -1112,6 +1111,20 @@ func (room *RoomData) GetUserCard() []int {
 			}
 		}
 	}
+	count := 0
+	var sendCard = make([]int, 0)
+	for index, value := range room.CardIndex[bankUser] {
+		if value != 0 {
+			for j := 0; j < value; j++ {
+				Poker = room.MjBase.LogicMgr.SwitchToCardData(index)
+				sendCard = append(sendCard, Poker)
+				count++
+			}
+		}
+	}
+	room.SendCardData = sendCard[count-1]
+	log.Debug("Poker Number:%d The Poker is:%v=====%d sendCard:%d----bankUser:%d", count, sendCard, sendCard[count-1], room.SendCardData, bankUser)
+
 	log.Debug("userCard %v", userCard)
 	return userCard
 }
