@@ -90,6 +90,9 @@ func Assert(i interface{}) []interface{} {
 
 func (s *Server) HasFunc(id interface{}) (*FuncInfo, bool) {
 	f, ok := s.functions[id]
+	if !ok {
+		log.Debug("at HasFunc :%v    %v", id, s.functions)
+	}
 	return f, ok
 }
 

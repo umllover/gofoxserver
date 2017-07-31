@@ -542,7 +542,7 @@ func (room *sss_data_mgr) ComputeResult() {
 }
 
 //正常结束房间
-func (room *sss_data_mgr) NormalEnd() {
+func (room *sss_data_mgr) NormalEnd(cbReason int) {
 	log.Debug("关闭房间")
 
 }
@@ -552,7 +552,7 @@ func (room *sss_data_mgr) AfterEnd(a bool) {
 }
 
 //解散结束
-func (room *sss_data_mgr) DismissEnd() {
+func (room *sss_data_mgr) DismissEnd(cbReason int) {
 
 }
 

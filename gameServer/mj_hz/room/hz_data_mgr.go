@@ -92,7 +92,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 }
 
 //正常结束房间
-func (room *hz_data) NormalEnd() {
+func (room *hz_data) NormalEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	GameConclude := &mj_hz_msg.G2C_GameConclude{}
@@ -174,6 +174,7 @@ func (room *hz_data) NormalEnd() {
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 
 	//发送数据
+	GameConclude.Reason = cbReason
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
 	//写入积分 todo

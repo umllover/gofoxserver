@@ -17,6 +17,9 @@ import (
 
 	"errors"
 
+	"mj/gameServer/db/model/stats"
+
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -74,8 +77,26 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
+	logInfo := make(map[string]interface{})
+	myLogInfo := make(map[string]interface{})
+	AddLogDb := stats.RoomLogOp
+	logInfo["room_id"] = r.DataMgr.GetRoomId()
+	logInfo["kind_id"] = r.Temp.KindID
+	logInfo["service_id"] = r.Temp.ServerID
+	logData, err1 := AddLogDb.GetByMap(logInfo)
+	if err1 != nil {
+		log.Error("Select Data from recode Error:%v", err1.Error())
+	}
 	r.TimerMgr.StartCreatorTimer(func() {
-		log.Debug("not start game, close ")
+		myLogInfo["TimeoutNostart"] = 1
+		now := time.Now()
+		myLogInfo["EndTime"] = now
+		log.Debug("mj超时未开启ddebug======================================================")
+		myLogInfo["StartEnderror"] = 1
+		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
+		if err != nil {
+			log.Error("mj超时未开启更新失败：%s", err.Error())
+		}
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -171,6 +192,27 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	})
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
+
+	logInfo := make(map[string]interface{})
+	myLogInfo := make(map[string]interface{})
+	AddLogDb := stats.RoomLogOp
+	logInfo["room_id"] = room.DataMgr.GetRoomId()
+	logInfo["kind_id"] = room.Temp.KindID
+	logInfo["service_id"] = room.Temp.ServerID
+	logData, err1 := AddLogDb.GetByMap(logInfo)
+	if err1 != nil {
+		log.Error("Select Data from recode Error:%v", err1.Error())
+	}
+	now := time.Now()
+	myLogInfo["end_time"] = &now
+	log.Debug("mj超时未开启ddebug======================================================")
+	if retcode != 0 && u != nil {
+		myLogInfo["start_endError"] = 1
+	}
+	err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
+	if err != nil {
+		log.Error("mj结束时间和结束状态记录更新失败：%s", err.Error())
+	}
 }
 
 //玩家准备
@@ -213,9 +255,9 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 		//派发初始扑克
 		room.Status = RoomStatusStarting
-		room.TimerMgr.StartPlayingTimer(func() {
-			room.OnEventGameConclude(0, nil, GER_DISMISS)
-		})
+		room.TimerMgr.StopCreatorTimer()
+	} else {
+		log.Debug(" not all ready")
 	}
 }
 
@@ -526,17 +568,22 @@ func (room *Mj_base) ReqLeaveRoom(args []interface{}) {
 		leaveFunc()
 	} else {
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
-		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+		room.TimerMgr.StartReplytIimer(player.Id, func() {
+			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+		})
 	}
 }
 
 //其他玩家响应玩家离开房间的请求
 func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
+	log.Debug("at ReplyLeaveRoom ")
 	player := args[0].(*user.User)
 	Agree := args[1].(bool)
 	ReplyUid := args[2].(int64)
-	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
-	if stop {
+	ret := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if ret == 1 {
+		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+	} else if ret == 0 {
 		room.TimerMgr.StopReplytIimer(ReplyUid)
 	}
 }
@@ -545,10 +592,13 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
 	case GER_NORMAL: //常规结束
-		room.DataMgr.NormalEnd()
+		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(false)
 	case GER_DISMISS: //游戏解散
-		room.DataMgr.DismissEnd()
+		room.DataMgr.DismissEnd(cbReason)
+		room.AfterEnd(true)
+	case USER_LEAVE: //用户请求解散
+		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	room.Status = RoomStatusEnd

@@ -22,7 +22,7 @@ type Module interface {
 
 type TimerManager interface {
 	StartCreatorTimer(cb func())
-	StartPlayingTimer(cb func())
+	StopCreatorTimer()
 	StartKickoutTimer(uid int64, cb func())
 	StopOfflineTimer(uid int64)
 	StartReplytIimer(uid int64, cb func())
@@ -54,7 +54,7 @@ type UserManager interface {
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
 	SendDataToHallUser(chiairID int, data interface{})
 	SendMsgToHallServerAll(data interface{})
-	ReplyLeave(*user.User, bool, int64, int) bool
+	ReplyLeave(*user.User, bool, int64, int) int
 	DeleteReply(uid int64)
 
 	GetCurPlayerCnt() int

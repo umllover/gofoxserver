@@ -10,6 +10,8 @@ import (
 
 	"mj/hallServer/db/model/base"
 
+	"mj/hallServer/db/model/stats"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -26,6 +28,7 @@ type User struct {
 	*model.Usertoken
 	*model.Userextrainfo
 	Rooms     map[int]*model.CreateRoomInfo
+	DataLog   map[int]*stats.RoomLog
 	Records   map[int]*model.TokenRecord
 	Times     map[int]int64 //永久次数
 	DayTimes  map[int]int64 //每日次数
@@ -40,6 +43,7 @@ type User struct {
 func NewUser(UserId int64) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
+	u.DataLog = make(map[int]*stats.RoomLog)
 	u.Records = make(map[int]*model.TokenRecord)
 	return u
 }
@@ -53,6 +57,14 @@ func (u *User) AddRooms(r *model.CreateRoomInfo) {
 	u.Lock()
 	defer u.Unlock()
 	u.Rooms[r.RoomId] = r
+}
+
+//添加开房信息
+func (u *User) AddCreateRoomLog(rl *stats.RoomLog) {
+	stats.RoomLogOp.Insert(rl)
+	u.Lock()
+	defer u.Unlock()
+	u.DataLog[rl.RoomId] = rl
 }
 
 func (u *User) DelRooms(id int) {

@@ -24,6 +24,7 @@ func init() {
 	Processor.Register(&C2G_DDZ_OutCard{})
 	Processor.Register(&C2G_DDZ_TRUSTEE{})
 	Processor.Register(&C2G_DDZ_SHOWCARD{})
+	Processor.Register(&G2C_DDZ_ShowCard{})
 }
 
 // 游戏场景
@@ -50,8 +51,8 @@ type G2C_DDZ_StatusFree struct {
 	TurnScore    []int //积分信息
 	CollectScore []int //积分信息
 
-	ShowCardSign map[int]bool // 用户明牌标识
-	TrusteeSign  []bool       // 托管标识
+	ShowCardSign []bool // 用户明牌标识
+	TrusteeSign  []bool // 托管标识
 }
 
 //叫分状态
@@ -77,8 +78,8 @@ type G2C_DDZ_StatusCall struct {
 	CollectScore []int // 积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool // 明牌标识
-	ShowCardData [][]int      // 明牌数据
+	ShowCardSign []bool  // 明牌标识
+	ShowCardData [][]int // 明牌数据
 }
 
 //游戏状态
@@ -114,16 +115,16 @@ type G2C_DDZ_StatusPlay struct {
 	CollectScore []int //积分信息
 
 	// 明牌
-	ShowCardSign map[int]bool // 明牌标识
-	ShowCardData [][]int      // 明牌数据
+	ShowCardSign []bool  // 明牌标识
+	ShowCardData [][]int // 明牌数据
 }
 
 //发送扑克
 type G2C_DDZ_GameStart struct {
-	CallScoreUser int          // 叫分玩家
-	LiziCard      int          // 癞子牌
-	ShowCard      map[int]bool // 明牌信息
-	CardData      [][]int      // 扑克列表
+	CallScoreUser int     // 叫分玩家
+	LiziCard      int     // 癞子牌
+	ShowCard      []bool  // 明牌信息
+	CardData      [][]int // 扑克列表
 }
 
 //用户叫分
@@ -170,6 +171,7 @@ type G2C_DDZ_GameConclude struct {
 	GameScore    []int   //游戏积分
 	// 八王信息
 	KingCount []int // 八王信息
+	Reason    int   //结算原因
 }
 
 //托管

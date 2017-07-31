@@ -20,6 +20,8 @@ import (
 
 	"mj/common/utils"
 
+	"mj/hallServer/db/model/stats"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -41,6 +43,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
+	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
+	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -58,7 +62,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
-	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
 }
 
 //连接进来的通知
@@ -329,6 +332,25 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 	//}
 
+	//搜集创建房间数据
+	logInfo := &stats.RoomLog{}
+	logInfo.UserId = player.Id
+	logInfo.PayType = recvMsg.PayType
+	logInfo.RoomId = rid
+	logInfo.RoomName = recvMsg.RoomName
+	logInfo.NodeId = nodeId
+	logInfo.KindId = recvMsg.Kind
+	logInfo.ServiceId = recvMsg.ServerId
+	logNow := time.Now()
+	logInfo.CreateTime = &logNow
+	if retCode == 0 {
+		logInfo.NomalOpen = 1
+	} else {
+		logInfo.NomalOpen = 0
+	}
+	logInfo.CreateOthers = 1
+	player.AddCreateRoomLog(logInfo)
+
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
 	info.UserId = player.Id
@@ -434,6 +456,13 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
 			if !player.SubCurrency(money) {
 				retcode = NotEnoughFee
+				now := time.Now()
+				stats.ConsumLogOp.Insert(&stats.ConsumLog{
+					UserId:     player.Id,
+					ConsumType: 1,
+					ConsumNum:  money,
+					ConsumTime: &now,
+				})
 				return
 			}
 		}
@@ -741,16 +770,17 @@ func (m *UserModule) restoreToken(args []interface{}) {
 
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
-	retMsg := &msg.L2C_SearchResult{}
-	u := m.a.UserData().(*user.User)
+
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		retMsg.TableID = r.RoomID
-		retMsg.ServerIP = r.SvrHost
+		m.SrarchTableResult([]interface{}{r})
 	} else {
+		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE
+		u := m.a.UserData().(*user.User)
+		u.WriteMsg(retMsg)
 	}
-	u.WriteMsg(retMsg)
+
 }
 
 func (m *UserModule) leaveRoom(args []interface{}) {
@@ -781,7 +811,17 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
+		now := time.Now()
+		stats.RechargeLogOp.Insert(&stats.RechargeLog{
+			OnLineID:     v.OnLineID,
+			PayAmount:    v.PayAmount,
+			UserID:       v.UserID,
+			PayType:      v.PayType,
+			GoodsID:      v.GoodsID,
+			RechangeTime: &now,
+		})
 	}
+
 }
 
 //离线通知时间
@@ -801,6 +841,11 @@ func (m *UserModule) KickOutUser(player *user.User) {
 func (m *UserModule) ForceClose(args []interface{}) {
 	log.Debug("at ForceClose ..... ")
 	m.Close(KickOutMsg)
+}
+
+func (m *UserModule) SvrShutdown(args []interface{}) {
+	log.Debug("at SvrShutdown ..... ")
+	m.Close(ServerKick)
 }
 
 //删除自己创建的房间
@@ -879,7 +924,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	}
 
 	room := info.(*msg.RoomInfo)
-	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/room.RenewalCnt)
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/(room.RenewalCnt+1))
 	if !ok {
 		retCode = ErrConfigError
 		return
@@ -894,6 +939,13 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		retCode = NotEnoughFee
 		return
 	}
+	now := time.Now()
+	stats.ConsumLogOp.Insert(&stats.ConsumLog{
+		UserId:     player.Id,
+		ConsumType: 1,
+		ConsumNum:  feeTemp.TableFee,
+		ConsumTime: &now,
+	})
 
 	if !player.HasRecord(room.RoomID) {
 		record := &model.TokenRecord{}
@@ -910,7 +962,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	} else { //已近口过钱了， 还来搜索房间
 		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
 	}
-	room.PayCnt *= 2
+	room.PayCnt += feeTemp.DrawCountLimit
 	room.RenewalCnt++
 
 	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})

@@ -246,7 +246,7 @@ func (room *nntb_data_mgr) StartDispatchCard() {
 }
 
 //正常结束房间
-func (room *nntb_data_mgr) NormalEnd() {
+func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 
 	userMgr := room.PkBase.UserMgr
 
@@ -289,7 +289,7 @@ func (room *nntb_data_mgr) NormalEnd() {
 		roundScore[i] = room.CalScoreMap[room.PkBase.UserMgr.GetUserByChairId(i)]
 	}
 	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
-
+	calScore.Reason = cbReason
 	log.Debug("normal end each round score map %v", room.EachRoundScoreMap)
 
 
@@ -318,7 +318,7 @@ func (room *nntb_data_mgr) SetAllUserGameStatus(gameStatus int) {
 }
 
 //解散接触
-func (room *nntb_data_mgr) DismissEnd() {
+func (room *nntb_data_mgr) DismissEnd(cbReason int) {
 
 }
 

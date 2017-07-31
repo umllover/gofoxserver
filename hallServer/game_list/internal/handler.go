@@ -178,7 +178,7 @@ func updateRoom(args []interface{}) {
 	info := args[0].(*msg.UpdateRoomInfo)
 	room, ok := roomList[info.RoomId]
 	if !ok {
-		log.Debug("at  UpdateRoom not foud kindid:%d", info.RoomId)
+		log.Debug("at  UpdateRoom not foud RoomId:%d", info.RoomId)
 		return
 	}
 
