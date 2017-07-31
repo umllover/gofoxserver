@@ -95,7 +95,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 		log.Debug("not start game close ")
 		myLogInfo["timeout_nostart"] = 1
 		now := time.Now()
-		myLogInfo["end_time"] = now
+		myLogInfo["end_time"] = &now
 		log.Debug("pk超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
 		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
@@ -238,7 +238,7 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 		log.Error("Select Data from recode Error:%v", err1.Error())
 	}
 	now := time.Now()
-	myLogInfo["end_time"] = now
+	myLogInfo["end_time"] = &now
 	if retcode != 0 && u != nil {
 		myLogInfo["start_endError"] = 1
 	}
