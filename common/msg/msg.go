@@ -3,7 +3,6 @@ package msg
 import (
 	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
-	//"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -46,6 +45,7 @@ func init() {
 	Processor.Register(&L2C_SetPhoneNumberRsp{})
 	Processor.Register(&C2L_DianZhan{})
 	Processor.Register(&L2C_DianZhanRsp{})
+
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
 	Processor.Register(&C2L_ChangeUserName{})
@@ -55,7 +55,6 @@ func init() {
 	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&L2C_UpdateUserAttr{})
 	Processor.Register(&C2L_RechangerOk{})
-
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})

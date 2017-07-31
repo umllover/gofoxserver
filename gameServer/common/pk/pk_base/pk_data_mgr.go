@@ -171,10 +171,10 @@ func (room *RoomData) AfterStartGame() {
 }
 
 // 游戏结束
-func (room *RoomData) NormalEnd() {
+func (room *RoomData) NormalEnd(cbReason int) {
 
 }
-func (room *RoomData) DismissEnd() {
+func (room *RoomData) DismissEnd(cbReason int) {
 
 }
 

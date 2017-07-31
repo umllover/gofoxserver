@@ -26,13 +26,13 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	r := NewDDZEntry(info)
-	base := room_base.NewRoomBase()
+	rbase := room_base.NewRoomBase()
 	cfg := &pk_base.NewPKCtlConfig{
-		BaseMgr:  base,
+		BaseMgr:  rbase,
 		DataMgr:  NewDDZDataMgr(info, u.Id, pk_base.IDX_DDZ, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ, info),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, rbase.GetSkeleton()),
 	}
 	r.Init(cfg)
 	if r == nil {

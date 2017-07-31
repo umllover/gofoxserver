@@ -3,6 +3,7 @@ package gate
 import (
 	"fmt"
 	"io"
+	"mj/common/msg"
 	"net"
 	"reflect"
 	"time"
@@ -136,7 +137,7 @@ func (a *agent) Run() {
 	handleMsgData := func(args []interface{}) error {
 		if a.gate.Processor != nil {
 			data := args[0].([]byte)
-			msg, err := a.gate.Processor.Unmarshal(data)
+			msg, err := msg.Processor.Unmarshal(data)
 			if err != nil {
 				return err
 			}

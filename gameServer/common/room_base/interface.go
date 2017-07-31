@@ -54,7 +54,7 @@ type UserManager interface {
 	WriteTableScore(source []*msg.TagScoreInfo, usercnt, Type int)
 	SendDataToHallUser(chiairID int, data interface{})
 	SendMsgToHallServerAll(data interface{})
-	ReplyLeave(*user.User, bool, int64, int) bool
+	ReplyLeave(*user.User, bool, int64, int) int
 	DeleteReply(uid int64)
 
 	GetCurPlayerCnt() int

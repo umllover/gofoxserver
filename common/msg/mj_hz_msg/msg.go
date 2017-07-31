@@ -55,6 +55,7 @@ type G2C_GameConclude struct {
 
 	MaCount []int //码数
 	MaData  []int //码数据
+	Reason int //结算原因
 }
 
 // 出牌

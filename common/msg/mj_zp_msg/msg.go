@@ -109,6 +109,7 @@ type G2C_ZPMJ_GameConclude struct {
 	//游戏信息
 	CardCount    []int   //扑克数目
 	HandCardData [][]int //扑克列表
+	Reason int
 
 	MaCount []int //码数
 	MaData  []int //码数据

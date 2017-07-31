@@ -10,3 +10,5 @@
 /hallServer/hallApp/hallApp
 /build.bat
 
+/.project
+/.gitignore
