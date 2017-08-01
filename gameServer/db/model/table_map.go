@@ -28,5 +28,6 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(Usertoken{}, "usertoken").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Version{}, "version").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(VersionLocker{}, "version_locker").SetKeys(false,"Id")
+	   db.DBMap.AddTableWithName(VersionUpdateTest{}, "version_update_test").SetKeys(false,"Id")
 	*/
 }
