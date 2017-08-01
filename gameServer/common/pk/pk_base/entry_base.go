@@ -273,16 +273,19 @@ func (room *Entry_base) UserReady(args []interface{}) {
 }
 
 //玩家重登
-func (room *Entry_base) UserReLogin(args []interface{}) {
+func (room *Entry_base) UserReLogin(args []interface{}) error {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
-		return
+		return errors.New(" UserReLogin not old user ")
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
 	u.RoomId = roomUser.RoomId
+	u.Status = roomUser.Status
+	u.ChatRoomId = roomUser.ChatRoomId
 	room.UserMgr.ReLogin(u, room.Status)
+	return nil
 }
 
 //玩家离线

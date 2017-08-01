@@ -50,6 +50,7 @@ type DataManager interface {
 	GetCreater() int64
 	GetProvideUser() int
 	IsActionDone() bool
+	GetUserScore(chairid int) int
 
 	//测试专用函数。 请勿用于生产
 	SetUserCard(charirID int, cards []int)

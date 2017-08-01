@@ -173,8 +173,11 @@ func (room *hz_data) NormalEnd(cbReason int) {
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 
-	//发送数据
 	GameConclude.Reason = cbReason
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
+
+	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
 	//写入积分 todo

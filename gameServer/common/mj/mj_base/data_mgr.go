@@ -114,6 +114,13 @@ func (room *RoomData) InitRoomOne() {
 	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
+func (room *RoomData) GetUserScore(chairid int) int {
+	if chairid > room.MjBase.UserMgr.GetMaxPlayerCnt() {
+		return 0
+	}
+	return room.HistorySe.AllScore[chairid]
+}
+
 func (room *RoomData) GetCreater() int64 {
 	return room.CreateUser
 }
@@ -1278,6 +1285,8 @@ func (room *RoomData) NormalEnd(cbReason int) {
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 	GameConclude.Reason = cbReason
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
@@ -1884,7 +1893,6 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
-		log.Debug("############ kind:%d IsAnalyseGet：%v", v, pAnalyseItem.IsAnalyseGet[k])
 		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
