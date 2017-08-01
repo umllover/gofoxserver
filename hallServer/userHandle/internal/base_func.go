@@ -24,6 +24,10 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 			return errors.New("json message pointer required 11")
 		}
 
+		if m.a == nil && msgType.Elem().Name() != "C2L_Login" {
+			return errors.New("hall user not login")
+		}
+
 		f, ok := m.ChanRPC.HasFunc(msgType)
 		if ok {
 			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))

@@ -34,6 +34,15 @@ func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
 }
 
+func TestGameAddPlayCnt(t *testing.T) {
+	room.GetChanRPC().Register("AddPlayCnt", room.AddPlayCnt)
+	_, err := room.GetChanRPC().Call1("AddPlayCnt", 8)
+	if err != nil {
+		fmt.Println("AAAAAAAAAAAAA ", err.Error())
+		return
+	}
+}
+
 func TestOutCard(t *testing.T) {
 	//room.GetChanRPC().Go("OutCard", user, 5)
 	//ret := room.DataMgr.EstimateUserRespond(1, 0x4, EstimatKind_OutCard)
@@ -42,11 +51,9 @@ func TestOutCard(t *testing.T) {
 }
 
 func TestMj_base_DissumeRoom(t *testing.T) {
-	base:=Mj_base{}
-	args:=*user.User{
-
-	}
-	base.DissumeRoom()
+	//base := Mj_base{}
+	//args := *user.User{}
+	//base.DissumeRoom()
 }
 
 func TestBaseLogic_ReplaceCard(t *testing.T) {

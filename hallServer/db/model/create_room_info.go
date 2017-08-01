@@ -30,6 +30,7 @@ type CreateRoomInfo struct {
 	MaxPlayerCnt int        `db:"max_player_cnt" json:"max_player_cnt"` // 最多几个玩家进入
 	PayType      int        `db:"pay_type" json:"pay_type"`             // 支付方式 1是全服 2是AA
 	OtherInfo    string     `db:"other_info" json:"other_info"`         // 其他配置 json格式
+	UserCnt      int        `db:"user_cnt" json:"user_cnt"`             //
 }
 
 type createRoomInfoOp struct{}
@@ -107,7 +108,7 @@ func (op *createRoomInfoOp) Insert(m *CreateRoomInfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *createRoomInfoOp) InsertTx(ext sqlx.Ext, m *CreateRoomInfo) (int64, error) {
-	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,Public,max_player_cnt,pay_type,other_info) values(?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,Public,max_player_cnt,pay_type,other_info,user_cnt) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
 		m.RoomName,
@@ -122,6 +123,7 @@ func (op *createRoomInfoOp) InsertTx(ext sqlx.Ext, m *CreateRoomInfo) (int64, er
 		m.MaxPlayerCnt,
 		m.PayType,
 		m.OtherInfo,
+		m.UserCnt,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -133,7 +135,7 @@ func (op *createRoomInfoOp) InsertTx(ext sqlx.Ext, m *CreateRoomInfo) (int64, er
 
 //存在就更新， 不存在就插入
 func (op *createRoomInfoOp) InsertUpdate(obj *CreateRoomInfo, m map[string]interface{}) error {
-	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,Public,max_player_cnt,pay_type,other_info) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into create_room_info(user_id,room_name,kind_id,service_id,create_time,node_id,room_id,num,status,Public,max_player_cnt,pay_type,other_info,user_cnt) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.UserId,
 		obj.RoomName,
 		obj.KindId,
@@ -147,6 +149,7 @@ func (op *createRoomInfoOp) InsertUpdate(obj *CreateRoomInfo, m map[string]inter
 		obj.MaxPlayerCnt,
 		obj.PayType,
 		obj.OtherInfo,
+		obj.UserCnt,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -178,7 +181,7 @@ func (op *createRoomInfoOp) Update(m *CreateRoomInfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *createRoomInfoOp) UpdateTx(ext sqlx.Ext, m *CreateRoomInfo) error {
-	sql := `update create_room_info set user_id=?,room_name=?,kind_id=?,service_id=?,create_time=?,node_id=?,num=?,status=?,Public=?,max_player_cnt=?,pay_type=?,other_info=? where room_id=?`
+	sql := `update create_room_info set user_id=?,room_name=?,kind_id=?,service_id=?,create_time=?,node_id=?,num=?,status=?,Public=?,max_player_cnt=?,pay_type=?,other_info=?,user_cnt=? where room_id=?`
 	_, err := ext.Exec(sql,
 		m.UserId,
 		m.RoomName,
@@ -192,6 +195,7 @@ func (op *createRoomInfoOp) UpdateTx(ext sqlx.Ext, m *CreateRoomInfo) error {
 		m.MaxPlayerCnt,
 		m.PayType,
 		m.OtherInfo,
+		m.UserCnt,
 		m.RoomId,
 	)
 

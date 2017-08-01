@@ -19,6 +19,5 @@ func InitTableMap() {
 	   db.StatsDBMap.AddTableWithName(Systemstreaminfo{}, "systemstreaminfo").SetKeys(false,"DateID")
 	   db.StatsDBMap.AddTableWithName(Version{}, "version").SetKeys(false,"Id")
 	   db.StatsDBMap.AddTableWithName(VersionLocker{}, "version_locker").SetKeys(false,"Id")
-	   db.StatsDBMap.AddTableWithName(VersionUpdateTest{}, "version_update_test").SetKeys(false,"Id")
 	*/
 }
