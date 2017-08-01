@@ -64,6 +64,7 @@ func main() {
 }
 
 func Init() {
+	conf.Init()
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
 	lconf.LogFlag = conf.LogFlag

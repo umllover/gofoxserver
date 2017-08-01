@@ -145,6 +145,7 @@ func (r *Mj_base) UserStandup(args []interface{}) {
 }
 
 func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
+	log.Debug("at AddPlayCnt .... ")
 	if r.IsClose {
 		return nil, errors.New("room is close ")
 	}
@@ -154,6 +155,7 @@ func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
+	log.Debug("at AddPlayCnt ...1111 . ")
 	return nil, nil
 }
 
