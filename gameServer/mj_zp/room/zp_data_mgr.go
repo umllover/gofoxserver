@@ -125,7 +125,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.IsFollowCard = false
 	room.TingCnt = [4]int{}
 	room.FollowCard = room.FollowCard[0:0]
-	room.ChaHuaMap = make(map[int]int)
 	room.HuKindType = room.HuKindType[0:0]
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
