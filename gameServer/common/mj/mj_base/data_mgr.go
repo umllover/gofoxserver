@@ -1285,6 +1285,8 @@ func (room *RoomData) NormalEnd(cbReason int) {
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
 	GameConclude.Reason = cbReason
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 
