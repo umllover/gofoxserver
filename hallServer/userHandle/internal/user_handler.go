@@ -291,6 +291,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}()
 	template, ok := base.GameServiceOptionCache.Get(recvMsg.Kind, recvMsg.ServerId)
 	if !ok {
+		log.Debug("not foud template %d,%d", recvMsg.Kind, recvMsg.ServerId)
 		retCode = NoFoudTemplate
 		return
 	}
@@ -935,7 +936,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
-	if !player.SubCurrency(feeTemp.TableFee) {
+	if !player.SubCurrency(monrey) {
 		retCode = NotEnoughFee
 		return
 	}
@@ -943,11 +944,12 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	stats.ConsumLogOp.Insert(&stats.ConsumLog{
 		UserId:     player.Id,
 		ConsumType: 1,
-		ConsumNum:  feeTemp.TableFee,
+		ConsumNum:  monrey,
 		ConsumTime: &now,
 	})
 
 	if !player.HasRecord(room.RoomID) {
+		log.Error("at RenewalFees not foud old TokenRecord ")
 		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = room.RoomID
@@ -960,7 +962,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
-		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
+
 	}
 	room.PayCnt += feeTemp.DrawCountLimit
 	room.RenewalCnt++

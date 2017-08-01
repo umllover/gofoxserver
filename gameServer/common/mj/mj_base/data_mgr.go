@@ -114,6 +114,13 @@ func (room *RoomData) InitRoomOne() {
 	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
+func (room *RoomData) GetUserScore(chairid int) int {
+	if chairid > room.MjBase.UserMgr.GetMaxPlayerCnt() {
+		return 0
+	}
+	return room.HistorySe.AllScore[chairid]
+}
+
 func (room *RoomData) GetCreater() int64 {
 	return room.CreateUser
 }
@@ -164,7 +171,6 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		OtherInfo:         room.OtherInfo,
 		LeaveInfo:         room.MjBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
 	})
-	log.Debug("@@@@@@@@@@@@@@@ 底分：%d", room.Source)
 }
 
 func (room *RoomData) SendStatusReady(u *user.User) {
@@ -210,7 +216,7 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.Ting = room.Ting
 	//当前能胡的牌
 	StatusPlay.OutCardCount = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId],
-		StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData, room.GetCfg().MaxCount)
+		StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData)
 
 	//历史记录
 	StatusPlay.OutCardUser = room.OutCardUser
@@ -581,7 +587,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 		if room.Ting[wTargetUser] == false {
 			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
 			HuData.OutCardCount = cbCount
 			if cbCount > 0 {
 				room.UserAction[wTargetUser] |= WIK_LISTEN
@@ -807,7 +813,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//听牌判断
 	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[wCurrentUser] == false {
-		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
+		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
 		HuData.OutCardCount = int(cbCount)
 		if cbCount > 0 {
 			//room.Ting[wCurrentUser] = true //TODO 这边应该置为true吧
@@ -1028,8 +1034,8 @@ func (room *RoomData) RepalceCard() {
 				card := utils.GetStrIntList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
-
-			TmpRepertoryCard = room.GetUserCard()
+			bankUser := room.BankerUser
+			TmpRepertoryCard = room.GetUserCard(bankUser)
 			m := GetCardByIdx(room.ConfigIdx)
 			log.Debug("库存的牌%v", m)
 			log.Debug("TmpRepertoryCard:%d  %v", len(TmpRepertoryCard), TmpRepertoryCard)
@@ -1066,14 +1072,13 @@ func (room *RoomData) RepalceCard() {
 			if len(room.RepertoryCard) != room.GetCfg().MaxRepertory {
 				log.Debug(" len(room.RepertoryCard) != room.GetCfg().MaxRepertory ")
 			}
-
 		}
 	}
 }
 
 //注意这个函数仅供调试用
 func (room *RoomData) SetUserCard(charirID int, cards []int) {
-	log.Debug("begin SetUserCard len:%d", len(room.CardIndex[charirID]), room.CardIndex[charirID])
+	log.Debug("begin SetUserCard len:%d---%v", len(room.CardIndex[charirID]), room.CardIndex[charirID])
 	log.Debug("begin chairId %v =========card : %v", charirID, cards)
 	gameLogic := room.MjBase.LogicMgr
 
@@ -1097,7 +1102,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 }
 
 //获取用户手牌
-func (room *RoomData) GetUserCard() []int {
+func (room *RoomData) GetUserCard(bankUser int) []int {
 	var userCard = make([]int, 0)
 	log.Debug("%v", room.CardIndex)
 	var Poker int
@@ -1112,6 +1117,20 @@ func (room *RoomData) GetUserCard() []int {
 			}
 		}
 	}
+	count := 0
+	var sendCard = make([]int, 0)
+	for index, value := range room.CardIndex[bankUser] {
+		if value != 0 {
+			for j := 0; j < value; j++ {
+				Poker = room.MjBase.LogicMgr.SwitchToCardData(index)
+				sendCard = append(sendCard, Poker)
+				count++
+			}
+		}
+	}
+	room.SendCardData = sendCard[count-1]
+	log.Debug("Poker Number:%d The Poker is:%v=====%d sendCard:%d----bankUser:%d", count, sendCard, sendCard[count-1], room.SendCardData, bankUser)
+
 	log.Debug("userCard %v", userCard)
 	return userCard
 }
@@ -1698,6 +1717,9 @@ func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) 
 func (room *RoomData) IsDuiDuiHu(pAnalyseItem *TagAnalyseItem) int {
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_PENG|WIK_GANG) == 0 && pAnalyseItem.IsAnalyseGet[k] == false {
+			return 0
+		}
+		if v&(WIK_LEFT|WIK_RIGHT|WIK_CENTER) != 0 {
 			return 0
 		}
 	}

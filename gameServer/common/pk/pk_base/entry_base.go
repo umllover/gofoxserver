@@ -95,7 +95,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 		log.Debug("not start game close ")
 		myLogInfo["timeout_nostart"] = 1
 		now := time.Now()
-		myLogInfo["end_time"] = now
+		myLogInfo["end_time"] = &now
 		log.Debug("pk超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
 		myLogInfo["start_endError"] = 1
 		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
@@ -238,7 +238,7 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 		log.Error("Select Data from recode Error:%v", err1.Error())
 	}
 	now := time.Now()
-	myLogInfo["end_time"] = now
+	myLogInfo["end_time"] = &now
 	if retcode != 0 && u != nil {
 		myLogInfo["start_endError"] = 1
 	}
@@ -262,6 +262,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
 		//派发初始扑克
+		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
@@ -390,7 +391,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Entry_base) AfterEnd(Forced bool) {
-	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()

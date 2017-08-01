@@ -8,7 +8,6 @@ import (
 	"mj/common/register"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/conf"
-	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -24,7 +23,6 @@ func init() {
 	reg.RegisterRpc("ServerFaild", serverFaild)
 	reg.RegisterRpc("ServerStart", serverStart)
 
-	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 
@@ -69,46 +67,6 @@ func NotifyOtherNodelogout(args []interface{}) {
 //处理来自游戏服的消息
 func HanldeFromHallMsg(args []interface{}) {
 	SendMsgToSelfNotdeUser(args)
-}
-
-func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int64)
-	log.Debug("at GetPlayerInfo uid:%d", uid)
-	ch, chok := Users[uid]
-	if !chok {
-		return nil, errors.New("not foud user ch")
-	}
-	us, err := ch.TimeOutCall1("GetUser", 5)
-	if err != nil {
-		return nil, err
-	}
-
-	u, ok := us.(*user.User)
-	if !ok {
-		return nil, errors.New("user data error")
-	}
-
-	gu := map[string]interface{}{
-		"Id":          u.Id,
-		"NickName":    u.NickName,
-		"Currency":    u.Currency,
-		"RoomCard":    u.RoomCard,
-		"FaceID":      u.FaceID,
-		"CustomID":    u.CustomID,
-		"HeadImgUrl":  u.HeadImgUrl,
-		"Experience":  u.Experience,
-		"Gender":      u.Gender,
-		"WinCount":    u.WinCount,
-		"LostCount":   u.LostCount,
-		"DrawCount":   u.DrawCount,
-		"FleeCount":   u.FleeCount,
-		"UserRight":   u.UserRight,
-		"Score":       u.Score,
-		"Revenue":     u.Revenue,
-		"InsureScore": u.InsureScore,
-		"MemberOrder": u.MemberOrder,
-	}
-	return gu, nil
 }
 
 func SREQCloseRoom(args []interface{}) (interface{}, error) {

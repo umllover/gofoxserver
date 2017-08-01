@@ -50,13 +50,14 @@ type DataManager interface {
 	GetCreater() int64
 	GetProvideUser() int
 	IsActionDone() bool
+	GetUserScore(chairid int) int
 
 	//测试专用函数。 请勿用于生产
 	SetUserCard(charirID int, cards []int)
 }
 
 type LogicManager interface {
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
 	GetCardCount(cbCardIndex []int) int
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
