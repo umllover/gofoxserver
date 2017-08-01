@@ -1370,6 +1370,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				playerScore[IDX_SUB_SCORE_HUA] = 16
 			}
 			room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
+			room.SumScore[room.ProvideUser] -= playerScore[IDX_SUB_SCORE_HUA]
 			log.Debug("补花得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 
 			//连庄
@@ -1520,7 +1521,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		leftZhuaHuaCnt := room.ZhuaHuaCnt
 		for k, v := range WinUser {
 			//一炮多响，抓花数量随机
-			if WinCount > 1 && k < WinCount-1 {
+			if WinCount > 1 && k < WinCount-1 && leftZhuaHuaCnt > 0 {
 				var error error
 				room.ZhuaHuaCnt, error = utils.RandInt(1, leftZhuaHuaCnt)
 				if error != nil {

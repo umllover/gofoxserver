@@ -1893,7 +1893,6 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
-		log.Debug("############ kind:%d IsAnalyseGet：%v", v, pAnalyseItem.IsAnalyseGet[k])
 		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
