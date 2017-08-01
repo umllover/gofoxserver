@@ -261,14 +261,13 @@ func (room *Entry_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
+		room.Status = RoomStatusStarting
+		room.TimerMgr.StopCreatorTimer()
 		//派发初始扑克
 		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
-
-		room.Status = RoomStatusStarting
-		room.TimerMgr.StopCreatorTimer()
 	}
 }
 
