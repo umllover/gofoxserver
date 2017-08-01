@@ -1961,21 +1961,23 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//}
 
 	//构造数据
-	SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-	SendCardToMe.SendCardUser = wCurrentUser
-	SendCardToMe.CurrentUser = wCurrentUser
-	SendCardToMe.Tail = bTail
-	SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
-	SendCardToMe.CardData = room.ProvideCard
-	u.WriteMsg(SendCardToMe)
+	if room.SendStatus != BuHua_Send {
+		SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+		SendCardToMe.SendCardUser = wCurrentUser
+		SendCardToMe.CurrentUser = wCurrentUser
+		SendCardToMe.Tail = bTail
+		SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
+		SendCardToMe.CardData = room.ProvideCard
+		u.WriteMsg(SendCardToMe)
 
-	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-	SendCard.SendCardUser = wCurrentUser
-	SendCard.CurrentUser = wCurrentUser
-	SendCard.Tail = bTail
-	SendCard.ActionMask = room.UserAction[wCurrentUser]
-	SendCard.CardData = 0
-	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
+		SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+		SendCard.SendCardUser = wCurrentUser
+		SendCard.CurrentUser = wCurrentUser
+		SendCard.Tail = bTail
+		SendCard.ActionMask = room.UserAction[wCurrentUser]
+		SendCard.CardData = 0
+		room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
+	}
 
 	//超时定时
 	room.UserActionDone = false
