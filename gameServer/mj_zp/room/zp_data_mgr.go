@@ -1264,8 +1264,6 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < UserCnt; i++ {
 		playerScore := &room.HuKindScore[i]
-		tempScore := [COUNT_KIND_SCORE]int{}
-		util.DeepCopy(&tempScore, playerScore)
 
 		//暗杠
 		if room.UserGangScore[i] > 0 {
@@ -1285,11 +1283,15 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			continue
 		}
 
+		nowCnt := 0
+		tempScore := [COUNT_KIND_SCORE]int{}
+		util.DeepCopy(&tempScore, playerScore)
 		if i == room.ProvideUser && winCnt == 1 { //自摸情况
 			for index := 0; index < UserCnt; index++ {
 				if index == i {
 					continue
 				}
+				nowCnt++
 
 				//基础分
 				playerScore[IDX_SUB_SCORE_JC] += 1
@@ -1300,9 +1302,11 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				//胡牌
 				testScore := 0 //todo,测试
 				for j := IDX_SUB_SCORE_ZPKZ; j < COUNT_KIND_SCORE; j++ {
+					if nowCnt > 1 {
+						playerScore[j] += tempScore[j]
+					}
 					testScore += tempScore[j] //todo,测试
 					room.SumScore[i] += tempScore[j]
-					playerScore[j] += tempScore[j]
 					room.SumScore[index] -= tempScore[j]
 				}
 				log.Debug("胡牌分：%d", testScore)
