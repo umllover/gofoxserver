@@ -158,22 +158,20 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if oldUser != nil {
 		log.Debug("old user ====== %d  %d ", oldUser.KindID, oldUser.RoomId)
 		oldUser.RoomId = 0
-		user.Status = oldUser.Status
-		user.ChatRoomId = oldUser.ChatRoomId
 		m.KickOutUser(oldUser)
 	}
 
+	user.Agent = agent
+	agent.SetUserData(user)
 	if user.RoomId != 0 {
 		r := RoomMgr.GetRoom(user.RoomId)
 		if r != nil { //原来房间没关闭，投递个消息看下原来是否在房间内
-			r.GetChanRPC().Go("userRelogin", user)
+			r.GetChanRPC().Call0("userRelogin", user)
 		}
 	}
 
-	user.Agent = agent
 	AddUser(user.Id, user)
 
-	agent.SetUserData(user)
 	agent.WriteMsg(&msg.G2C_ConfigServer{
 		TableCount: common.TableFullCount,
 		ChairCount: 4,
@@ -251,7 +249,13 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	player := m.a.UserData().(*client.User)
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
 	if player.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", player.Id)
+		log.Error("UserSitdown not foud module, userid:%d", player.Id)
+		return
+	}
+
+	//状态错误
+	if player.Status > US_SIT {
+		log.Error("UserSitdown status wrong, userid:%d, status:%d", player.Id, player.Status)
 		return
 	}
 
