@@ -17,26 +17,33 @@ const (
 
 func UpdateDB() {
 	err, up := updateDB()
+	log.Debug("......... %v,%v", up, conf.Test)
 	if up && conf.Test {
 		log.Debug("重新生成配置中，请稍后。。。")
-		RanderDB("../db/tools/")
-		RanderDB("../../gameServer/db/tools/")
-		log.Fatal("更新数据成功，请重启。。。")
+		r := RanderDB("../db/tools/")
+		r = RanderDB("../../gameServer/db/tools/")
+		if r {
+			log.Fatal("更新数据成功，请重启。。。")
+		}
+
 	}
 	if err != nil {
 		log.Fatal("InitDB: %s", err.Error())
 	}
 }
 
-func RanderDB(path string) {
+func RanderDB(path string) bool {
 	cmd := exec.Command("python", "generate_model.py")
 	cmd.Dir = path
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Error("RanderDB error :%s", err.Error())
+		return false
 	} else {
 		log.Debug("RanderDB out: %s", string(out))
 	}
+
+	return true
 }
 
 // 数据库增量更新
@@ -103,12 +110,17 @@ func updateDB() (err error, up bool) {
 	}
 	log.Debug("get statsdb lock sucess")
 
-	err, up = UpdateSingle(StatsDB, statsUpdateSql)
+	var sup bool
+	err, sup = UpdateSingle(StatsDB, statsUpdateSql)
 	if err != nil {
 		return err, up
 	}
 
 	log.Debug("release statsdb lock sucess")
+
+	if sup && !up {
+		up = sup
+	}
 
 	return nil, up
 }
@@ -146,6 +158,10 @@ func UpdateSingle(inst *sqlx.DB, sqls [][]string) (error, bool) {
 		log.Error("Begin tx encounter a error.Error:%s", err.Error())
 		return err, false
 	}
+
+	if len(updateSqls) < 1 {
+		return nil, false
+	}
 	for newIndex, updateSql := range updateSqls {
 		tx, err := inst.Begin()
 		for _, updateSql_ := range updateSql {
@@ -175,6 +191,7 @@ func UpdateSingle(inst *sqlx.DB, sqls [][]string) (error, bool) {
 			log.Error("Commit encounter a error.Error: %s", err.Error())
 			return err, false
 		}
+
 	}
 
 	return nil, true
