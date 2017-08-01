@@ -76,13 +76,21 @@ type G2C_TBNN_StatusScore struct {
 	GameRoomName			string						//房间名称
 }
 
+type UserReLoginInfo struct {
+	ChairID int
+	UserGameStatus int
+	CallScoreTimes int
+	AddScoreTimes int
+	//OpenCardData []
+}
 type G2C_TBNN_StatusPlay struct {
 	CellScore       		int		//基础积分
 
-	PlayStatus      		[]int          //用户状态
+	UserReLoginInfos []*UserReLoginInfo
 	GameStatus int //游戏状态
 	PlayerCount                     int            //玩家人数
 	BankerUser			int	       //庄家用户
+	PublicCardData []int 
 	HandCardData  			[][]int         //桌面扑克
 
 	InitScore 			[]int		//积分信息

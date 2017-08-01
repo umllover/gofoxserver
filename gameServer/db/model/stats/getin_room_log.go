@@ -17,13 +17,20 @@ import (
 
 // +gen *
 type GetinRoomLog struct {
-	RecodeId     int        `db:"recode_id" json:"recode_id"`         // 加入游戏数据记录的Id
-	RoomId       int        `db:"room_id" json:"room_id"`             // 房间id
-	UserId       int64      `db:"user_id" json:"user_id"`             // 用户索引
-	PublicGetin  int        `db:"public_getIn" json:"public_getIn"`   // 公房加入 0否 1是
-	PrivateGetin int        `db:"private_getIn" json:"private_getIn"` // 私房加入 0否 1是
-	TypeGetin    int        `db:"type_getIn" json:"type_getIn"`       // 加入房间类型 0列表加入 2输房号加入 3快速加入 4点击链接加入
-	GetInTime    *time.Time `db:"getIn_time" json:"getIn_time"`       // 进入房间时间
+	RecodeId     int        `db:"recode_id" json:"recode_id"`           // 加入游戏数据记录的Id
+	RoomId       int        `db:"room_id" json:"room_id"`               // 房间id
+	UserId       int64      `db:"user_id" json:"user_id"`               // 用户索引
+	KindId       int        `db:"kind_id" json:"kind_id"`               // 房间索引
+	ServiceId    int        `db:"service_id" json:"service_id"`         // 游戏标识
+	RoomName     string     `db:"room_name" json:"room_name"`           //
+	NodeId       int        `db:"node_id" json:"node_id"`               // 在哪个服务器上
+	Num          int        `db:"num" json:"num"`                       // 局数
+	Status       int        `db:"status" json:"status"`                 //
+	Public       int        `db:"public" json:"public"`                 // 公房加入 0否 1是
+	MaxPlayerCnt int        `db:"max_player_cnt" json:"max_player_cnt"` // 最多几个玩家进入
+	PayType      int        `db:"pay_type" json:"pay_type"`             // 支付方式 1是全服 2是AA
+	TypeGetin    int        `db:"type_getIn" json:"type_getIn"`         // 加入房间类型 0列表加入 2输房号加入 3快速加入 4点击链接加入
+	GetInTime    *time.Time `db:"getIn_time" json:"getIn_time"`         // 进入房间时间
 }
 
 type getinRoomLogOp struct{}
@@ -101,12 +108,19 @@ func (op *getinRoomLogOp) Insert(m *GetinRoomLog) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *getinRoomLogOp) InsertTx(ext sqlx.Ext, m *GetinRoomLog) (int64, error) {
-	sql := "insert into getin_room_log(room_id,user_id,public_getIn,private_getIn,type_getIn,getIn_time) values(?,?,?,?,?,?)"
+	sql := "insert into getin_room_log(room_id,user_id,kind_id,service_id,room_name,node_id,num,status,public,max_player_cnt,pay_type,type_getIn,getIn_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
-		m.PublicGetin,
-		m.PrivateGetin,
+		m.KindId,
+		m.ServiceId,
+		m.RoomName,
+		m.NodeId,
+		m.Num,
+		m.Status,
+		m.Public,
+		m.MaxPlayerCnt,
+		m.PayType,
 		m.TypeGetin,
 		m.GetInTime,
 	)
@@ -120,11 +134,18 @@ func (op *getinRoomLogOp) InsertTx(ext sqlx.Ext, m *GetinRoomLog) (int64, error)
 
 //存在就更新， 不存在就插入
 func (op *getinRoomLogOp) InsertUpdate(obj *GetinRoomLog, m map[string]interface{}) error {
-	sql := "insert into getin_room_log(room_id,user_id,public_getIn,private_getIn,type_getIn,getIn_time) values(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into getin_room_log(room_id,user_id,kind_id,service_id,room_name,node_id,num,status,public,max_player_cnt,pay_type,type_getIn,getIn_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.RoomId,
 		obj.UserId,
-		obj.PublicGetin,
-		obj.PrivateGetin,
+		obj.KindId,
+		obj.ServiceId,
+		obj.RoomName,
+		obj.NodeId,
+		obj.Num,
+		obj.Status,
+		obj.Public,
+		obj.MaxPlayerCnt,
+		obj.PayType,
 		obj.TypeGetin,
 		obj.GetInTime,
 	}
@@ -158,12 +179,19 @@ func (op *getinRoomLogOp) Update(m *GetinRoomLog) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *getinRoomLogOp) UpdateTx(ext sqlx.Ext, m *GetinRoomLog) error {
-	sql := `update getin_room_log set room_id=?,user_id=?,public_getIn=?,private_getIn=?,type_getIn=?,getIn_time=? where recode_id=?`
+	sql := `update getin_room_log set room_id=?,user_id=?,kind_id=?,service_id=?,room_name=?,node_id=?,num=?,status=?,public=?,max_player_cnt=?,pay_type=?,type_getIn=?,getIn_time=? where recode_id=?`
 	_, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
-		m.PublicGetin,
-		m.PrivateGetin,
+		m.KindId,
+		m.ServiceId,
+		m.RoomName,
+		m.NodeId,
+		m.Num,
+		m.Status,
+		m.Public,
+		m.MaxPlayerCnt,
+		m.PayType,
 		m.TypeGetin,
 		m.GetInTime,
 		m.RecodeId,
