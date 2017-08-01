@@ -6,8 +6,13 @@ package stats
 func InitTableMap() {
 	/*
 	   db.StatsDBMap.AddTableWithName(Activity{}, "activity").SetKeys(false,"ActivityName")
-	   db.StatsDBMap.AddTableWithName(GetinRoomLog{}, "getin_room_log").SetKeys(true, "GetinRecodeId")
+	   db.StatsDBMap.AddTableWithName(ConsumLog{}, "consum_log").SetKeys(false,"RecodeId")
+	   db.StatsDBMap.AddTableWithName(DrawAwardLog{}, "draw_award_log").SetKeys(false,"Id")
+	   db.StatsDBMap.AddTableWithName(GetinRoomLog{}, "getin_room_log").SetKeys(true, "RecodeId")
 	   db.StatsDBMap.AddTableWithName(Globalspreadinfo{}, "globalspreadinfo").SetKeys(false,"ID")
+	   db.StatsDBMap.AddTableWithName(MallBuyLog{}, "mall_buy_log").SetKeys(false,"GoodsId")
+	   db.StatsDBMap.AddTableWithName(RechargeLog{}, "recharge_log").SetKeys(false,"OnLineID")
+	   db.StatsDBMap.AddTableWithName(RecommendLog{}, "recommend_log").SetKeys(false,"SubElectUid")
 	   db.StatsDBMap.AddTableWithName(RoomLog{}, "room_log").SetKeys(true, "RecodeId")
 	   db.StatsDBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
 	   db.StatsDBMap.AddTableWithName(Systemstatusinfo{}, "systemstatusinfo").SetKeys(false,"StatusName")
