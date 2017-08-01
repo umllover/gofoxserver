@@ -70,6 +70,7 @@ func GetRooms(args []interface{}) (interface{}, error) {
 
 //大厅服服通知续费
 func RenewalFee(args []interface{}) {
+	log.Debug("at RenewalFee .... ")
 	retCode := 0
 	recvMsg := args[0].(*msg.S2S_RenewalFee)
 	defer func() {
@@ -83,10 +84,13 @@ func RenewalFee(args []interface{}) {
 		return
 	}
 
+	log.Debug("at RenewalFee .... begin call  ")
 	_, err := room.GetChanRPC().Call1("AddPlayCnt", recvMsg.AddCnt)
 	if err != nil {
 		retCode = 2
 		return
 	}
+
+	log.Debug("at RenewalFee .... end call  ")
 	return
 }

@@ -63,7 +63,7 @@ func ServerNsqCahnnel() string {
 	return fmt.Sprintf(HallCahnnelFmt, Server.NodeId)
 }
 
-func init() {
+func Init() {
 	data, err := ioutil.ReadFile("./hallServer.json")
 	if err != nil {
 		log.Fatal("%v", err)

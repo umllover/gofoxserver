@@ -145,6 +145,7 @@ func (r *Mj_base) UserStandup(args []interface{}) {
 }
 
 func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
+	log.Debug("at AddPlayCnt .... ")
 	if r.IsClose {
 		return nil, errors.New("room is close ")
 	}
@@ -154,6 +155,7 @@ func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
+	log.Debug("at AddPlayCnt ...1111 . ")
 	return nil, nil
 }
 
@@ -261,22 +263,25 @@ func (room *Mj_base) UserReady(args []interface{}) {
 }
 
 //玩家重登
-func (room *Mj_base) UserReLogin(args []interface{}) {
+func (room *Mj_base) UserReLogin(args []interface{}) error {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
-		log.Debug("UserReLogin not old user ... ")
-		return
+		return errors.New(" UserReLogin not old user ")
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
+	u.Status = roomUser.Status
+	u.ChatRoomId = roomUser.ChatRoomId
 	u.RoomId = room.DataMgr.GetRoomId()
+	u.Score = int64(room.DataMgr.GetUserScore(u.ChairId))
 	room.UserMgr.ReLogin(u, room.Status)
 	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
 	if room.Temp.OffLineTrustee == 1 {
 		room.OnUserTrustee(u.ChairId, false)
 	}
+	return nil
 }
 
 //玩家离线

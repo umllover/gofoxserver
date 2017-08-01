@@ -38,6 +38,11 @@ func AddClient(c *NsqClient) {
 	clients[c.ServerName] = c
 }
 
+func HasClient(name string) bool {
+	_, ok := clients[name]
+	return ok
+}
+
 func RemoveClient(serverName string) {
 	_, ok := clients[serverName]
 	if ok {
@@ -78,6 +83,9 @@ func Go(serverName string, args interface{}) {
 
 //timeOutCall 会丢弃执行结果
 func TimeOutCall1(serverName string, t time.Duration, args interface{}) (interface{}, error) {
+	if !HasClient(serverName) {
+		return nil, fmt.Errorf("TimeOutCall1 %s is off line", serverName)
+	}
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -101,6 +109,9 @@ func TimeOutCall1(serverName string, t time.Duration, args interface{}) (interfa
 }
 
 func Call0(serverName string, args interface{}) error {
+	if !HasClient(serverName) {
+		return fmt.Errorf("TimeOutCall1 %s is off line", serverName)
+	}
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -118,6 +129,9 @@ func Call0(serverName string, args interface{}) error {
 }
 
 func Call1(serverName string, args interface{}) (interface{}, error) {
+	if !HasClient(serverName) {
+		return nil, fmt.Errorf("TimeOutCall1 %s is off line", serverName)
+	}
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s, %s", err.Error(), string(debug.Stack()))
@@ -135,6 +149,9 @@ func Call1(serverName string, args interface{}) (interface{}, error) {
 }
 
 func CallN(serverName string, args interface{}) ([]interface{}, error) {
+	if !HasClient(serverName) {
+		return nil, fmt.Errorf("TimeOutCall1 %s is off line", serverName)
+	}
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("CallN Marshal error:%s", err.Error())
@@ -152,6 +169,11 @@ func CallN(serverName string, args interface{}) ([]interface{}, error) {
 }
 
 func AsynCall(serverName string, chanAsynRet chan *chanrpc.RetInfo, args interface{}, cb interface{}) {
+	if !HasClient(serverName) {
+		ret := &chanrpc.RetInfo{Cb: cb, Err: fmt.Errorf("TimeOutCall1 %s is off line", serverName)}
+		chanAsynRet <- ret
+		return
+	}
 	bstr, err := Processor.Marshal(args)
 	if err != nil {
 		log.Error("AsynCall Marshal error:%s", err.Error())

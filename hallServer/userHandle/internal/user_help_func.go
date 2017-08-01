@@ -14,7 +14,7 @@ type Order struct {
 	OnLineID    int    `db:"OnLineID"`    //订单标识
 	PayAmount   int    `db:"PayAmount"`   // 价格
 	UserID      int64  `db:"UserID"`      // uid
-	PayType     string `db：dayType"`         //支付类型
+	PayType     string `db：dayType"`      //支付类型
 	GoodsID     int    `db:"GoodsID"`     // 物品id
 	OrderStatus int    `db:"OrderStatus"` //状态
 }
@@ -54,4 +54,21 @@ func ReqGetMaskCode(phome string, maskCode int) {
 		"mobile": phome,
 		"text":   fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), maskCode),
 	})
+}
+
+//非协程安全
+func IncRoomCnt(roomid int) (int, error) {
+	_, err := db.DB.Exec("CALL add_room_user_cnt(?, @cnt)", roomid)
+	if err != nil {
+		return 0, err
+	}
+
+	var sql string = "SELECT @cnt"
+	row := db.DB.QueryRow(sql)
+	var ret int
+	err = row.Scan(&ret)
+	if err != nil {
+		return 0, err
+	}
+	return ret, nil
 }

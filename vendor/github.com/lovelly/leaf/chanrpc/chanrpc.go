@@ -219,7 +219,11 @@ func (s *Server) Call0(id interface{}, args ...interface{}) error {
 		log.Error("at Call0 chan is close %v", id)
 		return errors.New("] send on closed channel")
 	}
-	return s.Open(0).Call0(id, args...)
+	err := s.Open(0).Call0(id, args...)
+	if err != nil {
+		log.Error("call %s faild error:%s", id, err.Error())
+	}
+	return err
 }
 
 // goroutine safe
