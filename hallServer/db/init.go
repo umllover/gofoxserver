@@ -37,11 +37,9 @@ func InitDB(cnf IDBCnf) {
 		DB = initSqlxDB(cnf.GetUserDSN(), "[USER DB] -> ", cnf.GetUserDBMaxOpen(), cnf.GetUserDBMaxIdle())
 		StatsDB = initSqlxDB(cnf.GetStatsDSN(), "[STATS_DB] ->", cnf.GetStatsDBMaxOpen(), cnf.GetStatsDBMaxIdle())
 		AccountDB = initSqlxDB(cnf.GetAccoutDSN(), "[STATS_DB] ->", cnf.GetAccountDBMaxOpen(), cnf.GetAccountDBMaxIdle())
-		err := UpdateDB()
-		if err != nil {
-			log.Fatal("InitDB: %s", err.Error())
-		}
 		log.Debug("Init DB success.")
+
+		UpdateDB()
 	})
 }
 
