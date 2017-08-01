@@ -114,6 +114,13 @@ func (room *RoomData) InitRoomOne() {
 	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
+func (room *RoomData) GetUserScore(chairid int) int {
+	if chairid > room.MjBase.UserMgr.GetMaxPlayerCnt() {
+		return 0
+	}
+	return room.HistorySe.AllScore[chairid]
+}
+
 func (room *RoomData) GetCreater() int64 {
 	return room.CreateUser
 }
