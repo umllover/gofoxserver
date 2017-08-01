@@ -13,6 +13,8 @@ import (
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+
+	"math/rand"
 )
 
 // 游戏状态
@@ -145,20 +147,16 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 }
 
 func (room *nntb_data_mgr) BeforeStartGame(UserCnt int) {
-	log.Debug("init room")
 	room.InitRoom(UserCnt)
 	room.GameStatus = GAME_STATUS_START
 	room.SetAllUserGameStatus(GAME_STATUS_START)
 }
 
 func (room *nntb_data_mgr) StartGameing() {
-	// 发牌
-	log.Debug("dispatch card")
 	room.StartDispatchCard()
 }
 
 func (room *nntb_data_mgr) AfterStartGame() {
-	// 叫分
 	log.Debug("call score")
 	room.GameStatus = GAME_STATUS_CALL_SCORE
 	log.Debug("begin call score timer")
@@ -350,16 +348,6 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 
 	r.SetUserCallScoreTimes(u.ChairId, scoreTimes)
 	r.SetUserGameStatus(u.ChairId, GAME_STATUS_CALL_SCORE)
-
-	maxScoreTimes := 0
-	for chairId, s := range r.CallScoreTimesMap {
-		if s > maxScoreTimes {
-			maxScoreTimes = s
-			r.BankerUser = chairId
-		}
-	}
-	r.ScoreTimes = maxScoreTimes
-
 	// 广播叫分
 	callScore := &nn_tb_msg.G2C_TBNN_CallScore{}
 	callScore.ChairID = u.ChairId
@@ -391,12 +379,23 @@ func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 func (r *nntb_data_mgr) CallScoreEnd() {
 	r.CallScoreTimer.Stop()
 	r.SetAllUserGameStatus(GAME_STATUS_CALL_SCORE)
+
+	maxScoreTimes := 0
+	for chairId, s := range r.CallScoreTimesMap {
+		if s > maxScoreTimes {
+			maxScoreTimes = s
+			r.BankerUser = chairId
+		}
+	}
+	r.ScoreTimes = maxScoreTimes
+
 	log.Debug("call score end")
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
 	//如果没有任何人叫分
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	if !r.IsAnyOneCallScore() {
-		r.BankerUser = 0
+		r.BankerUser = random.Intn(r.PlayerCount)
 		r.ScoreTimes = 1
 	}
 
