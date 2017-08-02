@@ -28,7 +28,6 @@ func (roomLog *RoomLog) AddCreateRoomLog(roomId int, userId int64, roomName stri
 	} else {
 		Info.NomalOpen = 0
 	}
-	Info.CreateOthers = 1
 	_, err := stats.RoomLogOp.Insert(Info)
 	if err != nil {
 		Error("insert Data into table roomlog Error:%v", err.Error())
@@ -48,13 +47,33 @@ func (roomLog *RoomLog) GetRoomLogRecode(roomId, kindId, serverId int) (roomReco
 	return logData
 }
 
-//更新创建房间记录
-func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
+//游戏结束记录类型
+func (RoomLog *RoomLog) UpdateGameLogRecode(recodeId int, code int) {
 	myLogInfo := make(map[string]interface{})
-	myLogInfo["end_time"] = &time
-	myLogInfo["end_type"] = code
+	myLogInfo["game_end_type"] = code
 	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
 	if err != nil {
 		Error("结束时间和结束状态记录更新失败：%s", err.Error())
+	}
+}
+
+//更新解散房间记录类型
+func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
+	myLogInfo := make(map[string]interface{})
+	myLogInfo["end_time"] = &time
+	myLogInfo["room_end_type"] = code
+	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
+	if err != nil {
+		Error("结束时间和结束状态记录更新失败：%s", err.Error())
+	}
+}
+
+//更新是否为他人创建房间
+func (RoomLog *RoomLog) UpdateRoomLogForOthers(recodeId int, code int) {
+	myLogInfo := make(map[string]interface{})
+	myLogInfo["create_others"] = code
+	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
+	if err != nil {
+		Error("是否为他人开房状态记录更新失败：%s", err.Error())
 	}
 }

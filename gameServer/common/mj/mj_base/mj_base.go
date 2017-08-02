@@ -76,13 +76,8 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
-	roomLogData := datalog.RoomLog{}
-	logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-	now := time.Now()
 	r.TimerMgr.StartCreatorTimer(func() {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomTimeOutDismiss)
-		log.Debug("mj超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
-		r.OnEventGameConclude(0, nil, GER_DISMISS)
+		r.OnEventGameConclude(0, nil, TIMEOUT_DISMISS)
 	})
 
 	r.DataMgr.InitRoomOne()
@@ -183,6 +178,10 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
 	now := time.Now()
+	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
+	if user == nil {
+		roomLogData.UpdateRoomLogForOthers(logData.RecodeId, CreateRoomForOthers)
+	}
 	if retcode == 0 {
 		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
 	} else if retcode == NotOwner {
@@ -568,6 +567,9 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 
 //游戏结束
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
+	roomLogData.UpdateGameLogRecode(logData.RecodeId, cbReason)
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
@@ -577,6 +579,9 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		room.AfterEnd(true)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(true)
+	case TIMEOUT_DISMISS://超时游戏解散
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	room.Status = RoomStatusEnd

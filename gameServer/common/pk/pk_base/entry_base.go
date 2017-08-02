@@ -81,14 +81,9 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
 	r.DataMgr.OnCreateRoom()
-	roomLogData := datalog.RoomLog{}
-	logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-	now := time.Now()
 	r.TimerMgr.StartCreatorTimer(func() {
 		log.Debug("not start game close ")
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomTimeOutDismiss)
-		log.Debug("pk超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
-		r.OnEventGameConclude(0, nil, GER_DISMISS)
+		r.OnEventGameConclude(0, nil, TIMEOUT_DISMISS)
 	})
 
 }
@@ -216,6 +211,10 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
 	now := time.Now()
+	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
+	if user == nil {
+		roomLogData.UpdateRoomLogForOthers(logData.RecodeId, CreateRoomForOthers)
+	}
 	if retcode == 0 {
 		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
 	}
@@ -345,6 +344,9 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 
 //游戏结束
 func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
+	roomLogData.UpdateGameLogRecode(logData.RecodeId, cbReason)
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
@@ -355,6 +357,9 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 		room.AfterEnd(true)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(true)
+	case TIMEOUT_DISMISS://超时游戏解散
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	log.Error("at OnEventGameConclude error  ")

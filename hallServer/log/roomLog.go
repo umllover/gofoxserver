@@ -28,7 +28,6 @@ func (roomLog *RoomLog) AddCreateRoomLog(roomId int, userId int64, roomName stri
 	} else {
 		Info.NomalOpen = 0
 	}
-	Info.CreateOthers = 1
 	_, err := stats.RoomLogOp.Insert(Info)
 	if err != nil {
 		Error("insert Data into table roomlog Error:%v", err.Error())
