@@ -111,7 +111,8 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 					log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
 					sendMsg.Err = err.Error()
 				}
-			} else {
+			}
+			if ret.Err != nil {
 				sendMsg.Err = ret.Err.Error()
 			}
 
@@ -134,12 +135,17 @@ func handleResponseMsg(msg *S2S_NsqMsg) {
 	}
 
 	ret := &chanrpc.RetInfo{Cb: request.cb}
-	retMsg, err := Processor.Unmarshal(msg.Args)
-	if err != nil {
-		log.Error("handleResponseMsg Unmarshal msg error:%s", err.Error())
-		ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
-		return
+	var retMsg interface{}
+	if len(msg.Args) > 0 {
+		var err error
+		retMsg, err = Processor.Unmarshal(msg.Args)
+		if err != nil {
+			log.Error("handleResponseMsg Unmarshal msg error:%s", err.Error())
+			ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
+			return
+		}
 	}
+
 	ret.Ret = retMsg
 	if msg.Err != "" {
 		ret.Err = errors.New(msg.Err)

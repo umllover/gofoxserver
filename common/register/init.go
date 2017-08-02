@@ -23,7 +23,6 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_GetKindList{})
 	cluster.Processor.Register(&msg.RoomInfo{})
 	cluster.Processor.Register(&msg.S2S_GetRoomsResult{})
-	cluster.Processor.Register(&msg.RoomEndInfo{})
 	cluster.Processor.Register(&msg.UpdateRoomInfo{})
 	cluster.Processor.Register(&msg.PlayerBrief{})
 	cluster.Processor.Register(&msg.S2S_GetRooms{})
@@ -35,6 +34,9 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_HanldeFromUserMsg{})
 	cluster.Processor.Register(&msg.S2S_RenewalFee{})
 	cluster.Processor.Register(&msg.L2G_CreatorRoom{})
-
-
+	cluster.Processor.Register(&msg.JoinRoom{})
+	cluster.Processor.Register(&msg.LeaveRoom{})
+	cluster.Processor.Register(&msg.StartRoom{})
+	cluster.Processor.Register(&msg.JoinRoomFaild{})
+	cluster.Processor.Register(&msg.RoomEndInfo{})
 }

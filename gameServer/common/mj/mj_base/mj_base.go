@@ -101,6 +101,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
+	r.DataMgr.InitRoomOne()
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -255,9 +256,6 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.UserMgr.IsAllReady() {
-		if room.TimerMgr.GetPlayCount() == 0 {
-			room.DataMgr.InitRoomOne()
-		}
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 			RoomId: room.DataMgr.GetRoomId(),
 			OpName: "AddPlayCnt",

@@ -354,7 +354,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	logInfo.CreateOthers = 1
 	player.AddCreateRoomLog(logInfo)
 
-	_, err := cluster.Call1GameSvr(nodeId, msg.L2G_CreatorRoom{
+	_, err := cluster.Call1GameSvr(nodeId, &msg.L2G_CreatorRoom{
 		CreatorUid:   player.Id,
 		PayType:      recvMsg.PayType,
 		MaxPlayerCnt: template.MaxPlayer,

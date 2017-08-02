@@ -62,6 +62,7 @@ func SrarchTable(args []interface{}) {
 
 	cnt, err := IncRoomCnt(roomInfo.RoomID)
 	if err != nil {
+		log.Debug("Error === %s ", err.Error())
 		retcode = ErrRoomFull
 		return
 	}

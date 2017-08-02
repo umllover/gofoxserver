@@ -262,10 +262,6 @@ func (room *Entry_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
-		if room.TimerMgr.GetPlayCount() == 0 {
-			//room.DataMgr.InitRoomOne()
-		}
-
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间局数变更
 			RoomId: room.DataMgr.GetRoomId(),
 			OpName: "AddPlayCnt",

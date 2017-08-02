@@ -277,6 +277,7 @@ type G2C_UserEnter struct {
 	NickName   string //昵称
 	HeaderUrl  string //头像
 	Sign       string //签名
+	Star       int    //点赞数
 }
 
 type SysMsg struct {

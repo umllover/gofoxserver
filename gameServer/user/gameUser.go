@@ -37,7 +37,8 @@ type User struct {
 	MemberOrder  int8   // 会员标识
 	HallNodeName string //大厅服务器节点名字
 	IconID       int    //头像id
-	Sign         string
+	Sign         string //个性签名
+	Star         int    //被点赞数
 	mu           sync.RWMutex
 }
 

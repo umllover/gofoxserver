@@ -36,6 +36,7 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 	r.OtherInfo = setinfo //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
+
 	return r
 }
 
