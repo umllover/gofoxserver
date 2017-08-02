@@ -499,7 +499,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 	//动作判断
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		//用户过滤
-		if wCenterUser == u.ChairId || room.MjBase.UserMgr.IsTrustee(u.ChairId) {
+		if wCenterUser == u.ChairId {
 			return
 		}
 
@@ -725,6 +725,7 @@ func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []i
 			if room.BankerUser == userIndex {
 				getInedx = index[0]
 			} else {
+				log.Debug("================================ userIndex:%d  room.BankerUser:%d", userIndex, room.BankerUser)
 				v := int(math.Abs(float64(userIndex-room.BankerUser))) % userCnt
 				getInedx = index[int(v)]
 			}
@@ -761,19 +762,6 @@ func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []i
 		}
 	}
 
-	//log.Debug("+++++++++++++++++++++++++++++++ zhonghua:%v buzhong:%v", CardData, BuZhong)
-	//if len(winUser) > 1 {
-	//	for k := range winUser {
-	//		for i := 0; i < len(CardData[k]); i++ {
-	//			for j := 0; j < len(BuZhong); j++ {
-	//				if BuZhong[j] == CardData[k][i] {
-	//					log.Debug("CardData[k][i]:%d", CardData[k][i])
-	//					utils.IntSliceDelete(BuZhong, j)
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 	log.Debug("================================== zhonghua:%v buzhong:%v", CardData, BuZhong)
 	return
 }
@@ -2078,7 +2066,7 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 	if room.SendCardData != 0 {
 		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
 	} else {
-		for i := room.GetCfg().MaxIdx - 1; i > 0; i-- {
+		for i := room.GetCfg().MaxIdx - 1 - room.GetCfg().HuaCount; i > 0; i-- {
 			cardindex = i
 			if room.CardIndex[wChairID][cardindex] > 0 {
 				card := room.MjBase.LogicMgr.SwitchToCardData(cardindex)
