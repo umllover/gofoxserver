@@ -15,6 +15,8 @@ import (
 
 	"sync"
 
+	"mj/common/msg"
+
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -78,24 +80,48 @@ func TestBaseLogic_ReplaceCard(t *testing.T) {
 }
 
 func TestBaseLogic_AnalyseCard(t *testing.T) {
-	//fmt.Println("===========================================")
-	//lg := room.LogicMgr.(*BaseLogic)
-	//hzIndex := lg.SwitchToCardIndex(0x35)
-	//cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-	///*cbCardIndexTemp[0x3] = 1
-	//cbCardIndexTemp[0x4] = 1
-	//cbCardIndexTemp[0x5] = 1
-	//cbCardIndexTemp[0x6] = 1
-	//cbCardIndexTemp[0x7] = 1
-	//cbCardIndexTemp[0x8] = 1*/
-	//cbCardIndexTemp[0x3] = 3
-	//cbCardIndexTemp[0x6] = 3
-	//cbCardIndexTemp[0x18] = 1
-	//cbCardIndexTemp[hzIndex] = 1
+	fmt.Println("===========================================")
+	lg := room.LogicMgr.(*BaseLogic)
+	hzIndex := lg.SwitchToCardIndex(0x35)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+	WraveItem := []*msg.WeaveItem{}
+
+	/*cbCardIndexTemp[0x3] = 1
+	cbCardIndexTemp[0x4] = 1
+	cbCardIndexTemp[0x5] = 1
+	cbCardIndexTemp[0x6] = 1
+	cbCardIndexTemp[0x7] = 1
+	cbCardIndexTemp[0x8] = 1*/
+	cbCardIndexTemp[0x3] = 3
+	cbCardIndexTemp[0x6] = 3
+	cbCardIndexTemp[0x18] = 1
+	cbCardIndexTemp[hzIndex] = 1
 	//lg.SetMagicIndex(hzIndex)
+
+	wrave := &msg.WeaveItem{}
+	wrave.PublicCard = false
+	wrave.Param = 0
+	wrave.ActionMask = 0
+	wrave.CenterCard = 9
+	wrave.CardData = []int{9, 9, 9, 0}
+	wrave.WeaveKind = 8
+	wrave.ProvideUser = 1
+	WraveItem = append(WraveItem, wrave)
+
+	wrave2 := &msg.WeaveItem{}
+	wrave2.PublicCard = false
+	wrave2.Param = 0
+	wrave2.ActionMask = 0
+	wrave2.CenterCard = 7
+	wrave2.CardData = []int{7, 7, 7, 0}
+	wrave2.WeaveKind = 8
+	wrave2.ProvideUser = 1
+	WraveItem = append(WraveItem, wrave2)
+
+	hu, cards := lg.AnalyseCard(cbCardIndexTemp, WraveItem)
 	//hu, cards := lg.AnalyseCard(cbCardIndexTemp, []*msg.WeaveItem{})
-	//fmt.Println(hu, cards)
-	//fmt.Println("===========================================")
+	fmt.Println(hu, cards)
+	fmt.Println("===========================================")
 }
 
 func TestRandRandCard(t *testing.T) {
