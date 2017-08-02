@@ -31,9 +31,9 @@ const (
 
 // 定时器 -- for test
 const (
-	TIME_CALL_SCORE = 3000
-	TIME_ADD_SCORE  = 3000
-	TIME_OPEN_CARD  = 3000
+	TIME_CALL_SCORE = 30
+	TIME_ADD_SCORE  = 30
+	TIME_OPEN_CARD  = 50
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, otherInfo string) *nntb_data_mgr {
@@ -128,6 +128,8 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 		userReLoginInfo.UserGameStatus = room.UserGameStatusMap[u.ChairId]
 		userReLoginInfo.CallScoreTimes = room.CallScoreTimesMap[u.ChairId]
 		userReLoginInfo.AddScoreTimes = room.AddScoreTimesMap[u.ChairId]
+		userReLoginInfo.OpenCardData = append(userReLoginInfo.OpenCardData, room.OpenCardMap[u.ChairId].CardData...)
+		userReLoginInfo.OpenCardType = room.OpenCardMap[u.ChairId].CardType
 		StatusPlay.UserReLoginInfos = append(StatusPlay.UserReLoginInfos, userReLoginInfo)
 	})
 	
