@@ -2,7 +2,6 @@ package internal
 
 import (
 	"errors"
-	"mj/common/consul"
 	"mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
@@ -28,6 +27,7 @@ func init() {
 
 	// 登录服发来的协议
 	reg.RegisterS2S(&msg.S2S_CloseRoom{}, SREQCloseRoom)
+	reg.RegisterS2S(&msg.L2G_CreatorRoom{}, CreatorRoom)
 }
 
 //玩家在本服节点登录
@@ -69,6 +69,7 @@ func HanldeFromHallMsg(args []interface{}) {
 	SendMsgToSelfNotdeUser(args)
 }
 
+//登录服发来的删除房间协议
 func SREQCloseRoom(args []interface{}) (interface{}, error) {
 	recvMsg := args[0].(*msg.S2S_CloseRoom)
 	room := RoomMgr.GetRoom(recvMsg.RoomID)
@@ -80,16 +81,11 @@ func SREQCloseRoom(args []interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-//新的节点启动了
-func serverStart(args []interface{}) {
-	svr := args[0].(*consul.CacheInfo)
-	log.Debug("%s on line", svr.Csid)
-	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
-}
-
-//节点关闭了
-func serverFaild(args []interface{}) {
-	svr := args[0].(*consul.CacheInfo)
-	log.Debug("%s off line", svr.Csid)
-	cluster.RemoveClient(svr.Csid)
+//大厅服发来的创建房间
+func CreatorRoom(args []interface{}) (interface{}, error) {
+	if LoadRoom(args[0]) {
+		return nil, nil
+	} else {
+		return nil, errors.New("creator room faild ")
+	}
 }

@@ -166,12 +166,13 @@ type G2C_DDZ_GameConclude struct {
 	EachBombCount []int //炸弹个数
 
 	//游戏信息
-	BankerScore  int     //叫分数目
-	HandCardData [][]int //扑克列表
-	GameScore    []int   //游戏积分
+	BankerScore  int     // 叫分数目
+	HandCardData [][]int // 扑克列表
+	GameScore    []int   // 游戏积分
+	RecordInfo   [][]int // 历史积分
 	// 八王信息
 	KingCount []int // 八王信息
-	Reason    int   //结算原因
+	Reason    int   // 结算原因
 }
 
 //托管

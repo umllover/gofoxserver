@@ -13,6 +13,10 @@ import (
 	"github.com/lovelly/leaf/module"
 )
 
+const (
+	ResetMatchTime = 180
+)
+
 type MachPlayer struct {
 	ch      *chanrpc.Server
 	EndTime int64
@@ -101,9 +105,11 @@ func (m *MatchModule) Match() {
 			if bk {
 				break
 			}
-			//if len(r.MachPlayer) >= r.MaxPlayerCnt {
-			//	continue
-			//}
+
+			CheckTimeOut(r, now)
+			if r.MachCnt >= r.MaxPlayerCnt {
+				continue
+			}
 
 			for i := len(r.MachPlayer); i < r.MaxPlayerCnt; i++ {
 				if li.Len() < 1 {
@@ -111,10 +117,16 @@ func (m *MatchModule) Match() {
 					break
 				}
 
+				cnt, err := IncRoomCnt(r.RoomID)
+				if err != nil {
+					break
+				}
+
 				v1 := li.Front()
 				player := v1.Value.(*MachPlayer)
 				li.Remove(v1)
-				r.MachPlayer[player.Uid] = struct{}{}
+				r.MachPlayer[player.Uid] = time.Now().Unix() + ResetMatchTime
+				r.MachCnt = cnt
 				log.Debug("player %d match ok ", player.Uid)
 				player.ch.Go("matchResult", true, r)
 			}

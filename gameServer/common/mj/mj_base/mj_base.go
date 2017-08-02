@@ -8,16 +8,18 @@ import (
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"time"
 
+	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/timer"
 
 	"errors"
 
 	"mj/gameServer/db/model/stats"
+
+	"mj/gameServer/RoomMgr"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -44,8 +46,8 @@ type NewMjCtlConfig struct {
 	LogicMgr LogicManager
 }
 
-func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
-	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
+func NewMJBase(KindId, ServiceId int) *Mj_base {
+	Temp, ok1 := base.GameServiceOptionCache.Get(KindId, ServiceId)
 	if !ok1 {
 		return nil
 	}
@@ -114,6 +116,9 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 	retcode := 0
 	defer func() {
 		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
+		if retcode != 0 {
+			cluster.SendDataToHallUser(u.HallNodeName, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
+		}
 	}()
 
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
@@ -121,7 +126,7 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, chairID)
+	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
 }
 
@@ -251,6 +256,14 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.UserMgr.IsAllReady() {
+		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
+			RoomId: room.DataMgr.GetRoomId(),
+			OpName: "AddPlayCnt",
+			Data: map[string]interface{}{
+				"Status": RoomStatusStarting,
+				"Cnt":    1,
+			},
+		})
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
@@ -306,7 +319,7 @@ func (room *Mj_base) OffLineTimeOut(u *user.User) {
 	room.UserMgr.LeaveRoom(u, room.Status)
 	if room.UserMgr.GetCurPlayerCnt() == 0 { //没人了直接销毁
 		log.Debug("at OffLineTimeOut ======= ")
-		room.AfterEnd(true)
+		room.AfterEnd(true, GER_DISMISS)
 	}
 }
 
@@ -327,7 +340,7 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
-	BirefInf.MachPlayer = make(map[int64]struct{})
+	BirefInf.MachPlayer = make(map[int64]int64) //todo
 	return BirefInf
 
 }
@@ -598,13 +611,13 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(false)
+		room.AfterEnd(false, cbReason)
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd(cbReason)
-		room.AfterEnd(true)
+		room.AfterEnd(true, cbReason)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(true)
+		room.AfterEnd(true, cbReason)
 	}
 	room.Status = RoomStatusEnd
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
@@ -612,13 +625,13 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Mj_base) AfterEnd(Forced bool) {
+func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
-		room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, func() {
+		closeFunc := func() {
 			room.IsClose = true
 			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
@@ -627,7 +640,14 @@ func (room *Mj_base) AfterEnd(Forced bool) {
 			})
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
-		})
+		}
+
+		if GER_NORMAL != cbReason {
+			room.DelayCloseTimer = room.AfterFunc(2*time.Second, closeFunc)
+		} else { //常规结束延迟
+			room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, closeFunc)
+		}
+
 		return
 	}
 

@@ -157,6 +157,12 @@
 			"revisionTime": "2017-06-06T23:11:56Z"
 		},
 		{
+			"checksumSHA1": "EHjhpHipgm+XGccrRAms9AW3Ewk=",
+			"path": "github.com/mitchellh/mapstructure",
+			"revision": "d0303fe809921458f417bcf828397a65db30a7e4",
+			"revisionTime": "2017-05-23T03:00:23Z"
+		},
+		{
 			"checksumSHA1": "+mrg4RcfFYM5aLo2r7ZYMv2jr/c=",
 			"path": "github.com/nsqio/go-nsq",
 			"revision": "973bf9a2952ff7e38071ae8392b73e4418503059",

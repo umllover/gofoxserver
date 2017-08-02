@@ -3,6 +3,8 @@ package internal
 import (
 	"mj/hallServer/base"
 
+	"mj/common/msg"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -44,10 +46,10 @@ func (m *UserModule) Run() {
 }
 
 func (m *UserModule) Close(Reason int) {
-	defer func() {
-		m.a.Close()
-		m.closeCh <- true
-	}()
+	m.a.WriteMsg(&msg.L2C_KickOut{Reason: Reason})
+	m.a.SetReason(Reason)
+	m.a.Close()
+	m.closeCh <- true
 	m.UserOffline()
 }
 

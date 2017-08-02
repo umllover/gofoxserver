@@ -4,10 +4,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"mj/gameServer/conf"
-	"sync"
-
 	"reflect"
+	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -70,14 +68,14 @@ type S2S_NsqMsg struct {
 func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 	sendMsg := &S2S_NsqMsg{ReqType: NsqMsgTypeRsp, DstServerName: recvMsg.SrcServerName, RequestID: recvMsg.RequestID}
 	if isClose() && recvMsg.CallType == callForResult {
-		sendMsg.Err = fmt.Sprintf("%v server is closing", conf.ServerName)
+		sendMsg.Err = fmt.Sprintf("%v server is closing", SelfName)
 		Publish(sendMsg)
 		return
 	}
 
 	msg, err := Processor.Unmarshal(recvMsg.Args)
 	if err != nil && recvMsg.CallType == callForResult {
-		sendMsg.Err = fmt.Sprintf("%v Unmarshal msg error:%s", conf.ServerName, err.Error())
+		sendMsg.Err = fmt.Sprintf("%v Unmarshal msg error:%s", SelfName, err.Error())
 		Publish(sendMsg)
 		return
 	}
@@ -113,7 +111,8 @@ func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 					log.Error("at handleRequestMsg  Processor.Marshal ret error:%s", err.Error())
 					sendMsg.Err = err.Error()
 				}
-			} else {
+			}
+			if ret.Err != nil {
 				sendMsg.Err = ret.Err.Error()
 			}
 
@@ -136,12 +135,17 @@ func handleResponseMsg(msg *S2S_NsqMsg) {
 	}
 
 	ret := &chanrpc.RetInfo{Cb: request.cb}
-	retMsg, err := Processor.Unmarshal(msg.Args)
-	if err != nil {
-		log.Error("handleResponseMsg Unmarshal msg error:%s", err.Error())
-		ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
-		return
+	var retMsg interface{}
+	if len(msg.Args) > 0 {
+		var err error
+		retMsg, err = Processor.Unmarshal(msg.Args)
+		if err != nil {
+			log.Error("handleResponseMsg Unmarshal msg error:%s", err.Error())
+			ret.Err = fmt.Errorf("handleResponseMsg Unmarshal msg error:%s", err.Error())
+			return
+		}
 	}
+
 	ret.Ret = retMsg
 	if msg.Err != "" {
 		ret.Err = errors.New(msg.Err)

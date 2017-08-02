@@ -1,13 +1,10 @@
 package room
 
 import (
-	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/common/mj/mj_base"
-	"mj/gameServer/db/model"
-	"mj/gameServer/user"
 
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/db/model/base"
@@ -17,31 +14,27 @@ import (
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	log.Debug("创建漳浦麻将房间！")
-	info := args[0].(*model.CreateRoomInfo)
-
-	u := args[1].(*user.User)
-	retCode := 0
-	defer func() {
-		if retCode != 0 {
-			u.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		}
-	}()
-
+	info := args[0].(*msg.L2G_CreatorRoom)
 	if info.KindId != common.KIND_TYPE_ZPMJ {
-		retCode = ErrParamError
+		log.Error("at creator zpmj error info.KindId != common.KIND_TYPE_ZPMJ ")
 		return nil
 	}
 
 	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
-		retCode = NoFoudTemplate
+		log.Error("at creator zpmj error not foud temolaye kindId:%d, serverId:%d ", info.KindId, info.ServiceId)
 		return nil
 	}
 
 	r := NewMJBase(info)
+	if r == nil {
+		log.Error("at creator zpmj error NewMJBase faild  roomID:%d,", info.RoomID)
+		return nil
+	}
 	zpBase := room_base.NewRoomBase()
-	zpData := NewDataMgr(info, u.Id, mj_base.IDX_ZPMJ, "", temp, r)
+	zpData := NewDataMgr(info, info.CreatorUid, mj_base.IDX_ZPMJ, "", temp, r)
 	if zpData == nil {
+		log.Error("at creator zpmj error NewDataMgr faild roomID:%d,", info.RoomID)
 		return nil
 	}
 
@@ -50,16 +43,15 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		DataMgr:  zpData,
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, zpBase.GetSkeleton()),
-	}
-	r.Init(cfg)
-	if r == nil {
-		retCode = Errunlawful
-		return nil
+		TimerMgr: room_base.NewRoomTimerMgr(info.PlayCnt, temp, zpBase.GetSkeleton()),
 	}
 
-	u.KindID = info.KindId
-	u.RoomId = r.DataMgr.GetRoomId()
+	if cfg.BaseMgr == nil || cfg.DataMgr == nil || cfg.UserMgr == nil || cfg.LogicMgr == nil || cfg.TimerMgr == nil {
+		log.Error("at CreaterRoom mermber faild kind:%d, RoomID:%d uid:%d", info.KindId, info.RoomID, info.CreatorUid)
+		return nil
+	}
+	r.Init(cfg)
+
 	RegisterHandler(r)
 	return r
 }

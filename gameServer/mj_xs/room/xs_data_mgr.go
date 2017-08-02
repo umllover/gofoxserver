@@ -1,7 +1,6 @@
 package room
 
 import (
-	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
@@ -15,18 +14,9 @@ import (
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewXSDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *xs_entry, set string) *xs_data {
+func NewXSDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *xs_entry, set map[string]interface{}) *xs_data {
 	d := new(xs_data)
 	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, set)
-
-	//房间游戏设置
-	info := make(map[string]interface{})
-	err := json.Unmarshal([]byte(set), &info)
-	if err != nil {
-		log.Error("zpmj at NewDataMgr error:%s", err.Error())
-		return nil
-	}
-
 	return d
 }
 

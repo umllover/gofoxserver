@@ -3,30 +3,32 @@ package room
 import (
 	"math/rand"
 	"mj/common/cost"
+	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-
-	"encoding/json"
 
 	"time"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"github.com/mitchellh/mapstructure"
 )
 
-func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
+func NewDDZDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 	d.initParam()
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		d.EightKing = setInfo.King
-		d.GameType = setInfo.GameType
+	err := mapstructure.Decode(info.OtherInfo, &setInfo)
+	if err != nil {
+		log.Error(" mapstructure.Decode error")
 	}
+	d.EightKing = setInfo.King
+	d.GameType = setInfo.GameType
+
 	return d
 }
 
@@ -38,6 +40,7 @@ type ddz_data_mgr struct {
 
 	BankerUser int // 地主
 	TurnWiner  int // 出牌玩家
+	WinnerUser int // 上一个赢的玩家
 
 	EightKing bool // 是否八王模式
 	GameType  int  // 游戏类型
@@ -59,6 +62,7 @@ type ddz_data_mgr struct {
 	BankerCard   [3]int  // 游戏底牌
 	HandCardData [][]int // 手上扑克
 	ShowCardSign []bool  // 用户明牌标识
+	RecordInfo   [][]int // 历史积分
 
 	// 定时器
 	CardTimer *time.Timer
@@ -310,6 +314,11 @@ func (room *ddz_data_mgr) SendGameStart() {
 	// 初始化叫分信息
 	for i := 0; i < room.PlayerCount; i++ {
 		room.ScoreInfo[i] = CALLSCORE_NOCALL
+	}
+
+	// 取上一次赢的玩家
+	if len(room.RecordInfo) > 0 {
+		room.CurrentUser = room.WinnerUser
 	}
 
 	// 初始化牌
@@ -596,6 +605,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 
 	if len(r.HandCardData[u.ChairId]) == 0 {
 		log.Debug("游戏结束")
+		r.WinnerUser = u.ChairId
 		r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
 		return
 	}
@@ -676,6 +686,9 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 // 游戏正常结束
 func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	log.Debug("游戏正常结束了")
+	if cbReason == 2 {
+		r.WinnerUser = cost.INVALID_CHAIR
+	}
 	r.GameStatus = GAME_STATUS_FREE
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
@@ -683,16 +696,23 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	// 算分数
 	nMultiple := r.ScoreTimes
 
-	// 春天标识
-	if len(r.TurnCardData[r.BankerUser]) <= 1 {
-		DataGameConclude.SpringSign = 2 // 地主只出了一次牌
-	} else {
-		DataGameConclude.SpringSign = 1
-		for i := 1; i < r.PlayerCount; i++ {
-			if len(r.TurnCardData[(i+r.BankerUser)%r.PlayerCount]) > 0 {
-				DataGameConclude.SpringSign = 0
-				break
+	if r.BankerUser != cost.INVALID_CHAIR {
+		// 春天标识
+		if len(r.TurnCardData[r.BankerUser]) <= 1 {
+			DataGameConclude.SpringSign = 2 // 地主只出了一次牌
+		} else {
+			DataGameConclude.SpringSign = 1
+			for i := 1; i < r.PlayerCount; i++ {
+				if len(r.TurnCardData[(i+r.BankerUser)%r.PlayerCount]) > 0 {
+					DataGameConclude.SpringSign = 0
+					break
+				}
 			}
+		}
+
+		// 地主明牌翻倍
+		if r.ShowCardSign[r.BankerUser] == true {
+			nMultiple <<= 1
 		}
 	}
 
@@ -705,11 +725,6 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		if v > 0 {
 			nMultiple <<= uint(v) // 炸弹个数翻倍
 		}
-	}
-
-	// 地主明牌翻倍
-	if r.ShowCardSign[r.BankerUser] == true {
-		nMultiple <<= 1
 	}
 
 	// 八王
@@ -731,8 +746,10 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	// 计算积分
 	gameScore := r.PkBase.Temp.Source * nMultiple
 
-	if len(r.HandCardData[r.BankerUser]) <= 0 {
-		gameScore = 0 - gameScore
+	if r.BankerUser != cost.INVALID_CHAIR {
+		if len(r.HandCardData[r.BankerUser]) <= 0 {
+			gameScore = 0 - gameScore
+		}
 	}
 
 	var score int
@@ -749,13 +766,23 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	}
 
 	DataGameConclude.Reason = cbReason
-	DataGameConclude.GameScore[r.BankerUser] = 0 - score
+	if r.BankerUser != cost.INVALID_CHAIR {
+		DataGameConclude.GameScore[r.BankerUser] = 0 - score
+	}
+
+	// 服务端收集历史积分
+	r.RecordInfo = append(r.RecordInfo, util.CopySlicInt(DataGameConclude.GameScore))
+	log.Debug("历史积分%v", r.RecordInfo)
+	if r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPlayCnt() || cbReason > 0 {
+		util.DeepCopy(&DataGameConclude.RecordInfo, &r.RecordInfo)
+	}
 
 	r.sendGameEndMsg(DataGameConclude)
 }
 
 //解散房间结束
 func (r *ddz_data_mgr) DismissEnd(cbReason int) {
+	r.WinnerUser = cost.INVALID_CHAIR
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
 	DataGameConclude.GameScore = make([]int, r.PlayerCount)
@@ -765,6 +792,8 @@ func (r *ddz_data_mgr) DismissEnd(cbReason int) {
 
 	DataGameConclude.BankerScore = r.ScoreTimes
 	util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
+	util.DeepCopy(&DataGameConclude.RecordInfo, &r.RecordInfo)
+	log.Debug("解散房间历史积分%v", r.RecordInfo)
 
 	r.sendGameEndMsg(DataGameConclude)
 }

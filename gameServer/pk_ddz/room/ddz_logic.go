@@ -1,23 +1,25 @@
 package room
 
 import (
-	"encoding/json"
+	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"github.com/mitchellh/mapstructure"
 )
 
-func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
+func NewDDZLogic(ConfigIdx int, info *msg.L2G_CreatorRoom) *ddz_logic {
 	l := new(ddz_logic)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		l.GameType = setInfo.GameType
+	err := mapstructure.Decode(info.OtherInfo, &setInfo)
+	if err != nil {
+		log.Error(" mapstructure.Decode error")
 	}
+	l.GameType = setInfo.GameType
 
 	return l
 }

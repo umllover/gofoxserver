@@ -6,12 +6,11 @@ import (
 	"mj/common/msg/mj_hz_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 )
 
-func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *model.CreateRoomInfo) *hz_data {
+func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *msg.L2G_CreatorRoom) *hz_data {
 	d := new(hz_data)
 	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 	return d

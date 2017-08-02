@@ -24,7 +24,7 @@ type GameServiceOption struct {
 	GameType           int    `db:"GameType" json:"GameType"`                     // 游戏类型 1是开放类型， 2是比赛类型
 	RoomName           string `db:"RoomName" json:"RoomName"`                     // 房间名称
 	OffLineTrustee     int    `db:"OffLineTrustee" json:"OffLineTrustee"`         // 是否短线代打 0是不托管 1是托管
-	IniScore           int    `db:"IniScore" json:"IniScore"`                     // 游戏开始玩家默认积分
+	IniScore           int    `db:"IniScore" json:"IniScore"`                     // 房间最大底分
 	PlayTurnCount      int    `db:"PlayTurnCount" json:"PlayTurnCount"`           // 房间能够进行游戏的最大局数
 	TimeAfterBeginTime int    `db:"TimeAfterBeginTime" json:"TimeAfterBeginTime"` // 游戏开始后多长时间后解散桌子
 	TimeOffLineCount   int    `db:"TimeOffLineCount" json:"TimeOffLineCount"`     // 玩家掉线多长时间后解散桌子

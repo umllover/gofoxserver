@@ -58,7 +58,7 @@ func init() {
 
 	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
-	//reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
+	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
 	center.SetGameListRpc(ChanRPC)
 }
@@ -86,11 +86,16 @@ func GetRoomList(args []interface{}) {
 				break
 			}
 
-			if roomList[roomID] == nil {
+			r := roomList[roomID]
+			if r == nil {
 				log.Debug("error at GetRoomList")
 				continue
 			}
-			retMsg.Lists = append(retMsg.Lists, roomList[roomID])
+
+			if !r.IsPublic {
+				continue
+			}
+			retMsg.Lists = append(retMsg.Lists, r)
 			retMsg.Count++
 		}
 	}
@@ -124,7 +129,7 @@ func notifyNewRoom(args []interface{}) {
 
 	roomInfo := args[0].(*msg.RoomInfo)
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
-	roomInfo.MachPlayer = make(map[int64]struct{})
+	roomInfo.MachPlayer = make(map[int64]int64)
 	addRoom(roomInfo)
 }
 
@@ -136,9 +141,9 @@ func addyNewRoom(args []interface{}) {
 
 	roomInfo := args[0].(*msg.RoomInfo)
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
-	roomInfo.MachPlayer = make(map[int64]struct{})
+	roomInfo.MachPlayer = make(map[int64]int64)
 	addRoom(roomInfo)
-	center.BroadcastToHall(roomInfo)
+	cluster.BroadcastToHall(roomInfo)
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {
@@ -183,30 +188,42 @@ func updateRoom(args []interface{}) {
 	}
 
 	switch info.OpName {
-	case "CurPayCnt":
-		room.CurPayCnt = int(info.Data["CurPayCnt"].(float64))
+	case "AddPlayCnt":
+		if room.CurPayCnt == 0 {
+			room.Status = RoomStatusStarting
+		}
+		room.CurPayCnt += 1
+		for _, ply := range room.Players {
+			if ply.HallNodeName == conf.ServerName() {
+				center.SendToThisNodeUser(ply.UID, "GameStart", &msg.StartRoom{RoomId: room.RoomID})
+			}
+		}
+
 	case "AddPlayerId":
 		pinfo := &msg.PlayerBrief{
-			UID:     int64(info.Data["UID"].(float64)),
-			Name:    info.Data["Name"].(string),
-			HeadUrl: info.Data["HeadUrl"].(string),
-			Icon:    int(info.Data["Icon"].(float64)),
+			UID:          int64(info.Data["UID"].(float64)),
+			Name:         info.Data["Name"].(string),
+			HeadUrl:      info.Data["HeadUrl"].(string),
+			Icon:         int(info.Data["Icon"].(float64)),
+			HallNodeName: info.Data["HallNodeName"].(string),
 		}
 		room.Players[pinfo.UID] = pinfo
 		room.CurCnt = len(room.Players)
-		center.SendToThisNodeUser(pinfo.UID, "JoinRoom", room)
+
+		status := int(info.Data["Status"].(float64))
+		if pinfo.HallNodeName == conf.ServerName() {
+			center.SendToThisNodeUser(pinfo.UID, "JoinRoom", &msg.JoinRoom{Rinfo: room, Status: status})
+		}
+
 	case "DelPlayerId":
 		id := int64(info.Data["UID"].(float64))
 		status := int(info.Data["Status"].(float64))
+		ply := room.Players[id]
 		delete(room.Players, id)
 		room.CurCnt = len(room.Players)
-		if status == 0 { //返回钱
-			center.SendToThisNodeUser(id, "restoreToken", info.RoomId)
+		if ply.HallNodeName == conf.ServerName() {
+			center.SendToThisNodeUser(id, "LeaveRoom", &msg.LeaveRoom{RoomId: room.RoomID, Status: status})
 		}
-		center.SendToThisNodeUser(id, "LeaveRoom", info.RoomId)
-	case "RoomInfo":
-		status := int(info.Data["Status"].(float64))
-		room.Status = status
 	}
 
 }
@@ -388,6 +405,7 @@ func getMatchRooms(args []interface{}) (interface{}, error) {
 	return ret, nil
 }
 
+//不公开的房间 和人数满的 无法被获取到
 func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 	kind := args[0].(int)
 	ret := make([]*msg.RoomInfo, 0)
@@ -404,7 +422,7 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 			fmt.Println("222222222222")
 			continue
 		}
-		if v.MaxPlayerCnt <= len(v.MachPlayer) {
+		if v.MaxPlayerCnt <= v.MachCnt {
 			fmt.Println("3333333333333 %d", v.MaxPlayerCnt)
 			continue
 		}

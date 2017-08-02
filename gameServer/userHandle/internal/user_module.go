@@ -41,6 +41,7 @@ func (m *UserModule) Close(Reason int) {
 	m.a.SetReason(Reason)
 	m.a.Close()
 	m.closeCh <- true
+	m.UserOffline()
 }
 
 func (m *UserModule) GetChanRPC() *chanrpc.Server {

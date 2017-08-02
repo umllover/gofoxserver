@@ -41,13 +41,14 @@ const (
 	ErrNoFoudRoom           = 120 //房间没有找到
 	ErrNotFoundCreateRecord = 121 //没有找到房间记录
 	ErrDoubleCreaterRoom    = 122 //重复创建房间
-	ErrCreaterError         = 123 //创建错误
+	ErrCreaterError         = 123 //创建房间失败
 	ErrPlayerNotInRoom      = 124 //玩家不在房间内
 	ErrLoveRoomFaild        = 125 //离开房间异常
 	ErrPlayerIsReady        = 126 //玩家已经准备了
 	ErrRenewalFee           = 127 //请先续费
 	ErrRoomIsClose          = 128 //房间已经结束了
 	ErrRoomFull             = 129 //房间已满
+	ErrRenewalFeesFaild     = 130 //续费失败
 )
 
 //红中麻将错误码
@@ -207,10 +208,10 @@ func RenderErrorMessage(code int, Desc ...string) *msg.ShowErrCode {
 }
 
 func GetGameSvrName(sververId int) string {
-	return fmt.Sprintf(GamePrefix+"_%d", sververId)
+	return fmt.Sprintf(GamePrefixFmt, sververId)
 }
 func GetHallSvrName(sververId int) string {
-	return fmt.Sprintf(HallPrefix+"_%d", sververId)
+	return fmt.Sprintf(HallPrefixFmt, sververId)
 }
 
 ///////////////// global 常量 ///////////////////////
@@ -224,3 +225,5 @@ const (
 	DelayDestroyRoom     = "DelayDestroyRoom"
 	LeaveRoomTimer       = "LeaveRoomTimer"
 )
+
+/////////////// funcs

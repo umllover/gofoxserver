@@ -4,13 +4,14 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg/pk_sss_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/user"
+
+	"mj/common/msg"
 
 	"github.com/lovelly/leaf/log"
 )
 
-func NewSSSEntry(info *model.CreateRoomInfo) *SSS_Entry {
+func NewSSSEntry(info *msg.L2G_CreatorRoom) *SSS_Entry {
 	e := new(SSS_Entry)
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e
@@ -41,7 +42,7 @@ func (room *SSS_Entry) UserReady(args []interface{}) {
 		room.DataMgr.AfterStartGame()
 
 		room.Status = RoomStatusStarting
-		room.TimerMgr. StopCreatorTimer()
+		room.TimerMgr.StopCreatorTimer()
 	}
 }
 

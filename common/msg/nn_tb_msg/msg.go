@@ -4,7 +4,6 @@ import (
 	"mj/common/msg"
 )
 
-
 func init() {
 	//-----------s2c-----------------
 	msg.Processor.Register(&G2C_TBNN_StatusFree{})
@@ -33,77 +32,77 @@ func init() {
 // ------------ s2c ----------------
 //---------- 游戏状态-------
 type G2C_TBNN_StatusFree struct {
-	CellScore	 		int			//基础积分
+	CellScore int //基础积分
 
-	TurnScore 			[]int			//积分信息
-	CollectScore 			[]int			//积分信息
-	GameRoomName			string			//房间名称
+	TurnScore    []int  //积分信息
+	CollectScore []int  //积分信息
+	GameRoomName string //房间名称
 
-	TimeOutCard			int			//出牌时间
-	TimeOperateCard			int 			//操作时间
-	TimeStartGame			int64 			//开始时间
+	TimeOutCard     int   //出牌时间
+	TimeOperateCard int   //操作时间
+	TimeStartGame   int64 //开始时间
 
-	TimesCount			int			//倍数
-	PlayMode			int			//游戏模式
-	CountLimit			int			//局数限制
+	TimesCount int //倍数
+	PlayMode   int //游戏模式
+	CountLimit int //局数限制
 
-	PlayerCount int // 游戏人数
-	CurrentPlayCount		int		    //房间已玩局数
-	EachRoundScore			[][]int		//房间每局游戏比分
-	InitScore			[]int 	//积分信息
+	PlayerCount      int     // 游戏人数
+	CurrentPlayCount int     //房间已玩局数
+	EachRoundScore   [][]int //房间每局游戏比分
+	InitScore        []int   //积分信息
 }
 
 type G2C_TBNN_StatusCall struct {
-	CallBanker				int						//叫庄用户
-	DynamicJoin				int                      //动态加入
-	PlayStatus				[]int          //用户状态
+	CallBanker  int   //叫庄用户
+	DynamicJoin int   //动态加入
+	PlayStatus  []int //用户状态
 
 	//历史积分
-	TurnScore 				[]int64			//积分信息
-	CollectScore 			[]int64			//积分信息
-	GameRoomName			string						//房间名称
+	TurnScore    []int64 //积分信息
+	CollectScore []int64 //积分信息
+	GameRoomName string  //房间名称
 }
 
 type G2C_TBNN_StatusScore struct {
 	//下注信息
-	PlayStatusi     		[]int          //用户状态
-	DynamicJoin     		int                      //动态加入
-	TurnMaxScore			int64					//最大下注
-	TableScore      		[]int64			//下注数目
-	BankerUser				int					//庄家用户
-	TurnScore 				[]int64			//积分信息
-	CollectScore 			[]int64			//积分信息
-	GameRoomName			string						//房间名称
+	PlayStatusi  []int   //用户状态
+	DynamicJoin  int     //动态加入
+	TurnMaxScore int64   //最大下注
+	TableScore   []int64 //下注数目
+	BankerUser   int     //庄家用户
+	TurnScore    []int64 //积分信息
+	CollectScore []int64 //积分信息
+	GameRoomName string  //房间名称
 }
 
 type UserReLoginInfo struct {
-	ChairID int
+	ChairID        int
 	UserGameStatus int
 	CallScoreTimes int
-	AddScoreTimes int
+	AddScoreTimes  int
 	//OpenCardData []
 }
 type G2C_TBNN_StatusPlay struct {
-	CellScore       		int		//基础积分
+	CellScore int //基础积分
 
 	UserReLoginInfos []*UserReLoginInfo
-	GameStatus int //游戏状态
-	PlayerCount                     int            //玩家人数
-	BankerUser			int	       //庄家用户
-	PublicCardData []int 
-	HandCardData  			[][]int         //桌面扑克
+	GameStatus       int //游戏状态
+	PlayerCount      int //玩家人数
+	BankerUser       int //庄家用户
+	PublicCardData   []int
+	HandCardData     [][]int //桌面扑克
 
-	InitScore 			[]int		//积分信息
-	GameRoomName			string		//房间名称
+	InitScore    []int  //积分信息
+	GameRoomName string //房间名称
 
-	CurrentPlayCount		int		//房间已玩局数
-	LimitPlayCount int //总局数
+	CurrentPlayCount int //房间已玩局数
+	LimitPlayCount   int //总局数
 }
 
 //叫分结果
 type G2C_TBNN_CallScoreEnd struct {
-	Banker     int //庄家用户
-	ScoreTimes int //倍数
+	Banker         int   //庄家用户
+	ScoreTimes     int   //倍数
 	ScoreTimesUser []int // 与专家叫一样分数的玩家
 }
 
@@ -114,71 +113,70 @@ type G2C_TBNN_GameStart struct {
 
 //广播用户下注
 type G2C_TBNN_AddScore struct {
-	ChairID 				int
-	AddScoreCount			int				//加注数目
+	ChairID       int
+	AddScoreCount int //加注数目
 }
 
 //游戏结束
-type G2C_TBNN_GameEnd	struct {
-	CurrentPlayCount int //当前局数
-	LimitPlayCount int //总局数
-	InitScore [] int //玩家积分
-	EachRoundScore [][]int //每局积分
+type G2C_TBNN_GameEnd struct {
+	CurrentPlayCount int     //当前局数
+	LimitPlayCount   int     //总局数
+	InitScore        []int   //玩家积分
+	EachRoundScore   [][]int //每局积分
+	Reason           int     //结束原因
 }
 
 // 比牌结果
 type G2C_TBNN_CalScore struct {
-	GameTax				[]int		//服务费
-	GameScore 			[]int 	//得分
-	CardType			[]int  	//牌型
-	CardData  			[][]int 	//手牌
-	InitScore			[]int	//玩家积分信息
+	GameTax   []int   //服务费
+	GameScore []int   //得分
+	CardType  []int   //牌型
+	CardData  [][]int //手牌
+	InitScore []int   //玩家积分信息
 }
 
 //发牌数据包
 type G2C_TBNN_SendCard struct {
-	CardData				[][]int     	//用户扑克
+	CardData [][]int //用户扑克
 }
 
 //发牌数据包
 type G2C_TBNN_AllCard struct {
-	CardData				[][]int			//用户扑克
+	CardData [][]int //用户扑克
 }
 
 // 公共牌数据
 type G2C_TBNN_PublicCard struct {
-	PublicCardData			[]int			//公共牌
+	PublicCardData []int //公共牌
 }
 
 // 最后一张牌
 type G2C_TBNN_LastCard struct {
-	LastCard 				[][]int 		// 最后一张牌
+	LastCard [][]int // 最后一张牌
 }
 
 //用户退出
 type G2C_TBNN_PlayerExit struct {
-	PlayerID				int			//退出用户
+	PlayerID int //退出用户
 }
 
 //用户摊牌
 type G2C_TBNN_Open_Card struct {
-	ChairID					int			//摊牌用户
-	CardType				int 		//牌型
-	CardData				[]int				//牌数据
+	ChairID  int   //摊牌用户
+	CardType int   //牌型
+	CardData []int //牌数据
 }
 
 //广播用户叫分
 type G2C_TBNN_CallScore struct {
-	ChairID					int 		//叫分用户
-	CallScore				int 		//叫分数目
+	ChairID   int //叫分用户
+	CallScore int //叫分数目
 }
-
-
 
 // ----------c2s----------------
 //用户叫分
 type C2G_TBNN_CallScore struct {
-	CallScore				int 		//叫分数目
+	CallScore int //叫分数目
 }
 
 /*
@@ -192,15 +190,12 @@ type C2G_TBNN_CallBanker	struct {
 */
 
 //用户加注
-type C2G_TBNN_AddScore	struct {
-	Score					int			//加注数目
+type C2G_TBNN_AddScore struct {
+	Score int //加注数目
 }
 
 //用户摊牌
 type C2G_TBNN_OpenCard struct {
-	CardType				int 					//牌型
-	CardData				[]int					//用户扑克
+	CardType int   //牌型
+	CardData []int //用户扑克
 }
-
-
-

@@ -7,7 +7,6 @@ import (
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
@@ -47,10 +46,10 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
+func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
 	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
@@ -1959,23 +1958,21 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//}
 
 	//构造数据
-	if room.SendStatus != BuHua_Send {
-		SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-		SendCardToMe.SendCardUser = wCurrentUser
-		SendCardToMe.CurrentUser = wCurrentUser
-		SendCardToMe.Tail = bTail
-		SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
-		SendCardToMe.CardData = room.ProvideCard
-		u.WriteMsg(SendCardToMe)
-
-		SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-		SendCard.SendCardUser = wCurrentUser
-		SendCard.CurrentUser = wCurrentUser
-		SendCard.Tail = bTail
-		SendCard.ActionMask = room.UserAction[wCurrentUser]
-		SendCard.CardData = 0
-		room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
-	}
+	SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCardToMe.SendCardUser = wCurrentUser
+	SendCardToMe.CurrentUser = wCurrentUser
+	SendCardToMe.Tail = bTail
+	SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
+	SendCardToMe.CardData = room.ProvideCard
+	u.WriteMsg(SendCardToMe)
+	log.Debug("============ leaf card :%d", room.GetLeftCard())
+	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCard.SendCardUser = wCurrentUser
+	SendCard.CurrentUser = wCurrentUser
+	SendCard.Tail = bTail
+	SendCard.ActionMask = room.UserAction[wCurrentUser]
+	SendCard.CardData = 0
+	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
 
 	//超时定时
 	room.UserActionDone = false
