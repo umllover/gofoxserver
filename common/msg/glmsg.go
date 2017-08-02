@@ -136,4 +136,15 @@ type S2S_RenewalFeeFaild struct {
 	RecodeID int
 }
 
-//
+//通知创建房间
+type L2G_CreatorRoom struct {
+	CreatorUid   int64                  //创建房间的玩家id
+	RoomID       int                    //房间id
+	KindId       int                    //游戏类型
+	ServiceId    int                    //游戏第二类型
+	PlayCnt      int                    //局数
+	MaxPlayerCnt int                    //最大玩家数目
+	PayType      int                    //支付类型
+	Public       int                    //是否公开
+	OtherInfo    map[string]interface{} //其他配置
+}

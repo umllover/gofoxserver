@@ -8,7 +8,6 @@ import (
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"time"
@@ -44,8 +43,8 @@ type NewMjCtlConfig struct {
 	LogicMgr LogicManager
 }
 
-func NewMJBase(info *model.CreateRoomInfo) *Mj_base {
-	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
+func NewMJBase(KindId, ServiceId int) *Mj_base {
+	Temp, ok1 := base.GameServiceOptionCache.Get(KindId, ServiceId)
 	if !ok1 {
 		return nil
 	}

@@ -16,14 +16,13 @@ import (
 	"mj/hallServer/user"
 	"time"
 
-	"mj/hallServer/center"
-
 	"mj/common/utils"
 
 	"mj/hallServer/db/model/stats"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -351,6 +350,20 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 	logInfo.CreateOthers = 1
 	player.AddCreateRoomLog(logInfo)
+
+	_, err := cluster.Call1GameSvr(nodeId, msg.L2G_CreatorRoom{
+		CreatorUid:   player.Id,
+		PayType:      recvMsg.PayType,
+		MaxPlayerCnt: template.MaxPlayer,
+		RoomID:       rid,
+		PlayCnt:      recvMsg.DrawCountLimit,
+		KindId:       recvMsg.Kind,
+		ServiceId:    recvMsg.ServerId,
+		OtherInfo:    recvMsg.OtherInfo,
+	})
+	if err != nil {
+		retCode = ErrCreaterError
+	}
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
@@ -861,7 +874,7 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 		return
 	}
 
-	center.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
+	cluster.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
 		if err != nil {
 			player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrRoomIsStart})
 		} else {
@@ -974,7 +987,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	room.PayCnt += feeTemp.DrawCountLimit
 	room.RenewalCnt++
 
-	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
+	cluster.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
 		HallName: GetHallSvrName(conf.Server.NodeId), UserId: player.UserId})
 }
 

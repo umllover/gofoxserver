@@ -138,7 +138,7 @@ func addyNewRoom(args []interface{}) {
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MachPlayer = make(map[int64]struct{})
 	addRoom(roomInfo)
-	center.BroadcastToHall(roomInfo)
+	cluster.BroadcastToHall(roomInfo)
 }
 
 func addRoom(recvMsg *msg.RoomInfo) {

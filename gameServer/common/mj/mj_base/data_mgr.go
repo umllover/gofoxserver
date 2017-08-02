@@ -1,7 +1,6 @@
 package mj_base
 
 import (
-	"encoding/json"
 	"math"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -23,7 +22,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base, setinfo string) *RoomData {
+func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base, setinfo map[string]interface{}) *RoomData {
 	r := new(RoomData)
 	r.ID = id
 	if name == "" {
@@ -34,17 +33,9 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 	r.CreateUser = uid
 	r.Source = temp.Source
 	r.IniSource = temp.IniScore
-	r.OtherInfo = make(map[string]interface{}) //客户端动态的配置信息
+	r.OtherInfo = setinfo //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
-	if setinfo != "" {
-		err := json.Unmarshal([]byte(setinfo), &r.OtherInfo)
-		if err != nil {
-			log.Error("zpmj at NewDataMgr error:%s", err.Error())
-			return nil
-		}
-	}
-
 	return r
 }
 

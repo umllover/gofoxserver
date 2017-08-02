@@ -9,20 +9,19 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/gameServer/center"
-
 	"time"
 
 	"mj/gameServer/db/model/stats"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
+func NewRoomUserMgr(info *msg.L2G_CreatorRoom, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
-	r.id = info.RoomId
+	r.id = info.RoomID
 	r.PayType = info.PayType
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
@@ -532,7 +531,7 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 		return
 	}
 
-	center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+	cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 }
 
 func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
@@ -540,6 +539,6 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		if u == nil {
 			continue
 		}
-		center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+		cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 	}
 }

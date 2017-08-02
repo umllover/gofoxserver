@@ -3,15 +3,14 @@ package room
 import (
 	"mj/common/msg/mj_hz_msg"
 	"mj/gameServer/common/mj/mj_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/gate"
 )
 
-func NewHZEntry(info *model.CreateRoomInfo) *hz_entry {
+func NewHZEntry(kindID, ServerID int) *hz_entry {
 	e := new(hz_entry)
-	e.Mj_base = mj_base.NewMJBase(info)
+	e.Mj_base = mj_base.NewMJBase(kindID, ServerID)
 	return e
 }
 
@@ -27,4 +26,3 @@ func (e *hz_entry) ZhaMa(args []interface{}) {
 	retMsg.ZhongHua, retMsg.BuZhong = e.DataMgr.OnZhuaHua(u.ChairId)
 	u.WriteMsg(retMsg)
 }
-

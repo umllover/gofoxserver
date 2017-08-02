@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"encoding/json"
 	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -10,7 +9,6 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/kindList"
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
 
@@ -41,7 +39,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2G_UserReady{}, m.UserReady)
 	reg.RegisterC2S(&msg.C2G_GR_UserChairReq{}, m.UserChairReq)
 	reg.RegisterC2S(&msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
-	reg.RegisterC2S(&msg.C2G_LoadRoom{}, m.LoadRoom)
 	reg.RegisterC2S(&msg.C2G_LeaveRoom{}, m.ReqLeaveRoom)
 	reg.RegisterC2S(&msg.C2G_ReplyLeaveRoom{}, m.ReplyLeaveRoom)
 
@@ -262,10 +259,6 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	if r == nil {
 		if player.RoomId != 0 {
 			r = RoomMgr.GetRoom(player.RoomId)
-			if r == nil {
-				m.LoadRoom([]interface{}{&msg.C2G_LoadRoom{RoomID: player.RoomId}})
-				r = RoomMgr.GetRoom(player.RoomId)
-			}
 		}
 		if r == nil {
 			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
@@ -365,52 +358,6 @@ func (m *UserModule) UserStandup(args []interface{}) {
 //客户端请求更换椅子
 func (m *UserModule) UserChairReq(args []interface{}) {
 
-}
-
-//创建房间
-func (m *UserModule) LoadRoom(args []interface{}) {
-	recvMsg := args[0].(*msg.C2G_LoadRoom)
-	retMsg := &msg.G2C_LoadRoomOk{}
-	player := m.a.UserData().(*client.User)
-	retCode := -1
-	defer func() {
-		if retCode != 0 {
-			player.WriteMsg(&msg.G2C_InitRoomFailure{ErrorCode: retCode, DescribeString: "创建房间失败"})
-		} else {
-			player.WriteMsg(retMsg)
-		}
-	}()
-	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
-		"room_id": recvMsg.RoomID,
-	})
-	if err != nil || info == nil {
-		log.Error("at LoadRoom error :%v", err)
-		retCode = ErrNotFoundCreateRecord
-		return
-	}
-
-	b, _ := json.Marshal(info)
-	log.Debug("at LoadRoom Info == %v", string(b))
-	if info.Status != 0 {
-		retCode = ErrDoubleCreaterRoom
-		return
-	}
-
-	mod, ok := kindList.GetModByKind(info.KindId)
-	if !ok {
-		retCode = ErrNotFoundCreateRecord
-		return
-	}
-
-	log.Debug("begin CreateRoom.....")
-	ok1 := mod.CreateRoom(info, player)
-	if !ok1 {
-		retCode = ErrCreaterError
-		return
-	}
-
-	retCode = 0
-	return
 }
 
 //解散房间

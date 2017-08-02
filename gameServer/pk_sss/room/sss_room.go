@@ -5,43 +5,40 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/common/room_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/user"
+
+	"mj/common/msg"
 
 	"github.com/lovelly/leaf/log"
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
-	info := args[0].(*model.CreateRoomInfo)
-	u := args[1].(*user.User)
+	info := args[0].(*msg.L2G_CreatorRoom)
 	if info.KindId != common.KIND_TYPE_SSS {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_SSS uid:%d", u.Id)
+		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_SSS uid:%d", info.CreatorUid)
 		return nil
 	}
 
 	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
-		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, u.Id)
+		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, info.CreatorUid)
 		return nil
 	}
 	r := NewSSSEntry(info)
 	rbase := room_base.NewRoomBase()
 	cfg := &pk_base.NewPKCtlConfig{
 		BaseMgr:  rbase,
-		DataMgr:  NewDataMgr(info, u.Id, pk_base.IDX_SSS, temp.RoomName, temp, r),
+		DataMgr:  NewDataMgr(info, info.CreatorUid, pk_base.IDX_SSS, temp.RoomName, temp, r),
 		UserMgr:  room_base.NewRoomUserMgr(info, temp),
 		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, rbase.GetSkeleton()),
+		TimerMgr: room_base.NewRoomTimerMgr(info.PlayCnt, temp, rbase.GetSkeleton()),
 	}
 	r.Init(cfg)
 	if r == nil {
-		log.Debug("at CreaterRoom NewMJBase error, uid:%d", u.Id)
+		log.Debug("at CreaterRoom NewMJBase error, uid:%d", info.CreatorUid)
 		return nil
 	}
 
-	u.KindID = info.KindId
-	u.RoomId = r.DataMgr.GetRoomId()
 	RegisterHandler(r)
 	return r
 }

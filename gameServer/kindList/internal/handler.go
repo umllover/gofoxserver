@@ -2,17 +2,14 @@ package internal
 
 import (
 	"mj/common/msg"
+	"mj/common/register"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 
-	"mj/gameServer/RoomMgr"
-
-	"mj/common/register"
-
-	"mj/gameServer/center"
-
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func init() {
@@ -75,7 +72,7 @@ func RenewalFee(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_RenewalFee)
 	defer func() {
 		if retCode != 0 { //通知大厅续费失败
-			center.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
+			cluster.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
 		}
 	}()
 	room := RoomMgr.GetRoom(recvMsg.RoomID)

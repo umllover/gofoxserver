@@ -1,11 +1,11 @@
 package room
 
 import (
+	"mj/common/msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 )
 
-func NewNNTBEntry(info *model.CreateRoomInfo) *NNTB_Entry {
+func NewNNTBEntry(info *msg.L2G_CreatorRoom) *NNTB_Entry {
 	e := new(NNTB_Entry)
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e

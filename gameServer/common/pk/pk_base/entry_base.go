@@ -9,7 +9,6 @@ import (
 	"mj/gameServer/common/pk"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"time"
@@ -46,7 +45,7 @@ type Entry_base struct {
 	BtCardSpecialData []int
 }
 
-func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
+func NewPKBase(info *msg.L2G_CreatorRoom) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	log.Debug("new pk base %d %d", info.KindId, info.ServiceId)
 	if !ok1 {

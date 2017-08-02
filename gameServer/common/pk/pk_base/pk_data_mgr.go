@@ -1,7 +1,6 @@
 package pk_base
 
 import (
-	"encoding/json"
 	"strconv"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, setinfo string) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, setinfo map[string]interface{}) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -32,14 +31,7 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 
 	r.KindID = temp.KindID
 	r.ServerID = temp.ServerID
-	r.OtherInfo = make(map[string]interface{})
-	if setinfo != "" {
-		err := json.Unmarshal([]byte(setinfo), &r.OtherInfo)
-		if err != nil {
-			log.Error("pk_data_mgr at NewDataMgr error:%s", err.Error())
-			return nil
-		}
-	}
+	r.OtherInfo = setinfo
 
 	return r
 }
@@ -131,14 +123,14 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
-		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                           //局数限制
+		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                          //局数限制
 		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.PkBase.TimerMgr.GetPlayCount(),                           //已玩局数
 		PlayTime:          int(room.PkBase.TimerMgr.GetCreatrTime() - time.Now().Unix()), //已玩时间
 		CellScore:         room.CellScore,                                                //游戏底分
 		IniScore:          0,                                                             //room.IniSource,                                                //初始分数
 		ServerID:          strconv.Itoa(room.id),                                         //房间编号
-		PayType:			room.PkBase.UserMgr.GetPayType(), //支付类型
+		PayType:           room.PkBase.UserMgr.GetPayType(),                              //支付类型
 		IsJoinGame:        0,                                                             //是否参与游戏 todo  tagPersonalTableParameter
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,

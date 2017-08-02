@@ -7,7 +7,6 @@ import (
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
@@ -47,10 +46,10 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(info *model.CreateRoomInfo, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
+func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(info.RoomId, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
 
 	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)

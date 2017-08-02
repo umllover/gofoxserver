@@ -1,15 +1,15 @@
 package room
 
 import (
+	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDDZEntry(info *model.CreateRoomInfo) *DDZ_Entry {
+func NewDDZEntry(info *msg.L2G_CreatorRoom) *DDZ_Entry {
 	e := new(DDZ_Entry)
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e

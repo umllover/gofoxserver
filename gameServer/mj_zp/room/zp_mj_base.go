@@ -2,9 +2,9 @@ package room
 
 import (
 	. "mj/common/cost"
+	"mj/common/msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 
 	"mj/common/msg/mj_zp_msg"
@@ -16,10 +16,12 @@ type ZP_base struct {
 	*mj_base.Mj_base
 }
 
-func NewMJBase(info *model.CreateRoomInfo) *ZP_base {
+func NewMJBase(info *msg.L2G_CreatorRoom) *ZP_base {
 	mj := new(ZP_base)
-	mj.Mj_base = mj_base.NewMJBase(info)
-
+	mj.Mj_base = mj_base.NewMJBase(info.KindId, info.ServiceId)
+	if mj.Mj_base == nil {
+		return nil
+	}
 	return mj
 }
 

@@ -29,6 +29,7 @@ func SendChatMsgToAll(args []interface{}) {
 	sendData.SendUserID = user.Id
 	sendData.TargetUserID = getData.SendUserID
 	sendData.ChatString = getData.ChatString
+	sendData.ChatType = getData.ChatType
 
 	SendMsgToAll(user.ChatRoomId, sendData)
 }

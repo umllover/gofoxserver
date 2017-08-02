@@ -1,16 +1,15 @@
 package room
 
 import (
-	"encoding/json"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
 	. "mj/common/cost"
+	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 
 	"mj/gameServer/common/pk"
-	"mj/gameServer/db/model"
 
 	//dbg "github.com/funny/debug"
 
@@ -20,6 +19,7 @@ import (
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"github.com/mitchellh/mapstructure"
 )
 
 // 游戏状态
@@ -36,16 +36,19 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 	var setInfo sssOtherInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		d.wanFa = setInfo.WanFa
-		d.jiaYiSe = setInfo.JiaYiSe
-		d.jiaGongGong = setInfo.JiaGongGong
-		d.jiaDaXiaoWan = setInfo.JiaDaXiaoWan
+	err := mapstructure.Decode(info.OtherInfo, &setInfo)
+	if err != nil {
+		log.Error(" mapstructure.Decode error")
 	}
+	d.wanFa = setInfo.WanFa
+	d.jiaYiSe = setInfo.JiaYiSe
+	d.jiaGongGong = setInfo.JiaGongGong
+	d.jiaDaXiaoWan = setInfo.JiaDaXiaoWan
+
 	return d
 }
 

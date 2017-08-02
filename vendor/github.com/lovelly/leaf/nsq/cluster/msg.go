@@ -4,10 +4,8 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"mj/gameServer/conf"
-	"sync"
-
 	"reflect"
+	"sync"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -70,14 +68,14 @@ type S2S_NsqMsg struct {
 func handleRequestMsg(recvMsg *S2S_NsqMsg) {
 	sendMsg := &S2S_NsqMsg{ReqType: NsqMsgTypeRsp, DstServerName: recvMsg.SrcServerName, RequestID: recvMsg.RequestID}
 	if isClose() && recvMsg.CallType == callForResult {
-		sendMsg.Err = fmt.Sprintf("%v server is closing", conf.ServerName)
+		sendMsg.Err = fmt.Sprintf("%v server is closing", SelfName)
 		Publish(sendMsg)
 		return
 	}
 
 	msg, err := Processor.Unmarshal(recvMsg.Args)
 	if err != nil && recvMsg.CallType == callForResult {
-		sendMsg.Err = fmt.Sprintf("%v Unmarshal msg error:%s", conf.ServerName, err.Error())
+		sendMsg.Err = fmt.Sprintf("%v Unmarshal msg error:%s", SelfName, err.Error())
 		Publish(sendMsg)
 		return
 	}

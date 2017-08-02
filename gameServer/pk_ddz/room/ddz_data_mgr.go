@@ -3,30 +3,32 @@ package room
 import (
 	"math/rand"
 	"mj/common/cost"
+	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-
-	"encoding/json"
 
 	"time"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"github.com/mitchellh/mapstructure"
 )
 
-func NewDDZDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
+func NewDDZDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 	d.initParam()
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		d.EightKing = setInfo.King
-		d.GameType = setInfo.GameType
+	err := mapstructure.Decode(info.OtherInfo, &setInfo)
+	if err != nil {
+		log.Error(" mapstructure.Decode error")
 	}
+	d.EightKing = setInfo.King
+	d.GameType = setInfo.GameType
+
 	return d
 }
 

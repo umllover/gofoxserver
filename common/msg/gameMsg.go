@@ -1,17 +1,6 @@
 package msg
 
 ////// c 2 s
-//在大厅创建房间服成功后调用
-type C2G_LoadRoom struct {
-	RoomID int //房间id
-}
-
-//游戏服初始化房间失败
-type G2C_InitRoomFailure struct {
-	ErrorCode      int
-	DescribeString string
-}
-
 //手机登录
 type C2G_GR_LogonMobile struct {
 	GameID         int //游戏标识
@@ -312,6 +301,7 @@ type C2G_GameChart_ToAll struct {
 	SendUserID int    //发送者id
 	ChatString string //消息内容
 	ChatIndex  int    //第几条消息
+	ChatType   int    //1是语音 0 是普通聊天
 }
 
 type G2C_GameChart_ToAll struct {
@@ -321,9 +311,7 @@ type G2C_GameChart_ToAll struct {
 	ClientID     int
 	ChatIndex    int
 	ChatString   string
-}
-
-type G2C_LoadRoomOk struct {
+	ChatType     int //1是语音 0 是普通聊天
 }
 
 //结束消息， 各个游戏自己实现

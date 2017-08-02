@@ -34,4 +34,7 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_GetPlayerInfoResult{})
 	cluster.Processor.Register(&msg.S2S_HanldeFromUserMsg{})
 	cluster.Processor.Register(&msg.S2S_RenewalFee{})
+	cluster.Processor.Register(&msg.L2G_CreatorRoom{})
+
+
 }
