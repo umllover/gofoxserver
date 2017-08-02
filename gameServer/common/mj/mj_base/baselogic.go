@@ -527,6 +527,14 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 		}
 	}
 
+	//log.Debug("-------cbKindItemCount=%d, cbLessKindItem=%d, KindItem=%d, cbMagicCount=%d", cbKindItemCount, cbLessKindItem, len(KindItem), cbMagicCount)
+	//for _, tg := range KindItem {
+	//	log.Debug("KindItem====%v %v %v %v", tg.CenterCard, tg.MagicCount, tg.WeaveKind, tg.CardIndex)
+	//}
+	//for _, wm := range WeaveItem {
+	//	log.Debug("WeaveItem====%v %v %v %v %v %v", wm.PublicCard, wm.Param, wm.ActionMask, wm.CenterCard, wm.CardData, wm.WeaveKind)
+	//}
+
 	//组合分析
 	if cbKindItemCount >= cbLessKindItem {
 		//变量定义
@@ -620,6 +628,11 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 			}
 		}
 	}
+
+	//log.Debug("--------TagAnalyseItemArray=%d", len(TagAnalyseItemArray))
+	//for _, ana := range TagAnalyseItemArray {
+	//	log.Debug("====%v %v %v %v %v", ana.CenterCard, ana.WeaveKind, ana.CardEye, ana.MagicEye, ana.CardData)
+	//}
 
 	return true, TagAnalyseItemArray
 }
