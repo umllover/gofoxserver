@@ -28,7 +28,8 @@ type RoomLog struct {
 	EndTime      *time.Time `db:"end_time" json:"end_time"`           // 结束日期
 	CreateOthers int        `db:"create_others" json:"create_others"` // 是否为他人开房 0否，1是
 	PayType      int        `db:"pay_type" json:"pay_type"`           // 支付方式 1是全服 2是AA
-	EndType      int        `db:"end_type" json:"end_type"`           // 房间结束类型 0超时未开启结束 1出错解散房间 2正常解散房间
+	GameEndType  int        `db:"game_end_type" json:"game_end_type"` // 游戏结束原因： 1常规结束 2游戏解散 3玩家请求解散 4超时未开启解散
+	RoomEndType  int        `db:"room_end_type" json:"room_end_type"` // 房间结束类型 1出错解散房间 2正常解散房间
 	NomalOpen    int        `db:"nomal_open" json:"nomal_open"`       // 是否正常开房 0否 1是
 }
 
@@ -107,7 +108,7 @@ func (op *roomLogOp) Insert(m *RoomLog) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *roomLogOp) InsertTx(ext sqlx.Ext, m *RoomLog) (int64, error) {
-	sql := "insert into room_log(room_id,user_id,room_name,kind_id,service_id,node_id,create_time,end_time,create_others,pay_type,end_type,nomal_open) values(?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into room_log(room_id,user_id,room_name,kind_id,service_id,node_id,create_time,end_time,create_others,pay_type,game_end_type,room_end_type,nomal_open) values(?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
@@ -119,7 +120,8 @@ func (op *roomLogOp) InsertTx(ext sqlx.Ext, m *RoomLog) (int64, error) {
 		m.EndTime,
 		m.CreateOthers,
 		m.PayType,
-		m.EndType,
+		m.GameEndType,
+		m.RoomEndType,
 		m.NomalOpen,
 	)
 	if err != nil {
@@ -132,7 +134,7 @@ func (op *roomLogOp) InsertTx(ext sqlx.Ext, m *RoomLog) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *roomLogOp) InsertUpdate(obj *RoomLog, m map[string]interface{}) error {
-	sql := "insert into room_log(room_id,user_id,room_name,kind_id,service_id,node_id,create_time,end_time,create_others,pay_type,end_type,nomal_open) values(?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into room_log(room_id,user_id,room_name,kind_id,service_id,node_id,create_time,end_time,create_others,pay_type,game_end_type,room_end_type,nomal_open) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.RoomId,
 		obj.UserId,
 		obj.RoomName,
@@ -143,7 +145,8 @@ func (op *roomLogOp) InsertUpdate(obj *RoomLog, m map[string]interface{}) error 
 		obj.EndTime,
 		obj.CreateOthers,
 		obj.PayType,
-		obj.EndType,
+		obj.GameEndType,
+		obj.RoomEndType,
 		obj.NomalOpen,
 	}
 	var set_sql string
@@ -176,7 +179,7 @@ func (op *roomLogOp) Update(m *RoomLog) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *roomLogOp) UpdateTx(ext sqlx.Ext, m *RoomLog) error {
-	sql := `update room_log set room_id=?,user_id=?,room_name=?,kind_id=?,service_id=?,node_id=?,create_time=?,end_time=?,create_others=?,pay_type=?,end_type=?,nomal_open=? where recode_id=?`
+	sql := `update room_log set room_id=?,user_id=?,room_name=?,kind_id=?,service_id=?,node_id=?,create_time=?,end_time=?,create_others=?,pay_type=?,game_end_type=?,room_end_type=?,nomal_open=? where recode_id=?`
 	_, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
@@ -188,7 +191,8 @@ func (op *roomLogOp) UpdateTx(ext sqlx.Ext, m *RoomLog) error {
 		m.EndTime,
 		m.CreateOthers,
 		m.PayType,
-		m.EndType,
+		m.GameEndType,
+		m.RoomEndType,
 		m.NomalOpen,
 		m.RecodeId,
 	)
