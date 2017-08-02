@@ -17,7 +17,7 @@ import (
 
 	"errors"
 
-	datalog "mj/common/log"
+	datalog "mj/gameServer/log"
 
 	"github.com/lovelly/leaf/log"
 )

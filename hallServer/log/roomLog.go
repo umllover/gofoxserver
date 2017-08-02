@@ -1,7 +1,8 @@
 package log
 
 import (
-	"mj/gameServer/db/model/stats"
+	"mj/hallServer/db/model/stats"
+
 	"time"
 
 	. "github.com/lovelly/leaf/log"
@@ -12,7 +13,7 @@ type RoomLog struct{}
 //添加创建房间记录
 func (roomLog *RoomLog) AddCreateRoomLog(roomId int, userId int64, roomName string, kindId, serverId, nodeId int, createTime time.Time, payType, retCode int) {
 
-	logInfo := &stats.RoomLog{
+	Info := &stats.RoomLog{
 		UserId:     userId,
 		PayType:    payType,
 		RoomId:     roomId,
@@ -23,12 +24,12 @@ func (roomLog *RoomLog) AddCreateRoomLog(roomId int, userId int64, roomName stri
 		CreateTime: &createTime,
 	}
 	if retCode == 0 {
-		logInfo.NomalOpen = 1
+		Info.NomalOpen = 1
 	} else {
-		logInfo.NomalOpen = 0
+		Info.NomalOpen = 0
 	}
-	logInfo.CreateOthers = 1
-	_, err := stats.RoomLogOp.Insert(logInfo)
+	Info.CreateOthers = 1
+	_, err := stats.RoomLogOp.Insert(Info)
 	if err != nil {
 		Error("insert Data into table roomlog Error:%v", err.Error())
 	}

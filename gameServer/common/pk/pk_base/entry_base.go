@@ -14,7 +14,7 @@ import (
 	"mj/gameServer/user"
 	"time"
 
-	datalog "mj/common/log"
+	datalog "mj/gameServer/log"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"

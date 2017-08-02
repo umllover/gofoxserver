@@ -22,7 +22,7 @@ import (
 
 	"mj/hallServer/db/model/stats"
 
-	datalog "mj/common/log"
+	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
