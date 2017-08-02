@@ -642,7 +642,7 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 		}
 
 		if GER_NORMAL != cbReason {
-			closeFunc()
+			room.DelayCloseTimer = room.AfterFunc(2*time.Second, closeFunc)
 		} else { //常规结束延迟
 			room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, closeFunc)
 		}
