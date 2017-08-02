@@ -317,7 +317,7 @@ func (lg *sss_logic) GetSSSCardType(cardData []int, bCardCount int, btSpecialCar
 						bFlushFirstA = false
 					}
 				}
-				if lg.GetCardLogicValue(cardData[4]) != 0 {
+				if lg.GetCardLogicValue(cardData[4]) != 2 {
 					bFlushFirstA = false
 				}
 			}

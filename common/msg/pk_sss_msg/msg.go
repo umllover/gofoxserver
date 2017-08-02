@@ -97,7 +97,7 @@ type G2C_SSS_StatusPlay struct {
 	LCellScore         int             `json:"lCellScore"`         //单元底分
 	NChip              []int           `json:"nChip"`              //下注大小
 	BHandCardData      []int           `json:"bHandCardData"`      //扑克数据
-	BSegmentCard       [][][]int       `json:"bSegmentCard"`       //分段扑克
+	BSegmentCard       [][]int         `json:"bSegmentCard"`       //分段扑克
 	BFinishSegment     []bool          `json:"bFinishSegment"`     //完成分段
 	WUserToltalChip    int             `json:"wUserToltalChip"`    //总共金币
 	BOverTime          []bool          `json:"bOverTime"`          //超时状态
@@ -105,6 +105,11 @@ type G2C_SSS_StatusPlay struct {
 	BDragon1           []bool          `json:"bDragon1"`           //是否倒水
 	BAllHandCardData   [][]int         `json:"bAllHandCardData"`   //所有玩家的扑克数据
 	SGameEnd           G2C_SSS_COMPARE `json:"sGameEnd"`           //游戏结束数据
+	PlayerCount        int             `json:"playerCount"`        //实际人数
+	CurrentPlayCount   int             `json:"currentPlayCount"`   //当前局数
+	MaxPlayCount       int             `json:"maxPlayCount"`       //总局数
+	Laizi              []int           `json:"Laizi"`              //癞子牌
+	PublicCards        []int           `json:"PublicCards"`        //公共牌
 }
 
 //分段信息

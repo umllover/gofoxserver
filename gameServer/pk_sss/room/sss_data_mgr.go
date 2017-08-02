@@ -22,6 +22,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
+//dbg "github.com/funny/debug"
 // 游戏状态
 const (
 	GAME_FREE       = 100 // 空闲
@@ -82,8 +83,8 @@ type sss_data_mgr struct {
 	CbResult         map[*user.User][]int //每一道的道数
 	cbSpecialResult  map[*user.User]int   //特殊牌型的道数
 
-	LeftCardCount int                  //剩下拍的数量
-	OpenCardMap   map[*user.User][]int //摊牌数据
+	LeftCardCount int                 //剩下拍的数量
+	OpenCardMap   map[*user.User]bool //摊牌数据
 	//比较结果
 
 	m_bCompareResult        map[*user.User][]int //每一道比较结果
@@ -101,6 +102,8 @@ type sss_data_mgr struct {
 	GameStatus        int
 	BtCardSpecialData []int
 	AllResult         [][]int //每一局的结果
+
+	gameEndStatus *pk_sss_msg.G2C_SSS_COMPARE
 }
 
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
@@ -112,7 +115,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.PlayerCount = UserCnt
 	room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
 	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
-	room.OpenCardMap = make(map[*user.User][]int, UserCnt)
+	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
 	room.Dragon = make(map[*user.User]bool, UserCnt)
 	room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
 	room.m_bUserCardData = make(map[*user.User][]int, UserCnt)
@@ -131,6 +134,8 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.publicCards = make([]int, 0, 3)
 
 	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPayCnt())
+
+	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
 }
 func (room *sss_data_mgr) ComputeChOut() {
 	userMgr := room.PkBase.UserMgr
@@ -620,7 +625,6 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
-
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
 			room.m_bUserCardData[u] = append(room.m_bUserCardData[u], room.GetOneCard())
 
@@ -682,11 +686,11 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		util.DeepCopy(&btSpecialDataTemp, &btSpecialData)
 	}
 
-	userMgr.ForEachUser(func(u *user.User) {
-		u.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
+	userMgr.ForEachUser(func(user *user.User) {
+		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
 	})
 
-	room.OpenCardMap[u] = bFrontCard
+	room.OpenCardMap[u] = true
 	log.Debug("%d cccccc", len(room.OpenCardMap))
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		// 游戏结束
@@ -808,28 +812,33 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 				}
 			}
 		})
-		//dbg.Print(gameEnd)
+
 		userMgr.ForEachUser(func(u *user.User) {
 			u.WriteMsg(gameEnd)
 		})
+		room.gameEndStatus = gameEnd
+
 		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
 		room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
-		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
-			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
-			util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
-			allScore := make([]int, room.PlayerCount)
-			for i := range room.AllResult {
-				for j := range allScore {
-					allScore[j] += room.AllResult[i][j]
-				}
-			}
-			gameRecord.AllScore = allScore
+		//if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
 
-			userMgr.ForEachUser(func(u *user.User) {
-				u.WriteMsg(gameRecord)
-			})
+		gameRecord := &pk_sss_msg.G2C_SSS_Record{}
+		util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
+		allScore := make([]int, room.PlayerCount)
+
+		for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
+			for j := range allScore {
+
+				allScore[j] += room.AllResult[i][j]
+			}
 		}
+		gameRecord.AllScore = allScore
+
+		userMgr.ForEachUser(func(u *user.User) {
+			u.WriteMsg(gameRecord)
+		})
+		//}
 
 	}
 
@@ -849,4 +858,49 @@ func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 		u.WriteMsg(StatusFree)
 	})
 
+}
+
+func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
+	statusPlay := &pk_sss_msg.G2C_SSS_StatusPlay{}
+	//WCurrentUser       int             `json:"wCurrentUser"`       //当前玩家
+	statusPlay.WCurrentUser = u.ChairId
+	//LCellScore         int             `json:"lCellScore"`         //单元底分
+	statusPlay.LCellScore = 0
+	//NChip              []int           `json:"nChip"`              //下注大小
+	statusPlay.NChip = make([]int, 0)
+	//BHandCardData      []int           `json:"bHandCardData"`      //扑克数据
+
+	for ucd := range room.m_bUserCardData {
+		if ucd.ChairId == u.ChairId {
+			statusPlay.BHandCardData = room.m_bUserCardData[ucd]
+		}
+	}
+
+	//BSegmentCard       [][]int       `json:"bSegmentCard"`         //分段扑克
+	statusPlay.BSegmentCard = room.m_bSegmentCard[u]
+	//BFinishSegment     []bool          `json:"bFinishSegment"`     //完成分段
+	statusPlay.BFinishSegment = make([]bool, room.PlayerCount)
+	for user := range room.OpenCardMap {
+		statusPlay.BFinishSegment[user.ChairId] = room.OpenCardMap[user]
+	}
+	//WUserToltalChip    int             `json:"wUserToltalChip"`    //总共金币
+	statusPlay.WUserToltalChip = 0
+	//BOverTime          []bool          `json:"bOverTime"`          //超时状态
+	statusPlay.BOverTime = make([]bool, 0)
+	//BSpecialTypeTable1 []bool          `json:"bSpecialTypeTable1"` //是否特殊牌型
+	statusPlay.BSpecialTypeTable1 = make([]bool, 0)
+	//BDragon1           []bool          `json:"bDragon1"`           //是否倒水
+	statusPlay.BDragon1 = make([]bool, 0)
+	//BAllHandCardData   [][]int         `json:"bAllHandCardData"`   //所有玩家的扑克数据
+	statusPlay.BAllHandCardData = make([][]int, 0)
+	//SGameEnd           G2C_SSS_COMPARE `json:"sGameEnd"`           //游戏结束数据
+	statusPlay.SGameEnd = *room.gameEndStatus
+
+	statusPlay.PlayerCount = room.PkBase.UserMgr.GetCurPlayerCnt()
+	statusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPayCnt()
+	statusPlay.Laizi = room.laiZi
+	statusPlay.PublicCards = room.publicCards
+
+	u.WriteMsg(statusPlay)
 }
