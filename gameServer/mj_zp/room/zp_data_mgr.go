@@ -554,7 +554,7 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 		//检查抢杠胡
 		if EstimatKind == EstimatKind_GangCard {
 			//只有庄家和闲家之间才能放炮
-			if u.UserLimit|LimitChiHu == 0 {
+			if u.UserLimit&LimitChiHu == 0 {
 				//吃胡判断
 				hu, _ := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], cbCenterCard)
 				if hu {
@@ -704,7 +704,7 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 }
 
 //进行抓花
-func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) {
 
 	count := room.ZhuaHuaCnt
 	if count == 0 {
@@ -712,49 +712,69 @@ func (room *ZP_RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []in
 		return
 	}
 
-	//抓花规则
-	var getInedx [3]int
-	userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	index := [4][3]int{{1, 5, 9}, {0, 2, 6}, {0, 3, 7}, {0, 4, 8}}
-	if room.BankerUser == CenterUser {
-		getInedx = index[0]
-	} else {
-		v := int(math.Abs(float64(CenterUser-room.BankerUser))) % userCnt
-		getInedx = index[int(v)]
-	}
-
+	CardData = make([][]int, len(winUser))
 	for i := 0; i < count; i++ {
 		cardData := room.GetHeadCard()
-		cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
-		cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
-		if cardColor == 0x30 {
-			//东南西北
-			if cardValue < 5 {
+
+		var isZhong bool
+		for k, userIndex := range winUser {
+			//抓花规则
+			var getInedx [3]int
+			userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+			index := [4][3]int{{1, 5, 9}, {0, 2, 6}, {0, 3, 7}, {0, 4, 8}}
+			if room.BankerUser == userIndex {
+				getInedx = index[0]
+			} else {
+				v := int(math.Abs(float64(userIndex-room.BankerUser))) % userCnt
+				getInedx = index[int(v)]
+			}
+
+			cardColor := room.MjBase.LogicMgr.GetCardColor(cardData)
+			cardValue := room.MjBase.LogicMgr.GetCardValue(cardData)
+			if cardColor == 0x30 {
+				//东南西北
+				if cardValue < 5 {
+					if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
+						isZhong = true
+						CardData[k] = append(CardData[k], cardData)
+						break
+					}
+				} else {
+					//中发白
+					temp := cardValue - 4
+					if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
+						isZhong = true
+						CardData[k] = append(CardData[k], cardData)
+						break
+					}
+				}
+			} else if cardColor >= 0x00 && cardColor <= 0x20 {
 				if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-					CardData = append(CardData, cardData)
-				} else {
-					BuZhong = append(BuZhong, cardData)
-				}
-			} else {
-				//中发白
-				temp := cardValue - 4
-				if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
-					CardData = append(CardData, cardData)
-				} else {
-					BuZhong = append(BuZhong, cardData)
+					isZhong = true
+					CardData[k] = append(CardData[k], cardData)
+					break
 				}
 			}
-		} else if cardColor >= 0x00 && cardColor <= 0x20 {
-			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-				CardData = append(CardData, cardData)
-			} else {
-				BuZhong = append(BuZhong, cardData)
-			}
-		} else { //花牌
+		}
+		if !isZhong {
 			BuZhong = append(BuZhong, cardData)
 		}
 	}
 
+	//log.Debug("+++++++++++++++++++++++++++++++ zhonghua:%v buzhong:%v", CardData, BuZhong)
+	//if len(winUser) > 1 {
+	//	for k := range winUser {
+	//		for i := 0; i < len(CardData[k]); i++ {
+	//			for j := 0; j < len(BuZhong); j++ {
+	//				if BuZhong[j] == CardData[k][i] {
+	//					log.Debug("CardData[k][i]:%d", CardData[k][i])
+	//					utils.IntSliceDelete(BuZhong, j)
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
+	log.Debug("================================== zhonghua:%v buzhong:%v", CardData, BuZhong)
 	return
 }
 
@@ -1518,24 +1538,14 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 			WinCount++
 		}
 	}
-	if WinCount > 0 {
-		//插花
-		tempZhuaHuaCnt := room.ZhuaHuaCnt
-		leftZhuaHuaCnt := room.ZhuaHuaCnt
-		for k, v := range WinUser {
-			//一炮多响，抓花数量随机
-			if WinCount > 1 && k < WinCount-1 && leftZhuaHuaCnt > 0 {
-				var error error
-				room.ZhuaHuaCnt, error = utils.RandInt(1, leftZhuaHuaCnt)
-				if error != nil {
-					return
-				}
-			}
 
-			//进行抓花
-			ZhongCard, BuZhong := room.OnZhuaHua(v)
-			//抓花派位
-			for _, cardV := range ZhongCard {
+	//进行抓花
+	ZhongCard, BuZhong := room.OnZhuaHua(WinUser)
+	log.Debug("========================= ZhongCard:%d,BuZhong:%d", len(ZhongCard), len(BuZhong))
+	if WinCount > 0 {
+		//抓花派位
+		for k, v := range WinUser {
+			for _, cardV := range ZhongCard[k] {
 				for {
 					randV, randOk := utils.RandInt(0, 16)
 					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
@@ -1551,24 +1561,21 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 					}
 				}
 			}
-			for _, cardV2 := range BuZhong {
-				for {
-					randV, randOk := utils.RandInt(0, 16)
-					if randOk == nil && room.ZhuaHuaMap[randV] == nil {
-						huaUser := mj_zp_msg.HuaUser{}
-						huaUser.Card = cardV2
-						huaUser.ChairID = v
-						log.Debug("不中花：%d", cardV2)
-						huaUser.IsZhong = false
-						room.ZhuaHuaMap[randV] = &huaUser
-						break
-					}
+		}
+		for _, cardV2 := range BuZhong {
+			for {
+				randV, randOk := utils.RandInt(0, 16)
+				if randOk == nil && room.ZhuaHuaMap[randV] == nil {
+					huaUser := mj_zp_msg.HuaUser{}
+					huaUser.Card = cardV2
+					//huaUser.ChairID = v
+					log.Debug("不中花：%d", cardV2)
+					huaUser.IsZhong = false
+					room.ZhuaHuaMap[randV] = &huaUser
+					break
 				}
 			}
-			leftZhuaHuaCnt -= room.ZhuaHuaCnt
-			room.ZhuaHuaCnt = leftZhuaHuaCnt
 		}
-		room.ZhuaHuaCnt = tempZhuaHuaCnt
 
 		//总分
 		room.SumGameScore(WinUser)
