@@ -22,6 +22,8 @@ import (
 
 	"mj/hallServer/db/model/stats"
 
+	datalog "mj/common/log"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -334,23 +336,9 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	//}
 
 	//搜集创建房间数据
-	logInfo := &stats.RoomLog{}
-	logInfo.UserId = player.Id
-	logInfo.PayType = recvMsg.PayType
-	logInfo.RoomId = rid
-	logInfo.RoomName = recvMsg.RoomName
-	logInfo.NodeId = nodeId
-	logInfo.KindId = recvMsg.Kind
-	logInfo.ServiceId = recvMsg.ServerId
 	logNow := time.Now()
-	logInfo.CreateTime = &logNow
-	if retCode == 0 {
-		logInfo.NomalOpen = 1
-	} else {
-		logInfo.NomalOpen = 0
-	}
-	logInfo.CreateOthers = 1
-	player.AddCreateRoomLog(logInfo)
+	data := &datalog.RoomLog{}
+	data.AddCreateRoomLog(rid, player.UserId, recvMsg.RoomName, recvMsg.Kind, recvMsg.ServerId, nodeId, logNow, recvMsg.PayType, retCode)
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}

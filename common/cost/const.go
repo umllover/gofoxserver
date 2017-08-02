@@ -146,6 +146,13 @@ const (
 	USER_LEAVE  = 2 //玩家请求解散
 )
 
+const (
+	//房间结束
+	RoomTimeOutDismiss = 0 //超时未开启结束
+	RoomErrorDismiss     = 1 //出错解散房间
+	RoomNormalDistmiss      = 2 //正常解散房间
+)
+
 //积分修改类型
 const (
 	HZMJ_CHANGE_SOURCE = 1

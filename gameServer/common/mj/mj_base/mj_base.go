@@ -17,7 +17,7 @@ import (
 
 	"errors"
 
-	"mj/gameServer/db/model/stats"
+	datalog "mj/common/log"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -76,26 +76,12 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
-	logInfo := make(map[string]interface{})
-	myLogInfo := make(map[string]interface{})
-	AddLogDb := stats.RoomLogOp
-	logInfo["room_id"] = r.DataMgr.GetRoomId()
-	logInfo["kind_id"] = r.Temp.KindID
-	logInfo["service_id"] = r.Temp.ServerID
-	logData, err1 := AddLogDb.GetByMap(logInfo)
-	if err1 != nil {
-		log.Error("Select Data from recode Error:%v", err1.Error())
-	}
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
+	now := time.Now()
 	r.TimerMgr.StartCreatorTimer(func() {
-		myLogInfo["timeout_nostart"] = 1
-		now := time.Now()
-		myLogInfo["end_time"] = &now
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomTimeOutDismiss)
 		log.Debug("mj超时未开启ddebug======================================================%d", r.DataMgr.GetRoomId())
-		myLogInfo["start_endError"] = 1
-		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
-		if err != nil {
-			log.Error("mj超时未开启更新失败：%s", err.Error())
-		}
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -194,25 +180,13 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
 
-	logInfo := make(map[string]interface{})
-	myLogInfo := make(map[string]interface{})
-	AddLogDb := stats.RoomLogOp
-	logInfo["room_id"] = room.DataMgr.GetRoomId()
-	logInfo["kind_id"] = room.Temp.KindID
-	logInfo["service_id"] = room.Temp.ServerID
-	logData, err1 := AddLogDb.GetByMap(logInfo)
-	if err1 != nil {
-		log.Error("Select Data from recode Error:%v", err1.Error())
-	}
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
 	now := time.Now()
-	myLogInfo["end_time"] = &now
-	log.Debug("麻将解散房间ddebug======================================================")
-	if retcode != 0 && u != nil {
-		myLogInfo["start_endError"] = 1
-	}
-	err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
-	if err != nil {
-		log.Error("结束时间和结束状态记录更新失败：%s----%d", err.Error(), room.DataMgr.GetRoomId())
+	if retcode == 0 {
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
+	} else if retcode == NotOwner {
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
 	}
 }
 

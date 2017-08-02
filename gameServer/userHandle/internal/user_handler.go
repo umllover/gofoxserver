@@ -14,8 +14,9 @@ import (
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
 
-	"mj/gameServer/db/model/stats"
 	"time"
+
+	datalog "mj/common/log"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -416,47 +417,26 @@ func (m *UserModule) LoadRoom(args []interface{}) {
 //解散房间
 func (m *UserModule) DissumeRoom(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	myLogInfo := make(map[string]interface{})
-	logInfo := make(map[string]interface{})
-	AddLogDb := stats.RoomLogOp
-	logInfo["room_id"] = user.RoomId
-	logInfo["kind_id"] = user.KindID
-	logInfo["service_id"] = user.ServerID
-	logData, err1 := AddLogDb.GetByMap(logInfo)
-	if err1 != nil {
-		log.Error("Select Data from recode Error:%v", err1.Error())
-	}
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(user.RoomId, user.KindID, user.ServerID)
 	now := time.Now()
-	myLogInfo["end_time"] = &now
 	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		myLogInfo["start_endError"] = 1
-		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
-		if err != nil {
-			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
-		}
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
 		return
 	}
 
 	if user.RoomId == 0 {
-		log.Error("at DissumeRoom not foud roomd id userid:%d", user.Id)
-		myLogInfo["start_endError"] = 1
-		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
-		if err != nil {
-			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
-		}
+		log.Error("at DissumeRoom not foud roomdid userid:%d", user.Id)
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
 		return
 	}
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		myLogInfo["start_endError"] = 1
-		err := AddLogDb.UpdateWithMap(logData.RecodeId, myLogInfo)
-		if err != nil {
-			log.Error("结束时间和结束状态记录更新失败：%s", err.Error())
-		}
+		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
 		return
 	}
 
