@@ -15,6 +15,8 @@ import (
 
 	"mj/gameServer/db/model/stats"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/timer"
 )
@@ -124,7 +126,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, chairID)
+	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
 }
 func (r *Entry_base) AddPlayCnt(args []interface{}) (interface{}, error) {
@@ -260,6 +262,19 @@ func (room *Entry_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
+		if room.TimerMgr.GetPlayCount() == 0 {
+			//room.DataMgr.InitRoomOne()
+		}
+
+		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间局数变更
+			RoomId: room.DataMgr.GetRoomId(),
+			OpName: "AddPlayCnt",
+			Data: map[string]interface{}{
+				"Status": RoomStatusStarting,
+				"Cnt":    1,
+			},
+		})
+
 		//派发初始扑克
 		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
@@ -331,7 +346,7 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
-	BirefInf.MachPlayer = make(map[int64]struct{})
+	BirefInf.MachPlayer = make(map[int64]int64)
 	return BirefInf
 }
 

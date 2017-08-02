@@ -3,7 +3,6 @@ package internal
 import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
-	"runtime"
 	"testing"
 
 	lconf "github.com/lovelly/leaf/conf"
@@ -12,20 +11,20 @@ import (
 
 func TestGameRoomID(t *testing.T) {
 	//var wg sync.WaitGroup
-	runtime.GOMAXPROCS(4)
-	m := make(map[int]bool)
-	//wg.Add(100)
-	for i := 0; i < 100; i++ {
-		i, err := IncRoomCnt(772954)
-		if err != nil {
-			log.Debug("err :%s", err.Error())
-			return
-		}
-		if m[i] {
-			log.Debug("aaaaaaaaaaaa %d", i)
-		}
-		m[i] = true
-	}
+	//runtime.GOMAXPROCS(4)
+	//m := make(map[int]bool)
+	////wg.Add(100)
+	//for i := 0; i < 100; i++ {
+	//	i, err := IncRoomCnt(772954)
+	//	if err != nil {
+	//		log.Debug("err :%s", err.Error())
+	//		return
+	//	}
+	//	if m[i] {
+	//		log.Debug("aaaaaaaaaaaa %d", i)
+	//	}
+	//	m[i] = true
+	//}
 	//wg.Wait()
 }
 func init() {

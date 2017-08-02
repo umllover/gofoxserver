@@ -39,7 +39,7 @@ type TimerManager interface {
 }
 
 type UserManager interface {
-	Sit(*user.User, int) int
+	Sit(*user.User, int, int) int
 	Standup(*user.User) bool
 	ForEachUser(fn func(*user.User))
 	GetLeaveInfo(int64) *msg.LeaveReq

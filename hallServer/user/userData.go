@@ -164,19 +164,6 @@ func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	return true
 }
 
-func (u *User) UpRecord(tr *model.TokenRecord) {
-	u.Lock()
-	u.Records[tr.RoomId] = tr
-	u.Unlock()
-	err := model.TokenRecordOp.UpdateWithMap(tr.RoomId, tr.UserId, map[string]interface{}{
-		"play_cnt": tr.PlayCnt,
-	})
-	if err != nil {
-		log.Debug("ad TokenRecordOp error :%s", err.Error())
-		return
-	}
-	return
-}
 
 func (u *User) HasRecord(RoomId int) bool {
 	u.Lock()
@@ -231,7 +218,6 @@ func (u *User) UpdateUserAttr(m map[string]interface{}) {
 }
 
 //判断是否免费
-
 func (u *User) CheckFree() bool {
 	u.Lock()
 	defer u.Unlock()
@@ -239,9 +225,7 @@ func (u *User) CheckFree() bool {
 	tm := &t
 	b := false
 	for _, v := range base.FreeLimitCache.All() {
-		tBegin := *v.FreeBegin
-		tAfter := *v.FreeEnd
-		if tm.Before(tBegin) || tm.After(tAfter) {
+		if tm.Before(*v.FreeBegin) || tm.After(*v.FreeEnd) {
 			continue
 		}
 

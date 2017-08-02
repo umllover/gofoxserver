@@ -276,6 +276,7 @@ type G2C_UserEnter struct {
 	Experience int    //用户经验
 	NickName   string //昵称
 	HeaderUrl  string //头像
+	Sign       string //签名
 }
 
 type SysMsg struct {

@@ -194,6 +194,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		Experience:  user.Experience,  //用户经验
 		NickName:    user.NickName,    //昵称
 		HeaderUrl:   user.HeadImgUrl,  //头像
+		Sign:        user.Sign,        //个性签名
 	})
 
 	agent.WriteMsg(retMsg)

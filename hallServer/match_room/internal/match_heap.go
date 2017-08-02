@@ -2,11 +2,13 @@ package internal
 
 import (
 	"container/heap"
+	"errors"
 	"fmt"
+	"mj/common/msg"
+	"mj/hallServer/db"
+
+	"github.com/lovelly/leaf/log"
 )
-
-
-
 
 type Item struct {
 	value    string // 优先级队列中的数据，可以是任意类型，这里使用string
@@ -80,5 +82,37 @@ func main() {
 	for len(pq) > 0 {
 		item := heap.Pop(&pq).(*Item)
 		fmt.Printf("%.2d:%s index:%.2d\n", item.priority, item.value, item.index)
+	}
+}
+
+//非协程安全 todo 后期改为redis
+func IncRoomCnt(roomid int) (int, error) {
+	_, err := db.DB.Exec("UPDATE create_room_info set user_cnt = user_cnt+1 WHERE room_id=？", roomid)
+	if err != nil {
+		return 0, err
+	}
+
+	var Ret []int
+	db.DB.Select(&Ret, "SELECT user_cnt FROM create_room_info WHERE room_id=?;")
+
+	if err != nil {
+		return 0, err
+	}
+
+	if len(Ret) < 1 {
+		return 0, errors.New("not foud error")
+	}
+
+	return Ret[0], nil
+}
+
+func CheckTimeOut(r *msg.RoomInfo, now int64) {
+	for uid, t := range r.MachPlayer {
+		if t < now {
+			if _, ok := r.Players[uid]; !ok {
+				log.Error("at CheckTimeOut player :%d not join room ")
+				delete(r.MachPlayer, uid)
+			}
+		}
 	}
 }

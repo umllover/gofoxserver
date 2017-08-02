@@ -12,11 +12,14 @@ import (
 	"mj/gameServer/user"
 	"time"
 
+	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/timer"
 
 	"errors"
 
 	"mj/gameServer/db/model/stats"
+
+	"mj/gameServer/RoomMgr"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -98,7 +101,6 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
-	r.DataMgr.InitRoomOne()
 }
 
 func (r *Mj_base) GetRoomId() int {
@@ -113,6 +115,9 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 	retcode := 0
 	defer func() {
 		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
+		if retcode != 0 {
+			cluster.SendDataToHallUser(u.HallNodeName, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
+		}
 	}()
 
 	if r.Status == RoomStatusStarting && r.Temp.DynamicJoin == 1 {
@@ -120,7 +125,7 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, chairID)
+	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
 }
 
@@ -250,6 +255,17 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.UserMgr.IsAllReady() {
+		if room.TimerMgr.GetPlayCount() == 0 {
+			room.DataMgr.InitRoomOne()
+		}
+		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
+			RoomId: room.DataMgr.GetRoomId(),
+			OpName: "AddPlayCnt",
+			Data: map[string]interface{}{
+				"Status": RoomStatusStarting,
+				"Cnt":    1,
+			},
+		})
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
@@ -326,7 +342,7 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
-	BirefInf.MachPlayer = make(map[int64]struct{})
+	BirefInf.MachPlayer = make(map[int64]int64) //todo
 	return BirefInf
 
 }

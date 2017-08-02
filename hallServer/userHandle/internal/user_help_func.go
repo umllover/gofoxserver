@@ -55,24 +55,3 @@ func ReqGetMaskCode(phome string, maskCode int) {
 		"text":   fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), maskCode),
 	})
 }
-
-//非协程安全
-func IncRoomCnt(roomid int) (int, error) {
-	_, err := db.DB.Exec("UPDATE create_room_info set user_cnt = user_cnt+1 WHERE room_id=？", roomid)
-	if err != nil {
-		return 0, err
-	}
-
-	var Ret []int
-	db.DB.Select(&Ret, "SELECT user_cnt FROM create_room_info WHERE room_id=?;")
-
-	if err != nil {
-		return 0, err
-	}
-
-	if len(Ret) < 1 {
-		return 0, errors.New("not foud error")
-	}
-
-	return Ret[0], nil
-}

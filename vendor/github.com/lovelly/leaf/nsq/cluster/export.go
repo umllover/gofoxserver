@@ -1,7 +1,7 @@
 package cluster
 
 import (
-	"auth_server/module/log"
+	"github.com/lovelly/leaf/log"
 	"fmt"
 	"mj/common/msg"
 

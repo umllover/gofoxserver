@@ -53,13 +53,22 @@ func SrarchTable(args []interface{}) {
 		return
 	}
 
-	//_, has := roomInfo.MachPlayer[player.Id]
-	//if len(roomInfo.MachPlayer) >= roomInfo.MaxPlayerCnt && !has {
-	//	retcode = ErrRoomFull
-	//	return
-	//}
+	CheckTimeOut(roomInfo, time.Now().Unix())
+	if roomInfo.MachCnt >= roomInfo.MaxPlayerCnt {
+		log.Debug("at SrarchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt, %v", recvMsg)
+		retcode = ErrRoomFull
+		return
+	}
 
-	roomInfo.MachPlayer[player.Id] = struct{}{}
+	cnt, err := IncRoomCnt(roomInfo.RoomID)
+	if err != nil {
+		retcode = ErrRoomFull
+		return
+	}
+
+	roomInfo.MachCnt = cnt
+
+	roomInfo.MachPlayer[player.Id] = time.Now().Unix() + ResetMatchTime
 
 	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
 	return

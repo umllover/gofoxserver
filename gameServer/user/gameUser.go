@@ -9,14 +9,14 @@ import (
 
 type User struct {
 	gate.Agent
-	Id           int64    //唯一id
-	NickName     string //名字
-	RoomId       int    // roomId 就是tableid
-	Status       int    //当前游戏状态
-	offline      bool   //玩家是否在线
-	ChairId      int    //当前椅子
-	UserLimit    int64  //限制行为
-	ChatRoomId   int    //聊天房间ID
+	Id         int64  //唯一id
+	NickName   string //名字
+	RoomId     int    // roomId 就是tableid
+	Status     int    //当前游戏状态
+	offline    bool   //玩家是否在线github.com/labstack/gommon/color
+	ChairId    int    //当前椅子
+	UserLimit  int64  //限制行为
+	ChatRoomId int    //聊天房间ID
 	//Currency     int    //游戏豆
 	//RoomCard     int    //房卡数
 	FaceID       int8   // 头像标识
@@ -37,6 +37,7 @@ type User struct {
 	MemberOrder  int8   // 会员标识
 	HallNodeName string //大厅服务器节点名字
 	IconID       int    //头像id
+	Sign         string
 	mu           sync.RWMutex
 }
 

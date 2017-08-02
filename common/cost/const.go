@@ -48,6 +48,7 @@ const (
 	ErrRenewalFee           = 127 //请先续费
 	ErrRoomIsClose          = 128 //房间已经结束了
 	ErrRoomFull             = 129 //房间已满
+	ErrRenewalFeesFaild     = 130 //续费失败
 )
 
 //红中麻将错误码

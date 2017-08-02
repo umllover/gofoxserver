@@ -946,12 +946,14 @@ func (room *RoomData) StartDispatchCard() {
 
 	////TODO 测试用
 	//newCard := make([]int, room.GetCfg().MaxIdx)
-	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x4)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x6)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x12)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x14)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 1
 	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x1
 
