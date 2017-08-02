@@ -307,6 +307,7 @@ func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 	gameEnd.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	gameEnd.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
 	gameEnd.EachRoundScore = make([][]int, gameEnd.CurrentPlayCount)
+	gameEnd.Reason = cbReason
 	for i := 0; i < gameEnd.CurrentPlayCount; i++ {
 		gameEnd.EachRoundScore[i] = append(gameEnd.EachRoundScore[i], room.EachRoundScoreMap[i+1]...)
 	}

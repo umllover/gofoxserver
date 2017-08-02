@@ -132,6 +132,10 @@ type S2S_RenewalFee struct {
 	UserId   int64
 }
 
+//type L2L_NewRoomInfo struct {
+//	info *RoomInfo
+//}
+
 //回复大厅续费失败
 type S2S_RenewalFeeFaild struct {
 	RoomId   int

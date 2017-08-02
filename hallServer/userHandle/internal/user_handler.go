@@ -564,6 +564,14 @@ func loadUser(u *user.User) bool {
 		model.GamescorelockerOp.Insert(glInfo)
 	}
 	u.Gamescorelocker = glInfo
+	if u.Gamescorelocker.EnterIP != "" {
+		log.Debug("check room ...............  ")
+		_, have := game_list.ChanRPC.Call1("HaseRoom", u.Roomid)
+		if have == nil {
+			log.Debug("check room  login room is close ...............  ")
+			u.DelGameLockInfo()
+		}
+	}
 
 	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
 	if !giok {

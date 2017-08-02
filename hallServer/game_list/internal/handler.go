@@ -58,7 +58,7 @@ func init() {
 
 	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
-	//reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
+	reg.RegisterS2S(&msg.RoomInfo{}, notifyNewRoom)
 
 	center.SetGameListRpc(ChanRPC)
 }

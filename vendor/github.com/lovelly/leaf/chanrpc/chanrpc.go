@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -192,7 +194,7 @@ func (s *Server) Exec(ci *CallInfo) {
 // goroutine safe
 func (s *Server) Go(id interface{}, args ...interface{}) {
 	if s.CloseFlg {
-		log.Error("at Go chan is close %v", id)
+		log.Error("at Go chan is close %v %s", id, string(debug.Stack()))
 		return
 	}
 	f := s.functions[id]

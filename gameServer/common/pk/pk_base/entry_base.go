@@ -386,26 +386,26 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(false)
+		room.AfterEnd(false, cbReason)
 		return
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd(cbReason)
-		room.AfterEnd(true)
+		room.AfterEnd(true, cbReason)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(true)
+		room.AfterEnd(true, cbReason)
 	}
 	log.Error("at OnEventGameConclude error  ")
 	return
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Entry_base) AfterEnd(Forced bool) {
+func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
-		room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, func() {
+		closeFunc := func() {
 			room.IsClose = true
 			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
@@ -414,7 +414,14 @@ func (room *Entry_base) AfterEnd(Forced bool) {
 			})
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
-		})
+		}
+
+		if GER_NORMAL != cbReason {
+			closeFunc()
+		} else { //常规结束延迟
+			room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, closeFunc)
+		}
+
 		return
 	}
 
