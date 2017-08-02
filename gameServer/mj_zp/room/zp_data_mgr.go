@@ -1968,7 +1968,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
 	SendCardToMe.CardData = room.ProvideCard
 	u.WriteMsg(SendCardToMe)
-
+	log.Debug("============ leaf card :%d", room.GetLeftCard())
 	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
 	SendCard.SendCardUser = wCurrentUser
 	SendCard.CurrentUser = wCurrentUser

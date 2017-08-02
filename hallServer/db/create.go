@@ -256,7 +256,11 @@ var userUpdateSql = [][]string{
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 	},
 	1: []string{
-		"ALTER TABLE create_room_info add user_cnt int(11) NOT NULL DEFAULT 0;",
+		"ALTER TABLE create_room_info add user_cnt int(11) NOT NULL DEFAULT 0 COMMENT '加入的玩家数';",
+	},
+
+	2: []string{
+		"ALTER TABLE token_record add play_cnt int(11) NOT NULL DEFAULT 0  COMMENT '可玩的局数';",
 	},
 }
 

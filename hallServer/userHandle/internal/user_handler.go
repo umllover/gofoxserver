@@ -476,6 +476,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record.Amount = money
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
+		record.PlayCnt = roomInfo.PayCnt
 		if !player.AddRecord(record) {
 			retcode = ErrServerError
 			player.AddCurrency(money)
@@ -948,26 +949,33 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		ConsumTime: &now,
 	})
 
-	if !player.HasRecord(room.RoomID) {
+	record := player.GetRecord(room.RoomID)
+	if record == nil {
 		log.Error("at RenewalFees not foud old TokenRecord ")
-		record := &model.TokenRecord{}
+		record = &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = room.RoomID
 		record.Amount = monrey
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = room.KindID
+		record.PlayCnt = room.PayCnt
 		if !player.AddRecord(record) {
 			retCode = ErrServerError
 			player.AddCurrency(monrey)
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
-
+		record.PlayCnt += feeTemp.DrawCountLimit
+		if record.Status != 1 {
+			log.Error("not foud status ")
+		}
+		player.UpRecord(record)
 	}
 	room.PayCnt += feeTemp.DrawCountLimit
 	room.RenewalCnt++
 
-	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
+	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
+		HallName: GetHallSvrName(conf.Server.NodeId), UserId: player.UserId})
 }
 
 func (m *UserModule) RenewalFeeFaild(args []interface{}) {
