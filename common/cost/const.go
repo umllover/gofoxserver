@@ -148,6 +148,12 @@ const (
 )
 
 const (
+	//加入房间累型
+	GIRPrivate = 0 //私房加入
+	GIRPublic  = 1 //公房加入
+)
+
+const (
 	//房间结束
 	RoomErrorDismiss   = 1 //出错解散房间
 	RoomNormalDistmiss = 2 //正常解散房间

@@ -20,8 +20,6 @@ import (
 
 	"mj/common/utils"
 
-	"mj/hallServer/db/model/stats"
-
 	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
@@ -443,15 +441,8 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	//非限时免费 并且 不是全付方式 并且 钱大于零
 	if !player.CheckFree() && money > 0 {
 		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
-			if !player.SubCurrency(money) {
+			if !player.SubCurrency(money, roomInfo.PayType) {
 				retcode = NotEnoughFee
-				now := time.Now()
-				stats.ConsumLogOp.Insert(&stats.ConsumLog{
-					UserId:     player.Id,
-					ConsumType: 1,
-					ConsumNum:  money,
-					ConsumTime: &now,
-				})
 				return
 			}
 		}
@@ -800,15 +791,8 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
-		now := time.Now()
-		stats.RechargeLogOp.Insert(&stats.RechargeLog{
-			OnLineID:     v.OnLineID,
-			PayAmount:    v.PayAmount,
-			UserID:       v.UserID,
-			PayType:      v.PayType,
-			GoodsID:      v.GoodsID,
-			RechangeTime: &now,
-		})
+		recharge := datalog.RechargeLog{}
+		recharge.AddRechargeLogInfo(v.OnLineID, v.PayAmount, v.UserID, v.PayType, v.GoodsID)
 	}
 
 }
@@ -924,18 +908,10 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
-	if !player.SubCurrency(monrey) {
+	if !player.SubCurrency(monrey, room.PayType) {
 		retCode = NotEnoughFee
 		return
 	}
-	now := time.Now()
-	stats.ConsumLogOp.Insert(&stats.ConsumLog{
-		UserId:     player.Id,
-		ConsumType: 1,
-		ConsumNum:  monrey,
-		ConsumTime: &now,
-	})
-
 	if !player.HasRecord(room.RoomID) {
 		log.Error("at RenewalFees not foud old TokenRecord ")
 		record := &model.TokenRecord{}

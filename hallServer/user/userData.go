@@ -10,6 +10,8 @@ import (
 
 	"mj/hallServer/db/model/base"
 
+	datalog "mj/hallServer/log"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -102,13 +104,15 @@ func (u *User) EnoughCurrency(sub int) bool {
 }
 
 //扣砖石
-func (u *User) SubCurrency(sub int) bool {
+func (u *User) SubCurrency(sub, subtype int) bool {
 	u.Lock()
 	defer u.Unlock()
 	if u.Currency < sub {
 		return false
 	}
 
+	consum := datalog.ConsumLog{}
+	consum.AddConsumLogInfo(u.Id,subtype,sub)
 	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,

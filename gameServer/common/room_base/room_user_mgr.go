@@ -13,7 +13,7 @@ import (
 
 	"time"
 
-	"mj/gameServer/db/model/stats"
+	dataLog "mj/gameServer/log"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -358,28 +358,8 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 	}
 
 	//搜集进入房间费信息
-	getInLog := &stats.GetinRoomLog{}
-	log.Debug("info ======= %v", info)
-	if info.Public == 1 {
-		getInLog.Public = 1
-	}
-	getInLog.RoomId = info.RoomId
-	getInLog.UserId = u.Id
-	getInLog.KindId = info.KindId
-	getInLog.ServiceId = info.ServiceId
-	getInLog.RoomName = info.RoomName
-	getInLog.NodeId = info.NodeId
-	getInLog.Num = info.Num
-	getInLog.Status = info.Status
-	getInLog.MaxPlayerCnt = info.MaxPlayerCnt
-	getInLog.PayType = info.PayType
-	now := time.Now()
-	getInLog.GetInTime = &now
-
-	_, err = stats.GetinRoomLogOp.Insert(getInLog)
-	if err != nil {
-		log.Error("添加进入房间信息到数据库失败：%s", err.Error())
-	}
+	getinRoom := dataLog.GetinRoomLog{}
+	getinRoom.AddGetinRoomLogInfo(info.RoomId, u.Id, info.KindId, info.ServiceId, info.RoomName, info.NodeId, info.Num, info.Status, info.MaxPlayerCnt, info.PayType, info.Public)
 
 	return 0
 }

@@ -5,7 +5,7 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/db/model"
-	"mj/hallServer/db/model/stats"
+	recommenLog "mj/hallServer/log"
 	"mj/hallServer/user"
 	"time"
 )
@@ -31,13 +31,8 @@ func (m *UserModule) SetElect(args []interface{}) {
 		UserId:    recvMsg.ElectUid,
 		SpreadUid: player.Id,
 	})
-	now := time.Now()
-
-	stats.RecommendLogOp.Insert(&stats.RecommendLog{
-		SubElectUid: player.Id,
-		ElectUid:    recvMsg.ElectUid,
-		ElectTime:   &now,
-	})
+	recommen := recommenLog.RecommendLog{}
+	recommen.AddRecommendLog(player.Id, recvMsg.ElectUid)
 
 }
 
