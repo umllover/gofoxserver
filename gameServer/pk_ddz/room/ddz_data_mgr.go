@@ -38,6 +38,7 @@ type ddz_data_mgr struct {
 
 	BankerUser int // 地主
 	TurnWiner  int // 出牌玩家
+	WinnerUser int // 上一个赢的玩家
 
 	EightKing bool // 是否八王模式
 	GameType  int  // 游戏类型
@@ -311,6 +312,11 @@ func (room *ddz_data_mgr) SendGameStart() {
 	// 初始化叫分信息
 	for i := 0; i < room.PlayerCount; i++ {
 		room.ScoreInfo[i] = CALLSCORE_NOCALL
+	}
+
+	// 取上一次赢的玩家
+	if len(room.RecordInfo) > 0 {
+		room.CurrentUser = room.WinnerUser
 	}
 
 	// 初始化牌
@@ -597,6 +603,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 
 	if len(r.HandCardData[u.ChairId]) == 0 {
 		log.Debug("游戏结束")
+		r.WinnerUser = u.ChairId
 		r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
 		return
 	}
@@ -677,6 +684,9 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 // 游戏正常结束
 func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	log.Debug("游戏正常结束了")
+	if cbReason == 2 {
+		r.WinnerUser = cost.INVALID_CHAIR
+	}
 	r.GameStatus = GAME_STATUS_FREE
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
@@ -770,6 +780,7 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 
 //解散房间结束
 func (r *ddz_data_mgr) DismissEnd(cbReason int) {
+	r.WinnerUser = cost.INVALID_CHAIR
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
 	DataGameConclude.GameScore = make([]int, r.PlayerCount)
