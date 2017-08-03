@@ -1237,7 +1237,7 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 			case IDX_SUB_SCORE_WDD:
 				winScore[k] = 8
 			case IDX_SUB_SCORE_MQBL:
-				winScore[k] = 12
+				winScore[k] = 0
 			case IDX_SUB_SCORE_SANAK:
 				winScore[k] = 8
 			case IDX_SUB_SCORE_SIAK:
