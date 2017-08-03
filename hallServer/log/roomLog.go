@@ -50,7 +50,7 @@ func (roomLog *RoomLog) GetRoomLogRecode(roomId, kindId, serverId int) (roomReco
 
 //更新创建房间记录
 func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
-	if recodeId >= 0 {
+	if recodeId <= 0 {
 		Error("没有这条记录存在")
 		return
 	}
