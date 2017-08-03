@@ -516,7 +516,7 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 							}
 						}
 						if nTempMagicCount >= 0 {
-							KindItem = lg.AddKindItem(KindItem,[]int{i, tempArray[0],tempArray[1],tempArray[2]}, cbMagicIndex, tempCount, WIK_LEFT)
+							KindItem = lg.AddKindItem(KindItem, []int{i, tempArray[0], tempArray[1], tempArray[2]}, cbMagicIndex, tempCount, WIK_LEFT)
 							cbKindItemCount++
 						} else {
 							break
@@ -640,7 +640,6 @@ func (lg *BaseLogic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) 
 //
 func (lg *BaseLogic) AddKindItem(KindItem []*TagKindItem, Index []int, MagicIndex int, count int, opCode int) []*TagKindItem {
 	tg := &TagKindItem{CardIndex: make([]int, 4)}
-
 	switch opCode {
 	case WIK_PENG:
 		tg.CenterCard = Index[0]
@@ -654,7 +653,6 @@ func (lg *BaseLogic) AddKindItem(KindItem []*TagKindItem, Index []int, MagicInde
 		tg.IsAnalyseGet = true
 		tg.WeaveKind = WIK_PENG
 	case WIK_LEFT:
-		tg := &TagKindItem{CardIndex: make([]int, 4)}
 		tg.CenterCard = Index[0]
 		tg.CardIndex[0] = Index[1]
 		tg.CardIndex[1] = Index[2]
@@ -663,7 +661,6 @@ func (lg *BaseLogic) AddKindItem(KindItem []*TagKindItem, Index []int, MagicInde
 		tg.WeaveKind = WIK_LEFT
 		tg.MagicCount = count
 	}
-
 	return append(KindItem, tg)
 }
 
