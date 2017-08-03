@@ -154,7 +154,7 @@ func (room *ZP_RoomData) StartGameing() {
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
 			log.Debug("超时插花")
 			for i := 0; i < 4; i++ {
 				_, ok := room.ChaHuaMap[i]
@@ -598,13 +598,13 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 		return true
 	}
 
-	if room.GangStatus != WIK_GANERAL {
-		room.GangOutCard = true
-		room.GangStatus = WIK_GANERAL
-		room.ProvideGangUser = INVALID_CHAIR
-	} else {
-		room.GangOutCard = false
-	}
+	//if room.GangStatus != WIK_GANERAL {
+	//	room.GangOutCard = true
+	//	room.GangStatus = WIK_GANERAL
+	//	room.ProvideGangUser = INVALID_CHAIR
+	//} else {
+	//	room.GangOutCard = false
+	//}
 	return false
 }
 
@@ -1615,6 +1615,7 @@ func (room *ZP_RoomData) CallGangScore() {
 	lcell := room.Source
 	//暗杠得分
 	if room.GangStatus == WIK_AN_GANG {
+		log.Debug("@@@@@@@@@@@@@@@ 暗杠得分")
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			if u.Status != US_PLAYING {
 				return
@@ -1622,6 +1623,7 @@ func (room *ZP_RoomData) CallGangScore() {
 			if u.ChairId != room.CurrentUser {
 				room.UserGangScore[u.ChairId] -= lcell
 				room.UserGangScore[room.CurrentUser] += lcell
+				log.Debug("@@@@@@@@@@@@@@@ 暗杠:%v", room.UserGangScore)
 			}
 		})
 	}
@@ -1668,6 +1670,7 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
 }
 
+//暗杠
 func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
 	room.SendStatus = Gang_Send
 	//变量定义
@@ -1911,6 +1914,8 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	if bTail { //从尾部取牌，说明玩家杠牌了,计算分数
 		room.CallGangScore()
+		room.GangStatus = WIK_GANERAL
+		room.ProvideGangUser = INVALID_CHAIR
 	}
 
 	//加牌
