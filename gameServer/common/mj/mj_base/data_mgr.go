@@ -483,6 +483,7 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 		if room.CardIndex[u.ChairId][cbCardIndex] != 4 {
 			return 0
 		}
+		cbGangKind = WIK_AN_GANG
 
 		cbWeave = &msg.WeaveItem{}
 		cbWeave.Param = WIK_AN_GANG

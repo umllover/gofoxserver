@@ -450,6 +450,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//
+	//for k := range room.RepertoryCard {
+	//	room.RepertoryCard[k] = 0x01
+	//}
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1615,7 +1619,6 @@ func (room *ZP_RoomData) CallGangScore() {
 	lcell := room.Source
 	//暗杠得分
 	if room.GangStatus == WIK_AN_GANG {
-		log.Debug("@@@@@@@@@@@@@@@ 暗杠得分")
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			if u.Status != US_PLAYING {
 				return
@@ -1623,7 +1626,6 @@ func (room *ZP_RoomData) CallGangScore() {
 			if u.ChairId != room.CurrentUser {
 				room.UserGangScore[u.ChairId] -= lcell
 				room.UserGangScore[room.CurrentUser] += lcell
-				log.Debug("@@@@@@@@@@@@@@@ 暗杠:%v", room.UserGangScore)
 			}
 		})
 	}
@@ -1708,6 +1710,7 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 		if room.CardIndex[u.ChairId][cbCardIndex] != 4 {
 			return 0
 		}
+		cbGangKind = WIK_AN_GANG
 
 		Wrave := &msg.WeaveItem{}
 		Wrave.Param = WIK_AN_GANG
