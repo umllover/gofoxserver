@@ -59,7 +59,7 @@ func (room *xs_data) InitRoom(UserCnt int) {
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
 	room.MinusLastCount = 0
-	room.MinusHeadCount = 0
+	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
 
 	//设置xs麻将牌数据
