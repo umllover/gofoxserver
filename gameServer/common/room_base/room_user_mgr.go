@@ -13,14 +13,14 @@ import (
 	"time"
 
 	"github.com/lovelly/leaf/log"
-	"mj/gameServer/center"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
+func NewRoomUserMgr(info *msg.L2G_CreatorRoom, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
-	r.id = info.RoomId
+	r.id = info.RoomID
 	r.PayType = info.PayType
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
@@ -130,7 +130,7 @@ func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 	return nil, -1
 }
 
-func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
+func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	if chairId == INVALID_CHAIR {
 		chairId = r.GetChairId()
 	}
@@ -159,10 +159,12 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 		RoomId: r.id,
 		OpName: "AddPlayerId",
 		Data: map[string]interface{}{
-			"UID":     u.Id,
-			"Name":    u.NickName,
-			"HeadUrl": u.HeadImgUrl,
-			"Icon":    u.IconID,
+			"UID":          u.Id,
+			"Name":         u.NickName,
+			"HeadUrl":      u.HeadImgUrl,
+			"Icon":         u.IconID,
+			"HallNodeName": u.HallNodeName,
+			"Status":       status,
 		},
 	})
 
@@ -324,7 +326,7 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 }
 
 //坐下
-func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
+func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
@@ -339,7 +341,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	room.EnterRoom(ChairID, u)
+	room.EnterRoom(ChairID, u, status)
 
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
@@ -512,7 +514,7 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 		return
 	}
 
-	center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+	cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 }
 
 func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
@@ -520,6 +522,6 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		if u == nil {
 			continue
 		}
-		center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+		cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 	}
 }

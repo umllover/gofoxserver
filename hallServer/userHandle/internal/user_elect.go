@@ -7,7 +7,6 @@ import (
 	"mj/hallServer/db/model"
 	recommenLog "mj/hallServer/log"
 	"mj/hallServer/user"
-	"time"
 )
 
 //填写推荐人信息

@@ -7,7 +7,6 @@ import (
 	"mj/common/msg"
 	"mj/common/register"
 	"mj/common/utils"
-	"mj/hallServer/center"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
+	cluster "github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -377,7 +377,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.CreateTime = time.Now().Unix()
 	roomInfo.CreateUserId = player.Id
 	roomInfo.IsPublic = recvMsg.Public
-	roomInfo.MachPlayer = make(map[int64]struct{})
+	roomInfo.MachPlayer = make(map[int64]int64)
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
@@ -731,7 +731,7 @@ func (m *UserModule) leaveRoom(args []interface{}) {
 }
 
 func (m *UserModule) joinRoom(args []interface{}) {
-room := args[0].(*msg.RoomInfo)
+	room := args[0].(*msg.RoomInfo)
 	u := m.a.UserData().(*user.User)
 	log.Debug("at hall server joinRoom uid:%v", u.Id)
 	u.KindID = room.KindID
@@ -794,7 +794,7 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 		return
 	}
 
-	center.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
+	cluster.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
 		if err != nil {
 			player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrRoomIsStart})
 		} else {
@@ -891,7 +891,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	}
 	room.PayCnt *= 2
 	room.RenewalCnt++
-	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
+	cluster.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
 }
 
 func (m *UserModule) RenewalFeeFaild(args []interface{}) {
