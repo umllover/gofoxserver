@@ -43,12 +43,17 @@ func (roomLog *RoomLog) GetRoomLogRecode(roomId, kindId, serverId int) (roomReco
 	logData, err := stats.RoomLogOp.GetByMap(logInfo)
 	if err != nil {
 		Error("Select Data from recode Error:%v", err.Error())
+		return nil
 	}
 	return logData
 }
 
 //更新创建房间记录
 func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
+	if recodeId >= 0 {
+		Error("没有这条记录存在")
+		return
+	}
 	myLogInfo := make(map[string]interface{})
 	myLogInfo["end_time"] = &time
 	myLogInfo["end_type"] = code

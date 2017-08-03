@@ -6,6 +6,7 @@ import (
 	"time"
 
 	. "github.com/lovelly/leaf/log"
+	"github.com/name5566/leaf/log"
 )
 
 type RoomLog struct{}
@@ -43,12 +44,17 @@ func (roomLog *RoomLog) GetRoomLogRecode(roomId, kindId, serverId int) (roomReco
 	logData, err := stats.RoomLogOp.GetByMap(logInfo)
 	if err != nil {
 		Error("Select Data from recode Error:%v", err.Error())
+		return nil
 	}
 	return logData
 }
 
 //游戏结束记录类型
 func (RoomLog *RoomLog) UpdateGameLogRecode(recodeId int, code int) {
+	if recodeId >= 0 {
+		log.Error("没有这条记录存在")
+		return
+	}
 	myLogInfo := make(map[string]interface{})
 	myLogInfo["game_end_type"] = code
 	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
@@ -59,6 +65,10 @@ func (RoomLog *RoomLog) UpdateGameLogRecode(recodeId int, code int) {
 
 //更新解散房间记录类型
 func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
+	if recodeId >= 0 {
+		log.Error("没有这条记录存在")
+		return
+	}
 	myLogInfo := make(map[string]interface{})
 	myLogInfo["end_time"] = &time
 	myLogInfo["room_end_type"] = code
@@ -70,6 +80,10 @@ func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code i
 
 //更新是否为他人创建房间
 func (RoomLog *RoomLog) UpdateRoomLogForOthers(recodeId int, code int) {
+	if recodeId >= 0 {
+		log.Error("没有这条记录存在")
+		return
+	}
 	myLogInfo := make(map[string]interface{})
 	myLogInfo["create_others"] = code
 	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
