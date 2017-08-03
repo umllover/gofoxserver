@@ -421,7 +421,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
-	room.LeaveRoom(u, 1)
+	//room.LeaveRoom(u, 1)
 	return true
 }
 
