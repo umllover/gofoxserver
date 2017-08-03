@@ -120,7 +120,6 @@ func (room *RoomTimerMgr) StopOfflineTimer(uid int64) {
 //请求离开超时
 func (room *RoomTimerMgr) StartReplytIimer(uid int64, cb func()) {
 	ReqLeaveTimer := common.GetGlobalVarInt(LeaveRoomTimer)
-	ReqLeaveTimer = 3
 	if ReqLeaveTimer != 0 {
 		log.Debug("StartKickoutTimer : %d ", ReqLeaveTimer)
 		room.LeaveTimer[uid] = room.Skeleton.AfterFunc(time.Duration(ReqLeaveTimer)*time.Second, cb)
