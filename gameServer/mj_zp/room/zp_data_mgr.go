@@ -1355,7 +1355,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 						playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
 						room.SumScore[room.BankerUser] += room.LianZhuang * score
 					} else { // 边W
-						playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang * score
+						playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
 						room.SumScore[room.ProvideUser] += room.LianZhuang * score
 						room.SumScore[room.BankerUser] -= room.LianZhuang * score
 					}
@@ -1378,7 +1378,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[index], room.SumScore[i])
 
 				//抓花分
-				playerScore[IDX_SUB_SCORE_ZH] = room.ZhuaHuaScore[i] * score
+				playerScore[IDX_SUB_SCORE_ZH] += room.ZhuaHuaScore[i] * score
 				room.SumScore[index] -= room.ZhuaHuaScore[i] * score
 				room.SumScore[i] += room.ZhuaHuaScore[i] * score
 				log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
