@@ -25,8 +25,6 @@ import (
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-
-	dbg "github.com/funny/debug"
 )
 
 var (
@@ -43,40 +41,40 @@ func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
 }
 
-//func TestShowCard(t *testing.T) {
-//	log.Debug("测试摊牌")
-//	data := &pk_sss_msg.C2G_SSS_Open_Card{
-//		FrontCard:   []int{0x01, 0x12, 0x24},
-//		MidCard:     []int{0x21, 0x05, 0x15, 0x13, 0x08},
-//		BackCard:    []int{0x02, 0x32, 0x22, 0x19, 0x04},
-//		SpecialType: false,
-//		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
-//		Dragon:      false,
-//	}
-//	args := []interface{}{data, u2}
-//	room.ShowSSsCard(args)
-//	log.Debug("测试摊牌结束")
-//}
-//
-//func TestShowCard_1(t *testing.T) {
-//	log.Debug("测试摊牌")
-//	data := &pk_sss_msg.C2G_SSS_Open_Card{
-//		FrontCard:   []int{0x01, 0x02, 0x04},
-//		MidCard:     []int{0x15, 0x25, 0x13, 0x14, 0x16},
-//		BackCard:    []int{0x34, 0x14, 0x11, 0x21, 0x3D},
-//		SpecialType: false,
-//		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
-//		Dragon:      false,
-//	}
-//	args := []interface{}{data, u1}
-//	room.ShowSSsCard(args)
-//	log.Debug("测试摊牌结束")
-//}
+func TestShowCard(t *testing.T) {
+	log.Debug("测试摊牌")
+	data := &pk_sss_msg.C2G_SSS_Open_Card{
+		FrontCard:   []int{0x01, 0x12, 0x24},
+		MidCard:     []int{0x21, 0x05, 0x15, 0x13, 0x08},
+		BackCard:    []int{0x02, 0x32, 0x22, 0x19, 0x04},
+		SpecialType: false,
+		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+		Dragon:      false,
+	}
+	args := []interface{}{data, u2}
+	room.ShowSSsCard(args)
+	log.Debug("测试摊牌结束")
+}
+
+func TestShowCard_1(t *testing.T) {
+	log.Debug("测试摊牌")
+	data := &pk_sss_msg.C2G_SSS_Open_Card{
+		FrontCard:   []int{0x01, 0x02, 0x04},
+		MidCard:     []int{0x15, 0x25, 0x13, 0x14, 0x16},
+		BackCard:    []int{0x34, 0x14, 0x11, 0x21, 0x3D},
+		SpecialType: false,
+		SpecialData: []int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+		Dragon:      false,
+	}
+	args := []interface{}{data, u1}
+	room.ShowSSsCard(args)
+	log.Debug("测试摊牌结束")
+}
 
 func TestShowCard_Special(t *testing.T) {
 	//log.Debug("测试摊牌_特殊牌")
-	//data := &pk_sss_msg.C2G_SSS_Open_Card{}
-	//args := []interface{}{}
+	data := &pk_sss_msg.C2G_SSS_Open_Card{}
+	args := []interface{}{}
 	//至尊清龙
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x31, 0x32, 0x33},
@@ -111,16 +109,16 @@ func TestShowCard_Special(t *testing.T) {
 	//args = []interface{}{data, u1}
 	//room.ShowSSsCard(args)
 	//三同花顺
-	//data = &pk_sss_msg.C2G_SSS_Open_Card{
-	//	FrontCard:   []int{0x01, 0x02, 0x03},
-	//	MidCard:     []int{0x13, 0x14, 0x15, 0x16, 0x17},
-	//	BackCard:    []int{0x27, 0x28, 0x29, 0x2A, 0x2B},
-	//	SpecialType: true,
-	//	SpecialData: []int{0x01, 0x02, 0x03, 0x13, 0x14, 0x15, 0x16, 0x17, 0x27, 0x28, 0x29, 0x2A, 0x2B},
-	//	Dragon:      false,
-	//}
-	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	data = &pk_sss_msg.C2G_SSS_Open_Card{
+		FrontCard:   []int{0x01, 0x02, 0x03},
+		MidCard:     []int{0x13, 0x14, 0x15, 0x16, 0x17},
+		BackCard:    []int{0x27, 0x28, 0x29, 0x2A, 0x2B},
+		SpecialType: true,
+		SpecialData: []int{0x01, 0x02, 0x03, 0x13, 0x14, 0x15, 0x16, 0x17, 0x27, 0x28, 0x29, 0x2A, 0x2B},
+		Dragon:      false,
+	}
+	args = []interface{}{data, u1}
+	room.ShowSSsCard(args)
 	//三分天下
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x11, 0x21},
@@ -225,34 +223,34 @@ func TestShowCard_Special(t *testing.T) {
 
 }
 
-func TestAll(t *testing.T) {
-	var data *pk_sss_msg.C2G_SSS_Open_Card
-	data = &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{0x02, 0x13, 0x24},
-		MidCard:     []int{0x24, 0x15, 0x26, 0x37, 0x18},
-		BackCard:    []int{0x07, 0x18, 0x19, 0x2A, 0x3B},
-		SpecialType: true,
-		SpecialData: []int{0x02, 0x13, 0x24, 0x24, 0x15, 0x26, 0x37, 0x18, 0x07, 0x18, 0x19, 0x2A, 0x3B},
-		Dragon:      false,
-	}
-	setCard(dataMgr, u1, data, true, false)
-
-	data = &pk_sss_msg.C2G_SSS_Open_Card{
-		FrontCard:   []int{0x01, 0x11, 0x02},
-		MidCard:     []int{0x12, 0x03, 0x13, 0x04, 0x14},
-		BackCard:    []int{0x05, 0x15, 0x06, 0x16, 0x17},
-		SpecialType: true,
-		SpecialData: []int{0x01, 0x11, 0x02, 0x12, 0x03, 0x13, 0x04, 0x14, 0x05, 0x15, 0x06, 0x16, 0x17},
-		Dragon:      false,
-	}
-	setCard(dataMgr, u2, data, true, false)
-
-	dataMgr.ComputeChOut()
-	dataMgr.ComputeResult()
-
-	dbg.Print(dataMgr)
-
-}
+//func TestAll(t *testing.T) {
+//	var data *pk_sss_msg.C2G_SSS_Open_Card
+//	data = &pk_sss_msg.C2G_SSS_Open_Card{
+//		FrontCard:   []int{0x02, 0x13, 0x24},
+//		MidCard:     []int{0x24, 0x15, 0x26, 0x37, 0x18},
+//		BackCard:    []int{0x07, 0x18, 0x19, 0x2A, 0x3B},
+//		SpecialType: true,
+//		SpecialData: []int{0x02, 0x13, 0x24, 0x24, 0x15, 0x26, 0x37, 0x18, 0x07, 0x18, 0x19, 0x2A, 0x3B},
+//		Dragon:      false,
+//	}
+//	setCard(dataMgr, u1, data, true, false)
+//
+//	data = &pk_sss_msg.C2G_SSS_Open_Card{
+//		FrontCard:   []int{0x01, 0x11, 0x02},
+//		MidCard:     []int{0x12, 0x03, 0x13, 0x04, 0x14},
+//		BackCard:    []int{0x05, 0x15, 0x06, 0x16, 0x17},
+//		SpecialType: true,
+//		SpecialData: []int{0x01, 0x11, 0x02, 0x12, 0x03, 0x13, 0x04, 0x14, 0x05, 0x15, 0x06, 0x16, 0x17},
+//		Dragon:      false,
+//	}
+//	setCard(dataMgr, u2, data, true, false)
+//
+//	dataMgr.ComputeChOut()
+//	dataMgr.ComputeResult()
+//
+//	dbg.Print(dataMgr)
+//
+//}
 
 func setCard(dataMgr *sss_data_mgr, u *user.User, data *pk_sss_msg.C2G_SSS_Open_Card, isSpecial bool, isDragon bool) {
 	dataMgr.SpecialTypeTable[u] = isSpecial
