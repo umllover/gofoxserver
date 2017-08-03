@@ -3,7 +3,6 @@ package room
 import (
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_xs_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
@@ -185,9 +184,10 @@ func (room *xs_data) EstimateUserRespond(wCenterUser int, cbCenterCard int, Esti
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 			if room.UserAction[u.ChairId] != WIK_NULL {
-				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+				u.WriteMsg(&mj_xs_msg.G2C_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
 					ActionCard: room.ProvideCard,
+					ResumeUser: room.ResumeUser,
 				})
 			}
 		})
