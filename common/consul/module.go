@@ -39,3 +39,7 @@ func (m *ConsulModule) OnDestroy() {
 	deregDeregister()
 	log.Debug("at consul model OnDestroy")
 }
+
+func Deregister() {
+	deregDeregister()
+}
