@@ -720,13 +720,13 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		return true
 	}
 
-	if room.GangStatus != WIK_GANERAL {
-		room.GangOutCard = true
-		room.GangStatus = WIK_GANERAL
-		room.ProvideGangUser = INVALID_CHAIR
-	} else {
-		room.GangOutCard = false
-	}
+	//if room.GangStatus != WIK_GANERAL {
+	//	room.GangOutCard = true
+	//	room.GangStatus = WIK_GANERAL
+	//	room.ProvideGangUser = INVALID_CHAIR
+	//} else {
+	//	room.GangOutCard = false
+	//}
 
 	return false
 }
@@ -778,6 +778,8 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	if bTail { //从尾部取牌，说明玩家杠牌了,计算分数
 		room.CallGangScore()
+		room.GangStatus = WIK_GANERAL
+		room.ProvideGangUser = INVALID_CHAIR
 	}
 
 	//加牌
@@ -1658,15 +1660,33 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //字牌刻字
-func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) (int, bool) {
 
+	type1Cnt := 0
+	type2Cnt := 0
 	for k, v := range pAnalyseItem.CenterCard {
 		cardColor := v >> 4
 		if cardColor == 3 && pAnalyseItem.WeaveKind[k] == WIK_PENG {
-			return CHR_ZI_KE_PAI
+			cardColor := pAnalyseItem.CenterCard[k] >> 4
+			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
+			if cardColor == 3 {
+				if cardValue > 4 {
+					type1Cnt++
+				} else {
+					type2Cnt++
+				}
+			}
 		}
 	}
-	return 0
+
+	if type1Cnt > 0 || type2Cnt > 0 {
+		if type1Cnt > type2Cnt {
+			return CHR_ZI_KE_PAI + type1Cnt, true
+		} else {
+			return CHR_ZI_KE_PAI + type2Cnt, false
+		}
+	}
+	return 0, false
 }
 
 //花杠
@@ -1888,6 +1908,8 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
+		log.Debug("================= pAnalyseItem.WeaveKind:%d", pAnalyseItem.WeaveKind)
+		log.Debug("================= pAnalyseItem.IsAnalyseGet:%d", pAnalyseItem.IsAnalyseGet[k])
 		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
@@ -1951,17 +1973,27 @@ func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4
 
 //字牌杠
 func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
+	type1Cnt := 0
+	type2Cnt := 0
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v == WIK_GANG && pAnalyseItem.Param[k] == WIK_MING_GANG {
 			cardColor := pAnalyseItem.CenterCard[k] >> 4
 			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
 			if cardColor == 3 {
 				if cardValue > 4 {
-					return CHR_ZI_PAI_GANG, true
+					type1Cnt++
 				} else {
-					return CHR_ZI_PAI_GANG, false
+					type2Cnt++
 				}
 			}
+		}
+	}
+
+	if type1Cnt > 0 || type2Cnt > 0 {
+		if type1Cnt > type2Cnt {
+			return CHR_ZI_PAI_GANG + type1Cnt, true
+		} else {
+			return CHR_ZI_PAI_GANG + type2Cnt, false
 		}
 	}
 	return 0, false
