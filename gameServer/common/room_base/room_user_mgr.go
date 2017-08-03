@@ -7,20 +7,20 @@ import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/db/model/stats"
 	"mj/gameServer/user"
 
+	dataLog "mj/gameServer/log"
 	"time"
 
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
+	"mj/gameServer/center"
 )
 
-func NewRoomUserMgr(info *msg.L2G_CreatorRoom, Temp *base.GameServiceOption) *RoomUserMgr {
+func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
-	r.id = info.RoomID
+	r.id = info.RoomId
 	r.PayType = info.PayType
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
@@ -130,7 +130,7 @@ func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 	return nil, -1
 }
 
-func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
+func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	if chairId == INVALID_CHAIR {
 		chairId = r.GetChairId()
 	}
@@ -159,12 +159,10 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 		RoomId: r.id,
 		OpName: "AddPlayerId",
 		Data: map[string]interface{}{
-			"UID":          u.Id,
-			"Name":         u.NickName,
-			"HeadUrl":      u.HeadImgUrl,
-			"Icon":         u.IconID,
-			"HallNodeName": u.HallNodeName,
-			"Status":       status,
+			"UID":     u.Id,
+			"Name":    u.NickName,
+			"HeadUrl": u.HeadImgUrl,
+			"Icon":    u.IconID,
 		},
 	})
 
@@ -235,9 +233,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 		RoomId: r.id,
 		OpName: "DelPlayerId",
 		Data: map[string]interface{}{
-			"Status":       status,
-			"UID":          u.Id,
-			"HallNodeName": u.HallNodeName,
+			"Status": status,
+			"UID":    u.Id,
 		},
 	})
 	log.Debug("%v user leave room,  left %v count", u.Id, r.GetCurPlayerCnt())
@@ -327,7 +324,7 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 }
 
 //坐下
-func (room *RoomUserMgr) Sit(u *user.User, ChairID, status int) int {
+func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
@@ -342,7 +339,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID, status int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	room.EnterRoom(ChairID, u, status)
+	room.EnterRoom(ChairID, u)
 
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
@@ -360,28 +357,9 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID, status int) int {
 	}
 
 	//搜集进入房间费信息
-	getInLog := &stats.GetinRoomLog{}
-	log.Debug("info ======= %v", info)
-	if info.Public == 1 {
-		getInLog.Public = 1
-	}
-	getInLog.RoomId = info.RoomId
-	getInLog.UserId = u.Id
-	getInLog.KindId = info.KindId
-	getInLog.ServiceId = info.ServiceId
-	getInLog.RoomName = info.RoomName
-	getInLog.NodeId = info.NodeId
-	getInLog.Num = info.Num
-	getInLog.Status = info.Status
-	getInLog.MaxPlayerCnt = info.MaxPlayerCnt
-	getInLog.PayType = info.PayType
-	now := time.Now()
-	getInLog.GetInTime = &now
 
-	_, err = stats.GetinRoomLogOp.Insert(getInLog)
-	if err != nil {
-		log.Error("添加进入房间信息到数据库失败：%s", err.Error())
-	}
+	getinRoom := dataLog.GetinRoomLog{}
+	getinRoom.AddGetinRoomLogInfo(info.RoomId, u.Id, info.KindId, info.ServiceId, info.RoomName, info.NodeId, info.Num, info.Status, info.MaxPlayerCnt, info.PayType, info.Public)
 
 	return 0
 }
@@ -534,7 +512,7 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 		return
 	}
 
-	cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
+	center.SendDataToHallUser(u.HallNodeName, u.Id, data)
 }
 
 func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
@@ -542,6 +520,6 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		if u == nil {
 			continue
 		}
-		cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
+		center.SendDataToHallUser(u.HallNodeName, u.Id, data)
 	}
 }

@@ -6,6 +6,8 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
+	"mj/common/utils"
+	"mj/hallServer/center"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
@@ -16,13 +18,10 @@ import (
 	"mj/hallServer/user"
 	"time"
 
-	"mj/common/utils"
-
-	"mj/hallServer/db/model/stats"
+	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -37,16 +36,11 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("matchResult", m.matchResult)
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
-	reg.RegisterRpc("GameStart", m.GameStart)
-	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
-	reg.RegisterRpc("JoinRoomFaild", m.JoinRoomFaild)
-
 	reg.RegisterRpc("Recharge", m.Recharge)
 	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
-
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -105,7 +99,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	defer func() {
 		if retcode != 0 {
-			m.Close(ServerKick)
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
@@ -325,49 +318,20 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	}
 
 	//检测是否有限时免费
-	if !player.CheckFree() {
-		money := feeTemp.TableFee
-		if recvMsg.PayType == AA_PAY_TYPE {
-			money = feeTemp.TableFee / template.MaxPlayer
-		}
-		if !player.SubCurrency(money) {
-			retCode = NotEnoughFee
-			return
-		}
+	//if !player.CheckFree() {
+	money := feeTemp.TableFee
+	if recvMsg.PayType == AA_PAY_TYPE {
+		money = feeTemp.TableFee / template.MaxPlayer
 	}
+	if !player.EnoughCurrency(money) {
+		retCode = NotEnoughFee
+		return
+	}
+	//}
 
 	//搜集创建房间数据
-	logInfo := &stats.RoomLog{}
-	logInfo.UserId = player.Id
-	logInfo.PayType = recvMsg.PayType
-	logInfo.RoomId = rid
-	logInfo.RoomName = recvMsg.RoomName
-	logInfo.NodeId = nodeId
-	logInfo.KindId = recvMsg.Kind
-	logInfo.ServiceId = recvMsg.ServerId
-	logNow := time.Now()
-	logInfo.CreateTime = &logNow
-	if retCode == 0 {
-		logInfo.NomalOpen = 1
-	} else {
-		logInfo.NomalOpen = 0
-	}
-	logInfo.CreateOthers = 1
-	player.AddCreateRoomLog(logInfo)
-
-	_, err := cluster.Call1GameSvr(nodeId, &msg.L2G_CreatorRoom{
-		CreatorUid:   player.Id,
-		PayType:      recvMsg.PayType,
-		MaxPlayerCnt: template.MaxPlayer,
-		RoomID:       rid,
-		PlayCnt:      recvMsg.DrawCountLimit,
-		KindId:       recvMsg.Kind,
-		ServiceId:    recvMsg.ServerId,
-		OtherInfo:    recvMsg.OtherInfo,
-	})
-	if err != nil {
-		retCode = ErrCreaterError
-	}
+	data := &datalog.RoomLog{}
+	data.AddCreateRoomLog(rid, player.UserId, recvMsg.RoomName, recvMsg.Kind, recvMsg.ServerId, nodeId, recvMsg.PayType, retCode)
 
 	//记录创建房间信息
 	info := &model.CreateRoomInfo{}
@@ -412,7 +376,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.CreateTime = time.Now().Unix()
 	roomInfo.CreateUserId = player.Id
 	roomInfo.IsPublic = recvMsg.Public
-	roomInfo.MachPlayer = make(map[int64]int64)
+	roomInfo.MachPlayer = make(map[int64]struct{})
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
@@ -471,16 +435,9 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	//非限时免费 并且 不是全付方式 并且 钱大于零
 	if !player.CheckFree() && money > 0 {
-		if roomInfo.CreateUserId != player.Id && roomInfo.PayType == AA_PAY_TYPE {
-			if !player.SubCurrency(money) {
+		if (roomInfo.PayType == SELF_PAY_TYPE && roomInfo.CreateUserId == player.Id) || roomInfo.PayType == AA_PAY_TYPE {
+			if !player.SubCurrency(money, roomInfo.PayType) {
 				retcode = NotEnoughFee
-				now := time.Now()
-				stats.ConsumLogOp.Insert(&stats.ConsumLog{
-					UserId:     player.Id,
-					ConsumType: 1,
-					ConsumNum:  money,
-					ConsumTime: &now,
-				})
 				return
 			}
 		}
@@ -493,7 +450,6 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		record.Amount = money
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = template.KindID
-		record.PlayCnt = roomInfo.PayCnt
 		if !player.AddRecord(record) {
 			retcode = ErrServerError
 			player.AddCurrency(money)
@@ -564,21 +520,6 @@ func loadUser(u *user.User) bool {
 		model.GamescorelockerOp.Insert(glInfo)
 	}
 	u.Gamescorelocker = glInfo
-	if u.Gamescorelocker.EnterIP != "" {
-		log.Debug("check room ...............  ")
-		_, have := game_list.ChanRPC.Call1("HaseRoom", u.Roomid)
-		if have == nil {
-			log.Debug("check room  login room is close ...............  ")
-			u.DelGameLockInfo()
-		}
-	}
-
-	giInfom, giok := model.GamescoreinfoOp.Get(u.Id)
-	if !giok {
-		log.Error("at loadUser not foud GamescoreinfoOp by user  %d", u.Id)
-		return false
-	}
-	u.Gamescoreinfo = giInfom
 
 	ucInfo, uok := model.UserattrOp.Get(u.Id)
 	if !uok {
@@ -626,7 +567,7 @@ func loadUser(u *user.User) bool {
 	for _, v := range tokenRecords {
 		temp, ok := base.GameServiceOptionCache.Get(v.KindID, v.ServerId)
 		if ok {
-			if v.CreatorTime.Unix()+int64(temp.TimeNotBeginGame+30) < now && v.Status == 0 { //没开始返回钱
+			if v.CreatorTime.Unix()+int64(temp.TimeNotBeginGame) < now && v.Status == 0 { //没开始返回钱
 				if u.AddCurrency(v.Amount) {
 					model.TokenRecordOp.Delete(v.RoomId, v.UserId)
 				}
@@ -792,69 +733,19 @@ func (m *UserModule) matchResult(args []interface{}) {
 
 }
 
-//玩家离开游戏服房间
 func (m *UserModule) leaveRoom(args []interface{}) {
-	log.Debug("at leaveRoom ================= ")
-	msg := args[0].(*msg.LeaveRoom)
-	player := m.a.UserData().(*user.User)
-	log.Debug("at hall server leaveRoom uid:%v", player.Id)
-	record := player.GetRecord(msg.RoomId)
-	if record != nil {
-		player.DelRecord(record.RoomId)
-		if msg.Status == 0 { // 没开始离开房间 还原扣的钱
-			player.AddCurrency(record.Amount)
-		}
-	} else {
-		log.Error("at restoreToken not foud record uid:%d", player.Id)
-	}
+	u := m.a.UserData().(*user.User)
+	log.Debug("at hall server leaveRoom uid:%v", u.Id)
 }
 
-//玩家进入了游戏房间
 func (m *UserModule) joinRoom(args []interface{}) {
-	log.Debug("at joinRoom ================= ")
-	msg := args[0].(*msg.JoinRoom)
+room := args[0].(*msg.RoomInfo)
 	u := m.a.UserData().(*user.User)
 	log.Debug("at hall server joinRoom uid:%v", u.Id)
-	u.KindID = msg.Rinfo.KindID
-	u.ServerID = msg.Rinfo.ServerID
-	u.GameNodeID = msg.Rinfo.NodeID
-	u.EnterIP = msg.Rinfo.SvrHost
-}
-
-//进入房间失败
-func (m *UserModule) JoinRoomFaild(args []interface{}) {
-	log.Debug("at JoinRoomFaild ================= ")
-	msg := args[0].(*msg.JoinRoomFaild)
-	player := m.a.UserData().(*user.User)
-	record := player.GetRecord(msg.RoomID)
-	if record != nil {
-		player.DelRecord(msg.RoomID)
-		player.AddCurrency(record.Amount)
-	} else {
-		log.Error("at JoinRoomFaild not foudn record")
-	}
-}
-
-//游戏开始了
-func (m *UserModule) GameStart(args []interface{}) {
-	log.Debug("at GameStart ================= ")
-	msg := args[0].(*msg.StartRoom)
-	player := m.a.UserData().(*user.User)
-	record := player.GetRecord(msg.RoomId)
-	if record != nil {
-		record.Status = 1
-		model.TokenRecordOp.UpdateWithMap(record.RoomId, record.UserId, map[string]interface{}{
-			"status": record.Status,
-		})
-	}
-}
-
-/// 游戏结束了
-func (m *UserModule) RoomEndInfo(args []interface{}) {
-	log.Debug("at RoomEndInfo ================= ")
-	msg := args[0].(*msg.RoomEndInfo)
-	player := m.a.UserData().(*user.User)
-	player.DelRecord(msg.RoomId)
+	u.KindID = room.KindID
+	u.ServerID = room.ServerID
+	u.GameNodeID = room.NodeID
+	u.EnterIP = room.SvrHost
 }
 
 func (m *UserModule) Recharge(args []interface{}) {
@@ -870,15 +761,8 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
-		now := time.Now()
-		stats.RechargeLogOp.Insert(&stats.RechargeLog{
-			OnLineID:     v.OnLineID,
-			PayAmount:    v.PayAmount,
-			UserID:       v.UserID,
-			PayType:      v.PayType,
-			GoodsID:      v.GoodsID,
-			RechangeTime: &now,
-		})
+		recharge := datalog.RechargeLog{}
+		recharge.AddRechargeLogInfo(v.OnLineID, v.PayAmount, v.UserID, v.PayType, v.GoodsID)
 	}
 
 }
@@ -918,7 +802,7 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 		return
 	}
 
-	cluster.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
+	center.AsynCallGame(info.NodeId, m.Skeleton.GetChanAsynRet(), &msg.S2S_CloseRoom{RoomID: recvMsg.RoomId}, func(data interface{}, err error) {
 		if err != nil {
 			player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrRoomIsStart})
 		} else {
@@ -993,52 +877,29 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	if room.PayType == AA_PAY_TYPE {
 		monrey = feeTemp.AATableFee
 	}
-
-	if !player.SubCurrency(monrey) {
+	if !player.SubCurrency(monrey, room.PayType) {
 		retCode = NotEnoughFee
 		return
 	}
-	now := time.Now()
-	stats.ConsumLogOp.Insert(&stats.ConsumLog{
-		UserId:     player.Id,
-		ConsumType: 1,
-		ConsumNum:  monrey,
-		ConsumTime: &now,
-	})
-
-	record := player.GetRecord(room.RoomID)
-	if record == nil {
+	if !player.HasRecord(room.RoomID) {
 		log.Error("at RenewalFees not foud old TokenRecord ")
-		record = &model.TokenRecord{}
+		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = room.RoomID
 		record.Amount = monrey
 		record.TokenType = AA_PAY_TYPE
 		record.KindID = room.KindID
-		record.PlayCnt = room.PayCnt
 		if !player.AddRecord(record) {
 			retCode = ErrServerError
 			player.AddCurrency(monrey)
 			return
 		}
 	} else { //已近口过钱了， 还来搜索房间
-		record.PlayCnt += feeTemp.DrawCountLimit
-		if record.Status != 1 {
-			log.Error("not foud status ")
-		}
-		err := model.TokenRecordOp.UpdateWithMap(record.RoomId, record.UserId, map[string]interface{}{
-			"play_cnt": record.PlayCnt,
-		})
-		if err != nil {
-			retCode = ErrRenewalFeesFaild
-			return
-		}
+		log.Debug("player %d double srach room: %d", player.Id, room.RoomID)
 	}
-	room.PayCnt += feeTemp.DrawCountLimit
+	room.PayCnt *= 2
 	room.RenewalCnt++
-
-	cluster.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
-		HallName: GetHallSvrName(conf.Server.NodeId), UserId: player.UserId})
+	center.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID})
 }
 
 func (m *UserModule) RenewalFeeFaild(args []interface{}) {
