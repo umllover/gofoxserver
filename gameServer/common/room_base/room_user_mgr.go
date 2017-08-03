@@ -212,7 +212,7 @@ func (r *RoomUserMgr) DeleteReply(uid int64) {
 }
 
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
-	log.Debug("at LeaveRoom uid:%d", u.Id)
+	log.Debug("at LeaveRoom uid:%d, status:%d", u.Id, status)
 	if len(r.Users) <= u.ChairId {
 		log.Error("at LeaveRoom u.chairId max .... ")
 		return false
@@ -437,7 +437,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
 	room.SetUsetStatus(u, US_FREE)
-	room.LeaveRoom(u, 1)
+	//room.LeaveRoom(u, 1)
 	return true
 }
 
