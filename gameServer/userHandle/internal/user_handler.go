@@ -448,6 +448,11 @@ func loadUser(u *client.User) bool {
 		return false
 	}
 
+	if locker.EnterIP == "" || locker.Roomid == 0 {
+		log.Error("loadUser data is error locker .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
+		return false
+	}
+
 	u.NickName = attr.NickName
 	u.FaceID = attr.FaceID
 	u.CustomID = attr.CustomID

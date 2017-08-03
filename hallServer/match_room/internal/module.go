@@ -117,16 +117,19 @@ func (m *MatchModule) Match() {
 					break
 				}
 
-				cnt, err := IncRoomCnt(r.RoomID)
-				if err != nil {
-					break
-				}
-
 				v1 := li.Front()
 				player := v1.Value.(*MachPlayer)
+				_, has := r.MachPlayer[player.Uid]
+				if !has {
+					cnt, err := IncRoomCnt(r.RoomID)
+					if err != nil {
+						break
+					}
+					r.MachPlayer[player.Uid] = time.Now().Unix() + ResetMatchTime
+					r.MachCnt = cnt
+				}
+
 				li.Remove(v1)
-				r.MachPlayer[player.Uid] = time.Now().Unix() + ResetMatchTime
-				r.MachCnt = cnt
 				log.Debug("player %d match ok ", player.Uid)
 				player.ch.Go("matchResult", true, r)
 			}
