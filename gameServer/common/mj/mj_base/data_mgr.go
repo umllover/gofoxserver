@@ -948,18 +948,17 @@ func (room *RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	////TODO 测试用
-	//newCard := make([]int, room.GetCfg().MaxIdx)
-	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 1
-	//room.CardIndex[room.BankerUser] = newCard
-	//room.RepertoryCard[55] = 0x1
+	//TODO 测试用
+	newCard := make([]int, room.GetCfg().MaxIdx)
+	newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
+	newCard[gameLogic.SwitchToCardIndex(0x8)] = 4
+	newCard[gameLogic.SwitchToCardIndex(0x11)] = 1
+	newCard[gameLogic.SwitchToCardIndex(0x13)] = 1
+	newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
+	newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
+	newCard[gameLogic.SwitchToCardIndex(0x35)] = 3
+	room.CardIndex[room.BankerUser] = newCard
+	room.RepertoryCard[55] = 0x1
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1387,8 +1386,8 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) {
 		if bZiMo {
 			for i := 0; i < UserCnt; i++ {
 				if i != WinUser[0] {
-					EndScore[i] -= CellScore
-					EndScore[WinUser[0]] += CellScore
+					EndScore[i] -= CellScore * 2
+					EndScore[WinUser[0]] += CellScore * 2
 				}
 			}
 		} else {
