@@ -1015,7 +1015,7 @@ func (room *RoomData) StartDispatchCard() {
 func (room *RoomData) RepalceCard() {
 	base.GameTestpaiCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
-		log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
+		//log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && room.ID == v.RoomID {
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
@@ -1186,7 +1186,7 @@ func (room *RoomData) CheckGameStartGang() {
 //向客户端发牌
 func (room *RoomData) SendGameStart() {
 	//构造变量
-	GameStart := &mj_zp_msg.G2C_ZPMG_GameStart{}
+	GameStart := &mj_hz_msg.G2C_HZMG_GameStart{}
 	GameStart.BankerUser = room.BankerUser
 	GameStart.SiceCount = room.SiceCount
 	GameStart.HeapHead = room.HeapHead
@@ -1204,7 +1204,7 @@ func (room *RoomData) SendGameStart() {
 func (room *RoomData) NormalEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	GameConclude := &mj_zp_msg.G2C_ZPMJ_GameConclude{}
+	GameConclude := &mj_hz_msg.G2C_GameConclude{}
 	GameConclude.ChiHuKind = make([]int, UserCnt)
 	GameConclude.CardCount = make([]int, UserCnt)
 	GameConclude.HandCardData = make([][]int, UserCnt)

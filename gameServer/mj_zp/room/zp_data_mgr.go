@@ -608,6 +608,23 @@ func (room *ZP_RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, 
 	return false
 }
 
+//向客户端发牌
+func (room *ZP_RoomData) SendGameStart() {
+	//构造变量
+	GameStart := &mj_zp_msg.G2C_ZPMG_GameStart{}
+	GameStart.BankerUser = room.BankerUser
+	GameStart.SiceCount = room.SiceCount
+	GameStart.HeapHead = room.HeapHead
+	GameStart.HeapTail = room.HeapTail
+	GameStart.HeapCardInfo = room.HeapCardInfo
+	//发送数据
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		GameStart.UserAction = room.UserAction[u.ChairId]
+		GameStart.CardData = room.MjBase.LogicMgr.GetUserCards(room.CardIndex[u.ChairId])
+		u.WriteMsg(GameStart)
+	})
+}
+
 //正常结束房间
 func (room *ZP_RoomData) NormalEnd(cbReason int) {
 	//清理变量
