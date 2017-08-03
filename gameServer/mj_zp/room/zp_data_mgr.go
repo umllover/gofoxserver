@@ -154,7 +154,7 @@ func (room *ZP_RoomData) StartGameing() {
 	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OutCardTime)*time.Second, func() {
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
 			log.Debug("超时插花")
 			for i := 0; i < 4; i++ {
 				_, ok := room.ChaHuaMap[i]
@@ -434,22 +434,22 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	////todo,测试手牌
-	//var temp []int
-	//temp = make([]int, 42)
-	//temp[0] = 3 //三张一同
-	//temp[1] = 3 //三张二同
-	//temp[2] = 3 //三张三同
-	//temp[3] = 3 //三张四同
-	//temp[4] = 3 //三张五同
-	//temp[5] = 2
-	//
-	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x06
-	//room.CardIndex[0] = temp
-	//GetCardWordArray(room.CardIndex[0])
-	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//todo,测试手牌
+	var temp []int
+	temp = make([]int, 42)
+	temp[0] = 3 //三张一同
+	temp[1] = 3 //三张二同
+	temp[2] = 3 //三张三同
+	temp[3] = 3 //三张四同
+	temp[4] = 3 //三张五同
+	temp[5] = 2
+
+	//room.FlowerCnt[0] = 1 //花牌
+	room.SendCardData = 0x06
+	room.CardIndex[0] = temp
+	GetCardWordArray(room.CardIndex[0])
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	log.Debug("room.CardIndex:%v", room.CardIndex[0])
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1615,6 +1615,7 @@ func (room *ZP_RoomData) CallGangScore() {
 	lcell := room.Source
 	//暗杠得分
 	if room.GangStatus == WIK_AN_GANG {
+		log.Debug("@@@@@@@@@@@@@@@ 暗杠得分")
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			if u.Status != US_PLAYING {
 				return
@@ -1622,6 +1623,7 @@ func (room *ZP_RoomData) CallGangScore() {
 			if u.ChairId != room.CurrentUser {
 				room.UserGangScore[u.ChairId] -= lcell
 				room.UserGangScore[room.CurrentUser] += lcell
+				log.Debug("@@@@@@@@@@@@@@@ 暗杠:%v", room.UserGangScore)
 			}
 		})
 	}
@@ -1668,6 +1670,7 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
 }
 
+//暗杠
 func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
 	room.SendStatus = Gang_Send
 	//变量定义
