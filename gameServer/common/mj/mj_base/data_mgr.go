@@ -2004,11 +2004,20 @@ func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
 func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 	logic := room.MjBase.LogicMgr
 
-	if logic.GetCardCount(room.CardIndex[room.CurrentUser]) == 1 {
+	index := 0
+	count := 0
+	for k, v := range room.CardIndex[room.CurrentUser] {
+		count += v
+		if v > 0 {
+			index = k
+		}
+	}
+
+	if count != 1 {
 		return 0
 	}
 
-	if pAnalyseItem.CardEye == room.CurrentUser {
+	if pAnalyseItem.CardEye == logic.SwitchToCardData(index) {
 		return CHR_WEI_ZHANG
 	}
 	return 0
