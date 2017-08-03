@@ -1,7 +1,6 @@
 package room
 
 import (
-	"math/rand"
 	"mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
@@ -305,8 +304,7 @@ func (room *ddz_data_mgr) SendGameStart() {
 	// 发完牌就选癞子
 	if room.GameType == GAME_TYPE_LZ {
 		// 随机选一张牌为癞子牌
-		ran := rand.New(rand.NewSource(time.Now().UnixNano()))
-		room.LiziCard = ran.Intn(13)
+		room.LiziCard = util.RandInterval(1, 13)
 		GameStart.LiziCard = room.LiziCard
 		room.PkBase.LogicMgr.SetParamToLogic(room.LiziCard)
 	}

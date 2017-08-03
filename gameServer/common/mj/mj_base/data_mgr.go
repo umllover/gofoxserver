@@ -279,6 +279,7 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
+		log.Error("+++++++++++++ room.UserAction:%v", room.UserAction)
 		log.Error("room.UserAction[ChairId] == WIK_NULL, ChairId:%d", ChairId)
 		return false
 	}
@@ -1657,15 +1658,33 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //字牌刻字
-func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) (int, bool) {
 
+	type1Cnt := 0
+	type2Cnt := 0
 	for k, v := range pAnalyseItem.CenterCard {
 		cardColor := v >> 4
 		if cardColor == 3 && pAnalyseItem.WeaveKind[k] == WIK_PENG {
-			return CHR_ZI_KE_PAI
+			cardColor := pAnalyseItem.CenterCard[k] >> 4
+			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
+			if cardColor == 3 {
+				if cardValue > 4 {
+					type1Cnt++
+				} else {
+					type2Cnt++
+				}
+			}
 		}
 	}
-	return 0
+
+	if type1Cnt > 0 || type2Cnt > 0 {
+		if type1Cnt > type2Cnt {
+			return CHR_ZI_KE_PAI + type1Cnt, true
+		} else {
+			return CHR_ZI_KE_PAI + type2Cnt, false
+		}
+	}
+	return 0, false
 }
 
 //花杠
@@ -1950,17 +1969,27 @@ func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4
 
 //字牌杠
 func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
+	type1Cnt := 0
+	type2Cnt := 0
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v == WIK_GANG && pAnalyseItem.Param[k] == WIK_MING_GANG {
 			cardColor := pAnalyseItem.CenterCard[k] >> 4
 			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
 			if cardColor == 3 {
 				if cardValue > 4 {
-					return CHR_ZI_PAI_GANG, true
+					type1Cnt++
 				} else {
-					return CHR_ZI_PAI_GANG, false
+					type2Cnt++
 				}
 			}
+		}
+	}
+
+	if type1Cnt > 0 || type2Cnt > 0 {
+		if type1Cnt > type2Cnt {
+			return CHR_ZI_PAI_GANG + type1Cnt, true
+		} else {
+			return CHR_ZI_PAI_GANG + type2Cnt, false
 		}
 	}
 	return 0, false
@@ -2046,7 +2075,7 @@ func (room *RoomData) IsPingHu() int {
 //胡牌算分类型
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+func (room *RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
 	return
 }
