@@ -720,13 +720,13 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		return true
 	}
 
-	if room.GangStatus != WIK_GANERAL {
-		room.GangOutCard = true
-		room.GangStatus = WIK_GANERAL
-		room.ProvideGangUser = INVALID_CHAIR
-	} else {
-		room.GangOutCard = false
-	}
+	//if room.GangStatus != WIK_GANERAL {
+	//	room.GangOutCard = true
+	//	room.GangStatus = WIK_GANERAL
+	//	room.ProvideGangUser = INVALID_CHAIR
+	//} else {
+	//	room.GangOutCard = false
+	//}
 
 	return false
 }
@@ -778,6 +778,8 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	if bTail { //从尾部取牌，说明玩家杠牌了,计算分数
 		room.CallGangScore()
+		room.GangStatus = WIK_GANERAL
+		room.ProvideGangUser = INVALID_CHAIR
 	}
 
 	//加牌
