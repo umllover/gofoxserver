@@ -1,7 +1,7 @@
-package stats
+package model
 
 import(
-    "mj/hallServer/db"
+    "mj/gameServer/db"
     "github.com/lovelly/leaf/log"
     "github.com/jmoiron/sqlx"
     "fmt"
@@ -32,7 +32,7 @@ var DefaultVersionUpdateTest = &VersionUpdateTest{}
 func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
     obj := &VersionUpdateTest{}
     sql := "select * from version_update_test where id=? "
-    err := db.StatsDB.Get(obj, sql, 
+    err := db.DB.Get(obj, sql, 
         id,
         )
     
@@ -45,7 +45,7 @@ func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
 func(op *versionUpdateTestOp) SelectAll() ([]*VersionUpdateTest, error) {
 	objList := []*VersionUpdateTest{}
 	sql := "select * from version_update_test "
-	err := db.StatsDB.Select(&objList, sql)
+	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -62,13 +62,14 @@ func(op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionUp
         sql += fmt.Sprintf(" and %s=? ", k)
         params = append(params, v)
     }
-	err := db.StatsDB.Select(&result, sql, params...)
+	err := db.DB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 	return result, nil
 }
+
 
 func(op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdateTest, error) {
     lst, err := op.QueryByMap(m)
@@ -83,7 +84,7 @@ func(op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdate
 
 /*
 func (i *VersionUpdateTest) Insert() error {
-    err := db.StatsDBMap.Insert(i)
+    err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
         return err
@@ -93,7 +94,7 @@ func (i *VersionUpdateTest) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *versionUpdateTestOp) Insert(m *VersionUpdateTest) (int64, error) {
-    return op.InsertTx(db.StatsDB, m)
+    return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
@@ -136,14 +137,14 @@ func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string
         params = append(params, v)
     }
 
-    _, err := db.StatsDB.Exec(sql + set_sql, params...)
+    _, err := db.DB.Exec(sql + set_sql, params...)
     return err
 }
 
 
 /*
 func (i *VersionUpdateTest) Update()  error {
-    _,err := db.StatsDBMap.Update(i)
+    _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
         return err
@@ -153,7 +154,7 @@ func (i *VersionUpdateTest) Update()  error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *versionUpdateTestOp) Update(m *VersionUpdateTest) (error) {
-    return op.UpdateTx(db.StatsDB, m)
+    return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
@@ -179,7 +180,7 @@ func (op *versionUpdateTestOp) UpdateTx(ext sqlx.Ext, m *VersionUpdateTest) (err
 
 // 用主键做条件，更新map里包含的字段名
 func (op *versionUpdateTestOp) UpdateWithMap(id int, m map[string]interface{}) (error) {
-    return op.UpdateWithMapTx(db.StatsDB, id, m)
+    return op.UpdateWithMapTx(db.DB, id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
@@ -203,14 +204,14 @@ func (op *versionUpdateTestOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[strin
 
 /*
 func (i *VersionUpdateTest) Delete() error{
-    _,err := db.StatsDBMap.Delete(i)
+    _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
 func (op *versionUpdateTestOp) Delete(id int) error{
-    return op.DeleteTx(db.StatsDB, id)
+    return op.DeleteTx(db.DB, id)
 }
 
 // 根据主键删除相关记录,Tx
@@ -234,7 +235,7 @@ func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, erro
         params = append(params, v)
     }
     count := int64(-1)
-    err := db.StatsDB.Get(&count, sql, params...)
+    err := db.DB.Get(&count, sql, params...)
     if err != nil {
         log.Error("CountByMap  error:%v data :%v", err.Error(), m)
 		return 0,err
@@ -243,7 +244,7 @@ func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, erro
 }
 
 func (op *versionUpdateTestOp) DeleteByMap(m map[string]interface{})(int64, error){
-	return op.DeleteByMapTx(db.StatsDB, m)
+	return op.DeleteByMapTx(db.DB, m)
 }
 
 func (op *versionUpdateTestOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error){

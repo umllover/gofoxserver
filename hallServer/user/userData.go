@@ -10,7 +10,7 @@ import (
 
 	"mj/hallServer/db/model/base"
 
-	"mj/hallServer/db/model/stats"
+	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -28,7 +28,6 @@ type User struct {
 	*model.Usertoken
 	*model.Userextrainfo
 	Rooms     map[int]*model.CreateRoomInfo
-	DataLog   map[int]*stats.RoomLog
 	Records   map[int]*model.TokenRecord
 	Times     map[int]int64 //永久次数
 	DayTimes  map[int]int64 //每日次数
@@ -43,7 +42,6 @@ type User struct {
 func NewUser(UserId int64) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
-	u.DataLog = make(map[int]*stats.RoomLog)
 	u.Records = make(map[int]*model.TokenRecord)
 	return u
 }
@@ -57,14 +55,6 @@ func (u *User) AddRooms(r *model.CreateRoomInfo) {
 	u.Lock()
 	defer u.Unlock()
 	u.Rooms[r.RoomId] = r
-}
-
-//添加开房信息
-func (u *User) AddCreateRoomLog(rl *stats.RoomLog) {
-	stats.RoomLogOp.Insert(rl)
-	u.Lock()
-	defer u.Unlock()
-	u.DataLog[rl.RoomId] = rl
 }
 
 func (u *User) DelRooms(id int) {
@@ -114,13 +104,15 @@ func (u *User) EnoughCurrency(sub int) bool {
 }
 
 //扣砖石
-func (u *User) SubCurrency(sub int) bool {
+func (u *User) SubCurrency(sub, subtype int) bool {
 	u.Lock()
 	defer u.Unlock()
 	if u.Currency < sub {
 		return false
 	}
 
+	consum := datalog.ConsumLog{}
+	consum.AddConsumLogInfo(u.Id,subtype,sub)
 	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,

@@ -142,9 +142,27 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL  = 0 //常规结束
-	GER_DISMISS = 1 //游戏解散
-	USER_LEAVE  = 2 //玩家请求解散
+	GER_NORMAL      = 0 //常规结束
+	GER_DISMISS     = 1 //游戏解散
+	USER_LEAVE      = 2 //玩家请求解散
+)
+
+const (
+	//加入房间累型
+	GIRPrivate = 0 //私房加入
+	GIRPublic  = 1 //公房加入
+)
+
+const (
+	//房间结束
+	RoomErrorDismiss   = 1 //出错解散房间
+	RoomNormalDistmiss = 2 //正常解散房间
+)
+
+const (
+	//是否为他人开房
+	CreateRoomForSelf   = 0 //为自己开房
+	CreateRoomForOthers = 1 //为他人开房
 )
 
 //积分修改类型
