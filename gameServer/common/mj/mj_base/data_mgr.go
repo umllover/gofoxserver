@@ -1936,7 +1936,7 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 
 	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v & (WIK_PENG | WIK_GANG)) == 1 {
+		if (v & (WIK_PENG | WIK_GANG)) > 0 {
 			return 0
 		} else {
 			CenterColor := pAnalyseItem.CenterCard[k] >> 4
