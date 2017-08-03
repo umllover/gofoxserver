@@ -64,6 +64,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ChangeSign{}, m.ChangeSign)
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
+	reg.RegisterC2S(&msg.C2L_ReqTimesInfo{}, m.ReqTimesInfo)
 }
 
 //连接进来的通知
@@ -74,6 +75,9 @@ func (m *UserModule) NewAgent(args []interface{}) error {
 
 //连接关闭的通知
 func (m *UserModule) CloseAgent(args []interface{}) error {
+	defer func() {
+		m.closeCh <- true
+	}()
 	log.Debug("at hall CloseAgent")
 	agent := args[0].(gate.Agent)
 	Reason := args[1].(int)
@@ -88,9 +92,6 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 		DelUser(player.Id)
 	}
 
-	if Reason == UserOffline {
-		m.Close(UserOffline)
-	}
 	log.Debug("CloseAgent ok")
 	return nil
 }
@@ -731,14 +732,7 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.FleeCount = user.FleeCount
 	log.Debug("node id === %v", conf.Server.NodeId)
 	retMsg.HallNodeID = conf.Server.NodeId
-	tm := &msg.DateTime{}
-	tm.Year = acinfo.RegisterDate.Year()
-	tm.DayOfWeek = int(acinfo.RegisterDate.Weekday())
-	tm.Day = acinfo.RegisterDate.Day()
-	tm.Hour = acinfo.RegisterDate.Hour()
-	tm.Second = acinfo.RegisterDate.Second()
-	tm.Minute = acinfo.RegisterDate.Minute()
-	retMsg.RegisterDate = tm
+	retMsg.RegisterDate = acinfo.RegisterDate.Unix()
 	//额外信息
 	retMsg.MbTicket = user.MbTicket
 	retMsg.MbPayTotal = user.MbPayTotal
@@ -746,11 +740,9 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
 
 	//约战房相关
-	//retMsg.RoomCard = user.Currency
 	retMsg.UserScore = user.Currency
-	retMsg.LockServerID = user.ServerID
+	retMsg.ServerID = user.ServerID
 	retMsg.KindID = user.KindID
-	retMsg.LockServerID = user.ServerID
 	retMsg.ServerIP = user.EnterIP
 }
 

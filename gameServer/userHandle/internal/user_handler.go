@@ -59,6 +59,9 @@ func (m *UserModule) LeaveRoom(args []interface{}) error {
 
 //连接关闭的通知
 func (m *UserModule) CloseAgent(args []interface{}) error {
+	defer func() {
+		m.closeCh <- true
+	}()
 	log.Debug("at game CloseAgent")
 	Reason := args[1].(int)
 	agent := m.a
@@ -78,10 +81,6 @@ func (m *UserModule) CloseAgent(args []interface{}) error {
 	m.UserOffline()
 	if Reason != KickOutMsg {
 		DelUser(player.Id)
-	}
-
-	if Reason == UserOffline {
-		m.Close(UserOffline)
 	}
 
 	return nil

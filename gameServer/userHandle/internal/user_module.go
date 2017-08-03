@@ -40,7 +40,6 @@ func (m *UserModule) Close(Reason int) {
 	m.a.WriteMsg(&msg.G2C_KickOut{Reason: Reason})
 	m.a.SetReason(Reason)
 	m.a.Close()
-	m.closeCh <- true
 	m.UserOffline()
 }
 
