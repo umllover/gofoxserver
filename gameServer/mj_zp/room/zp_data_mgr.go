@@ -437,12 +437,13 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
-	//temp[0] = 3 //三张一同
+	//temp[0] = 1 //三张一同
 	//temp[1] = 3 //三张二同
 	//temp[2] = 3 //三张三同
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 2
+	//temp[5] = 3
+	//temp[6] = 1
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x06
@@ -450,6 +451,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+
+	//for k := range room.RepertoryCard {
+	//	room.RepertoryCard[k] = 0x01
+	//}
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -999,7 +1004,7 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("花一色 %d", winScore[IDX_SUB_SCORE_HYS])
 		}
-		kind = room.IsGangKaiHua(v) //杠上开花
+		kind = room.IsGangKaiHua(v, room.WeaveItemArray[HuUserID]) //杠上开花
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_GSKH] = 3 * score
 			room.HuKindType = append(room.HuKindType, kind)
@@ -1632,7 +1637,6 @@ func (room *ZP_RoomData) CallGangScore() {
 	lcell := room.Source
 	//暗杠得分
 	if room.GangStatus == WIK_AN_GANG {
-		log.Debug("@@@@@@@@@@@@@@@ 暗杠得分")
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			if u.Status != US_PLAYING {
 				return
@@ -1640,7 +1644,6 @@ func (room *ZP_RoomData) CallGangScore() {
 			if u.ChairId != room.CurrentUser {
 				room.UserGangScore[u.ChairId] -= lcell
 				room.UserGangScore[room.CurrentUser] += lcell
-				log.Debug("@@@@@@@@@@@@@@@ 暗杠:%v", room.UserGangScore)
 			}
 		})
 	}
@@ -1725,6 +1728,7 @@ func (room *ZP_RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard [
 		if room.CardIndex[u.ChairId][cbCardIndex] != 4 {
 			return 0
 		}
+		cbGangKind = WIK_AN_GANG
 
 		Wrave := &msg.WeaveItem{}
 		Wrave.Param = WIK_AN_GANG

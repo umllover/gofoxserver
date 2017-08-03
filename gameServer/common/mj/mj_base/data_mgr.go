@@ -483,6 +483,7 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 		if room.CardIndex[u.ChairId][cbCardIndex] != 4 {
 			return 0
 		}
+		cbGangKind = WIK_AN_GANG
 
 		cbWeave = &msg.WeaveItem{}
 		cbWeave.Param = WIK_AN_GANG
@@ -1617,13 +1618,14 @@ func (room *RoomData) IsTianHu(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //杠上开花
-func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem, WeaveItem []*msg.WeaveItem) int {
 	if room.CurrentUser != room.ProvideUser {
 		return 0
 	}
+	index := len(WeaveItem) - 1
 	log.Debug("########## pAnalyseItem.WeaveKind:%v", pAnalyseItem.WeaveKind)
-	log.Debug("########## pAnalyseItem.IsAnalyseGet:%v", pAnalyseItem.IsAnalyseGet)
-	if pAnalyseItem.WeaveKind[room.GetCfg().MaxWeave-1] == WIK_GANG && pAnalyseItem.IsAnalyseGet[room.GetCfg().MaxWeave-1] == false {
+	log.Debug("########## pAnalyseItem.IsAnalyseGet:%v len:%d", pAnalyseItem.IsAnalyseGet, len(pAnalyseItem.WeaveKind))
+	if pAnalyseItem.WeaveKind[index] == WIK_GANG && pAnalyseItem.IsAnalyseGet[index] == false {
 		return CHR_GANG_SHANG_HUA
 	}
 	return 0
@@ -1639,7 +1641,7 @@ func (room *RoomData) IsHuaKaiHua(pAnalyseItem *TagAnalyseItem) int {
 		return 0
 	}
 
-	if room.SendStatus == BuHua_Send {
+	if room.SendStatus != BuHua_Send {
 		return 0
 	}
 
@@ -2002,11 +2004,20 @@ func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
 func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 	logic := room.MjBase.LogicMgr
 
-	if logic.GetCardCount(room.CardIndex[room.CurrentUser]) == 1 {
+	index := 0
+	count := 0
+	for k, v := range room.CardIndex[room.CurrentUser] {
+		count += v
+		if v > 0 {
+			index = k
+		}
+	}
+
+	if count != 1 {
 		return 0
 	}
 
-	if pAnalyseItem.CardEye == room.CurrentUser {
+	if pAnalyseItem.CardEye == logic.SwitchToCardData(index) {
 		return CHR_WEI_ZHANG
 	}
 	return 0
@@ -2014,17 +2025,17 @@ func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 
 //截头
 func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
-	cardValue := room.CurrentUser & MASK_VALUE //todo,bug
+	cardValue := room.OutCardData & MASK_VALUE
 	for k, v := range pAnalyseItem.WeaveKind {
-		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 || !pAnalyseItem.IsAnalyseGet[k] {
+		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
-		} else {
+		} else if pAnalyseItem.IsAnalyseGet[k] {
 			//1-2 胡3
-			if cardValue == 3 && room.CurrentUser == pAnalyseItem.CardData[k][2] {
+			if cardValue == 3 && room.OutCardData == pAnalyseItem.CardData[k][2] {
 				return CHR_JIE_TOU
 			}
 			//8-9 胡7
-			if cardValue == 7 && room.CurrentUser == pAnalyseItem.CardData[k][0] {
+			if cardValue == 7 && room.OutCardData == pAnalyseItem.CardData[k][0] {
 				return CHR_JIE_TOU
 			}
 		}
@@ -2036,11 +2047,11 @@ func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
 //空心
 func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 	for k, v := range pAnalyseItem.WeaveKind {
-		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 || !pAnalyseItem.IsAnalyseGet[k] {
+		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
-		} else {
-			if room.CurrentUser == pAnalyseItem.CardData[k][1] {
-				//return CHR_KONG_XIN
+		} else if pAnalyseItem.IsAnalyseGet[k] {
+			if room.OutCardData == pAnalyseItem.CardData[k][1] {
+				return CHR_KONG_XIN
 			}
 		}
 	}
