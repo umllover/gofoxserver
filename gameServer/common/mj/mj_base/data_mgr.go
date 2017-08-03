@@ -279,6 +279,7 @@ func (room *RoomData) GetUserCardIndex(ChairId int) []int {
 func (room *RoomData) HasOperator(ChairId, OperateCode int) bool {
 
 	if room.UserAction[ChairId] == WIK_NULL {
+		log.Error("+++++++++++++ room.UserAction:%v", room.UserAction)
 		log.Error("room.UserAction[ChairId] == WIK_NULL, ChairId:%d", ChairId)
 		return false
 	}
@@ -2046,7 +2047,7 @@ func (room *RoomData) IsPingHu() int {
 //胡牌算分类型
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-func (room *RoomData) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+func (room *RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) {
 	log.Error("at base OnZhuaHua")
 	return
 }

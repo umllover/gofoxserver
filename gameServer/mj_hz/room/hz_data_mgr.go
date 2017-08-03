@@ -47,7 +47,7 @@ func (room *hz_data) SendGameStart() {
 	})
 }
 
-func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
+func (room *hz_data) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) {
 	count := room.ZhuaHuaCnt
 	if count == 0 {
 		return
@@ -55,7 +55,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 
 	isWin := false
 	for chairId, v := range room.UserAction {
-		if v&WIK_CHI_HU != 0 && chairId == CenterUser {
+		if v&WIK_CHI_HU != 0 && chairId == winUser[0] {
 			isWin = true
 		}
 	}
@@ -63,7 +63,7 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 	if !isWin {
 		return
 	}
-
+	CardData = make([][]int, count)
 	//抓花规则
 	getInedx := [3]int{1, 5, 9}
 	for i := 0; i < count; i++ {
@@ -75,13 +75,13 @@ func (room *hz_data) OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int) {
 				//中发白
 				temp := cardValue - 4
 				if temp == getInedx[0] || temp == getInedx[1] || temp == getInedx[2] {
-					CardData = append(CardData, cardData)
+					CardData[0] = append(CardData[0], cardData)
 					room.ZhuaHuaScore++
 				}
 			}
 		} else if cardColor >= 0 && cardColor <= 2 {
 			if cardValue == getInedx[0] || cardValue == getInedx[1] || cardValue == getInedx[2] {
-				CardData = append(CardData, cardData)
+				CardData[0] = append(CardData[0], cardData)
 				room.ZhuaHuaScore++
 			}
 		}
