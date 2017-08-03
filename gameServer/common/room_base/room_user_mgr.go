@@ -186,8 +186,10 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		log.Debug("at ReplyLeave not foud user")
 		return 0
 	}
+
+	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, Agree: Agree})
 	if Agree {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
 		if req == nil {
 			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
@@ -199,7 +201,7 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			return 1
 		}
 	} else {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
 		r.DeleteReply(reqPlayer.Id)
 		return -1
 	}
@@ -224,6 +226,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+
+	r.SetUsetStatus(u, US_FREE)
 
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
@@ -417,7 +421,6 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
-	room.SetUsetStatus(u, US_FREE)
 	room.LeaveRoom(u, 1)
 	return true
 }

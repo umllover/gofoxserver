@@ -173,6 +173,7 @@ func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
 	} else {
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
 			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
 		})
 	}
@@ -185,9 +186,17 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 	ReplyUid := args[2].(int64)
 	ret := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
 	if ret == 1 {
+		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
+		if reqPlayer != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: 0})
+		}
 		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
-	} else if ret == 0 {
+	} else if ret == -1 {
 		room.TimerMgr.StopReplytIimer(ReplyUid)
+		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
+		if reqPlayer != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrRefuseLeave})
+		}
 	}
 }
 

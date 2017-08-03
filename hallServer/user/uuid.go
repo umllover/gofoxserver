@@ -48,11 +48,11 @@ func (u *Uuid) SetNodeId(ti int64) {
 	if ti < 0 {
 		log.Error("SetTimestamp ti < 0 ")
 	}
-	ti = ti << 43
 	u.uid |= ti
 }
 
 func (u *Uuid) SetSerial(s int64) {
+	s = s << 10
 	u.uid |= s
 }
 

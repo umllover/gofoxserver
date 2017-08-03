@@ -45,7 +45,8 @@ type C2G_LeaveRoom struct {
 
 //请求退出房间结果
 type G2C_LeaveRoomRsp struct {
-	Code int //非0为失败
+	Code   int //非0为失败
+	Status int // 房间状态 0是没开始， 其他都是开始了
 }
 
 //别人退出房间的广播
