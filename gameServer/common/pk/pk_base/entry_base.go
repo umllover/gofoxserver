@@ -82,8 +82,11 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.RoomRun(r.DataMgr.GetRoomId())
 	r.DataMgr.OnCreateRoom()
 	r.TimerMgr.StartCreatorTimer(func() {
+		roomLogData := datalog.RoomLog{}
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
+		roomLogData.UpdateGameLogRecode(logData.RecodeId, 4)
 		log.Debug("not start game close ")
-		r.OnEventGameConclude(0, nil, TIMEOUT_DISMISS)
+		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
 }
@@ -344,9 +347,6 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 
 //游戏结束
 func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
-	roomLogData := datalog.RoomLog{}
-	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	roomLogData.UpdateGameLogRecode(logData.RecodeId, cbReason)
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
@@ -357,9 +357,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 		room.AfterEnd(true)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(true)
-	case TIMEOUT_DISMISS://超时游戏解散
-		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	log.Error("at OnEventGameConclude error  ")

@@ -77,7 +77,10 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
 	r.TimerMgr.StartCreatorTimer(func() {
-		r.OnEventGameConclude(0, nil, TIMEOUT_DISMISS)
+		roomLogData := datalog.RoomLog{}
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
+		roomLogData.UpdateGameLogRecode(logData.RecodeId, 4)
+		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
 	r.DataMgr.InitRoomOne()
@@ -567,9 +570,6 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 
 //游戏结束
 func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
-	roomLogData := datalog.RoomLog{}
-	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	roomLogData.UpdateGameLogRecode(logData.RecodeId, cbReason)
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
@@ -579,9 +579,6 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		room.AfterEnd(true)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
-		room.AfterEnd(true)
-	case TIMEOUT_DISMISS://超时游戏解散
-		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true)
 	}
 	room.Status = RoomStatusEnd

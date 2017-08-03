@@ -144,7 +144,6 @@ const (
 	GER_NORMAL      = 0 //常规结束
 	GER_DISMISS     = 1 //游戏解散
 	USER_LEAVE      = 2 //玩家请求解散
-	TIMEOUT_DISMISS = 3 //超时未开启解散
 )
 
 const (
