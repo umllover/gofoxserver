@@ -40,3 +40,9 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 	drawAward.AddDrawAdardLog(template.Id, recvMsg.DrawId, template.Description, template.DrawTimes, template.DrawType, template.Amount, template.ItemType)
 
 }
+
+//玩家请求次数信息
+func (m *UserModule) ReqTimesInfo(args []interface{}) {
+	player := m.a.UserData().(*user.User)
+	player.WriteMsg(player.GetTimeInfo())
+}

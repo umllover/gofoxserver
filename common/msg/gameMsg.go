@@ -1,7 +1,7 @@
 package msg
 
 ////// c 2 s
-//手机登录
+//登录游戏服
 type C2G_GR_LogonMobile struct {
 	GameID         int //游戏标识
 	KindID         int
@@ -89,9 +89,26 @@ type C2G_REQUserInfo struct {
 	TablePos int
 }
 
-//配置信息
+//请求房间的基础信息
 type C2G_GameOption struct {
 	AllowLookon int //旁观标志
+}
+
+//房间信息
+type G2C_PersonalTableTip struct {
+	TableOwnerUserID  int64                  //桌主 I D
+	DrawCountLimit    int                    //局数限制
+	DrawTimeLimit     int                    //时间限制
+	PlayCount         int                    //已玩局数
+	PlayTime          int                    //已玩时间
+	CellScore         int                    //游戏底分
+	IniScore          int                    //初始分数
+	ServerID          string                 //房间编号
+	PayType           int                    //1是自己付钱， 2是AA
+	IsJoinGame        int                    //是否参与游戏
+	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
+	OtherInfo         map[string]interface{} //客户端的配置信息
+	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
 }
 
 //请求用户信息
@@ -119,23 +136,6 @@ type C2G_UserReady struct {
 type G2C_UserStatus struct {
 	UserID     int64
 	UserStatus *UserStu
-}
-
-//发送信息
-type G2C_PersonalTableTip struct {
-	TableOwnerUserID  int64                  //桌主 I D
-	DrawCountLimit    int                    //局数限制
-	DrawTimeLimit     int                    //时间限制
-	PlayCount         int                    //已玩局数
-	PlayTime          int                    //已玩时间
-	CellScore         int                    //游戏底分
-	IniScore          int                    //初始分数
-	ServerID          string                 //房间编号
-	PayType           int                    //1是自己付钱， 2是AA
-	IsJoinGame        int                    //是否参与游戏
-	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
-	OtherInfo         map[string]interface{} //客户端的配置信息
-	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
 }
 
 //请求退出房间的信息
