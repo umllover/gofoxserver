@@ -1619,13 +1619,14 @@ func (room *RoomData) IsTianHu(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //杠上开花
-func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem, WeaveItem []*msg.WeaveItem) int {
 	if room.CurrentUser != room.ProvideUser {
 		return 0
 	}
+	index := len(WeaveItem) - 1
 	log.Debug("########## pAnalyseItem.WeaveKind:%v", pAnalyseItem.WeaveKind)
-	log.Debug("########## pAnalyseItem.IsAnalyseGet:%v", pAnalyseItem.IsAnalyseGet)
-	if pAnalyseItem.WeaveKind[room.GetCfg().MaxWeave-1] == WIK_GANG && pAnalyseItem.IsAnalyseGet[room.GetCfg().MaxWeave-1] == false {
+	log.Debug("########## pAnalyseItem.IsAnalyseGet:%v len:%d", pAnalyseItem.IsAnalyseGet, len(pAnalyseItem.WeaveKind))
+	if pAnalyseItem.WeaveKind[index] == WIK_GANG && pAnalyseItem.IsAnalyseGet[index] == false {
 		return CHR_GANG_SHANG_HUA
 	}
 	return 0
@@ -1641,7 +1642,7 @@ func (room *RoomData) IsHuaKaiHua(pAnalyseItem *TagAnalyseItem) int {
 		return 0
 	}
 
-	if room.SendStatus == BuHua_Send {
+	if room.SendStatus != BuHua_Send {
 		return 0
 	}
 
