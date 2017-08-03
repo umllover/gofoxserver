@@ -235,8 +235,9 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 		RoomId: r.id,
 		OpName: "DelPlayerId",
 		Data: map[string]interface{}{
-			"Status": status,
-			"UID":    u.Id,
+			"Status":       status,
+			"UID":          u.Id,
+			"HallNodeName": u.HallNodeName,
 		},
 	})
 	log.Debug("%v user leave room,  left %v count", u.Id, r.GetCurPlayerCnt())
