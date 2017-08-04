@@ -86,7 +86,7 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom version 000001")
+	log.Debug("zpmj at InitRoom version 000002")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -442,7 +442,8 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[30] = 3 //三张三同
 	//temp[27] = 3 //三张四同
 	//temp[32] = 3 //三张五同
-	//temp[1] = 2
+	//temp[1] = 1
+	//temp[2] = 1
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x33
@@ -450,7 +451,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
-
+	//
 	//for k := range room.RepertoryCard {
 	//	room.RepertoryCard[k] = 0x01
 	//}
