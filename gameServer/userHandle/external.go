@@ -1,6 +1,7 @@
 package userHandle
 
 import (
+	"mj/common/consul"
 	"mj/gameServer/user"
 	"mj/gameServer/userHandle/internal"
 
@@ -23,6 +24,7 @@ func ForEachUser(f func(u *user.User)) {
 }
 
 func KickOutUser() {
+	consul.Deregister()
 	log.Debug("at gameServer close, KickOutUser")
 	ForEachUser(func(player *user.User) {
 		player.ChanRPC().Go("SvrShutdown")

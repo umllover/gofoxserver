@@ -74,7 +74,7 @@ func updateDB() (err error, up bool) {
 	DB.Exec(`CREATE TABLE if not exists version (ver int(11) NOT NULL,id int(11) NOT NULL,PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
 
 	var r sql.Result
-	r, err = DB.Exec("INSERT  INTO version_locker(id) VALUES(?)", LOCK_ID)
+	r, err = DB.Exec("INSERT  INTO mqjx_user.version_locker(id) VALUES(?)", LOCK_ID)
 	if err != nil {
 		log.Debug("%s", err.Error())
 		return err, false
@@ -101,7 +101,7 @@ func updateDB() (err error, up bool) {
 	// stats db
 	StatsDB.Exec(`CREATE TABLE if not exists  version_locker (id int(11) NOT NULL,PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;`)
 	StatsDB.Exec(`CREATE TABLE if not exists version (ver int(11) NOT NULL,id int(11) NOT NULL,PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8`)
-	r, err = StatsDB.Exec("INSERT  INTO version_locker(id) VALUES(?)", LOCK_ID)
+	r, err = StatsDB.Exec("INSERT  INTO mqjx_stats.version_locker(id) VALUES(?)", LOCK_ID)
 	if err != nil {
 		log.Debug("%s", err.Error())
 		return err, up
