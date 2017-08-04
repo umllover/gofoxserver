@@ -1234,7 +1234,7 @@ func (room *RoomData) NormalEnd(cbReason int) {
 
 	//计算胡牌输赢分
 	UserGameScore := make([]int, UserCnt)
-	room.CalHuPaiScore(UserGameScore)
+	WinCount := room.CalHuPaiScore(UserGameScore)
 
 	////拷贝码数据
 	//GameConclude.MaCount = make([]int, 0)
@@ -1260,8 +1260,10 @@ func (room *RoomData) NormalEnd(cbReason int) {
 		}
 		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
 		//胡牌分算完后再加上杠的输赢分就是玩家本轮最终输赢分
-		GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
-		GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
+		if WinCount > 0 { //流局不算杠的分数
+			GameConclude.GameScore[u.ChairId] += room.UserGangScore[u.ChairId]
+			GameConclude.GangScore[u.ChairId] = room.UserGangScore[u.ChairId]
+		}
 
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]
@@ -1357,7 +1359,7 @@ func (room *RoomData) FiltrateRight(wWinner int, chr *int) {
 }
 
 //算分
-func (room *RoomData) CalHuPaiScore(EndScore []int) {
+func (room *RoomData) CalHuPaiScore(EndScore []int) int {
 	CellScore := room.Source
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	UserScore := make([]int, UserCnt) //玩家手上分
@@ -1408,6 +1410,8 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) {
 	} else { //荒庄
 		room.BankerUser = room.LastCatchCardUser //最后一个摸牌的人当庄
 	}
+
+	return WinCount
 }
 
 //计算税收  暂时没有这个 功能
