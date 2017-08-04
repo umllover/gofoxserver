@@ -86,7 +86,7 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom")
+	log.Debug("zpmj at InitRoom version 000001")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
