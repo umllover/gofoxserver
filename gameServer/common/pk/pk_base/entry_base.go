@@ -85,7 +85,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(func() {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-		roomLogData.UpdateGameLogRecode(logData.RecodeId, 4)
+		roomLogData.UpdateGameLogRecode(logData, 4)
 		log.Debug("not start game close ")
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
@@ -214,13 +214,12 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 	room.Destroy(room.DataMgr.GetRoomId())
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	now := time.Now()
 	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
 	if user == nil {
-		roomLogData.UpdateRoomLogForOthers(logData.RecodeId, CreateRoomForOthers)
+		roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 	}
 	if retcode == 0 {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
 	}
 }
 

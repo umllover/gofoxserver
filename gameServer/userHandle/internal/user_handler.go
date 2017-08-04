@@ -12,8 +12,6 @@ import (
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
 
-	"time"
-
 	datalog "mj/gameServer/log"
 
 	"github.com/lovelly/leaf/log"
@@ -368,24 +366,23 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	user := m.a.UserData().(*client.User)
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(user.RoomId, user.KindID, user.ServerID)
-	now := time.Now()
 	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 
 	if user.RoomId == 0 {
 		log.Error("at DissumeRoom not foud roomdid userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 
