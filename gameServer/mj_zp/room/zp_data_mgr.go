@@ -86,7 +86,7 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom")
+	log.Debug("zpmj at InitRoom version 000001")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -746,8 +746,7 @@ func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []i
 			if room.BankerUser == userIndex {
 				getInedx = index[0]
 			} else {
-				log.Debug("================================ userIndex:%d  room.BankerUser:%d", userIndex, room.BankerUser)
-				v := int(math.Abs(float64(userIndex-room.BankerUser))) % userCnt
+				v := int(math.Abs(float64(userIndex-room.BankerUser+userCnt))) % userCnt
 				getInedx = index[int(v)]
 			}
 
@@ -1781,6 +1780,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
 		OperateResult.OperateCard[2] = room.OperateCard[wTargetUser][2]
+		room.RecordBanCard(LimitChi, wTargetUser)
 	} else if cbTargetAction&WIK_PENG != 0 {
 		OperateResult.OperateCard[1] = cbTargetCard
 		OperateResult.OperateCard[2] = cbTargetCard

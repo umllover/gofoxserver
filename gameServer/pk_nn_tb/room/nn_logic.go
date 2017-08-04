@@ -209,21 +209,6 @@ func (lg *nntb_logic) IsSanTiao(cardData []int) bool {
 	return false
 }
 
-// 牛牛
-func (lg *nntb_logic) IsNiuNiu(cardData []int) bool {
-	if len(cardData) != 5 {
-		return false
-	}
-	sum := 0
-	for i := 0; i < 5; i++ {
-		sum += lg.GetCardLogicValue(cardData[i])
-	}
-	if sum%10 == 0 {
-		return true
-	}
-	return false
-}
-
 func (lg *nntb_logic) GetCardType(CardData []int) int {
 
 	CardCount := len(CardData)
@@ -263,9 +248,7 @@ func (lg *nntb_logic) GetCardType(CardData []int) int {
 		return OX_THREE_SAME
 	}
 
-	if lg.IsNiuNiu(CardData) {
-		return OX_NiuNiu
-	}
+	
 	//普通牌型 选3张 有牛
 	for i := 0; i < 5; i++ {
 		for j := 0; j < 5; j++ {
@@ -287,7 +270,11 @@ func (lg *nntb_logic) GetCardType(CardData []int) int {
 						}
 						sum += lg.GetCardLogicValue(CardData[n])
 					}
-					return sum % 10
+					if sum%10 == 0 {
+						return OX_NiuNiu
+					} else {
+						return sum%10
+					}
 				}
 			}
 		}
