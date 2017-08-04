@@ -566,6 +566,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		}
 	}
 
+	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	// 判断是否火箭
 	if nowCard.CardType >= CT_KING {
 		r.KingCount = append(r.KingCount, len(nowCard.CardData))
@@ -607,7 +608,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
 		return
 	}
-	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
+
 	r.checkNextUserTrustee()
 }
 
