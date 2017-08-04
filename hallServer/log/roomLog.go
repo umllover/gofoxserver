@@ -49,15 +49,15 @@ func (roomLog *RoomLog) GetRoomLogRecode(roomId, kindId, serverId int) (roomReco
 }
 
 //更新创建房间记录
-func (roomLog *RoomLog) UpdateRoomLogRecode(recodeId int, time time.Time, code int) {
-	if recodeId <= 0 {
+func (RoomLog *RoomLog) UpdateRoomLogRecode(roomLog *stats.RoomLog, time time.Time, code int) {
+	if roomLog == nil {
 		Error("没有这条记录存在")
 		return
 	}
 	myLogInfo := make(map[string]interface{})
 	myLogInfo["end_time"] = &time
 	myLogInfo["end_type"] = code
-	err := stats.RoomLogOp.UpdateWithMap(recodeId, myLogInfo)
+	err := stats.RoomLogOp.UpdateWithMap(roomLog.RecodeId, myLogInfo)
 	if err != nil {
 		Error("结束时间和结束状态记录更新失败：%s", err.Error())
 	}
