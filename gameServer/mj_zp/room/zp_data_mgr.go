@@ -1108,6 +1108,9 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		//无花字
 		kind = room.IsWuHuaZi(v, room.FlowerCnt)
 		if kind > 0 {
+			if winScore[IDX_SUB_SCORE_BL] > 0 || winScore[IDX_SUB_SCORE_MQBL] > 0 {
+				continue
+			}
 			winScore[IDX_SUB_SCORE_WHZ] = 3 * score
 			log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
