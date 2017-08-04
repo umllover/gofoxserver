@@ -81,7 +81,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(func() {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-		roomLogData.UpdateGameLogRecode(logData.RecodeId, 4)
+		roomLogData.UpdateGameLogRecode(logData, 4)
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -185,15 +185,14 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	now := time.Now()
 	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
 	if user == nil {
-		roomLogData.UpdateRoomLogForOthers(logData.RecodeId, CreateRoomForOthers)
+		roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 	}
 	if retcode == 0 {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
 	} else if retcode == NotOwner {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 	}
 }
 
