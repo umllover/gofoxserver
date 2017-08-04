@@ -437,16 +437,15 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
-	//temp[0] = 1 //三张一同
-	//temp[1] = 3 //三张二同
-	//temp[2] = 3 //三张三同
-	//temp[3] = 3 //三张四同
-	//temp[4] = 3 //三张五同
-	//temp[5] = 3
-	//temp[6] = 1
+	//temp[28] = 3 //三张一同
+	//temp[29] = 3 //三张二同
+	//temp[30] = 3 //三张三同
+	//temp[27] = 3 //三张四同
+	//temp[32] = 3 //三张五同
+	//temp[1] = 2
 	//
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x06
+	//room.SendCardData = 0x33
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -969,6 +968,8 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 //特殊胡牌类型及算分
 func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID int) {
 
+	type1Cnt := 0
+	type2Cnt := 0
 	score := room.Source
 	winScore := &room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
@@ -1116,25 +1117,30 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			winScore[IDX_SUB_SCORE_ZYS] = 12 * score
 			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_ZYS])
 		}
-		var res bool
-		kind, res = room.IsZiPaiGang(v)
+		kind, type1Cnt, type2Cnt = room.IsZiPaiGang(v) //字牌杠
 		if kind > 0 {
-			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && res ||
-				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && !res {
-				//排除重复算分
-				continue
+			if winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0 {
+				winScore[IDX_SUB_SCORE_ZPG] = type1Cnt * score
+			} else if winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0 {
+				winScore[IDX_SUB_SCORE_ZPG] = type2Cnt * score
+			} else {
+				winScore[IDX_SUB_SCORE_ZPG] = (type2Cnt + type1Cnt) * score
 			}
-			winScore[IDX_SUB_SCORE_ZPG] = (kind - CHR_ZI_PAI_GANG) * score
+			type1Cnt = 0
+			type2Cnt = 0
 			log.Debug("字牌杠，%d", winScore[IDX_SUB_SCORE_ZPG])
 		}
-		kind, res = room.IsKeZi(v) //字牌刻字
+		kind, type1Cnt, type2Cnt = room.IsKeZi(v) //字牌刻字
 		if kind > 0 {
-			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && res ||
-				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && !res {
-				//排除重复算分
-				continue
+			if winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0 {
+				winScore[IDX_SUB_SCORE_ZPKZ] = type1Cnt * score
+			} else if winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0 {
+				winScore[IDX_SUB_SCORE_ZPKZ] = type2Cnt * score
+			} else {
+				winScore[IDX_SUB_SCORE_ZPKZ] = (type2Cnt + type1Cnt) * score
 			}
-			winScore[IDX_SUB_SCORE_ZPKZ] = (kind - CHR_ZI_KE_PAI) * score
+			type1Cnt = 0
+			type2Cnt = 0
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("字牌刻字 %d", winScore[IDX_SUB_SCORE_ZPKZ])
 		}

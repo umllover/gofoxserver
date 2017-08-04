@@ -1666,7 +1666,7 @@ func (room *RoomData) IsHaiDiLaoYue(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //字牌刻字
-func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) (int, bool) {
+func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) (int, int, int) {
 
 	type1Cnt := 0
 	type2Cnt := 0
@@ -1686,13 +1686,9 @@ func (room *RoomData) IsKeZi(pAnalyseItem *TagAnalyseItem) (int, bool) {
 	}
 
 	if type1Cnt > 0 || type2Cnt > 0 {
-		if type1Cnt > type2Cnt {
-			return CHR_ZI_KE_PAI + type1Cnt, true
-		} else {
-			return CHR_ZI_KE_PAI + type2Cnt, false
-		}
+		return CHR_ZI_KE_PAI, type1Cnt, type2Cnt
 	}
-	return 0, false
+	return 0, 0, 0
 }
 
 //花杠
@@ -1978,7 +1974,7 @@ func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4
 }
 
 //字牌杠
-func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
+func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, int, int) {
 	type1Cnt := 0
 	type2Cnt := 0
 	for k, v := range pAnalyseItem.WeaveKind {
@@ -1996,13 +1992,9 @@ func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, bool) {
 	}
 
 	if type1Cnt > 0 || type2Cnt > 0 {
-		if type1Cnt > type2Cnt {
-			return CHR_ZI_PAI_GANG + type1Cnt, true
-		} else {
-			return CHR_ZI_PAI_GANG + type2Cnt, false
-		}
+		return CHR_ZI_PAI_GANG, type1Cnt, type2Cnt
 	}
-	return 0, false
+	return 0, 0, 0
 }
 
 //胡尾张
