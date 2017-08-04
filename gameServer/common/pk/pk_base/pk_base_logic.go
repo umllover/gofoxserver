@@ -3,6 +3,7 @@ package pk_base
 import (
 	"mj/gameServer/common/pk"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
 
@@ -92,8 +93,26 @@ func (lg *BaseLogic) SetParamToLogic(args interface{}) {
 
 }
 
-func (lg *BaseLogic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
-	return nil, false
+// RemoveCard：需要删除的牌 handCard：手牌
+func (lg *BaseLogic) RemoveCardList(RemoveCard []int, handCard []int) ([]int, bool) {
+
+	log.Debug("当前手牌%v", handCard)
+	log.Debug("需要删除的牌%v", RemoveCard)
+	var u8DeleteCount int // 记录删除记录
+
+	for _, v1 := range RemoveCard {
+		for j, v2 := range handCard {
+			if v1 == v2 {
+				copy(handCard[j:], handCard[j+1:])
+				u8DeleteCount++
+				break
+			}
+		}
+	}
+
+	log.Debug("删除了%d", u8DeleteCount)
+	log.Debug("删除后的手牌%v", handCard[:len(handCard)-u8DeleteCount])
+	return handCard[:len(handCard)-u8DeleteCount], true
 }
 
 func (lg *BaseLogic) CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool {

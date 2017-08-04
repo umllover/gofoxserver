@@ -52,7 +52,7 @@ type LogicManager interface {
 	// 以下接口不通用
 	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
 	GetType(bCardData []int, bCardCount int) *TagAnalyseType
-	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
+	RemoveCardList(RemoveCard []int, handCard []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool
 }
