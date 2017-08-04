@@ -68,4 +68,5 @@ func Init() {
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	conf.Test = *Test
 	leaf.InitLog()
+	leaf.OnDestroy = userHandle.KickOutUser
 }

@@ -37,13 +37,14 @@ func InitDB(cnf IDBCnf) {
 		DB = initSqlxDB(cnf.GetUserDSN(), "[USER DB] -> ", cnf.GetUserDBMaxOpen(), cnf.GetUserDBMaxIdle())
 		StatsDB = initSqlxDB(cnf.GetStatsDSN(), "[STATS_DB] ->", cnf.GetStatsDBMaxOpen(), cnf.GetStatsDBMaxIdle())
 		AccountDB = initSqlxDB(cnf.GetAccoutDSN(), "[STATS_DB] ->", cnf.GetAccountDBMaxOpen(), cnf.GetAccountDBMaxIdle())
-		UpdateDB()
 		log.Debug("Init DB success.")
+
+		UpdateDB()
 	})
 }
 
 func initSqlxDB(dbConfig, logHeader string, maxOpen, maxIdle int) *sqlx.DB {
-	log.Debug(dbConfig, logHeader, maxOpen, maxIdle)
+	log.Debug("dbConfig: %s, logHeader: %s, maxOpen: %d, maxIdle: %d", dbConfig, logHeader, maxOpen, maxIdle)
 	db := sqlx.MustConnect(driverName, dbConfig)
 	db.SetMaxOpenConns(maxOpen)
 	db.SetMaxIdleConns(maxIdle)

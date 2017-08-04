@@ -48,6 +48,28 @@ func TestZP_RoomData_StartDispatchCard(t *testing.T) {
 	//data.StartDispatchCard()
 
 }
+
+func TestBaseLogic_ReplaceCard(t *testing.T) {
+	//m := GetCardByIdx(0)
+	//log.Debug("库存的牌%v", m)
+	//TmpRepertoryCard := []int{1, 1, 3, 17, 25, 24}
+	//log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	////tempCard := make([]int, len(m))
+	//
+	////room.LogicMgr.RandCardList(tempCard, m)
+	//
+	//log.Debug("删除前 %d, %v", len(m), m)
+	//for _, v := range TmpRepertoryCard {
+	//	for idx, v1 := range m {
+	//		if v == v1 {
+	//			m = utils.IntSliceDelete(m, idx)
+	//			break
+	//		}
+	//	}
+	//}
+	//log.Debug("删除后%d  %v", len(m), m)
+}
+
 func TestOutCard(t *testing.T) {
 	Wg.Add(1)
 	time.Sleep(3 * time.Second)
@@ -126,6 +148,7 @@ func init() {
 	lconf.ProfilePath = conf.Server.ProfilePath
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
+	conf.Test = true
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
@@ -155,7 +178,7 @@ func init() {
 	}
 	setCfg := map[string]interface{}{
 		"zhuaHua": 16,
-		"wanFa":   true,
+		"wanFa":   false,
 		"suanFen": 1,
 		"chaHua":  false,
 	}
@@ -184,7 +207,7 @@ func init() {
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	RegisterHandler(r)

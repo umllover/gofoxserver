@@ -1,18 +1,7 @@
 package msg
 
 ////// c 2 s
-//在大厅创建房间服成功后调用
-type C2G_LoadRoom struct {
-	RoomID int //房间id
-}
-
-//游戏服初始化房间失败
-type G2C_InitRoomFailure struct {
-	ErrorCode      int
-	DescribeString string
-}
-
-//手机登录
+//登录游戏服
 type C2G_GR_LogonMobile struct {
 	GameID         int //游戏标识
 	KindID         int
@@ -56,7 +45,8 @@ type C2G_LeaveRoom struct {
 
 //请求退出房间结果
 type G2C_LeaveRoomRsp struct {
-	Code int //非0为失败
+	Code   int //非0为失败
+	Status int // 房间状态 0是没开始， 其他都是开始了
 }
 
 //别人退出房间的广播
@@ -100,9 +90,26 @@ type C2G_REQUserInfo struct {
 	TablePos int
 }
 
-//配置信息
+//请求房间的基础信息
 type C2G_GameOption struct {
 	AllowLookon int //旁观标志
+}
+
+//房间信息
+type G2C_PersonalTableTip struct {
+	TableOwnerUserID  int64                  //桌主 I D
+	DrawCountLimit    int                    //局数限制
+	DrawTimeLimit     int                    //时间限制
+	PlayCount         int                    //已玩局数
+	PlayTime          int                    //已玩时间
+	CellScore         int                    //游戏底分
+	IniScore          int                    //初始分数
+	ServerID          string                 //房间编号
+	PayType           int                    //1是自己付钱， 2是AA
+	IsJoinGame        int                    //是否参与游戏
+	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
+	OtherInfo         map[string]interface{} //客户端的配置信息
+	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
 }
 
 //请求用户信息
@@ -130,22 +137,6 @@ type C2G_UserReady struct {
 type G2C_UserStatus struct {
 	UserID     int64
 	UserStatus *UserStu
-}
-
-//发送信息
-type G2C_PersonalTableTip struct {
-	TableOwnerUserID  int64                  //桌主 I D
-	DrawCountLimit    int                    //局数限制
-	DrawTimeLimit     int                    //时间限制
-	PlayCount         int                    //已玩局数
-	PlayTime          int                    //已玩时间
-	CellScore         int                    //游戏底分
-	IniScore          int                    //初始分数
-	ServerID          string                 //房间编号
-	IsJoinGame        int                    //是否参与游戏
-	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
-	OtherInfo         map[string]interface{} //客户端的配置信息
-	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
 }
 
 //请求退出房间的信息
@@ -286,6 +277,8 @@ type G2C_UserEnter struct {
 	Experience int    //用户经验
 	NickName   string //昵称
 	HeaderUrl  string //头像
+	Sign       string //签名
+	Star       int    //点赞数
 }
 
 type SysMsg struct {
@@ -311,6 +304,7 @@ type C2G_GameChart_ToAll struct {
 	SendUserID int    //发送者id
 	ChatString string //消息内容
 	ChatIndex  int    //第几条消息
+	ChatType   int    //1是语音 0 是普通聊天
 }
 
 type G2C_GameChart_ToAll struct {
@@ -320,9 +314,7 @@ type G2C_GameChart_ToAll struct {
 	ClientID     int
 	ChatIndex    int
 	ChatString   string
-}
-
-type G2C_LoadRoomOk struct {
+	ChatType     int //1是语音 0 是普通聊天
 }
 
 //结束消息， 各个游戏自己实现

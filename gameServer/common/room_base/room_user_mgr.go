@@ -9,18 +9,18 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	"mj/gameServer/center"
-
+	dataLog "mj/gameServer/log"
 	"time"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
-func NewRoomUserMgr(info *model.CreateRoomInfo, Temp *base.GameServiceOption) *RoomUserMgr {
+func NewRoomUserMgr(info *msg.L2G_CreatorRoom, Temp *base.GameServiceOption) *RoomUserMgr {
 	r := new(RoomUserMgr)
 	r.MinUserCount = Temp.MinPlayer
 	r.UserCnt = info.MaxPlayerCnt
-	r.id = info.RoomId
+	r.id = info.RoomID
 	r.PayType = info.PayType
 	r.Users = make([]*user.User, r.UserCnt)
 	r.Trustee = make([]bool, r.UserCnt)
@@ -130,7 +130,7 @@ func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 	return nil, -1
 }
 
-func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
+func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	if chairId == INVALID_CHAIR {
 		chairId = r.GetChairId()
 	}
@@ -153,17 +153,21 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User) bool {
 	r.Users[chairId] = u
 	u.ChairId = chairId
 	u.RoomId = r.id
+	u.ChatRoomId = r.ChatRoomId
 
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "AddPlayerId",
 		Data: map[string]interface{}{
-			"UID":     u.Id,
-			"Name":    u.NickName,
-			"HeadUrl": u.HeadImgUrl,
-			"Icon":    u.IconID,
+			"UID":          u.Id,
+			"Name":         u.NickName,
+			"HeadUrl":      u.HeadImgUrl,
+			"Icon":         u.IconID,
+			"HallNodeName": u.HallNodeName,
+			"Status":       status,
 		},
 	})
+
 	return true
 }
 
@@ -176,31 +180,33 @@ func (r *RoomUserMgr) GetChairId() int {
 	return -1
 }
 
-func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) bool {
+func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, status int) int {
 	reqPlayer, _ := r.GetUserByUid(ReplyUid)
 	if reqPlayer == nil {
-		return false
+		log.Debug("at ReplyLeave not foud user")
+		return 0
 	}
+
+	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, Agree: Agree})
 	if Agree {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
 		if req == nil {
 			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
 			r.ReqLeave[ReplyUid] = req
 		}
 		req.Agree = append(req.Agree, player.Id)
-		if len(req.Agree) >= r.UserCnt {
-			r.LeaveRoom(reqPlayer, status)
+		if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
 			r.DeleteReply(reqPlayer.Id)
-			return true
+			return 1
 		}
 	} else {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
 		r.DeleteReply(reqPlayer.Id)
-		return true
+		return -1
 	}
 
-	return false
+	return 0
 }
 
 func (r *RoomUserMgr) DeleteReply(uid int64) {
@@ -221,16 +227,21 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
 
+	r.SetUsetStatus(u, US_FREE)
+
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
+	u.ChatRoomId = 0
+
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "DelPlayerId",
 		Data: map[string]interface{}{
-			"Status": status,
-			"UID":    u.Id,
+			"Status":       status,
+			"UID":          u.Id,
+			"HallNodeName": u.HallNodeName,
 		},
 	})
 	log.Debug("%v user leave room,  left %v count", u.Id, r.GetCurPlayerCnt())
@@ -320,7 +331,7 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 }
 
 //坐下
-func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
+func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
@@ -335,7 +346,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 		room.ChatRoomId = id.(int)
 	}
 
-	room.EnterRoom(ChairID, u)
+	room.EnterRoom(ChairID, u, status)
 
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
@@ -344,6 +355,19 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int) int {
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
+
+	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
+		"room_id": room.id,
+	})
+	if err != nil || info == nil {
+		log.Error("获取房间创建信息失败:%v", err)
+	}
+
+	//搜集进入房间费信息
+
+	getinRoom := dataLog.GetinRoomLog{}
+	getinRoom.AddGetinRoomLogInfo(info.RoomId, u.Id, info.KindId, info.ServiceId, info.RoomName, info.NodeId, info.Num, info.Status, info.MaxPlayerCnt, info.PayType, info.Public)
+
 	return 0
 }
 
@@ -397,8 +421,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
-	room.SetUsetStatus(u, US_FREE)
-	room.LeaveRoom(u, 1)
+	//room.LeaveRoom(u, 1)
 	return true
 }
 
@@ -416,15 +439,9 @@ func (room *RoomUserMgr) SetUsetStatus(u *user.User, stu int) {
 
 //通知房间解散
 func (room *RoomUserMgr) RoomDissume() {
-	Cance := &msg.G2C_CancelTable{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Cance)
-	})
 
-	Diis := &msg.G2C_PersonalTableEnd{}
-	room.ForEachUser(func(u *user.User) {
-		u.WriteMsg(Diis)
-	})
+	room.SendMsgAll(&msg.G2C_CancelTable{})
+	room.SendMsgAll(&msg.G2C_PersonalTableEnd{})
 
 	for _, u := range room.Users {
 		if u != nil {
@@ -501,7 +518,7 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 		return
 	}
 
-	center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+	cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 }
 
 func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
@@ -509,6 +526,6 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		if u == nil {
 			continue
 		}
-		center.SendDataToHallUser(u.HallNodeName, u.Id, data)
+		cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
 	}
 }

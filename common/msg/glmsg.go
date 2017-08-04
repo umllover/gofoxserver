@@ -2,10 +2,11 @@ package msg
 
 //逻辑服和大厅服消息
 type PlayerBrief struct {
-	UID     int64
-	Name    string
-	HeadUrl string
-	Icon    int
+	UID          int64
+	Name         string
+	HeadUrl      string
+	Icon         int
+	HallNodeName string
 }
 
 //房间简要信息
@@ -29,7 +30,8 @@ type RoomInfo struct {
 	RenewalCnt   int                    //续费次数
 
 	//服务器标记字段
-	MachPlayer map[int64]struct{}
+	MachPlayer map[int64]int64 //容错处理
+	MachCnt    int             //容错处理
 }
 
 ///通知大厅房间结束
@@ -130,8 +132,44 @@ type S2S_RenewalFee struct {
 	UserId   int64
 }
 
+//type L2L_NewRoomInfo struct {
+//	info *RoomInfo
+//}
+
 //回复大厅续费失败
 type S2S_RenewalFeeFaild struct {
 	RoomId   int
 	RecodeID int
+}
+
+//通知创建房间
+type L2G_CreatorRoom struct {
+	CreatorUid   int64                  //创建房间的玩家id
+	RoomID       int                    //房间id
+	KindId       int                    //游戏类型
+	ServiceId    int                    //游戏第二类型
+	PlayCnt      int                    //局数
+	MaxPlayerCnt int                    //最大玩家数目
+	PayType      int                    //支付类型
+	Public       int                    //是否公开
+	OtherInfo    map[string]interface{} //其他配置
+}
+
+//游戏服通知大厅服的玩家，  玩家进入房间
+type JoinRoom struct {
+	Rinfo  *RoomInfo
+	Status int
+}
+
+type LeaveRoom struct {
+	RoomId int
+	Status int
+}
+
+type StartRoom struct {
+	RoomId int
+}
+
+type JoinRoomFaild struct {
+	RoomID int
 }

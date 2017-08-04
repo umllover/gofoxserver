@@ -4,6 +4,7 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/db/model/base"
+	dataLog "mj/hallServer/log"
 	"mj/hallServer/user"
 )
 
@@ -34,4 +35,14 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 	case 1:
 		player.AddCurrency(template.Amount)
 	}
+
+	drawAward := dataLog.DrawAwardLog{}
+	drawAward.AddDrawAdardLog(template.Id, recvMsg.DrawId, template.Description, template.DrawTimes, template.DrawType, template.Amount, template.ItemType)
+
+}
+
+//玩家请求次数信息
+func (m *UserModule) ReqTimesInfo(args []interface{}) {
+	player := m.a.UserData().(*user.User)
+	player.WriteMsg(player.GetTimeInfo())
 }

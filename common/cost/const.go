@@ -41,9 +41,15 @@ const (
 	ErrNoFoudRoom           = 120 //房间没有找到
 	ErrNotFoundCreateRecord = 121 //没有找到房间记录
 	ErrDoubleCreaterRoom    = 122 //重复创建房间
-	ErrCreaterError         = 123 //创建错误
+	ErrCreaterError         = 123 //创建房间失败
 	ErrPlayerNotInRoom      = 124 //玩家不在房间内
 	ErrLoveRoomFaild        = 125 //离开房间异常
+	ErrPlayerIsReady        = 126 //玩家已经准备了
+	ErrRenewalFee           = 127 //请先续费
+	ErrRoomIsClose          = 128 //房间已经结束了
+	ErrRoomFull             = 129 //房间已满
+	ErrRenewalFeesFaild     = 130 //续费失败
+	ErrRefuseLeave          = 131 //拒绝离开
 )
 
 //红中麻将错误码
@@ -137,8 +143,27 @@ const (
 
 const (
 	//结束原因
-	GER_NORMAL  = 0x00 //常规结束
-	GER_DISMISS = 0x01 //游戏解散
+	GER_NORMAL  = 0 //常规结束
+	GER_DISMISS = 1 //游戏解散
+	USER_LEAVE  = 2 //玩家请求解散
+)
+
+const (
+	//加入房间累型
+	GIRPrivate = 0 //私房加入
+	GIRPublic  = 1 //公房加入
+)
+
+const (
+	//房间结束
+	RoomErrorDismiss   = 1 //出错解散房间
+	RoomNormalDistmiss = 2 //正常解散房间
+)
+
+const (
+	//是否为他人开房
+	CreateRoomForSelf   = 0 //为自己开房
+	CreateRoomForOthers = 1 //为他人开房
 )
 
 //积分修改类型
@@ -202,10 +227,10 @@ func RenderErrorMessage(code int, Desc ...string) *msg.ShowErrCode {
 }
 
 func GetGameSvrName(sververId int) string {
-	return fmt.Sprintf(GamePrefix+"_%d", sververId)
+	return fmt.Sprintf(GamePrefixFmt, sververId)
 }
 func GetHallSvrName(sververId int) string {
-	return fmt.Sprintf(HallPrefix+"_%d", sververId)
+	return fmt.Sprintf(HallPrefixFmt, sververId)
 }
 
 ///////////////// global 常量 ///////////////////////
@@ -216,4 +241,8 @@ const (
 	MAX_SHOW_ENTRY       = "MAX_SHOW_ENTRY"
 	MATCH_TIMEOUT        = "MATCH_TIMEOUT"
 	MASK_CODE_TEXT       = "MASK_CODE_TEXT"
+	DelayDestroyRoom     = "DelayDestroyRoom"
+	LeaveRoomTimer       = "LeaveRoomTimer"
 )
+
+/////////////// funcs

@@ -3,7 +3,6 @@ package msg
 import (
 	//"gopkg.in/mgo.v2/bson"
 	"github.com/lovelly/leaf/network/json"
-	//"github.com/lovelly/leaf/cluster"
 )
 
 var (
@@ -46,6 +45,7 @@ func init() {
 	Processor.Register(&L2C_SetPhoneNumberRsp{})
 	Processor.Register(&C2L_DianZhan{})
 	Processor.Register(&L2C_DianZhanRsp{})
+
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
 	Processor.Register(&C2L_ChangeUserName{})
@@ -54,7 +54,7 @@ func init() {
 	Processor.Register(&L2C_ChangeSignRsp{})
 	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&L2C_UpdateUserAttr{})
-
+	Processor.Register(&C2L_RechangerOk{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
@@ -63,7 +63,6 @@ func init() {
 	Processor.Register(&C2G_GR_LogonMobile{})
 	Processor.Register(&C2G_GR_UserChairReq{})
 	Processor.Register(&C2L_CreateTable{})
-	Processor.Register(&G2C_InitRoomFailure{})
 	Processor.Register(&L2C_CreateTableSucess{})
 	Processor.Register(&C2L_SearchServerTable{})
 	Processor.Register(&L2C_SearchResult{})
@@ -85,8 +84,6 @@ func init() {
 	Processor.Register(&C2G_HostlDissumeRoom{})
 	Processor.Register(&G2C_CancelTable{})
 	Processor.Register(&G2C_PersonalTableEnd{})
-	Processor.Register(&C2G_LoadRoom{})
-	Processor.Register(&G2C_LoadRoomOk{})
 	Processor.Register(&G2C_GameConclude{})
 	Processor.Register(&G2C_UserSitDownRst{})
 	Processor.Register(&G2C_KickOut{})
@@ -95,6 +92,7 @@ func init() {
 	Processor.Register(&G2C_LeaveRoomBradcast{})
 	Processor.Register(&G2C_ReplyRsp{})
 	Processor.Register(&C2G_ReplyLeaveRoom{})
+	Processor.Register(&C2L_ReqTimesInfo{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

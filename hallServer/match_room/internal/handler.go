@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/lovelly/leaf/log"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
+
+	"github.com/lovelly/leaf/log"
 
 	"mj/hallServer/user"
 
@@ -51,8 +52,25 @@ func SrarchTable(args []interface{}) {
 		retcode = ErrNoFoudRoom
 		return
 	}
+	_, has := roomInfo.MachPlayer[player.Id]
+	if !has {
+		CheckTimeOut(roomInfo, time.Now().Unix())
+		if roomInfo.MachCnt >= roomInfo.MaxPlayerCnt {
+			log.Debug("at SrarchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt, %v", recvMsg)
+			retcode = ErrRoomFull
+			return
+		}
 
-	roomInfo.MachPlayer[player.Id] = struct{}{}
+		cnt, err := IncRoomCnt(roomInfo.RoomID)
+		if err != nil {
+			log.Debug("Error === %s ", err.Error())
+			retcode = ErrRoomFull
+			return
+		}
+
+		roomInfo.MachCnt = cnt
+		roomInfo.MachPlayer[player.Id] = time.Now().Unix() + ResetMatchTime
+	}
 
 	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
 	return

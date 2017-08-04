@@ -2,13 +2,11 @@ package internal
 
 import (
 	"errors"
-	"mj/common/consul"
 	"mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/conf"
-	"mj/gameServer/user"
 
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
@@ -20,16 +18,16 @@ func init() {
 	reg.RegisterRpc("SelfNodeAddPlayer", SelfNodeAddPlayer)
 	reg.RegisterRpc("SelfNodeDelPlayer", SelfNodeDelPlayer)
 	reg.RegisterRpc("SendMsgToSelfNotdeUser", SendMsgToSelfNotdeUser)
-	reg.RegisterRpc("HanldeFromGameMsg", HanldeFromGameMsg)
+	reg.RegisterRpc("HanldeFromHallMsg", HanldeFromHallMsg)
 	reg.RegisterRpc("ServerFaild", serverFaild)
 	reg.RegisterRpc("ServerStart", serverStart)
 
-	reg.RegisterS2S(&msg.S2S_GetPlayerInfo{}, GetPlayerInfo)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 
 	// 登录服发来的协议
 	reg.RegisterS2S(&msg.S2S_CloseRoom{}, SREQCloseRoom)
+	reg.RegisterS2S(&msg.L2G_CreatorRoom{}, CreatorRoom)
 }
 
 //玩家在本服节点登录
@@ -67,50 +65,11 @@ func NotifyOtherNodelogout(args []interface{}) {
 }
 
 //处理来自游戏服的消息
-func HanldeFromGameMsg(args []interface{}) {
+func HanldeFromHallMsg(args []interface{}) {
 	SendMsgToSelfNotdeUser(args)
 }
 
-func GetPlayerInfo(args []interface{}) (interface{}, error) {
-	uid := args[0].(int64)
-	log.Debug("at GetPlayerInfo uid:%d", uid)
-	ch, chok := Users[uid]
-	if !chok {
-		return nil, errors.New("not foud user ch")
-	}
-	us, err := ch.TimeOutCall1("GetUser", 5)
-	if err != nil {
-		return nil, err
-	}
-
-	u, ok := us.(*user.User)
-	if !ok {
-		return nil, errors.New("user data error")
-	}
-
-	gu := map[string]interface{}{
-		"Id":          u.Id,
-		"NickName":    u.NickName,
-		"Currency":    u.Currency,
-		"RoomCard":    u.RoomCard,
-		"FaceID":      u.FaceID,
-		"CustomID":    u.CustomID,
-		"HeadImgUrl":  u.HeadImgUrl,
-		"Experience":  u.Experience,
-		"Gender":      u.Gender,
-		"WinCount":    u.WinCount,
-		"LostCount":   u.LostCount,
-		"DrawCount":   u.DrawCount,
-		"FleeCount":   u.FleeCount,
-		"UserRight":   u.UserRight,
-		"Score":       u.Score,
-		"Revenue":     u.Revenue,
-		"InsureScore": u.InsureScore,
-		"MemberOrder": u.MemberOrder,
-	}
-	return gu, nil
-}
-
+//登录服发来的删除房间协议
 func SREQCloseRoom(args []interface{}) (interface{}, error) {
 	recvMsg := args[0].(*msg.S2S_CloseRoom)
 	room := RoomMgr.GetRoom(recvMsg.RoomID)
@@ -122,16 +81,11 @@ func SREQCloseRoom(args []interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-//新的节点启动了
-func serverStart(args []interface{}) {
-	svr := args[0].(*consul.CacheInfo)
-	log.Debug("%s on line", svr.Csid)
-	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
-}
-
-//节点关闭了
-func serverFaild(args []interface{}) {
-	svr := args[0].(*consul.CacheInfo)
-	log.Debug("%s off line", svr.Csid)
-	cluster.RemoveClient(svr.Csid)
+//大厅服发来的创建房间
+func CreatorRoom(args []interface{}) (interface{}, error) {
+	if LoadRoom(args[0]) {
+		return nil, nil
+	} else {
+		return nil, errors.New("creator room faild ")
+	}
 }

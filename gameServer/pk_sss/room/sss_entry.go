@@ -1,9 +1,9 @@
 package room
 
 import (
+	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 	"mj/gameServer/user"
 )
 
@@ -12,7 +12,7 @@ type SSS_Entry struct {
 	*pk_base.Entry_base
 }
 
-func NewSSSEntry(info *model.CreateRoomInfo) *SSS_Entry {
+func NewSSSEntry(info *msg.L2G_CreatorRoom) *SSS_Entry {
 	e := new(SSS_Entry)
 	e.Entry_base = pk_base.NewPKBase(info)
 	return e

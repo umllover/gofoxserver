@@ -5,14 +5,14 @@ package msg
 ////////////////////// c 2 l ////////////////////
 //登录消息
 type C2L_Login struct {
-	ModuleID     int
-	PlazaVersion int
-	DeviceType   int
-	LogonPass    string
-	Accounts     string
-	MachineID    string
-	MobilePhone  string
-	SessionKey   string
+	ModuleID     int    //无效
+	PlazaVersion int    //无效
+	DeviceType   int    //无效
+	LogonPass    string //密码
+	Accounts     string //账号
+	MachineID    string //机器id
+	MobilePhone  string //无效
+	SessionKey   string //暂时无效
 }
 
 //注册消息
@@ -64,19 +64,38 @@ type L2C_DeleteRoomResult struct {
 
 //查询房间信息
 type C2L_SearchServerTable struct {
-	TableID int
+	TableID int //要查询的6位房号
 	KindID  int
 }
 
 //查询房间的结果
 type L2C_SearchResult struct {
-	TableID  int //桌子 I D 返回0 是没匹配到
-	ServerIP string
+	TableID  int    //桌子 I D 返回0 是没匹配到
+	ServerIP string // //要去链接的游戏服地址
 }
 
 //获取玩家显示信息
 type C2L_User_Individual struct {
 	UserId int
+}
+
+//个人资料
+type L2C_UserIndividual struct {
+	//用户信息
+	UserID      int64  //用户 I D
+	NickName    string //昵称
+	Accounts    string //账号
+	WinCount    int    //赢数
+	LostCount   int    //输数
+	DrawCount   int    //平数
+	Medal       int
+	RoomCard    int  //房卡
+	MemberOrder int8 //会员等级
+	Score       int64
+	HeadImgUrl  string
+	PhomeNumber string //电话号码
+	Sign        string //个性签名
+	Star        int    //赞数
 }
 
 //请求房间列表
@@ -186,6 +205,17 @@ type L2C_ChangeSignRsp struct {
 	NewSign string
 }
 
+//玩家请求次数信息
+type C2L_ReqTimesInfo struct {
+}
+
+//登录时下发已领取过的奖励信息
+type L2C_ActivityInfo struct {
+	DayTimes  map[int]int64 //每日次数信息
+	Times     map[int]int64 //永久次数信息
+	WeekTimes map[int]int64 //周次数信息
+}
+
 /////////// l 2 c /////////////////////////
 //登录失败
 type L2C_LogonFailure struct {
@@ -205,15 +235,15 @@ type L2C_LogonSuccess struct {
 	NickName   string `json:"szNickName"`   //用户昵称
 
 	//用户成绩
-	UserScore    int       `json:"lUserScore"`   //用户欢乐豆
-	UserInsure   int64     `json:"lUserInsure"`  //用户银行
-	Medal        int       `json:"dwMedal"`      //用户钻石
-	UnderWrite   string    `json:"szUnderWrite"` //个性签名
-	WinCount     int       `json:"dwWinCount"`   //赢局数
-	LostCount    int       `json:"dwLostCount"`  //输局数
-	DrawCount    int       `json:"dwDrawCount"`  //和局数
-	FleeCount    int       `json:"dwFleeCount"`  //跑局数
-	RegisterDate *DateTime `json:"RegisterDate"` //注册时间
+	UserScore    int    `json:"lUserScore"`   //用户欢乐豆
+	UserInsure   int64  `json:"lUserInsure"`  //用户银行
+	Medal        int    `json:"dwMedal"`      //用户钻石
+	UnderWrite   string `json:"szUnderWrite"` //个性签名
+	WinCount     int    `json:"dwWinCount"`   //赢局数
+	LostCount    int    `json:"dwLostCount"`  //输局数
+	DrawCount    int    `json:"dwDrawCount"`  //和局数
+	FleeCount    int    `json:"dwFleeCount"`  //跑局数
+	RegisterDate int64  `json:"RegisterDate"` //注册时间
 
 	//额外信息
 	MbTicket        int `json:"dwMbTicket"`        //手机兑换券数量
@@ -222,11 +252,11 @@ type L2C_LogonSuccess struct {
 	PayMbVipUpgrade int `json:"dwPayMbVipUpgrade"` //手机VIP升级，所需充值数（vip最高级时该值为0）
 
 	//约战房相关
-	RoomCard     int    `json:"lRoomCard"`      //用户房卡
-	LockServerID int    `json:"dwLockServerID"` //锁定房间
-	KindID       int    `json:"dwKindID"`       //游戏类型
-	HallNodeID   int    `json:"HallNodeID"`
-	ServerIP     string `json:"ServerIP"`
+	RoomCard   int    `json:"lRoomCard"`      //用户房卡
+	ServerID   int    `json:"dwLockServerID"` //锁定房间
+	KindID     int    `json:"dwKindID"`       //游戏类型
+	HallNodeID int    `json:"HallNodeID"`
+	ServerIP   string `json:"ServerIP"`
 }
 
 //房间列表
@@ -234,25 +264,6 @@ type L2C_ServerList []*TagGameServer
 
 //房间列表发送成功
 type L2C_ServerListFinish struct{}
-
-//个人资料
-type L2C_UserIndividual struct {
-	//用户信息
-	UserID      int64  //用户 I D
-	NickName    string //昵称
-	Accounts    string //账号
-	WinCount    int    //赢数
-	LostCount   int    //输数
-	DrawCount   int    //平数
-	Medal       int
-	RoomCard    int  //房卡
-	MemberOrder int8 //会员等级
-	Score       int64
-	HeadImgUrl  string
-	PhomeNumber string //电话号码
-	Sign        string //个性签名
-	Star        int    //赞数
-}
 
 //返回房间列表
 type L2C_GetRoomList struct {
@@ -286,13 +297,6 @@ type L2C_RoomPlayerBrief struct {
 	Players []*PlayerBrief //房间内玩家的简要信息
 }
 
-//登录时下发已领取过的奖励信息
-type L2C_ActivityInfo struct {
-	DayTimes  map[int]int64 //每日次数信息
-	Times     map[int]int64 //永久次数信息
-	WeekTimes map[int]int64 //周次数信息
-}
-
 //领取奖励结果
 type L2C_DrawSahreAwardResult struct {
 	DrawId  int //领取奖励的key
@@ -312,4 +316,9 @@ type L2C_RspTradeShopInfo struct {
 //更新玩家属性信息
 type L2C_UpdateUserAttr struct {
 	Data map[string]interface{} //key value 结构
+}
+
+//客户端通知充值成功
+type C2L_RechangerOk struct {
+	OrderId int
 }

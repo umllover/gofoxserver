@@ -1,18 +1,24 @@
 package pk_base
 
 import (
+	"errors"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/nn_tb_msg"
+	. "mj/gameServer/common"
 	"mj/gameServer/common/pk"
-
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+	"time"
+
+	datalog "mj/gameServer/log"
+
+	"mj/gameServer/RoomMgr"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/timer"
 )
 
 //创建的配置文件
@@ -33,13 +39,15 @@ type Entry_base struct {
 	DataMgr  pk.DataManager
 	LogicMgr pk.LogicManager
 
-	Temp   *base.GameServiceOption //模板
-	Status int
+	Temp            *base.GameServiceOption //模板
+	Status          int
+	IsClose         bool
+	DelayCloseTimer *timer.Timer
 
 	BtCardSpecialData []int
 }
 
-func NewPKBase(info *model.CreateRoomInfo) *Entry_base {
+func NewPKBase(info *msg.L2G_CreatorRoom) *Entry_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	log.Debug("new pk base %d %d", info.KindId, info.ServiceId)
 	if !ok1 {
@@ -63,6 +71,7 @@ func (r *Entry_base) RegisterBaseFunc() {
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
 	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
 	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
+	r.GetChanRPC().Register("AddPlayCnt", r.AddPlayCnt)
 }
 
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
@@ -72,10 +81,12 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.LogicMgr = cfg.LogicMgr
 	r.TimerMgr = cfg.TimerMgr
 	r.RoomRun(r.DataMgr.GetRoomId())
-
 	r.DataMgr.OnCreateRoom()
-
-	r.TimerMgr.StartCreatorTimer(r.GetSkeleton(), func() {
+	r.TimerMgr.StartCreatorTimer(func() {
+		roomLogData := datalog.RoomLog{}
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
+		roomLogData.UpdateGameLogRecode(logData, 4)
+		log.Debug("not start game close ")
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -99,8 +110,20 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 		return
 	}
 
-	retcode = r.UserMgr.Sit(u, chairID)
+	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
+}
+func (r *Entry_base) AddPlayCnt(args []interface{}) (interface{}, error) {
+	if r.IsClose {
+		return nil, errors.New("room is close ")
+	}
+	addCnt := args[0].(int)
+	r.TimerMgr.AddMaxPlayCnt(addCnt)
+	if r.DelayCloseTimer != nil {
+		r.DelayCloseTimer.Stop()
+		r.DelayCloseTimer = nil
+	}
+	return nil, nil
 }
 
 //起立
@@ -149,7 +172,10 @@ func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
 		leaveFunc()
 	} else {
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
-		room.TimerMgr.StartReplytIimer(player.Id, leaveFunc)
+		room.TimerMgr.StartReplytIimer(player.Id, func() {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
+			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+		})
 	}
 }
 
@@ -158,9 +184,19 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 	player := args[0].(*user.User)
 	Agree := args[1].(bool)
 	ReplyUid := args[2].(int64)
-	stop := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
-	if stop {
+	ret := room.UserMgr.ReplyLeave(player, Agree, ReplyUid, room.Status)
+	if ret == 1 {
+		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
+		if reqPlayer != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: 0})
+		}
+		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+	} else if ret == -1 {
 		room.TimerMgr.StopReplytIimer(ReplyUid)
+		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
+		if reqPlayer != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrRefuseLeave})
+		}
 	}
 }
 
@@ -185,6 +221,15 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 
 	room.OnEventGameConclude(0, nil, GER_DISMISS)
 	room.Destroy(room.DataMgr.GetRoomId())
+	roomLogData := datalog.RoomLog{}
+	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
+	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
+	if user == nil {
+		roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
+	}
+	if retcode == 0 {
+		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
+	}
 }
 
 //玩家准备
@@ -200,29 +245,40 @@ func (room *Entry_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
+		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间局数变更
+			RoomId: room.DataMgr.GetRoomId(),
+			OpName: "AddPlayCnt",
+			Data: map[string]interface{}{
+				"Status": RoomStatusStarting,
+				"Cnt":    1,
+			},
+		})
+
 		//派发初始扑克
+		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
 
 		room.Status = RoomStatusStarting
-		room.TimerMgr.StartPlayingTimer(room.GetSkeleton(), func() {
-			room.OnEventGameConclude(0, nil, GER_DISMISS)
-		})
+		room.TimerMgr.StopCreatorTimer()
 	}
 }
 
 //玩家重登
-func (room *Entry_base) UserReLogin(args []interface{}) {
+func (room *Entry_base) UserReLogin(args []interface{}) error {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
-		return
+		return errors.New(" UserReLogin not old user ")
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
 	u.RoomId = roomUser.RoomId
+	u.Status = roomUser.Status
+	u.ChatRoomId = roomUser.ChatRoomId
 	room.UserMgr.ReLogin(u, room.Status)
+	return nil
 }
 
 //玩家离线
@@ -235,7 +291,7 @@ func (room *Entry_base) UserOffline(args []interface{}) {
 	}
 
 	room.UserMgr.SetUsetStatus(u, US_OFFLINE)
-	room.TimerMgr.StartKickoutTimer(room.GetSkeleton(), u.Id, func() {
+	room.TimerMgr.StartKickoutTimer(u.Id, func() {
 		room.OffLineTimeOut(u)
 	})
 }
@@ -263,13 +319,13 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.RoomID = room.DataMgr.GetRoomId()
 	BirefInf.CurCnt = room.UserMgr.GetCurPlayerCnt()
 	BirefInf.MaxPlayerCnt = room.UserMgr.GetMaxPlayerCnt() //最多多人数
-	BirefInf.PayCnt = room.TimerMgr.GetMaxPayCnt()         //可玩局数
+	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
 	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
-	BirefInf.MachPlayer = make(map[int64]struct{})
+	BirefInf.MachPlayer = make(map[int64]int64)
 	return BirefInf
 }
 
@@ -312,29 +368,43 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
 	switch cbReason {
 	case GER_NORMAL: //常规结束
-		room.DataMgr.NormalEnd()
-		//room.AfertEnd(false)// 这里需要重构 不同房间结束不一样
-		room.DataMgr.AfterEnd(false)
+		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(false, cbReason)
 		return
 	case GER_DISMISS: //游戏解散
-		room.DataMgr.DismissEnd()
-		room.AfertEnd(true)
+		room.DataMgr.DismissEnd(cbReason)
+		room.AfterEnd(true, cbReason)
+	case USER_LEAVE: //用户请求解散
+		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(true, cbReason)
 	}
 	log.Error("at OnEventGameConclude error  ")
 	return
 }
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
-func (room *Entry_base) AfertEnd(Forced bool) {
-	room.TimerMgr.AddPlayCount()
-	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPayCnt() {
-		log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPayCnt())
-		room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
-			RoomId: room.DataMgr.GetRoomId(),
-			Status: room.Status,
-		})
-		room.Destroy(room.DataMgr.GetRoomId())
-		room.UserMgr.RoomDissume()
+func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
+	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
+		if room.DelayCloseTimer != nil {
+			room.DelayCloseTimer.Stop()
+		}
+		closeFunc := func() {
+			room.IsClose = true
+			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
+			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
+				RoomId: room.DataMgr.GetRoomId(),
+				Status: room.Status,
+			})
+			room.Destroy(room.DataMgr.GetRoomId())
+			room.UserMgr.RoomDissume()
+		}
+
+		if GER_NORMAL != cbReason {
+			room.DelayCloseTimer = room.AfterFunc(2*time.Second, closeFunc)
+		} else { //常规结束延迟
+			room.DelayCloseTimer = room.AfterFunc(time.Duration(GetGlobalVarInt(DelayDestroyRoom))*time.Second, closeFunc)
+		}
+
 		return
 	}
 

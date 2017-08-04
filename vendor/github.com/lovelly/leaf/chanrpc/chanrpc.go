@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -90,6 +92,9 @@ func Assert(i interface{}) []interface{} {
 
 func (s *Server) HasFunc(id interface{}) (*FuncInfo, bool) {
 	f, ok := s.functions[id]
+	if !ok {
+		log.Debug("at HasFunc :%v   ", id)
+	}
 	return f, ok
 }
 
@@ -189,7 +194,7 @@ func (s *Server) Exec(ci *CallInfo) {
 // goroutine safe
 func (s *Server) Go(id interface{}, args ...interface{}) {
 	if s.CloseFlg {
-		log.Error("at Go chan is close %v", id)
+		log.Error("at Go chan is close %v %s", id, string(debug.Stack()))
 		return
 	}
 	f := s.functions[id]
@@ -216,7 +221,11 @@ func (s *Server) Call0(id interface{}, args ...interface{}) error {
 		log.Error("at Call0 chan is close %v", id)
 		return errors.New("] send on closed channel")
 	}
-	return s.Open(0).Call0(id, args...)
+	err := s.Open(0).Call0(id, args...)
+	if err != nil {
+		log.Error("call %s faild error:%s", id, err.Error())
+	}
+	return err
 }
 
 // goroutine safe

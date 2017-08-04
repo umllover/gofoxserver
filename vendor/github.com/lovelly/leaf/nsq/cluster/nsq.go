@@ -179,7 +179,7 @@ func (h *nsqHandler) HandleMessage(message *nsq.Message) error {
 		log.Debug("Unmarshal error ")
 		return nil
 	}
-	log.Debug("Cluster IN ==== %s", string(msg.Args))
+	log.Debug("Cluster IN ==== %s, SrcServerName:%s", string(msg.Args), msg.SrcServerName)
 	//if msg.CallType == callBroadcast && msg.SrcServerName == SelfName {
 	//	return nil
 	//}
@@ -210,7 +210,7 @@ func safePulishg(msg *S2S_NsqMsg) {
 		log.Error("error at Publish data is ni")
 		return
 	}
-	log.Debug("Cluster OUT ==== err:%v, data:%s", msg.Err, string(msg.Args))
+	log.Debug("Cluster OUT ==== err:%v, data:%s, DstServerName:%s", msg.Err, string(msg.Args), msg.DstServerName)
 	err = producer.Publish(msg.DstServerName, data[0])
 	if err != nil {
 		log.Error("Publish msg error : %v ", msg)

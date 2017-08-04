@@ -37,6 +37,7 @@ func (m *Module) OnDestroy() {
 
 //创建聊天房间
 func createRoom(args []interface{}) (interface{}, error) {
+	roomID++
 	ag := args[0].(gate.Agent)
 	user := ag.UserData().(*user.User)
 	room := &ChatRoom{members: make(map[int64]gate.Agent), memChatIndex: make(map[int64]int)}
@@ -44,7 +45,6 @@ func createRoom(args []interface{}) (interface{}, error) {
 	room.memChatIndex[user.Id] = 0
 	roomList[roomID] = room
 	user.ChatRoomId = roomID
-	roomID++
 	log.Debug("createRoom ok, RoomID = %d", roomID)
 	return user.ChatRoomId, nil
 }

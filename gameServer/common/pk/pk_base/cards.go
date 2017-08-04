@@ -63,7 +63,7 @@ var cfg = []*PK_CFG{
 		PublicCardCount: 0,
 		MaxCount:        0,
 		MaxRepertory:    54,
-		CallScoreTime:   10,
+		CallScoreTime:   20,
 		AddScoreTime:    10,
 	},
 	IDX_SSS: &PK_CFG{

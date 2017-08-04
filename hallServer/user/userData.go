@@ -10,6 +10,8 @@ import (
 
 	"mj/hallServer/db/model/base"
 
+	datalog "mj/hallServer/log"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 )
@@ -102,13 +104,15 @@ func (u *User) EnoughCurrency(sub int) bool {
 }
 
 //扣砖石
-func (u *User) SubCurrency(sub int) bool {
+func (u *User) SubCurrency(sub, subtype int) bool {
 	u.Lock()
 	defer u.Unlock()
 	if u.Currency < sub {
 		return false
 	}
 
+	consum := datalog.ConsumLog{}
+	consum.AddConsumLogInfo(u.Id,subtype,sub)
 	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,
@@ -151,6 +155,7 @@ func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	}
 	return true
 }
+
 
 func (u *User) HasRecord(RoomId int) bool {
 	u.Lock()
@@ -205,7 +210,6 @@ func (u *User) UpdateUserAttr(m map[string]interface{}) {
 }
 
 //判断是否免费
-
 func (u *User) CheckFree() bool {
 	u.Lock()
 	defer u.Unlock()
@@ -213,9 +217,7 @@ func (u *User) CheckFree() bool {
 	tm := &t
 	b := false
 	for _, v := range base.FreeLimitCache.All() {
-		tBegin := *v.FreeBegin
-		tAfter := *v.FreeEnd
-		if tm.Before(tBegin) || tm.After(tAfter) {
+		if tm.Before(*v.FreeBegin) || tm.After(*v.FreeEnd) {
 			continue
 		}
 

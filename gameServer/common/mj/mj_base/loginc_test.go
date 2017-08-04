@@ -13,12 +13,14 @@ import (
 
 	"fmt"
 
+	"sync"
+
+	"mj/common/msg"
+
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/module"
-	"github.com/lovelly/leaf/log"
-	"mj/common/utils"
 )
 
 var (
@@ -27,20 +29,20 @@ var (
 	u2   *user.User
 	u3   *user.User
 	u4   *user.User
+	wg   sync.WaitGroup
 )
 
 func TestGameStart_1(t *testing.T) {
-	/*room.UserReady([]interface{}{nil, u1})
-	room.DataMgr.SetUserCard(0, []int{
-		0x1, 0x1, 0x1,
-		0x3, 0x3, 0x3,
-		0x4, 0x4, 0x4,
-		0x6,
-		0x7,
-		0x8,
-		0x15, 0x15,
-	})
-	*/
+	room.UserReady([]interface{}{nil, u1})
+}
+
+func TestGameAddPlayCnt(t *testing.T) {
+	room.GetChanRPC().Register("AddPlayCnt", room.AddPlayCnt)
+	_, err := room.GetChanRPC().Call1("AddPlayCnt", 8)
+	if err != nil {
+		fmt.Println("AAAAAAAAAAAAA ", err.Error())
+		return
+	}
 }
 
 func TestOutCard(t *testing.T) {
@@ -50,48 +52,76 @@ func TestOutCard(t *testing.T) {
 	//room.OutCard([]interface{}{u1, 1})
 }
 
-
-func TestBaseLogic_ReplaceCard(t *testing.T) {
-	m := GetCardByIdx(0)
-	log.Debug("库存的牌%v", m)
-	TmpRepertoryCard := []int{1, 1,3, 17, 25, 24}
-	log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-	//tempCard := make([]int, len(m))
-
-	//room.LogicMgr.RandCardList(tempCard, m)
-
-	log.Debug("删除前 %d, %v", len(m), m)
-	for _, v := range TmpRepertoryCard {
-		for idx, v1 := range m {
-			if v == v1 {
-				m = utils.IntSliceDelete(m, idx)
-				break
-			}
-		}
-	}
-	log.Debug("删除后%d  %v", len(m), m)
+func TestMj_base_DissumeRoom(t *testing.T) {
+	//base := Mj_base{}
+	//args := *user.User{}
+	//base.DissumeRoom()
 }
 
+func TestBaseLogic_ReplaceCard(t *testing.T) {
+	//m := GetCardByIdx(0)
+	//log.Debug("库存的牌%v", m)
+	//TmpRepertoryCard := []int{1, 1, 3, 17, 25, 24}
+	//log.Debug("TmpRepertoryCardAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	////tempCard := make([]int, len(m))
+	//
+	////room.LogicMgr.RandCardList(tempCard, m)
+	//
+	//log.Debug("删除前 %d, %v", len(m), m)
+	//for _, v := range TmpRepertoryCard {
+	//	for idx, v1 := range m {
+	//		if v == v1 {
+	//			m = utils.IntSliceDelete(m, idx)
+	//			break
+	//		}
+	//	}
+	//}
+	//log.Debug("删除后%d  %v", len(m), m)
+}
 
 func TestBaseLogic_AnalyseCard(t *testing.T) {
-	//fmt.Println("===========================================")
-	//lg := room.LogicMgr.(*BaseLogic)
-	//hzIndex := lg.SwitchToCardIndex(0x35)
-	//cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-	///*cbCardIndexTemp[0x3] = 1
-	//cbCardIndexTemp[0x4] = 1
-	//cbCardIndexTemp[0x5] = 1
-	//cbCardIndexTemp[0x6] = 1
-	//cbCardIndexTemp[0x7] = 1
-	//cbCardIndexTemp[0x8] = 1*/
-	//cbCardIndexTemp[0x3] = 3
-	//cbCardIndexTemp[0x6] = 3
-	//cbCardIndexTemp[0x18] = 1
-	//cbCardIndexTemp[hzIndex] = 1
+	fmt.Println("===========================================")
+	lg := room.LogicMgr.(*BaseLogic)
+	hzIndex := lg.SwitchToCardIndex(0x35)
+	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+	WraveItem := []*msg.WeaveItem{}
+
+	/*cbCardIndexTemp[0x3] = 1
+	cbCardIndexTemp[0x4] = 1
+	cbCardIndexTemp[0x5] = 1
+	cbCardIndexTemp[0x6] = 1
+	cbCardIndexTemp[0x7] = 1
+	cbCardIndexTemp[0x8] = 1*/
+	cbCardIndexTemp[0x3] = 3
+	cbCardIndexTemp[0x6] = 3
+	cbCardIndexTemp[0x18] = 1
+	cbCardIndexTemp[hzIndex] = 1
 	//lg.SetMagicIndex(hzIndex)
+
+	wrave := &msg.WeaveItem{}
+	wrave.PublicCard = false
+	wrave.Param = 0
+	wrave.ActionMask = 0
+	wrave.CenterCard = 9
+	wrave.CardData = []int{9, 9, 9, 0}
+	wrave.WeaveKind = 8
+	wrave.ProvideUser = 1
+	WraveItem = append(WraveItem, wrave)
+
+	wrave2 := &msg.WeaveItem{}
+	wrave2.PublicCard = false
+	wrave2.Param = 0
+	wrave2.ActionMask = 0
+	wrave2.CenterCard = 7
+	wrave2.CardData = []int{7, 7, 7, 0}
+	wrave2.WeaveKind = 8
+	wrave2.ProvideUser = 1
+	WraveItem = append(WraveItem, wrave2)
+
+	hu, cards := lg.AnalyseCard(cbCardIndexTemp, WraveItem)
 	//hu, cards := lg.AnalyseCard(cbCardIndexTemp, []*msg.WeaveItem{})
-	//fmt.Println(hu, cards)
-	//fmt.Println("===========================================")
+	fmt.Println(hu, cards)
+	fmt.Println("===========================================")
 }
 
 func TestRandRandCard(t *testing.T) {
@@ -138,6 +168,7 @@ func init() {
 	lconf.ProfilePath = conf.Server.ProfilePath
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
+	conf.Test = true
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
 	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	leaf.InitLog()
@@ -165,13 +196,13 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r)
+	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r, info.OtherInfo)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(IDX_HZMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
+		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	room = r

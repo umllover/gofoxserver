@@ -1,23 +1,25 @@
 package room
 
 import (
-	"encoding/json"
+	"mj/common/msg"
 	"mj/common/msg/pk_ddz_msg"
 	"mj/gameServer/common/pk/pk_base"
-	"mj/gameServer/db/model"
 
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
+	"github.com/mitchellh/mapstructure"
 )
 
-func NewDDZLogic(ConfigIdx int, info *model.CreateRoomInfo) *ddz_logic {
+func NewDDZLogic(ConfigIdx int, info *msg.L2G_CreatorRoom) *ddz_logic {
 	l := new(ddz_logic)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		l.GameType = setInfo.GameType
+	err := mapstructure.Decode(info.OtherInfo, &setInfo)
+	if err != nil {
+		log.Error(" mapstructure.Decode error")
 	}
+	l.GameType = setInfo.GameType
 
 	return l
 }
@@ -28,45 +30,10 @@ type ddz_logic struct {
 	LizeCard int
 }
 
-const (
-
-	// 数目定义
-	MAX_COUNT = 22 //最大数目
-)
-
-type BaseLogic struct {
-	CardDataArray []int //扑克数据
-	MagicIndex    int   //钻牌索引
-	ReplaceCard   int   //替换金牌的牌
-	SwitchToIdx   func(int) int
-	CheckValid    func(int) bool
-	SwitchToCard  func(int) int
-	ConfigIdx     int //配置文件索引
-}
-
 //分析结构
-type tagAnalyseResult struct {
-	cbBlockCount [4]int            //扑克数目
-	cbCardData   [4][MAX_COUNT]int //扑克数据
-}
-
-//出牌结果
-type tagOutCardResult struct {
-	cbCardCount  int            //扑克数目
-	cbResultCard [MAX_COUNT]int //结果扑克
-}
-
-//分布信息
-type tagDistributing struct {
-	cbCardCount    int        //扑克数目
-	cbDistributing [15][6]int //分布信息
-}
-
-//搜索结果
-type tagSearchCardResult struct {
-	cbSearchCount int                       //结果数目
-	cbCardCount   [MAX_COUNT]int            //扑克数目
-	cbResultCard  [MAX_COUNT][MAX_COUNT]int //结果扑克
+type DdzAnalyseResult struct {
+	cbBlockCount [4]int     //扑克数目
+	cbCardData   [4][22]int //扑克数据
 }
 
 // 判断是否是火箭
@@ -110,8 +77,8 @@ func (dg *ddz_logic) isBombType(cardArr []int) (int, bool) {
 		return CT_ERROR, false
 	}
 
-	var AnalyseResult tagAnalyseResult
-	dg.AnalysebCardData(cardArr, len(cardArr), &AnalyseResult)
+	var AnalyseResult DdzAnalyseResult
+	dg.AnalysebCardData(cardArr, &AnalyseResult)
 	// 四张一样的，肯定是炸弹
 	if AnalyseResult.cbBlockCount[3] > 0 {
 		return CT_BOMB_CARD | (dg.GetCardLogicValue(AnalyseResult.cbCardData[3][0]) << 4), true
@@ -153,8 +120,8 @@ func (dg *ddz_logic) isFourTakeTwo(cardArr []int) (int, bool) {
 	}
 
 	// 分析扑克
-	var AnalyseResult tagAnalyseResult
-	dg.AnalysebCardData(tmpCard, len(tmpCard), &AnalyseResult)
+	var AnalyseResult DdzAnalyseResult
+	dg.AnalysebCardData(tmpCard, &AnalyseResult)
 	// 有4根癞子
 	if nLaiziCount == 4 {
 		// 六根就是4个癞子加两根其它
@@ -300,8 +267,8 @@ func (dg *ddz_logic) isPlane(tmpArr []int) (int, bool) {
 
 	dg.SortCardList(cardArr, len(cardArr))
 
-	var AnalyseResult tagAnalyseResult
-	dg.AnalysebCardData(cardArr, len(cardArr), &AnalyseResult)
+	var AnalyseResult DdzAnalyseResult
+	dg.AnalysebCardData(cardArr, &AnalyseResult)
 	if AnalyseResult.cbBlockCount[2] > 1 {
 
 		var maxValue int
@@ -479,8 +446,8 @@ func (dg *ddz_logic) isThreeTakeTwo(cardArr []int) (int, bool) {
 		return CT_THREE_TAKE_TWO | maxValue, true
 	}
 
-	var AnalyseResult tagAnalyseResult
-	dg.AnalysebCardData(tmpArr, len(tmpArr), &AnalyseResult)
+	var AnalyseResult DdzAnalyseResult
+	dg.AnalysebCardData(tmpArr, &AnalyseResult)
 	// 三张癞子
 	if nLaiziCount == 3 {
 		var maxValue int
@@ -547,8 +514,8 @@ func (dg *ddz_logic) isThreeTakeOne(cardArr []int) (int, bool) {
 			return CT_THREE_TAKE_ONE | dg.getMaxLogicCardValueWithoutLaizi(tmpArr), true
 		}
 
-		var AnalyseResult tagAnalyseResult
-		dg.AnalysebCardData(tmpArr, len(tmpArr), &AnalyseResult)
+		var AnalyseResult DdzAnalyseResult
+		dg.AnalysebCardData(tmpArr, &AnalyseResult)
 		// 一张癞子+一个对子
 		if nLaiziCount == 1 && AnalyseResult.cbBlockCount[1] == 1 {
 			return CT_THREE_TAKE_ONE | dg.GetCardLogicValue(AnalyseResult.cbCardData[1][0]), true
@@ -565,8 +532,8 @@ func (dg *ddz_logic) isThreeTakeOne(cardArr []int) (int, bool) {
 func (dg *ddz_logic) isThree(cardArr []int) (int, bool) {
 	if len(cardArr) == 3 && dg.getKingCount(cardArr) == 0 {
 		tmpArr, nCount := dg.removeValuesFromCard(cardArr, dg.LizeCard)
-		var AnalyseResult tagAnalyseResult
-		dg.AnalysebCardData(tmpArr, len(tmpArr), &AnalyseResult)
+		var AnalyseResult DdzAnalyseResult
+		dg.AnalysebCardData(tmpArr, &AnalyseResult)
 		// 三张一样的
 		if AnalyseResult.cbBlockCount[2] > 0 {
 
@@ -748,95 +715,6 @@ func (dg *ddz_logic) DDZSortCardList(arry []int, cbCardCount int, cbSortType int
 	}
 }
 
-//删除扑克
-func (dg *ddz_logic) RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool) {
-	cbRemoveCount := len(cbRemoveCard)
-	// 检验数据
-	if cbRemoveCount > int(len(cbCardData)) {
-		log.Error("要删除的扑克数%d大于已有扑克数%d", cbRemoveCount, len(cbCardData))
-		return cbCardData, false
-	}
-
-	// 备份
-	var tmpCardData []int
-	copy(tmpCardData, cbCardData)
-
-	cardArr := util.CopySlicInt(cbCardData)
-
-	var u8DeleteCount int // 记录删除记录
-
-	for _, v1 := range cbRemoveCard {
-		for j, v2 := range cardArr {
-			if v1 == v2 {
-				copy(cardArr[j:], cardArr[j+1:])
-				cardArr = cardArr[:len(cardArr)-1]
-				u8DeleteCount++
-				break
-			}
-		}
-	}
-
-	if u8DeleteCount != cbRemoveCount {
-		// 删除数量不一，恢复数据
-		log.Error("实际删除数量%d与需要删除数量%d不一样", u8DeleteCount, cbRemoveCount)
-		copy(cardArr, tmpCardData)
-		return cardArr, false
-	}
-
-	return cardArr, true
-}
-
-//删除扑克
-func (dg *ddz_logic) RemoveCard(cbRemoveCard []int, cbRemoveCount int, cbCardData []int, cbCardCount int) bool {
-	_, err := dg.RemoveCardList(cbRemoveCard, cbCardData)
-	return err
-}
-
-// 排列出牌扑克
-func (dg *ddz_logic) SortOutCardList(cbCardData []int, cbCardCount int) {
-
-	// 获取牌型
-	cbCardType := dg.GetCardType(cbCardData)
-
-	if cbCardType == CT_THREE_TAKE_ONE || cbCardType == CT_THREE_TAKE_TWO {
-		//分析牌
-		var AnalyseResult tagAnalyseResult
-		dg.AnalysebCardData(cbCardData, cbCardCount, &AnalyseResult)
-
-		cbCardCount = AnalyseResult.cbBlockCount[2] * 3
-		copy(cbCardData, AnalyseResult.cbCardData[2][:cbCardCount])
-		for i := 3; i >= 0; i-- {
-			if i == 2 {
-				continue
-			}
-
-			if AnalyseResult.cbBlockCount[i] > 0 {
-				copy(cbCardData[cbCardCount:], AnalyseResult.cbCardData[i][:(i+1)*int(AnalyseResult.cbBlockCount[i])])
-				cbCardCount += int(i+1) * AnalyseResult.cbBlockCount[i]
-			}
-		}
-	} else if cbCardType == CT_FOUR_TAKE_TWO {
-		//分析牌
-		var AnalyseResult tagAnalyseResult
-		dg.AnalysebCardData(cbCardData, cbCardCount, &AnalyseResult)
-
-		cbCardCount = AnalyseResult.cbBlockCount[3] * 4
-		copy(cbCardData, AnalyseResult.cbCardData[3][:cbCardCount])
-		for i := 3; i >= 0; i-- {
-			if i == 3 {
-				continue
-			}
-
-			if AnalyseResult.cbBlockCount[i] > 0 {
-				copy(cbCardData[cbCardCount:], AnalyseResult.cbCardData[i][:int(i+1)*AnalyseResult.cbBlockCount[i]])
-				cbCardCount += int(i+1) * AnalyseResult.cbBlockCount[i]
-			}
-		}
-	}
-
-	return
-}
-
 //逻辑数值
 func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 	// 扑克属性
@@ -860,46 +738,42 @@ func (dg *ddz_logic) GetCardLogicValue(cbCardData int) int {
 	}
 }
 
-//构造扑克
-func (dg *ddz_logic) MakeCardData(cbValueIndex int, cbColorIndex int) int {
-	return (cbColorIndex << 4) | (cbValueIndex + 1)
-}
-
 //分析扑克
-func (dg *ddz_logic) AnalysebCardData(cbCardData []int, cbCardCount int, AnalyseResult *tagAnalyseResult) {
+func (dg *ddz_logic) AnalysebCardData(CardData []int, AnalyseResult *DdzAnalyseResult) {
 
+	nCardCount := len(CardData)
 	// 扑克分析
-	for i := 0; int(i) < cbCardCount; i++ {
-		// 变量定义
-		cbSameCount := 1
-		cbLogicValue := dg.GetCardLogicValue(cbCardData[i])
+	for i := 0; i < nCardCount; i++ {
+
+		SameCount := 1
+		LogicValue := dg.GetCardLogicValue(CardData[i])
 
 		// 搜索同牌
-		for j := i + 1; int(j) < cbCardCount; j++ {
+		for j := i + 1; j < nCardCount; j++ {
 			// 获取扑克
-			if dg.GetCardLogicValue(cbCardData[j]) != cbLogicValue {
+			if dg.GetCardLogicValue(CardData[j]) != LogicValue {
 				break
 			}
 
 			// 设置变量
-			cbSameCount++
+			SameCount++
 		}
 
-		if cbSameCount > 4 {
+		if SameCount > 4 {
 			// 设置结果
 			log.Error("相同数量不可能大于4")
 			return
 		}
 
 		// 设置结果
-		cbIndex := AnalyseResult.cbBlockCount[cbSameCount-1]
-		AnalyseResult.cbBlockCount[cbSameCount-1]++
-		for j := 0; j < cbSameCount; j++ {
-			AnalyseResult.cbCardData[cbSameCount-1][int(cbIndex)*cbSameCount+j] = cbCardData[i+j]
+		cbIndex := AnalyseResult.cbBlockCount[SameCount-1]
+		AnalyseResult.cbBlockCount[SameCount-1]++
+		for j := 0; j < SameCount; j++ {
+			AnalyseResult.cbCardData[SameCount-1][int(cbIndex)*SameCount+j] = CardData[i+j]
 		}
 
 		// 设置索引
-		i += cbSameCount - 1
+		i += SameCount - 1
 	}
 }
 

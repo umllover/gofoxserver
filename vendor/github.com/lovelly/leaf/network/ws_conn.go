@@ -43,6 +43,7 @@ func newWSConn(conn *websocket.Conn, pendingWriteNum int, maxMsgLen uint32) *WSC
 			case b, ok := <-wsConn.writeChan:
 				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				if b == nil || !ok {
+					log.Debug("read stop msg, send close to client")
 					conn.WriteMessage(websocket.CloseMessage, []byte{})
 					return
 				}
@@ -56,6 +57,7 @@ func newWSConn(conn *websocket.Conn, pendingWriteNum int, maxMsgLen uint32) *WSC
 			case <-ticker.C:
 				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					log.Error("ping client error")
 					return
 				}
 			}

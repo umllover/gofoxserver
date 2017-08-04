@@ -2,17 +2,14 @@ package mj_base
 
 import (
 	"mj/common/msg"
-	"mj/common/utils"
 	. "mj/gameServer/common/mj"
-	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"strconv"
 )
 
 type DataManager interface {
 	BeforeStartGame(UserCnt int)                                     //开始前的处理
 	StartGameing()                                                   //游戏开始种的处理
-	InitRoomOne()                                                        //
+	InitRoomOne()                                                    //
 	AfterStartGame()                                                 //开始游戏的善后处理
 	SendPersonalTableTip(*user.User)                                 //发送没开始前的场景信息
 	SendStatusPlay(u *user.User)                                     //发送开始后的处理
@@ -29,8 +26,8 @@ type DataManager interface {
 	ResetUserOperate()                                               //重置用户状态
 	ZiMo(u *user.User)                                               //自摸处理
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int //暗杠处理
-	NormalEnd()                                                      //正常结束
-	DismissEnd()                                                     //解散结束
+	NormalEnd(Reason int)                                            //正常结束
+	DismissEnd(Reason int)                                           //解散结束
 	GetTrusteeOutCard(wChairID int) int                              //获取托管的牌
 	CanOperatorRoom(uid int64) bool                                  //能否操作房间
 	SendStatusReady(u *user.User)                                    //发送准备
@@ -39,7 +36,7 @@ type DataManager interface {
 	OnUserListenCard(u *user.User, bListenCard bool) bool            //听牌
 	RecordFollowCard(cbCenterCard int) bool                          //记录跟牌
 	RecordOutCarCnt() int                                            //记录出牌数
-	OnZhuaHua(CenterUser int) (CardData []int, BuZhong []int)        //抓花 扎码出库
+	OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int)       //抓花 扎码出库
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
@@ -53,13 +50,14 @@ type DataManager interface {
 	GetCreater() int64
 	GetProvideUser() int
 	IsActionDone() bool
+	GetUserScore(chairid int) int
 
 	//测试专用函数。 请勿用于生产
 	SetUserCard(charirID int, cards []int)
 }
 
 type LogicManager interface {
-	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int, MaxCount int) int
+	AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int
 	GetCardCount(cbCardIndex []int) int
 	RemoveCard(cbCardIndex []int, cbRemoveCard int) bool
 	RemoveCardByArr(cbCardIndex, cbRemoveCard []int) bool
@@ -82,46 +80,4 @@ type LogicManager interface {
 
 	GetMagicIndex() int
 	SetMagicIndex(int)
-}
-
-////////////////////////////////////////////
-//全局变量
-// TODO 增加 默认(错误)值 参数
-func getGlobalVar(key string) string {
-	if globalVar, ok := base.GlobalVarCache.Get(key); ok {
-		return globalVar.V
-	}
-	return ""
-}
-
-func getGlobalVarFloat64(key string) float64 {
-	if value := getGlobalVar(key); value != "" {
-		v, _ := strconv.ParseFloat(value, 10)
-		return v
-	}
-	return 0
-}
-
-func getGlobalVarInt64(key string, val int64) int64 {
-	if value := getGlobalVar(key); value != "" {
-		if v, err := strconv.ParseInt(value, 10, 64); err == nil {
-			return v
-		}
-	}
-	return val
-}
-
-func getGlobalVarInt(key string) int {
-	if value := getGlobalVar(key); value != "" {
-		v, _ := strconv.Atoi(value)
-		return v
-	}
-	return 0
-}
-
-func getGlobalVarIntList(key string) []int {
-	if value := getGlobalVar(key); value != "" {
-		return utils.GetStrIntList(value)
-	}
-	return nil
 }

@@ -1,15 +1,13 @@
 package room
 
 import (
-	"encoding/json"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
 	. "mj/common/cost"
+	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
-
-	"mj/gameServer/db/model"
 
 	//dbg "github.com/funny/debug"
 
@@ -36,25 +34,25 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func NewDataMgr(info *model.CreateRoomInfo, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomId, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
-	var setInfo sssOtherInfo
-	if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-		d.wanFa = setInfo.WanFa
-		d.jiaYiSe = setInfo.JiaYiSe
-		d.jiaGongGong = setInfo.JiaGongGong
-		d.jiaDaXiaoWan = setInfo.JiaDaXiaoWan
-	}
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	//var setInfo sssOtherInfo
+	//if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+	d.wanFa = info.OtherInfo["WanFa"].(int)
+	d.jiaYiSe = info.OtherInfo["JiaYiSe"].(bool)
+	d.jiaGongGong = info.OtherInfo["JiaGongGong"].(bool)
+	d.jiaDaXiaoWan = info.OtherInfo["JiaDaXiaoWan"].(bool)
+	//}
 	return d
 }
 
-type sssOtherInfo struct {
-	WanFa        int
-	JiaYiSe      bool
-	JiaGongGong  bool
-	JiaDaXiaoWan bool
-}
+//type sssOtherInfo struct {
+//	WanFa        int
+//	JiaYiSe      bool
+//	JiaGongGong  bool
+//	JiaDaXiaoWan bool
+//}
 
 type sss_data_mgr struct {
 	*pk_base.RoomData
@@ -150,7 +148,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 
 	//room.laiZi = make([]int, 0, 6)
 
-	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPayCnt())
+	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
 
@@ -385,7 +383,7 @@ func (r *sss_data_mgr) ComputeResult() {
 }
 
 //正常结束房间
-func (room *sss_data_mgr) NormalEnd() {
+func (room *sss_data_mgr) NormalEnd(a int) {
 	log.Debug("关闭房间")
 
 }
@@ -395,7 +393,7 @@ func (room *sss_data_mgr) AfterEnd(a bool) {
 }
 
 //解散结束
-func (room *sss_data_mgr) DismissEnd() {
+func (room *sss_data_mgr) DismissEnd(a int) {
 
 }
 
@@ -667,7 +665,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
 		room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
-		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
+		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
 			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
 			util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
 			allScore := make([]int, room.PlayerCount)
@@ -696,7 +694,7 @@ func (room *sss_data_mgr) SendStatusReady(u *user.User) {
 		PlayerCount:      room.PkBase.UserMgr.GetCurPlayerCnt(),
 		SubCmd:           room.GameStatus,
 		CurrentPlayCount: room.PkBase.TimerMgr.GetPlayCount(),
-		MaxPlayCount:     room.PkBase.TimerMgr.GetMaxPayCnt(),
+		MaxPlayCount:     room.PkBase.TimerMgr.GetMaxPlayCnt(),
 	}
 
 	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
@@ -745,7 +743,7 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 
 	statusPlay.PlayerCount = room.PkBase.UserMgr.GetCurPlayerCnt()
 	statusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPayCnt()
+	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
 	statusPlay.Laizi = room.UniversalCards
 	statusPlay.PublicCards = room.PublicCards
 

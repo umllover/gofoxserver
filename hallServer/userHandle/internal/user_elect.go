@@ -5,9 +5,11 @@ import (
 	"mj/common/msg"
 	"mj/hallServer/common"
 	"mj/hallServer/db/model"
+	recommenLog "mj/hallServer/log"
 	"mj/hallServer/user"
 )
 
+//填写推荐人信息
 func (m *UserModule) SetElect(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SetElect)
 	retMsg := &msg.L2C_SetElectResult{}
@@ -28,6 +30,9 @@ func (m *UserModule) SetElect(args []interface{}) {
 		UserId:    recvMsg.ElectUid,
 		SpreadUid: player.Id,
 	})
+	recommen := recommenLog.RecommendLog{}
+	recommen.AddRecommendLog(player.Id, recvMsg.ElectUid)
+
 }
 
 //领取推举人奖励

@@ -23,7 +23,9 @@ type C2G_MJXS_OperateCard struct {
 	OperateCard int //操作扑克
 }
 
-//出操作
+
+
+//出牌
 type C2G_MJXS_OutCard struct {
 	CardData int //扑克数据
 }
@@ -56,6 +58,7 @@ type G2C_GameStart struct {
 	RepertoryCard     []int //所有牌
 }
 
+//广播别的玩家出的牌
 type G2C_OutCard struct {
 	OutCardUser int //出牌用户
 	OutCardData int //出牌扑克

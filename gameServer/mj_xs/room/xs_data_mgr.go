@@ -1,10 +1,8 @@
 package room
 
 import (
-	"encoding/json"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/mj_hz_msg"
 	"mj/common/msg/mj_xs_msg"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/mj/mj_base"
@@ -15,18 +13,9 @@ import (
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewXSDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *xs_entry, set string) *xs_data {
+func NewXSDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *xs_entry, set map[string]interface{}) *xs_data {
 	d := new(xs_data)
 	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, set)
-
-	//房间游戏设置
-	info := make(map[string]interface{})
-	err := json.Unmarshal([]byte(set), &info)
-	if err != nil {
-		log.Error("zpmj at NewDataMgr error:%s", err.Error())
-		return nil
-	}
-
 	return d
 }
 
@@ -70,7 +59,7 @@ func (room *xs_data) InitRoom(UserCnt int) {
 	room.GangStatus = WIK_GANERAL
 	room.ProvideGangUser = INVALID_CHAIR
 	room.MinusLastCount = 0
-	room.MinusHeadCount = 0
+	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
 
 	//设置xs麻将牌数据
@@ -195,9 +184,10 @@ func (room *xs_data) EstimateUserRespond(wCenterUser int, cbCenterCard int, Esti
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
 			if room.UserAction[u.ChairId] != WIK_NULL {
-				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+				u.WriteMsg(&mj_xs_msg.G2C_OperateNotify{
 					ActionMask: room.UserAction[u.ChairId],
 					ActionCard: room.ProvideCard,
+					ResumeUser: room.ResumeUser,
 				})
 			}
 		})

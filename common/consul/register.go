@@ -124,7 +124,7 @@ func buildRoomSvrConfig(Addr string, checkAddr, svrName string, svrID int) (*api
 		TCP:      checkAddr,
 		Interval: "2s",
 		Timeout:  "4s",
-		DeregisterCriticalServiceAfter: "5s",
+		DeregisterCriticalServiceAfter: "3s",
 	})
 
 	service := &api.AgentServiceRegistration{

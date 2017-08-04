@@ -11,11 +11,12 @@ import (
 )
 
 type Order struct {
-	OnLineID    int `db:"OnLineID"`    //
-	PayAmount   int `db:"PayAmount"`   // 价格
-	UserID      int `db:"UserID"`      // uid
-	GoodsID     int `db:"GoodsID"`     // 物品id
-	OrderStatus int `db:"OrderStatus"` //状态
+	OnLineID    int    `db:"OnLineID"`    //订单标识
+	PayAmount   int    `db:"PayAmount"`   // 价格
+	UserID      int64  `db:"UserID"`      // uid
+	PayType     string `db：dayType"`      //支付类型
+	GoodsID     int    `db:"GoodsID"`     // 物品id
+	OrderStatus int    `db:"OrderStatus"` //状态
 }
 
 func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
@@ -28,7 +29,7 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 
 func GetOrders(uid int64) []*Order {
 	obj := make([]*Order, 0)
-	err := db.AccountDB.Select(&obj, "select OnLineID,PayAmount, UserID, GoodsID, OrderStatus FROM `order` where UserID=? and OrderStatus = 1", uid)
+	err := db.AccountDB.Select(&obj, "select OnLineID,PayAmount, UserID, PayType, GoodsID, OrderStatus FROM `order` where UserID=? and OrderStatus = 1", uid)
 	if err != nil {
 		return nil
 	}

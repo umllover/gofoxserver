@@ -2,17 +2,14 @@ package internal
 
 import (
 	"mj/common/msg"
+	"mj/common/register"
+	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 
-	"mj/gameServer/RoomMgr"
-
-	"mj/common/register"
-
-	"mj/gameServer/center"
-
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func init() {
@@ -31,6 +28,7 @@ func GetKindList(args []interface{}) (interface{}, error) {
 	for kind, v := range modules {
 		templates, ok := base.GameServiceOptionCache.GetKey1(kind)
 		if !ok {
+			log.Error("at get kind list not foud kind %d", kind)
 			continue
 		}
 		for _, template := range templates {
@@ -69,11 +67,12 @@ func GetRooms(args []interface{}) (interface{}, error) {
 
 //大厅服服通知续费
 func RenewalFee(args []interface{}) {
+	log.Debug("at RenewalFee .... ")
 	retCode := 0
 	recvMsg := args[0].(*msg.S2S_RenewalFee)
 	defer func() {
 		if retCode != 0 { //通知大厅续费失败
-			center.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
+			cluster.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
 		}
 	}()
 	room := RoomMgr.GetRoom(recvMsg.RoomID)
@@ -82,10 +81,13 @@ func RenewalFee(args []interface{}) {
 		return
 	}
 
-	_, err := room.GetChanRPC().Call1("AddPayCnt", recvMsg.AddCnt)
+	log.Debug("at RenewalFee .... begin call  ")
+	_, err := room.GetChanRPC().Call1("AddPlayCnt", recvMsg.AddCnt)
 	if err != nil {
 		retCode = 2
 		return
 	}
+
+	log.Debug("at RenewalFee .... end call  ")
 	return
 }

@@ -78,14 +78,14 @@ const (
 	CHR_HUA_YI_SE       = 0x00400000 //花一色
 	CHR_BAI_LIU         = 0x00800000 //佰六
 	CHR_GANG_SHANG_HUA  = 0x00800000 //杠上花
-	CHR_GANG_SHANG_PAO  = 0x01000000 //杠上炮
+	CHR_KONG_XIN        = 0x01000000 //空心
 	CHR_QIANG_GANG_HU   = 0x02000000 //抢杠胡
 	CHR_CHI_HU          = 0x04000000 //放炮
 	CHR_ZI_MO           = 0x08000000 //自摸
 	CHR_QING_BAI_LIU    = 0x10000000 ////门清佰六
 	CHR_WEI_ZHANG       = 0x20000000 //胡尾张
 	CHR_JIE_TOU         = 0x40000000 //截头
-	CHR_KONG_XIN        = 0x80000000 // 空心
+	//CHR_KONG_XIN        = 0x80000000 // 空心
 )
 
 const (
