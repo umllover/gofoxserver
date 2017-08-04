@@ -36,39 +36,10 @@ const (
 	MAX_COUNT = 22 //最大数目
 )
 
-type BaseLogic struct {
-	CardDataArray []int //扑克数据
-	MagicIndex    int   //钻牌索引
-	ReplaceCard   int   //替换金牌的牌
-	SwitchToIdx   func(int) int
-	CheckValid    func(int) bool
-	SwitchToCard  func(int) int
-	ConfigIdx     int //配置文件索引
-}
-
 //分析结构
 type tagAnalyseResult struct {
 	cbBlockCount [4]int            //扑克数目
 	cbCardData   [4][MAX_COUNT]int //扑克数据
-}
-
-//出牌结果
-type tagOutCardResult struct {
-	cbCardCount  int            //扑克数目
-	cbResultCard [MAX_COUNT]int //结果扑克
-}
-
-//分布信息
-type tagDistributing struct {
-	cbCardCount    int        //扑克数目
-	cbDistributing [15][6]int //分布信息
-}
-
-//搜索结果
-type tagSearchCardResult struct {
-	cbSearchCount int                       //结果数目
-	cbCardCount   [MAX_COUNT]int            //扑克数目
-	cbResultCard  [MAX_COUNT][MAX_COUNT]int //结果扑克
 }
 
 // 判断是否是火箭
