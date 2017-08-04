@@ -19,7 +19,7 @@ func NewSSSEntry(info *model.CreateRoomInfo) *SSS_Entry {
 }
 
 // 十三水摊牌
-func (r *SSS_Entry) ShowSSsCard(args []interface{}) {
+func (r *SSS_Entry) ShowSSSCard(args []interface{}) {
 	recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
 	u := args[1].(*user.User)
 

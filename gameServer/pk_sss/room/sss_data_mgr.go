@@ -9,7 +9,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg/pk_sss_msg"
 
-	"mj/gameServer/common/pk"
 	"mj/gameServer/db/model"
 
 	//dbg "github.com/funny/debug"
@@ -65,485 +64,316 @@ type sss_data_mgr struct {
 	jiaYiSe      bool
 	jiaGongGong  bool
 	jiaDaXiaoWan bool
-	laiZi        []int
-	publicCards  []int
+	//laiZi        []int
+	//publicCards  []int
 
-	bCardData               []int                  //牌的总数
-	m_bUserCardData         map[*user.User][]int   //玩家扑克
-	m_bSegmentCard          map[*user.User][][]int //分段扑克
-	m_bFinishSegment        []int                  //完成分段
-	m_bShowCardCount        int                    //摊牌数目
-	m_bCompleteCompareCount int                    //完成比较
-	m_bOverTime             []int                  //摊牌超时
-	m_bUserLeft             []int                  //玩家强退
+	bCardData []int //牌的总数
+	// m_bUserCardData         map[*user.User][]int   //玩家扑克
+	// m_bSegmentCard          map[*user.User][][]int //分段扑克
+	// m_bFinishSegment        []int                  //完成分段
+	// m_bShowCardCount        int                    //摊牌数目
+	// m_bCompleteCompareCount int                    //完成比较
+	// m_bOverTime             []int                  //摊牌超时
+	// m_bUserLeft             []int                  //玩家强退
 
-	SpecialTypeTable map[*user.User]bool  //是否特殊牌型
-	Dragon           map[*user.User]bool  //是否倒水
-	m_nPlayerCount   int                  //实际玩家人数
-	CbResult         map[*user.User][]int //每一道的道数
-	cbSpecialResult  map[*user.User]int   //特殊牌型的道数
+	// SpecialTypeTable map[*user.User]bool  //是否特殊牌型
+	// Dragon           map[*user.User]bool  //是否倒水
+	// m_nPlayerCount   int                  //实际玩家人数
+	// CbResult         map[*user.User][]int //每一道的道数
+	// cbSpecialResult  map[*user.User]int   //特殊牌型的道数
 
 	LeftCardCount int                 //剩下拍的数量
 	OpenCardMap   map[*user.User]bool //摊牌数据
 	//比较结果
 
-	m_bCompareResult        map[*user.User][]int //每一道比较结果
-	m_bShootState           [][]*user.User       //打枪(0赢的玩家,1输的玩家)
-	m_bThreeKillResult      map[*user.User]int   //全垒打加减分
-	m_bToltalWinDaoShu      map[*user.User]int   //总共道数
-	m_bCompareDouble        map[*user.User]int   //打枪的道数
-	m_bSpecialCompareResult map[*user.User]int   //特殊牌型比较结果
-	m_lGameScore            map[*user.User]int   //游戏积分
-	m_nXShoot               int                  //几家打枪
-	m_lCellScore            int                  //单元底分
+	// m_bCompareResult        map[*user.User][]int //每一道比较结果
+	// m_bShootState           [][]*user.User       //打枪(0赢的玩家,1输的玩家)
+	// m_bThreeKillResult      map[*user.User]int   //全垒打加减分
+	// m_bToltalWinDaoShu      map[*user.User]int   //总共道数
+	// m_bCompareDouble        map[*user.User]int   //打枪的道数
+	// m_bSpecialCompareResult map[*user.User]int   //特殊牌型比较结果
+	// m_lGameScore            map[*user.User]int   //游戏积分
+	// m_nXShoot               int                  //几家打枪
+	// m_lCellScore            int                  //单元底分
 
 	// 游戏状态
 
-	GameStatus        int
-	BtCardSpecialData []int
-	AllResult         [][]int //每一局的结果
+	GameStatus int
+	// BtCardSpecialData []int
+	AllResult [][]int //每一局的结果
 
 	gameEndStatus *pk_sss_msg.G2C_SSS_COMPARE
+
+	/////////////////////////
+
+	//PlayerNum             int       //玩家数量
+	Players               []int     //玩家
+	PlayerCards           [][]int   //玩家手牌
+	PlayerSegmentCards    [][][]int //玩家组牌结果
+	Results               [][]int   //玩家每一道牌的水数
+	SpecialResults        []int     //玩家特殊牌水数
+	ToltalResults         []int     //玩家总共水数
+	CompareResults        [][]int   //玩家每一道比较结果
+	SpecialCompareResults []int     //玩家特殊牌型比较结果
+	ShootState            [][]int   //打枪(0赢的玩家,1输的玩家)
+	ShootResults          []int     //打枪的水数
+	ShootNum              int       //几家打枪
+	AddCards              []int     //加牌
+	PublicCards           []int     //公共牌
+	UniversalCards        []int     //万能牌
+
 }
 
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")
 
-	room.cbSpecialResult = make(map[*user.User]int, UserCnt)
-	room.CbResult = make(map[*user.User][]int, UserCnt)
+	//room.cbSpecialResult = make(map[*user.User]int, UserCnt)
+	//room.CbResult = make(map[*user.User][]int, UserCnt)
 	room.PlayerCount = UserCnt
-	room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
-	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
+	//room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
+	//room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
 	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
-	room.Dragon = make(map[*user.User]bool, UserCnt)
-	room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
-	room.m_bUserCardData = make(map[*user.User][]int, UserCnt)
-	room.m_bCompareDouble = make(map[*user.User]int, UserCnt)
-	room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
-	room.m_bShootState = make([][]*user.User, UserCnt)
-	room.m_bSpecialCompareResult = make(map[*user.User]int, UserCnt)
-	room.m_bThreeKillResult = make(map[*user.User]int, UserCnt)
-	room.m_bToltalWinDaoShu = make(map[*user.User]int, UserCnt)
-	room.m_lGameScore = make(map[*user.User]int, UserCnt)
-	room.m_nXShoot = 0
-	room.BtCardSpecialData = make([]int, 13)
+	//room.Dragon = make(map[*user.User]bool, UserCnt)
+	//room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
+	//room.m_bUserCardData = make(map[*user.User][]int, UserCnt)
+	//room.m_bCompareDouble = make(map[*user.User]int, UserCnt)
+	//room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
+	//room.m_bShootState = make([][]*user.User, UserCnt)
+	//room.m_bSpecialCompareResult = make(map[*user.User]int, UserCnt)
+	//room.m_bThreeKillResult = make(map[*user.User]int, UserCnt)
+	//room.m_bToltalWinDaoShu = make(map[*user.User]int, UserCnt)
+	//room.m_lGameScore = make(map[*user.User]int, UserCnt)
+	//room.m_nXShoot = 0
+	//room.BtCardSpecialData = make([]int, 13)
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
-	room.laiZi = make([]int, 0, 6)
-	room.publicCards = make([]int, 0, 3)
+	//room.laiZi = make([]int, 0, 6)
 
 	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPayCnt())
 
 	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
-}
-func (room *sss_data_mgr) ComputeChOut() {
-	userMgr := room.PkBase.UserMgr
-	gameLogic := room.PkBase.LogicMgr.(*sss_logic)
 
-	userMgr.ForEachUser(func(u *user.User) {
-		room.CbResult[u] = make([]int, 3)
-		if room.SpecialTypeTable[u] == false {
-			//ResultTemp := make([]int, 3)
-			bCardData := make([]int, 5)
-			util.DeepCopy(&bCardData, &room.m_bSegmentCard[u][2])
-			tagCardTypeHou := gameLogic.GetType(bCardData, len(bCardData))
-			if tagCardTypeHou.BStraightFlush {
-				//ResultTemp[2] = 5
-				room.CbResult[u][2] = 5
-			}
-			bCardDataHouZ := make([]int, 5)
-			util.DeepCopy(&bCardDataHouZ, &room.m_bSegmentCard[u][1])
-			tagCardTypeHouZ := gameLogic.GetType(bCardDataHouZ, len(bCardData))
-			if tagCardTypeHouZ.BStraightFlush {
-				//ResultTemp[1] = 10
-				room.CbResult[u][1] = 10
-			}
-
-			//后敦炸弹
-			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦炸弹")
-				//ResultTemp[2] = 4
-				room.CbResult[u][2] = 4
-			}
-			//中敦炸弹
-			if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦炸弹")
-				//ResultTemp[1] = 8
-				room.CbResult[u][1] = 8
-			}
-			//后敦葫芦
-			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦葫芦")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中敦葫芦
-			if CT_FIVE_THREE_DEOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦葫芦")
-				//ResultTemp[1] = 2
-				room.CbResult[u][1] = 2
-			}
-			//后墩同花
-			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后墩同花")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中墩同花
-			if CT_FIVE_FLUSH == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中墩同花")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//后墩顺子
-			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
-				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
-				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后墩顺子")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中墩顺子
-			if CT_FIVE_MIXED_FLUSH_NO_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
-				CT_FIVE_MIXED_FLUSH_FIRST_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) ||
-				CT_FIVE_MIXED_FLUSH_BACK_A == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中墩顺子")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//后敦三张
-			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦三张")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中敦三张
-			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦三张")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//前敦三张
-			if CT_THREE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
-				log.Debug("前敦三张")
-				//ResultTemp[0] = 3
-				room.CbResult[u][0] = 3
-			}
-			//后敦两对
-			if CT_FIVE_TWO_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦两对")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中敦两对
-			if CT_FIVE_TWO_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦两对")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//后敦一对
-			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦一对")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中敦一对
-			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦一对")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//前敦一对
-			if CT_ONE_DOUBLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
-				log.Debug("前敦一对")
-				//ResultTemp[0] = 1
-				room.CbResult[u][0] = 1
-			}
-			//后敦散牌
-			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) {
-				log.Debug("后敦散牌")
-				//ResultTemp[2] = 1
-				room.CbResult[u][2] = 1
-			}
-			//中敦散牌
-			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-				log.Debug("中敦散牌")
-				//ResultTemp[1] = 1
-				room.CbResult[u][1] = 1
-			}
-			//前敦散牌
-			if CT_SINGLE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][0], 3, room.BtCardSpecialData) {
-				log.Debug("前敦散牌")
-				//ResultTemp[0] = 1
-				room.CbResult[u][0] = 1
-			}
-			//log.Debug("%d   zzzzzzzzzz", ResultTemp)
-
-		} else {
-			//至尊清龙
-			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 104
-				log.Debug("至尊清龙 %d", room.cbSpecialResult[u])
-			}
-			//一条龙
-			if room.cbSpecialResult[u] == 0 && CT_THIRTEEN == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 52
-				log.Debug("一条龙 %d", room.cbSpecialResult[u])
-			}
-			//十二皇族
-			if room.cbSpecialResult[u] == 0 && CT_TWELVE_KING == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 24
-				log.Debug("十二皇族 %d", room.cbSpecialResult[u])
-			}
-			//三同花顺
-			if room.cbSpecialResult[u] == 0 && CT_THREE_STRAIGHTFLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 36
-				log.Debug("三同花顺 %d", room.cbSpecialResult[u])
-			}
-			//三分天下
-			if room.cbSpecialResult[u] == 0 && CT_THREE_BOMB == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 32
-				log.Debug("三分天下 %d", room.cbSpecialResult[u])
-			}
-			//全大
-			if room.cbSpecialResult[u] == 0 && CT_ALL_BIG == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 10
-				log.Debug("全大 %d", room.cbSpecialResult[u])
-			}
-			//全小
-			if room.cbSpecialResult[u] == 0 && CT_ALL_SMALL == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 10
-				log.Debug("全小 %d", room.cbSpecialResult[u])
-			}
-			//凑一色
-			if room.cbSpecialResult[u] == 0 && CT_SAME_COLOR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 10
-				log.Debug("凑一色 %d", room.cbSpecialResult[u])
-			}
-			//四套冲三
-			if room.cbSpecialResult[u] == 0 && CT_FOUR_THREESAME == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 16
-				log.Debug("四套冲三 %d", room.cbSpecialResult[u])
-			}
-			//五对冲三
-			if room.cbSpecialResult[u] == 0 && CT_FIVEPAIR_THREE == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				room.cbSpecialResult[u] = 5
-				log.Debug("五对冲三 %d", room.cbSpecialResult[u])
-			}
-			//六对半
-			if room.cbSpecialResult[u] == 0 && CT_SIXPAIR == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				//后敦炸弹 中敦炸弹
-				if CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][2], 5, room.BtCardSpecialData) ||
-					CT_FIVE_FOUR_ONE == gameLogic.GetSSSCardType(room.m_bSegmentCard[u][1], 5, room.BtCardSpecialData) {
-					room.cbSpecialResult[u] = 8
-					log.Debug("六对半 后敦炸弹 中敦炸弹 %d", room.cbSpecialResult[u])
-				} else {
-					room.cbSpecialResult[u] = 6
-					log.Debug("六对半 %d", room.cbSpecialResult[u])
-				}
-			}
-			//三顺子
-			if room.cbSpecialResult[u] == 0 && CT_THREE_STRAIGHT == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				//后敦同花顺 中敦同花顺
-
-				tagCardTypeHou := new(pk.TagAnalyseType) //后敦同花顺
-
-				bCardData := make([]int, 5)
-				util.DeepCopy(&bCardData, &room.m_bSegmentCard[u][2])
-
-				tagCardTypeHou = gameLogic.GetType(bCardData, 5)
-
-				tagCardTypezhong := new(pk.TagAnalyseType) //中敦同花顺
-				bCardDatazhong := make([]int, 5)
-				util.DeepCopy(&bCardDatazhong, &room.m_bSegmentCard[u][1])
-
-				tagCardTypezhong = gameLogic.GetType(bCardDatazhong, 5)
-
-				if tagCardTypeHou.BStraightFlush || tagCardTypezhong.BStraightFlush {
-					room.cbSpecialResult[u] = 10
-					log.Debug("三顺子 后敦同花顺 中敦同花顺 %d", room.cbSpecialResult[u])
-				} else {
-					room.cbSpecialResult[u] = 6
-					log.Debug("三顺子 %d", room.cbSpecialResult[u])
-				}
-			}
-			//三同花
-			if room.cbSpecialResult[u] == 0 && CT_THREE_FLUSH == gameLogic.GetSSSCardType(room.m_bUserCardData[u], 13, room.BtCardSpecialData) {
-				//后敦同花顺 中敦同花顺
-
-				tagCardTypeHou := new(pk.TagAnalyseType) //后敦同花顺
-
-				bCardData := make([]int, 5)
-				util.DeepCopy(&bCardData, &room.m_bSegmentCard[u][2])
-
-				tagCardTypeHou = gameLogic.GetType(bCardData, 5)
-
-				tagCardTypezhong := new(pk.TagAnalyseType) //中敦同花顺
-				bCardDatazhong := make([]int, 5)
-				util.DeepCopy(&bCardDatazhong, &room.m_bSegmentCard[u][1])
-
-				tagCardTypezhong = gameLogic.GetType(bCardDatazhong, 5)
-
-				if tagCardTypeHou.BStraightFlush || tagCardTypezhong.BStraightFlush {
-					room.cbSpecialResult[u] = 10
-					log.Debug("三同花 后敦同花顺 中敦同花顺 %d", room.cbSpecialResult[u])
-				} else {
-					room.cbSpecialResult[u] = 6
-					log.Debug("三同花 %d", room.cbSpecialResult[u])
-				}
-
-			}
-			log.Debug("cbSpecialResult %d", room.cbSpecialResult[u])
-		}
-
-	})
-
-}
-
-func (room *sss_data_mgr) ComputeResult() {
-	shootCount := make(map[*user.User]map[*user.User]int, 10)
-	room.m_nXShoot = 0
-	WinNum := make(map[*user.User]int, 4)
-	for i := range room.m_bShootState {
-		room.m_bShootState[i] = make([]*user.User, 2)
+	/////////////////////////////
+	//room.PlayerNum = UserCnt
+	room.Players = make([]int, UserCnt)
+	room.PlayerCards = make([][]int, UserCnt)
+	room.PlayerSegmentCards = make([][][]int, UserCnt)
+	room.Results = make([][]int, UserCnt)
+	for i := range room.Results {
+		room.Results[i] = make([]int, 3)
 	}
-	gameLogic := room.PkBase.LogicMgr.(*sss_logic)
-	userMgrW := room.PkBase.UserMgr
-	userMgrW.ForEachUser(func(u *user.User) {
-		room.m_bCompareResult[u] = make([]int, 3)
-	})
-	userMgrW.ForEachUser(func(uW *user.User) {
-		lWinDaoShu := 0
-		userMgrN := room.PkBase.UserMgr
+	room.SpecialResults = make([]int, UserCnt)
+	room.ToltalResults = make([]int, UserCnt)
+	room.CompareResults = make([][]int, UserCnt)
+	room.SpecialCompareResults = make([]int, UserCnt)
+	room.ShootState = make([][]int, 6)
+	room.ShootResults = make([]int, 6)
+	room.AddCards = make([]int, 0)
+	room.PublicCards = make([]int, 0, 3)
+	room.UniversalCards = make([]int, 0, 3)
 
-		userMgrN.ForEachUser(func(uN *user.User) {
-			if uW != uN {
-				if room.Dragon[uW] && room.Dragon[uN] == false { ///<一家倒水一家不倒水
-					if room.SpecialTypeTable[uN] == false { ///<不等于特殊牌型
+}
 
-						lWinDaoShu -= room.CbResult[uN][0]
-
-						room.m_bCompareResult[uW][0] -= room.CbResult[uN][0]
-
-						lWinDaoShu -= room.CbResult[uN][1]
-						room.m_bCompareResult[uW][1] -= room.CbResult[uN][1]
-
-						lWinDaoShu -= room.CbResult[uN][2]
-						room.m_bCompareResult[uW][2] -= room.CbResult[uN][2]
-
-					} else {
-						lWinDaoShu -= room.cbSpecialResult[uN]
-						room.m_bSpecialCompareResult[uW] -= room.cbSpecialResult[uN]
-					}
-				} else if room.Dragon[uW] == false && room.Dragon[uN] { ///<一家不倒水，一家倒水
-					if room.SpecialTypeTable[uW] == false { ///<不等于特殊牌型
-						lWinDaoShu += room.CbResult[uN][0]
-						room.m_bCompareResult[uW][0] += room.CbResult[uN][0]
-
-						lWinDaoShu += room.CbResult[uN][1]
-						room.m_bCompareResult[uW][1] += room.CbResult[uN][1]
-
-						lWinDaoShu += room.CbResult[uN][2]
-						room.m_bCompareResult[uW][2] += room.CbResult[uN][2]
-
-						WinNum[uW]++
-					} else {
-						lWinDaoShu += room.cbSpecialResult[uW]
-						room.m_bSpecialCompareResult[uW] += room.cbSpecialResult[uW]
-					}
-				} else if room.Dragon[uW] == false && room.Dragon[uN] == false {
-
-					if room.SpecialTypeTable[uW] == false && room.SpecialTypeTable[uN] == false {
-
-						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) {
-							lWinDaoShu += room.CbResult[uW][0]
-							room.m_bCompareResult[uW][0] += room.CbResult[uW][0]
-						} else {
-							lWinDaoShu -= room.CbResult[uN][0]
-							room.m_bCompareResult[uW][0] -= room.CbResult[uN][0]
-						}
-
-						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][1], room.m_bSegmentCard[uW][1], 5, 5, true) {
-							lWinDaoShu += room.CbResult[uW][1]
-							room.m_bCompareResult[uW][1] += room.CbResult[uW][1]
-						} else {
-							lWinDaoShu -= room.CbResult[uN][1]
-							room.m_bCompareResult[uW][1] -= room.CbResult[uN][1]
-						}
-						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][2], room.m_bSegmentCard[uW][2], 5, 5, true) {
-							lWinDaoShu += room.CbResult[uW][2]
-							room.m_bCompareResult[uW][2] += room.CbResult[uW][2]
-						} else {
-							lWinDaoShu -= room.CbResult[uN][2]
-							room.m_bCompareResult[uW][2] -= room.CbResult[uN][2]
-						}
-
-						if gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) &&
-							gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][1], room.m_bSegmentCard[uW][1], 5, 5, true) &&
-							gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][2], room.m_bSegmentCard[uW][2], 5, 5, true) {
-							room.m_bCompareDouble[uW] += lWinDaoShu
-							lWinDaoShu *= 2
-
-							room.m_bShootState[room.m_nXShoot][0] = uW ///<赢的
-							room.m_bShootState[room.m_nXShoot][1] = uN ///<输的
-							room.m_nXShoot++
-							WinNum[uW]++
-						} else if !gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][0], room.m_bSegmentCard[uW][0], 3, 3, true) &&
-							!gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][1], room.m_bSegmentCard[uW][1], 5, 5, true) &&
-							!gameLogic.CompareSSSCard(room.m_bSegmentCard[uN][2], room.m_bSegmentCard[uW][2], 5, 5, true) {
-
-							room.m_bCompareDouble[uW] += lWinDaoShu
-							lWinDaoShu *= 2
-							shootCount[uW] = make(map[*user.User]int)
-							shootCount[uW][uN] = lWinDaoShu
-						}
-					} else if room.SpecialTypeTable[uW] == true && room.SpecialTypeTable[uN] == false {
-						WinNum[uW]++ //add
-						lWinDaoShu += room.cbSpecialResult[uW]
-						room.m_bSpecialCompareResult[uW] += room.cbSpecialResult[uW]
-					} else if room.SpecialTypeTable[uW] == true && room.SpecialTypeTable[uN] == true {
-						if gameLogic.GetSSSCardType(room.m_bUserCardData[uW], 13, room.BtCardSpecialData) > gameLogic.GetSSSCardType(room.m_bUserCardData[uN], 13, room.BtCardSpecialData) {
-							WinNum[uW]++ //add
-							lWinDaoShu += room.cbSpecialResult[uW]
-							room.m_bSpecialCompareResult[uW] += room.cbSpecialResult[uW]
-						} else if gameLogic.GetSSSCardType(room.m_bUserCardData[uW], 13, room.BtCardSpecialData) < gameLogic.GetSSSCardType(room.m_bUserCardData[uN], 13, room.BtCardSpecialData) {
-							lWinDaoShu -= room.cbSpecialResult[uN]
-							room.m_bSpecialCompareResult[uW] -= room.cbSpecialResult[uN]
-						}
-					} else if room.SpecialTypeTable[uW] == false && room.SpecialTypeTable[uN] == true {
-						lWinDaoShu -= room.cbSpecialResult[uN]
-						room.m_bSpecialCompareResult[uW] -= room.cbSpecialResult[uN]
-					}
-				}
-				room.m_lGameScore[uW] += lWinDaoShu * 2 //room.m_lCellScore
-				room.m_bToltalWinDaoShu[uW] += lWinDaoShu
+func (r *sss_data_mgr) ComputeChOut() {
+	lg := r.PkBase.LogicMgr
+	for i := 0; i < r.PlayerCount; i++ {
+		//特殊牌型
+		switch lg.GetCardType(r.PlayerCards[i]) {
+		case CT_THIRTEEN_FLUSH: //至尊清龙
+			log.Debug("至尊清龙")
+			r.SpecialResults[i] = 104
+		case CT_THIRTEEN: //一条龙
+			log.Debug("一条龙")
+			r.SpecialResults[i] = 52
+		case CT_THREE_STRAIGHTFLUSH: //三同花顺
+			log.Debug("三同花顺")
+			r.SpecialResults[i] = 36
+		case CT_THREE_BOMB: //三分天下
+			log.Debug("三分天下")
+			r.SpecialResults[i] = 32
+		case CT_FOUR_THREESAME: //四套三条
+			log.Debug("四套三条")
+			r.SpecialResults[i] = 16
+		case CT_SIXPAIR: //六对半
+			log.Debug("六对半")
+			r.SpecialResults[i] = 6
+			//有炸弹（四条）
+			if lg.GetCardType(r.PlayerSegmentCards[i][1]) == CT_FIVE_FOUR_ONE ||
+				lg.GetCardType(r.PlayerSegmentCards[i][2]) == CT_FIVE_FOUR_ONE {
+				r.SpecialResults[i] = 10
 			}
-		})
-
-	})
-	AllKillCount := 0
-	///<下面判断是否全垒打在加减分
-	userMgr := room.PkBase.UserMgr
-	userMgrq := room.PkBase.UserMgr
-	userMgr.ForEachUser(func(u *user.User) {
-		if WinNum[u] == 3 {
-			userMgrq.ForEachUser(func(uN *user.User) {
-				if u == uN {
-					AllKillCount = room.m_bCompareDouble[u] * 2
-
-					room.m_lGameScore[uN] += AllKillCount * 2 //m_lCellScore
-					room.m_bToltalWinDaoShu[uN] += AllKillCount
-					room.m_bThreeKillResult[uN] = AllKillCount
-				} else {
-					AllKillCount = 3                          //room.shootCount[j][i]
-					room.m_lGameScore[uN] += AllKillCount * 2 //m_lCellScore
-					room.m_bToltalWinDaoShu[uN] += AllKillCount
-					room.m_bThreeKillResult[uN] = AllKillCount
-				}
-			})
+		case CT_THREE_STRAIGHT: //三顺子
+			log.Debug("三顺子")
+			r.SpecialResults[i] = 6
+			//todo 有同花顺
+		case CT_THREE_FLUSH: //三同花
+			log.Debug("三同花")
+			r.SpecialResults[i] = 6
+			//todo 有同花顺
+		default: //普通牌型
+			//前敦
+			switch lg.GetCardType(r.PlayerSegmentCards[i][0]) {
+			case CT_SINGLE: //散牌
+				log.Debug("前敦散牌")
+				r.Results[i][0] = 1
+			case CT_ONE_DOUBLE: //对子
+				log.Debug("前敦对子")
+				r.Results[i][0] = 1
+			case CT_THREE: //三条
+				log.Debug("前敦三条")
+				r.Results[i][0] = 3
+			}
+			//中墩
+			switch lg.GetCardType(r.PlayerSegmentCards[i][1]) {
+			case CT_SINGLE: //散牌
+				log.Debug("中墩散牌")
+				r.Results[i][1] = 1
+			case CT_ONE_DOUBLE: //对子
+				log.Debug("中墩对子")
+				r.Results[i][1] = 1
+			case CT_FIVE_TWO_DOUBLE: //两对
+				log.Debug("中墩两对")
+				r.Results[i][1] = 1
+			case CT_THREE: //三条
+				log.Debug("中墩三条")
+				r.Results[i][1] = 3
+			case CT_FIVE_MIXED_FLUSH_NO_A, CT_FIVE_MIXED_FLUSH_FIRST_A, CT_FIVE_MIXED_FLUSH_BACK_A: //顺子
+				log.Debug("中墩顺子")
+				r.Results[i][1] = 1
+			case CT_FIVE_FLUSH: //同花
+				log.Debug("中墩同花")
+				r.Results[i][1] = 1
+			case CT_FIVE_THREE_DEOUBLE: //葫芦
+				log.Debug("中墩葫芦")
+				r.Results[i][1] = 2
+			case CT_FIVE_FOUR_ONE: //铁支
+				log.Debug("中墩铁支")
+				r.Results[i][1] = 8
+			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
+				log.Debug("中墩同花顺")
+				r.Results[i][1] = 10
+			}
+			//尾墩
+			switch lg.GetCardType(r.PlayerSegmentCards[i][2]) {
+			case CT_SINGLE: //散牌
+				log.Debug("后墩散牌")
+				r.Results[i][2] = 1
+			case CT_ONE_DOUBLE: //对子
+				log.Debug("后墩对子")
+				r.Results[i][2] = 1
+			case CT_FIVE_TWO_DOUBLE: //两对
+				log.Debug("后墩两对")
+				r.Results[i][2] = 1
+			case CT_THREE: //三条
+				log.Debug("后墩三条")
+				r.Results[i][2] = 3
+			case CT_FIVE_MIXED_FLUSH_NO_A, CT_FIVE_MIXED_FLUSH_FIRST_A, CT_FIVE_MIXED_FLUSH_BACK_A: //顺子
+				log.Debug("后墩顺子")
+				r.Results[i][1] = 1
+			case CT_FIVE_FLUSH: //同花
+				log.Debug("后墩同花")
+				r.Results[i][2] = 1
+			case CT_FIVE_THREE_DEOUBLE: //葫芦
+				log.Debug("后墩葫芦")
+				r.Results[i][2] = 1
+			case CT_FIVE_FOUR_ONE: //铁支
+				log.Debug("后墩铁支")
+				r.Results[i][2] = 4
+			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
+				log.Debug("后墩同花顺")
+				r.Results[i][2] = 5
+			}
 		}
-	})
+	}
+}
+
+func (r *sss_data_mgr) ComputeResult() {
+	lg := r.PkBase.LogicMgr.(*sss_logic)
+	//打枪次数
+	shootPlayerNum := make([]int, r.PlayerCount)
+	for i := 0; i < r.PlayerCount; i++ {
+		winPoint := 0
+		for j := 0; j < r.PlayerCount; j++ {
+			if i == j {
+				continue
+			}
+			//都是普通牌型
+			if r.SpecialResults[i] == 0 && r.SpecialResults[j] == 0 {
+				firstResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][0], r.PlayerSegmentCards[i][0])
+				switch firstResult {
+				case 1:
+					winPoint += r.Results[i][0]
+					r.CompareResults[i][0] += r.Results[i][0]
+				case -1:
+					winPoint -= r.Results[j][0]
+					r.CompareResults[i][0] -= r.Results[j][0]
+				}
+				midResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][1], r.PlayerSegmentCards[i][1])
+				switch midResult {
+				case 1:
+					winPoint += r.Results[i][1]
+					r.CompareResults[i][1] += r.Results[i][1]
+				case -1:
+					winPoint -= r.Results[j][1]
+					r.CompareResults[i][1] -= r.Results[j][1]
+				}
+				backResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][2], r.PlayerSegmentCards[i][2])
+				switch backResult {
+				case 1:
+					winPoint += r.Results[i][2]
+					r.CompareResults[i][2] += r.Results[i][2]
+				case -1:
+					winPoint -= r.Results[j][2]
+					r.CompareResults[i][2] -= r.Results[j][2]
+				}
+				// 打枪
+				if firstResult >= 0 && midResult >= 0 && backResult >= 0 && firstResult+midResult+backResult > 0 {
+					r.ToltalResults[j] -= winPoint
+					winPoint *= 2
+					r.ShootResults[j] = winPoint
+					shootPlayerNum[i]++
+				}
+			}
+			//特殊对普通
+			if r.SpecialResults[i] > 0 && r.SpecialResults[j] == 0 {
+				winPoint += r.SpecialResults[i]
+				r.SpecialCompareResults[i] += r.SpecialResults[i]
+			}
+			//普通对特殊
+			if r.SpecialResults[i] == 0 && r.SpecialResults[j] > 0 {
+				winPoint -= r.SpecialResults[j]
+				r.SpecialCompareResults[i] -= r.SpecialResults[j]
+			}
+			//都是特殊牌型
+			if r.SpecialResults[i] > 0 && r.SpecialResults[j] > 0 {
+				switch lg.SSSCompareCard(r.PlayerCards[j], r.PlayerCards[i]) {
+				case 1:
+					winPoint += r.SpecialResults[i]
+					r.SpecialCompareResults[i] += r.SpecialResults[i]
+				case -1:
+					winPoint -= r.SpecialResults[j]
+					r.SpecialCompareResults[i] -= r.SpecialResults[j]
+				}
+			}
+
+		}
+		r.ToltalResults[i] += winPoint
+	}
+
+	//全垒打加分
+	for i := 0; i < r.PlayerCount; i++ {
+		if (r.PlayerCount >= 4) && (shootPlayerNum[i] == r.PlayerCount-1) {
+			r.ToltalResults[i] *= 2
+			for j, v := range r.ShootResults {
+				if j == i {
+					continue
+				}
+				r.ToltalResults[j] -= v * 2
+			}
+			break
+		}
+	}
 }
 
 //正常结束房间
@@ -581,10 +411,10 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	defaultCards := pk_base.GetCardByIdx(room.ConfigIdx)
 	if room.wanFa == 1 {
 		randNum := rand.Intn(13)
-		room.laiZi = append(room.laiZi, defaultCards[randNum])
-		room.laiZi = append(room.laiZi, defaultCards[randNum+13])
-		room.laiZi = append(room.laiZi, defaultCards[randNum+13])
-		room.laiZi = append(room.laiZi, defaultCards[randNum+13])
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
 	}
 
 	if room.jiaGongGong {
@@ -593,7 +423,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 		copy(tempCards, defaultCards)
 		for i := 0; i < 3; i++ {
 			randNum := rand.Intn(len)
-			room.publicCards = append(room.publicCards, tempCards[randNum])
+			room.PublicCards = append(room.PublicCards, tempCards[randNum])
 			if randNum != len-1 {
 				tempCards[randNum], tempCards[len-1] = tempCards[len-1], tempCards[randNum]
 			}
@@ -626,17 +456,17 @@ func (room *sss_data_mgr) StartDispatchCard() {
 
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
-			room.m_bUserCardData[u] = append(room.m_bUserCardData[u], room.GetOneCard())
+			room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], room.GetOneCard())
 
 		}
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
-		SendCard.CardData = room.m_bUserCardData[u]
+		SendCard.CardData = room.PlayerCards[u.ChairId]
 		SendCard.CellScore = room.CellScore
-		SendCard.Laizi = room.laiZi
-		SendCard.PublicCards = room.publicCards
+		SendCard.Laizi = room.UniversalCards
+		SendCard.PublicCards = room.PublicCards
 		u.WriteMsg(SendCard)
 	})
 }
@@ -667,31 +497,37 @@ func (room *sss_data_mgr) AfterStartGame() {
 }
 
 //玩家摊牌
-func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
+func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
 
-	room.SpecialTypeTable[u] = bSpecialType
-	room.Dragon[u] = bDragon
+	//room.SpecialTypeTable[u] = bSpecialType
+	//room.Dragon[u] = bDragon
 
-	room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)
+	// room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)
 
-	room.m_bUserCardData[u] = make([]int, 0, 13)
-	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bFrontCard...)
-	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bMidCard...)
-	room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bBackCard...)
+	// room.m_bUserCardData[u] = make([]int, 0, 13)
+	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bFrontCard...)
+	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bMidCard...)
+	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bBackCard...)
 
-	btSpecialDataTemp := make([]int, 13)
+	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
+	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
+	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], FrontCard...)
+	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], MidCard...)
+	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], BackCard...)
 
-	if bSpecialType {
-		util.DeepCopy(&btSpecialDataTemp, &btSpecialData)
-	}
+	// btSpecialDataTemp := make([]int, 13)
+
+	// if bSpecialType {
+	// 	util.DeepCopy(&btSpecialDataTemp, &btSpecialData)
+	// }
 
 	userMgr.ForEachUser(func(user *user.User) {
 		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
 	})
 
 	room.OpenCardMap[u] = true
-	log.Debug("%d cccccc", len(room.OpenCardMap))
+	//log.Debug("%d cccccc", len(room.OpenCardMap))
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		// 游戏结束
 		//userMgr.ForEachUser(func(u *user.User) {
@@ -764,7 +600,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 		}
 		//M_nXShoot              int        //几家打枪
-		gameEnd.M_nXShoot = room.m_nXShoot
+		gameEnd.M_nXShoot = 0
 		//CbThreeKillResult      []int      //全垒打加减分
 		gameEnd.CbThreeKillResult = make([]int, room.PlayerCount)
 		//BEnterExit             bool       //是否一进入就离开
@@ -773,44 +609,46 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		gameEnd.WAllUser = 0
 		//copy(room.m_lGameScore,room.m_lLeftScore)
 
-		nSpecialCard := 0
-		nDragon := 0
+		gameEnd.BAllSpecialCard = false
 
-		userMgr.ForEachUser(func(u *user.User) {
-			if room.SpecialTypeTable[u] {
-				nSpecialCard++
-			}
-			if room.Dragon[u] {
-				nDragon++
-			}
-		})
+		// nSpecialCard := 0
+		// nDragon := 0
 
-		if room.PlayerCount == nSpecialCard+nDragon || room.PlayerCount <= nSpecialCard+1 {
-			gameEnd.BAllSpecialCard = true
-		} else {
-			gameEnd.BAllSpecialCard = false
-		}
+		// userMgr.ForEachUser(func(u *user.User) {
+		// 	if room.SpecialTypeTable[u] {
+		// 		nSpecialCard++
+		// 	}
+		// 	if room.Dragon[u] {
+		// 		nDragon++
+		// 	}
+		// })
+
+		// if room.PlayerCount == nSpecialCard+nDragon || room.PlayerCount <= nSpecialCard+1 {
+		// 	gameEnd.BAllSpecialCard = true
+		// } else {
+		// 	gameEnd.BAllSpecialCard = false
+		// }
 
 		userMgr.ForEachUser(func(u *user.User) {
 			gameEnd.CbCardData[u.ChairId] = make([]int, 13)
-			copy(gameEnd.CbCardData[u.ChairId], room.m_bUserCardData[u])
+			copy(gameEnd.CbCardData[u.ChairId], room.PlayerCards[u.ChairId])
 			gameEnd.CbCompareResult[u.ChairId] = make([]int, 3)
-			copy(gameEnd.CbCompareResult[u.ChairId], room.m_bCompareResult[u])
-			gameEnd.CbCompareDouble[u.ChairId] = room.m_bCompareDouble[u]
-			gameEnd.BToltalWinDaoShu[u.ChairId] = room.m_lGameScore[u]
-			gameEnd.LGameScore[u.ChairId] = room.m_lGameScore[u]
-			gameEnd.CbSpecialCompareResult[u.ChairId] = room.m_bSpecialCompareResult[u]
-			gameEnd.BSpecialCard[u.ChairId] = room.SpecialTypeTable[u]
-			for i := range room.m_bShootState {
-				if room.m_bShootState[i][0] != nil {
-					gameEnd.ShootState[i][0] = room.m_bShootState[i][0].ChairId
+			copy(gameEnd.CbCompareResult[u.ChairId], room.CompareResults[u.ChairId])
+			gameEnd.CbCompareDouble[u.ChairId] = 0
+			gameEnd.BToltalWinDaoShu[u.ChairId] = room.ToltalResults[u.ChairId]
+			gameEnd.LGameScore[u.ChairId] = room.ToltalResults[u.ChairId]
+			gameEnd.CbSpecialCompareResult[u.ChairId] = room.SpecialCompareResults[u.ChairId]
+			gameEnd.BSpecialCard[u.ChairId] = false
+			// for i := range room.m_bShootState {
+			// 	if room.m_bShootState[i][0] != nil {
+			// 		gameEnd.ShootState[i][0] = room.m_bShootState[i][0].ChairId
 
-				}
-				if room.m_bShootState[i][1] != nil {
-					gameEnd.ShootState[i][1] = room.m_bShootState[i][1].ChairId
+			// 	}
+			// 	if room.m_bShootState[i][1] != nil {
+			// 		gameEnd.ShootState[i][1] = room.m_bShootState[i][1].ChairId
 
-				}
-			}
+			// 	}
+			// }
 		})
 
 		userMgr.ForEachUser(func(u *user.User) {
@@ -870,14 +708,16 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	statusPlay.NChip = make([]int, 0)
 	//BHandCardData      []int           `json:"bHandCardData"`      //扑克数据
 
-	for ucd := range room.m_bUserCardData {
-		if ucd.ChairId == u.ChairId {
-			statusPlay.BHandCardData = room.m_bUserCardData[ucd]
-		}
-	}
+	// for ucd := range room.m_bUserCardData {
+	// 	if ucd.ChairId == u.ChairId {
+	// 		statusPlay.BHandCardData = room.m_bUserCardData[ucd]
+	// 	}
+	// }
+
+	statusPlay.BHandCardData = room.PlayerCards[u.ChairId]
 
 	//BSegmentCard       [][]int       `json:"bSegmentCard"`         //分段扑克
-	statusPlay.BSegmentCard = room.m_bSegmentCard[u]
+	statusPlay.BSegmentCard = room.PlayerSegmentCards[u.ChairId]
 	//BFinishSegment     []bool          `json:"bFinishSegment"`     //完成分段
 	statusPlay.BFinishSegment = make([]bool, room.PlayerCount)
 	for user := range room.OpenCardMap {
@@ -899,8 +739,8 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	statusPlay.PlayerCount = room.PkBase.UserMgr.GetCurPlayerCnt()
 	statusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPayCnt()
-	statusPlay.Laizi = room.laiZi
-	statusPlay.PublicCards = room.publicCards
+	statusPlay.Laizi = room.UniversalCards
+	statusPlay.PublicCards = room.PublicCards
 
 	u.WriteMsg(statusPlay)
 }

@@ -25,6 +25,7 @@ type TokenRecord struct {
 	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` //
 	KindID      int        `db:"KindID" json:"KindID"`             //
 	ServerId    int        `db:"ServerId" json:"ServerId"`         //
+	PlayCnt     int        `db:"play_cnt" json:"play_cnt"`         // 可玩的局数
 }
 
 type tokenRecordOp struct{}
@@ -103,7 +104,7 @@ func (op *tokenRecordOp) Insert(m *TokenRecord) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
-	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?)"
+	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId,play_cnt) values(?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.RoomId,
 		m.UserId,
@@ -113,6 +114,7 @@ func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
 		m.CreatorTime,
 		m.KindID,
 		m.ServerId,
+		m.PlayCnt,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -124,7 +126,7 @@ func (op *tokenRecordOp) InsertTx(ext sqlx.Ext, m *TokenRecord) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *tokenRecordOp) InsertUpdate(obj *TokenRecord, m map[string]interface{}) error {
-	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId) values(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into token_record(room_id,user_id,tokenType,amount,status,creator_time,KindID,ServerId,play_cnt) values(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.RoomId,
 		obj.UserId,
 		obj.TokenType,
@@ -133,6 +135,7 @@ func (op *tokenRecordOp) InsertUpdate(obj *TokenRecord, m map[string]interface{}
 		obj.CreatorTime,
 		obj.KindID,
 		obj.ServerId,
+		obj.PlayCnt,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -164,7 +167,7 @@ func (op *tokenRecordOp) Update(m *TokenRecord) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
-	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=? where room_id=? and user_id=?`
+	sql := `update token_record set tokenType=?,amount=?,status=?,creator_time=?,KindID=?,ServerId=?,play_cnt=? where room_id=? and user_id=?`
 	_, err := ext.Exec(sql,
 		m.TokenType,
 		m.Amount,
@@ -172,6 +175,7 @@ func (op *tokenRecordOp) UpdateTx(ext sqlx.Ext, m *TokenRecord) error {
 		m.CreatorTime,
 		m.KindID,
 		m.ServerId,
+		m.PlayCnt,
 		m.RoomId,
 		m.UserId,
 	)
