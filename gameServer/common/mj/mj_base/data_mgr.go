@@ -949,13 +949,12 @@ func (room *RoomData) StartDispatchCard() {
 
 	////TODO 测试用
 	//newCard := make([]int, room.GetCfg().MaxIdx)
+	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 4
-	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x7)] = 3
 	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
 	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 3
 	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x1
 
@@ -1400,6 +1399,8 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) int {
 				EndScore[room.ProvideUser] -= EndScore[WinUser[i]]
 			}
 		}
+		//计算抓花
+		room.CalcZhuahua(WinUser)
 
 		//谁胡谁当庄
 		room.BankerUser = WinUser[0]
@@ -1411,6 +1412,9 @@ func (room *RoomData) CalHuPaiScore(EndScore []int) int {
 	}
 
 	return WinCount
+}
+
+func (room *RoomData) CalcZhuahua(winUser []int) {
 }
 
 //计算税收  暂时没有这个 功能
