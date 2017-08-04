@@ -36,7 +36,6 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 	r.OtherInfo = setinfo //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
-
 	return r
 }
 
@@ -1237,17 +1236,15 @@ func (room *RoomData) NormalEnd(cbReason int) {
 	UserGameScore := make([]int, UserCnt)
 	room.CalHuPaiScore(UserGameScore)
 
-	//拷贝码数据
-	GameConclude.MaCount = make([]int, 0)
-
-	nCount := 0
-	if nCount > 1 {
-		nCount++
-	}
-
-	for i := 0; i < nCount; i++ {
-		GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
-	}
+	////拷贝码数据
+	//GameConclude.MaCount = make([]int, 0)
+	//nCount := 0
+	//if nCount > 1 {
+	//	nCount++
+	//}
+	//for i := 0; i < nCount; i++ {
+	//	GameConclude.MaData[i] = room.RepertoryCard[room.MinusLastCount+i]
+	//}
 
 	//积分变量
 	ScoreInfoArray := make([]*msg.TagScoreInfo, UserCnt)

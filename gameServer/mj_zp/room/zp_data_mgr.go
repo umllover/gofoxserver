@@ -746,8 +746,7 @@ func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []i
 			if room.BankerUser == userIndex {
 				getInedx = index[0]
 			} else {
-				log.Debug("================================ userIndex:%d  room.BankerUser:%d", userIndex, room.BankerUser)
-				v := int(math.Abs(float64(userIndex-room.BankerUser))) % userCnt
+				v := int(math.Abs(float64(userIndex-room.BankerUser+userCnt))) % userCnt
 				getInedx = index[int(v)]
 			}
 
