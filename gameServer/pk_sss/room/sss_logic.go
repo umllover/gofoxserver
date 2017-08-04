@@ -1110,8 +1110,8 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 	FirstAnalyseData := new(TagAnalyseItem)
 	NextAnalyseData := new(TagAnalyseItem)
 
-	bFirstList := make([]int, 13)
-	bNextList := make([]int, 13)
+	bFirstList := make([]int, bFirstCount)
+	bNextList := make([]int, bNextCount)
 
 	copy(bFirstList, bInFirstList)
 	copy(bNextList, bInNextList)

@@ -132,7 +132,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//room.CbResult = make(map[*user.User][]int, UserCnt)
 	room.PlayerCount = UserCnt
 	//room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
-	//room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
+	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
 	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
 	//room.Dragon = make(map[*user.User]bool, UserCnt)
 	//room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
@@ -166,6 +166,9 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.SpecialResults = make([]int, UserCnt)
 	room.ToltalResults = make([]int, UserCnt)
 	room.CompareResults = make([][]int, UserCnt)
+	for i := range room.CompareResults {
+		room.CompareResults[i] = make([]int, 3)
+	}
 	room.SpecialCompareResults = make([]int, UserCnt)
 	room.ShootState = make([][]int, 6)
 	room.ShootResults = make([]int, 6)
@@ -460,9 +463,9 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
+		room.PlayerCards[u.ChairId] = make([]int, 0, 13)
 		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
 			room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], room.GetOneCard())
-
 		}
 	})
 
@@ -664,24 +667,23 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
 		room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
-		//if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
+		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPayCnt() {
+			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
+			util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
+			allScore := make([]int, room.PlayerCount)
 
-		gameRecord := &pk_sss_msg.G2C_SSS_Record{}
-		util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
-		allScore := make([]int, room.PlayerCount)
+			for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
+				for j := range allScore {
 
-		for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
-			for j := range allScore {
-
-				allScore[j] += room.AllResult[i][j]
+					allScore[j] += room.AllResult[i][j]
+				}
 			}
-		}
-		gameRecord.AllScore = allScore
+			gameRecord.AllScore = allScore
 
-		userMgr.ForEachUser(func(u *user.User) {
-			u.WriteMsg(gameRecord)
-		})
-		//}
+			userMgr.ForEachUser(func(u *user.User) {
+				u.WriteMsg(gameRecord)
+			})
+		}
 
 	}
 
