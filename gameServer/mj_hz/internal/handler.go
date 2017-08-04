@@ -11,28 +11,27 @@ import (
 func init() {
 	reg := register.NewRegister(ChanRPC)
 	// c 2 s
-	reg.RegisterC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, HZOutCard)
-	reg.RegisterC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
+	reg.RegisterC2S(&mj_hz_msg.C2G_HZMJ_HZOutCard{}, C2G_OutCard)
+	reg.RegisterC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, C2G_OperateCard)
 
 }
 
-func HZOutCard(args []interface{}) {
+func C2G_OutCard(args []interface{}) {
 	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_HZOutCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
-	r := getRoom(user.RoomId)
+	u := agent.UserData().(*user.User)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OutCard", user, recvMsg.CardData)
+		r.GetChanRPC().Go("OutCard", u, recvMsg.CardData)
 	}
 }
 
-func OperateCard(args []interface{}) {
+func C2G_OperateCard(args []interface{}) {
 	recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_OperateCard)
 	agent := args[1].(gate.Agent)
-	user := agent.UserData().(*user.User)
-
-	r := getRoom(user.RoomId)
+	u := agent.UserData().(*user.User)
+	r := getRoom(u.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("OperateCard", user, recvMsg.OperateCode, recvMsg.OperateCard)
+		r.GetChanRPC().Go("OperateCard", u, recvMsg.OperateCode, recvMsg.OperateCard)
 	}
 }
