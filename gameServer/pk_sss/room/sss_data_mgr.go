@@ -39,10 +39,10 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string
 	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
 	//var setInfo sssOtherInfo
 	//if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
-	d.wanFa = info.OtherInfo["WanFa"].(int)
-	d.jiaYiSe = info.OtherInfo["JiaYiSe"].(bool)
-	d.jiaGongGong = info.OtherInfo["JiaGongGong"].(bool)
-	d.jiaDaXiaoWan = info.OtherInfo["JiaDaXiaoWan"].(bool)
+	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
+	d.jiaYiSe = info.OtherInfo["jiaYiSe"].(bool)
+	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
+	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
 	//}
 	return d
 }
