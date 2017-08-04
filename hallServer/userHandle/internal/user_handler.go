@@ -18,7 +18,7 @@ import (
 
 	"mj/common/utils"
 
-	"mj/hallServer/db/model/stats"
+	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
@@ -331,30 +331,15 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		if recvMsg.PayType == AA_PAY_TYPE {
 			money = feeTemp.TableFee / template.MaxPlayer
 		}
-		if !player.SubCurrency(money) {
+		if !player.SubCurrency(money, recvMsg.PayType) {
 			retCode = NotEnoughFee
 			return
 		}
 	}
 
 	//搜集创建房间数据
-	logInfo := &stats.RoomLog{}
-	logInfo.UserId = player.Id
-	logInfo.PayType = recvMsg.PayType
-	logInfo.RoomId = rid
-	logInfo.RoomName = recvMsg.RoomName
-	logInfo.NodeId = nodeId
-	logInfo.KindId = recvMsg.Kind
-	logInfo.ServiceId = recvMsg.ServerId
-	logNow := time.Now()
-	logInfo.CreateTime = &logNow
-	if retCode == 0 {
-		logInfo.NomalOpen = 1
-	} else {
-		logInfo.NomalOpen = 0
-	}
-	logInfo.CreateOthers = 1
-	player.AddCreateRoomLog(logInfo)
+	data := &datalog.RoomLog{}
+	data.AddCreateRoomLog(rid, player.UserId, recvMsg.RoomName, recvMsg.Kind, recvMsg.ServerId, nodeId, recvMsg.PayType, retCode)
 
 	_, err := cluster.Call1GameSvr(nodeId, &msg.L2G_CreatorRoom{
 		CreatorUid:   player.Id,
@@ -473,15 +458,8 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 	//非限时免费 并且 不是全付方式 并且 钱大于零
 	if !player.CheckFree() && money > 0 {
 		if roomInfo.CreateUserId != player.Id && roomInfo.PayType == AA_PAY_TYPE {
-			if !player.SubCurrency(money) {
+			if !player.SubCurrency(money, roomInfo.PayType) {
 				retcode = NotEnoughFee
-				now := time.Now()
-				stats.ConsumLogOp.Insert(&stats.ConsumLog{
-					UserId:     player.Id,
-					ConsumType: 1,
-					ConsumNum:  money,
-					ConsumTime: &now,
-				})
 				return
 			}
 		}
@@ -566,9 +544,9 @@ func loadUser(u *user.User) bool {
 	}
 	u.Gamescorelocker = glInfo
 	if u.Gamescorelocker.EnterIP != "" {
-		log.Debug("check room ...............  ")
+		log.Debug("check room ...............  %d ", u.Roomid)
 		_, have := game_list.ChanRPC.Call1("HaseRoom", u.Roomid)
-		if have == nil {
+		if have != nil {
 			log.Debug("check room  login room is close ...............  ")
 			u.DelGameLockInfo()
 		}
@@ -862,15 +840,9 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if UpdateOrderStats(v.OnLineID) {
 			u.AddCurrency(goods.Diamond)
 		}
-		now := time.Now()
-		stats.RechargeLogOp.Insert(&stats.RechargeLog{
-			OnLineID:     v.OnLineID,
-			PayAmount:    v.PayAmount,
-			UserID:       v.UserID,
-			PayType:      v.PayType,
-			GoodsID:      v.GoodsID,
-			RechangeTime: &now,
-		})
+		recharge := datalog.RechargeLog{}
+		recharge.AddRechargeLogInfo(v.OnLineID, v.PayAmount, v.UserID, v.PayType, v.GoodsID)
+
 	}
 
 }
@@ -986,18 +958,10 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		monrey = feeTemp.AATableFee
 	}
 
-	if !player.SubCurrency(monrey) {
+	if !player.SubCurrency(monrey, room.PayType) {
 		retCode = NotEnoughFee
 		return
 	}
-	now := time.Now()
-	stats.ConsumLogOp.Insert(&stats.ConsumLog{
-		UserId:     player.Id,
-		ConsumType: 1,
-		ConsumNum:  monrey,
-		ConsumTime: &now,
-	})
-
 	record := player.GetRecord(room.RoomID)
 	if record == nil {
 		log.Error("at RenewalFees not foud old TokenRecord ")

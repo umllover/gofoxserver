@@ -1,12 +1,12 @@
 package db
 
 import (
-	"github.com/lovelly/leaf/log"
 	"github.com/jmoiron/sqlx"
+	"github.com/lovelly/leaf/log"
 )
 
 // 数据库增量更新
-func UpdateDB() error {
+func updateDB() error {
 	log.Debug("Start update db.")
 	defer func() {
 		log.Debug("Update db end.")
@@ -61,7 +61,7 @@ func UpdateSingle(inst *sqlx.DB, sqls [][]string) error {
 			log.Debug("Exec sql.Sql: %s", updateSql_)
 			_, err = tx.Exec(updateSql_)
 			if err != nil {
-				log.Error("Exec tx encounter a error.Error: %s Sql:%s", err.Error(),  updateSql_)
+				log.Error("Exec tx encounter a error.Error: %s Sql:%s", err.Error(), updateSql_)
 				err1 := tx.Rollback()
 				if err1 != nil {
 					log.Error("Rollback encounter a error.Error: %s", err.Error())

@@ -1,6 +1,7 @@
 package userHandle
 
 import (
+	"mj/common/consul"
 	"mj/hallServer/user"
 	"mj/hallServer/userHandle/internal"
 	"time"
@@ -22,6 +23,7 @@ func ForEachUser(f func(u *user.User)) {
 }
 
 func KickOutUser() {
+	consul.Deregister() //todo 临时
 	log.Debug("at hallServer close, KickOutUser")
 	ForEachUser(func(player *user.User) {
 		player.ChanRPC().Go("SvrShutdown")

@@ -166,7 +166,6 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (
 
 				//设置结果
 				for j := 0; j < cbWeaveCount; j++ {
-					log.Debug("############### len1:%d len2:%d j:%d", len(analyseItem.WeaveKind), len(WeaveItem), j)
 					analyseItem.Param[j] = WeaveItem[j].Param
 					analyseItem.WeaveKind[j] = WeaveItem[j].WeaveKind
 					analyseItem.CenterCard[j] = WeaveItem[j].CenterCard
@@ -278,11 +277,13 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (
 					}
 
 					//设置牌型
-					SetWeaveCount := 0
-					if cbWeaveCount > 0 {
-						SetWeaveCount = cbWeaveCount - 1
-					}
+					//SetWeaveCount := 0
+					//if cbWeaveCount > 0 {
+					//	SetWeaveCount = cbWeaveCount - 1
+					//}
+					SetWeaveCount := cbWeaveCount
 					for i := 0; i < cbLessKindItem; i++ {
+						log.Debug("################### cbLessKindItem i:%d,cbWeaveCount:%d", i, cbWeaveCount)
 						analyseItem.Param[i+SetWeaveCount] = 0
 						analyseItem.IsAnalyseGet[i+SetWeaveCount] = pKindItem[i].IsAnalyseGet
 						analyseItem.WeaveKind[i+SetWeaveCount] = pKindItem[i].WeaveKind

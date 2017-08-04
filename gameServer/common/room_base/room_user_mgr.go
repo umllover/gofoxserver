@@ -7,9 +7,9 @@ import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
-	"mj/gameServer/db/model/stats"
 	"mj/gameServer/user"
 
+	dataLog "mj/gameServer/log"
 	"time"
 
 	"github.com/lovelly/leaf/log"
@@ -186,8 +186,10 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		log.Debug("at ReplyLeave not foud user")
 		return 0
 	}
+
+	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, Agree: Agree})
 	if Agree {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
 		if req == nil {
 			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
@@ -199,7 +201,7 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 			return 1
 		}
 	} else {
-		reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
+		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
 		r.DeleteReply(reqPlayer.Id)
 		return -1
 	}
@@ -224,6 +226,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	if err != nil {
 		log.Error("at EnterRoom  updaye .Gamescorelocker error:%s", err.Error())
 	}
+
+	r.SetUsetStatus(u, US_FREE)
 
 	u.ChanRPC().Go("LeaveRoom")
 	r.Users[u.ChairId] = nil
@@ -327,7 +331,7 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 }
 
 //坐下
-func (room *RoomUserMgr) Sit(u *user.User, ChairID, status int) int {
+func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
@@ -360,28 +364,9 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID, status int) int {
 	}
 
 	//搜集进入房间费信息
-	getInLog := &stats.GetinRoomLog{}
-	log.Debug("info ======= %v", info)
-	if info.Public == 1 {
-		getInLog.Public = 1
-	}
-	getInLog.RoomId = info.RoomId
-	getInLog.UserId = u.Id
-	getInLog.KindId = info.KindId
-	getInLog.ServiceId = info.ServiceId
-	getInLog.RoomName = info.RoomName
-	getInLog.NodeId = info.NodeId
-	getInLog.Num = info.Num
-	getInLog.Status = info.Status
-	getInLog.MaxPlayerCnt = info.MaxPlayerCnt
-	getInLog.PayType = info.PayType
-	now := time.Now()
-	getInLog.GetInTime = &now
 
-	_, err = stats.GetinRoomLogOp.Insert(getInLog)
-	if err != nil {
-		log.Error("添加进入房间信息到数据库失败：%s", err.Error())
-	}
+	getinRoom := dataLog.GetinRoomLog{}
+	getinRoom.AddGetinRoomLogInfo(info.RoomId, u.Id, info.KindId, info.ServiceId, info.RoomName, info.NodeId, info.Num, info.Status, info.MaxPlayerCnt, info.PayType, info.Public)
 
 	return 0
 }
@@ -436,8 +421,7 @@ func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
 
 //起立
 func (room *RoomUserMgr) Standup(u *user.User) bool {
-	room.SetUsetStatus(u, US_FREE)
-	room.LeaveRoom(u, 1)
+	//room.LeaveRoom(u, 1)
 	return true
 }
 
