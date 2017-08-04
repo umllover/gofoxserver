@@ -1622,7 +1622,12 @@ func (room *RoomData) IsGangKaiHua(pAnalyseItem *TagAnalyseItem, WeaveItem []*ms
 	if room.CurrentUser != room.ProvideUser {
 		return 0
 	}
-	index := len(WeaveItem) - 1
+	index := len(WeaveItem)
+	if index < 1 {
+		return 0
+	}
+	index = index - 1
+
 	log.Debug("########## pAnalyseItem.WeaveKind:%v", pAnalyseItem.WeaveKind)
 	log.Debug("########## pAnalyseItem.IsAnalyseGet:%v len:%d", pAnalyseItem.IsAnalyseGet, len(pAnalyseItem.WeaveKind))
 	if pAnalyseItem.WeaveKind[index] == WIK_GANG && pAnalyseItem.IsAnalyseGet[index] == false {

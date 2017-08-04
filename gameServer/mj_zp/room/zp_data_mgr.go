@@ -1348,18 +1348,16 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				log.Debug("胡牌分：%d", testScore)
 
 				//连庄
-				if index == 0 {
-					if i == room.BankerUser { //庄W
-						room.SumScore[index] -= room.LianZhuang * score
-						playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
-						room.SumScore[room.BankerUser] += room.LianZhuang * score
-					} else { // 边W
-						playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
-						room.SumScore[room.ProvideUser] += room.LianZhuang * score
-						room.SumScore[room.BankerUser] -= room.LianZhuang * score
-					}
-					log.Debug("连庄得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_LZ], room.SumScore[i])
+				if i == room.BankerUser { //庄W
+					room.SumScore[index] -= room.LianZhuang * score
+					playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
+					room.SumScore[room.BankerUser] += room.LianZhuang * score
+				} else if room.ProvideUser == room.BankerUser && nowCnt == 0 { // 边W
+					playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
+					room.SumScore[i] += room.LianZhuang * score
+					room.SumScore[room.BankerUser] -= room.LianZhuang * score
 				}
+				log.Debug("连庄得分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_LZ], room.SumScore[i])
 
 				//补花得分
 				if room.FlowerCnt[i] < 8 {
@@ -1419,7 +1417,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				room.SumScore[room.BankerUser] += room.LianZhuang * score
 			} else if room.ProvideUser == room.BankerUser { // 边W
 				playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang * score
-				room.SumScore[room.ProvideUser] += room.LianZhuang * score
+				room.SumScore[i] += room.LianZhuang * score
 				room.SumScore[room.BankerUser] -= room.LianZhuang * score
 			}
 			log.Debug("i:%d ,庄家：%d", i, room.BankerUser)
@@ -1614,6 +1612,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				room.LianZhuang += 1 //连庄次数
 			}
 		} else {
+			log.Debug("++++++++++++++++++++++++++++ WinUser[0]:%d room.BankerUser:%d", WinUser[0], room.BankerUser)
 			if WinUser[0] == room.BankerUser {
 				room.BankerUser = room.BankerUser
 				room.LianZhuang += 1 //连庄次数
