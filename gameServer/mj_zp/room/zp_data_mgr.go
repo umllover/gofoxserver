@@ -1781,6 +1781,7 @@ func (room *ZP_RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
 		OperateResult.OperateCard[1] = room.OperateCard[wTargetUser][1]
 		OperateResult.OperateCard[2] = room.OperateCard[wTargetUser][2]
+		room.RecordBanCard(LimitChi, wTargetUser)
 	} else if cbTargetAction&WIK_PENG != 0 {
 		OperateResult.OperateCard[1] = cbTargetCard
 		OperateResult.OperateCard[2] = cbTargetCard
