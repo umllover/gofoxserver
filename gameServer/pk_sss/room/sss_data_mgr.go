@@ -177,7 +177,9 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 
 func (r *sss_data_mgr) ComputeChOut() {
 	lg := r.PkBase.LogicMgr
-	for i := 0; i < r.PlayerCount; i++ {
+	userMgr := r.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User) {
+		i := u.ChairId
 		//特殊牌型
 		switch lg.GetCardType(r.PlayerCards[i]) {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
@@ -285,84 +287,87 @@ func (r *sss_data_mgr) ComputeChOut() {
 				r.Results[i][2] = 5
 			}
 		}
-	}
+	})
 }
 
 func (r *sss_data_mgr) ComputeResult() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
+	userMgr := r.PkBase.UserMgr
 	//打枪次数
 	shootPlayerNum := make([]int, r.PlayerCount)
-	for i := 0; i < r.PlayerCount; i++ {
+	userMgr.ForEachUser(func(u *user.User) {
+		i := u.ChairId
 		winPoint := 0
-		for j := 0; j < r.PlayerCount; j++ {
-			if i == j {
-				continue
-			}
-			//都是普通牌型
-			if r.SpecialResults[i] == 0 && r.SpecialResults[j] == 0 {
-				firstResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][0], r.PlayerSegmentCards[i][0])
-				switch firstResult {
-				case 1:
-					winPoint += r.Results[i][0]
-					r.CompareResults[i][0] += r.Results[i][0]
-				case -1:
-					winPoint -= r.Results[j][0]
-					r.CompareResults[i][0] -= r.Results[j][0]
+		userMgr.ForEachUser(func(u *user.User) {
+			j := u.ChairId
+			if i != j {
+
+				//都是普通牌型
+				if r.SpecialResults[i] == 0 && r.SpecialResults[j] == 0 {
+					firstResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][0], r.PlayerSegmentCards[i][0])
+					switch firstResult {
+					case 1:
+						winPoint += r.Results[i][0]
+						r.CompareResults[i][0] += r.Results[i][0]
+					case -1:
+						winPoint -= r.Results[j][0]
+						r.CompareResults[i][0] -= r.Results[j][0]
+					}
+					midResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][1], r.PlayerSegmentCards[i][1])
+					switch midResult {
+					case 1:
+						winPoint += r.Results[i][1]
+						r.CompareResults[i][1] += r.Results[i][1]
+					case -1:
+						winPoint -= r.Results[j][1]
+						r.CompareResults[i][1] -= r.Results[j][1]
+					}
+					backResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][2], r.PlayerSegmentCards[i][2])
+					switch backResult {
+					case 1:
+						winPoint += r.Results[i][2]
+						r.CompareResults[i][2] += r.Results[i][2]
+					case -1:
+						winPoint -= r.Results[j][2]
+						r.CompareResults[i][2] -= r.Results[j][2]
+					}
+					// 打枪
+					if firstResult >= 0 && midResult >= 0 && backResult >= 0 && firstResult+midResult+backResult > 0 {
+						r.ToltalResults[j] -= winPoint
+						winPoint *= 2
+						r.ShootResults[j] = winPoint
+						shootPlayerNum[i]++
+					}
 				}
-				midResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][1], r.PlayerSegmentCards[i][1])
-				switch midResult {
-				case 1:
-					winPoint += r.Results[i][1]
-					r.CompareResults[i][1] += r.Results[i][1]
-				case -1:
-					winPoint -= r.Results[j][1]
-					r.CompareResults[i][1] -= r.Results[j][1]
-				}
-				backResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][2], r.PlayerSegmentCards[i][2])
-				switch backResult {
-				case 1:
-					winPoint += r.Results[i][2]
-					r.CompareResults[i][2] += r.Results[i][2]
-				case -1:
-					winPoint -= r.Results[j][2]
-					r.CompareResults[i][2] -= r.Results[j][2]
-				}
-				// 打枪
-				if firstResult >= 0 && midResult >= 0 && backResult >= 0 && firstResult+midResult+backResult > 0 {
-					r.ToltalResults[j] -= winPoint
-					winPoint *= 2
-					r.ShootResults[j] = winPoint
-					shootPlayerNum[i]++
-				}
-			}
-			//特殊对普通
-			if r.SpecialResults[i] > 0 && r.SpecialResults[j] == 0 {
-				winPoint += r.SpecialResults[i]
-				r.SpecialCompareResults[i] += r.SpecialResults[i]
-			}
-			//普通对特殊
-			if r.SpecialResults[i] == 0 && r.SpecialResults[j] > 0 {
-				winPoint -= r.SpecialResults[j]
-				r.SpecialCompareResults[i] -= r.SpecialResults[j]
-			}
-			//都是特殊牌型
-			if r.SpecialResults[i] > 0 && r.SpecialResults[j] > 0 {
-				switch lg.SSSCompareCard(r.PlayerCards[j], r.PlayerCards[i]) {
-				case 1:
+				//特殊对普通
+				if r.SpecialResults[i] > 0 && r.SpecialResults[j] == 0 {
 					winPoint += r.SpecialResults[i]
 					r.SpecialCompareResults[i] += r.SpecialResults[i]
-				case -1:
+				}
+				//普通对特殊
+				if r.SpecialResults[i] == 0 && r.SpecialResults[j] > 0 {
 					winPoint -= r.SpecialResults[j]
 					r.SpecialCompareResults[i] -= r.SpecialResults[j]
 				}
+				//都是特殊牌型
+				if r.SpecialResults[i] > 0 && r.SpecialResults[j] > 0 {
+					switch lg.SSSCompareCard(r.PlayerCards[j], r.PlayerCards[i]) {
+					case 1:
+						winPoint += r.SpecialResults[i]
+						r.SpecialCompareResults[i] += r.SpecialResults[i]
+					case -1:
+						winPoint -= r.SpecialResults[j]
+						r.SpecialCompareResults[i] -= r.SpecialResults[j]
+					}
+				}
 			}
-
-		}
+		})
 		r.ToltalResults[i] += winPoint
-	}
+	})
 
 	//全垒打加分
-	for i := 0; i < r.PlayerCount; i++ {
+	userMgr.ForEachUser(func(u *user.User) {
+		i := u.ChairId
 		if (r.PlayerCount >= 4) && (shootPlayerNum[i] == r.PlayerCount-1) {
 			r.ToltalResults[i] *= 2
 			for j, v := range r.ShootResults {
@@ -371,9 +376,9 @@ func (r *sss_data_mgr) ComputeResult() {
 				}
 				r.ToltalResults[j] -= v * 2
 			}
-			break
+			return
 		}
-	}
+	})
 }
 
 //正常结束房间
