@@ -232,6 +232,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.UserMgr.IsAllReady() {
+		room.UserMgr.ResetBeginPlayer()
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 			RoomId: room.DataMgr.GetRoomId(),
 			OpName: "AddPlayCnt",
@@ -345,14 +346,13 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		GameStatus:  room.Status,
 		AllowLookon: AllowLookon,
 	})
-
+	//把所有玩家信息推送给自己
+	room.UserMgr.SendUserInfoToSelf(u)
 	room.DataMgr.SendPersonalTableTip(u)
 
 	if room.Status == RoomStatusReady || room.Status == RoomStatusEnd { // 没开始
 		room.DataMgr.SendStatusReady(u)
 	} else { //开始了
-		//把所有玩家信息推送给自己
-		room.UserMgr.SendUserInfoToSelf(u)
 		room.DataMgr.SendStatusPlay(u)
 	}
 }

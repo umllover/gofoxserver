@@ -23,8 +23,6 @@ type C2G_MJXS_OperateCard struct {
 	OperateCard int //操作扑克
 }
 
-
-
 //出牌
 type C2G_MJXS_OutCard struct {
 	CardData int //扑克数据
@@ -65,19 +63,24 @@ type G2C_OutCard struct {
 }
 
 type G2C_GameConclude struct { //游戏结束
-	GameTax     int     //游戏税收
 	ChiHuCard   int     //吃胡扑克
 	ProvideUser int     //点炮用户
+	ProvideCard int     //点炮扑克
 	HaiDiCard   int     //海底扑克
 	Feng        []int   //风番台数
 	Hua         []int   //花台
 	Zi          []int   //子台数
 	All         int     //总台数
 	GameScore   []int   //游戏积分
+	GangScore   []int   //本局杠输赢分
 	ChiHuKind   []int   //胡牌类型
 	CardCount   []int   //扑克数目
 	CardData    [][]int //扑克数据
 	ChiHuRight  []int   //胡牌权位
+
+	Reason      int     //结束原因 0 常规结束  1 游戏解散  2 玩家请求解散
+	AllScore    []int   //总结算分
+	DetailScore [][]int //单局结算分
 }
 
 //发送扑克
@@ -85,7 +88,7 @@ type G2C_SendCard struct {
 	CardData    int  //扑克数据
 	ActionMask  int  //动作掩码
 	CurrentUser int  //当前用户
-	Gang        bool //是否杠牌
+	Tail        bool //末尾发牌
 }
 
 //操作命令

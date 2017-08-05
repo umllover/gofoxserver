@@ -56,6 +56,8 @@ type UserManager interface {
 	SendMsgToHallServerAll(data interface{})
 	ReplyLeave(*user.User, bool, int64, int) int
 	DeleteReply(uid int64)
+	GetBeginPlayer() int
+	ResetBeginPlayer()
 
 	GetCurPlayerCnt() int
 	GetPayType() int

@@ -62,6 +62,7 @@ type RoomData struct {
 	LastCatchCardUser int    //最后一个摸牌的用户
 	MinusHeadCount    int    //头部空缺
 	MinusLastCount    int    //尾部空缺
+	TingCnt           [4]int //听牌个数
 
 	SiceCount       int                    //色子大小
 	UserActionDone  bool                   //操作完成

@@ -39,6 +39,7 @@ type RoomUserMgr struct {
 	EendTime     int64              //结束时间
 	MinUserCount int                //最少用户数量
 	UserCnt      int                //可以容纳的用户数量
+	BeginPlayer  int                //开局的人数
 	PlayerCount  int                //当前用户人数
 	JoinCount    int                //房主设置的游戏人数
 	Users        []*user.User       /// index is chairId
@@ -93,6 +94,14 @@ func (r *RoomUserMgr) GetCurPlayerCnt() int {
 		}
 	}
 	return r.PlayerCount
+}
+
+func (r *RoomUserMgr) GetBeginPlayer() int {
+	return r.BeginPlayer
+}
+
+func (r *RoomUserMgr) ResetBeginPlayer() {
+	r.BeginPlayer = r.GetCurPlayerCnt()
 }
 
 func (r *RoomUserMgr) GetMaxPlayerCnt() int {
@@ -350,8 +359,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
-	//把所有玩家信息推送给自己
-	room.GetAllUsetInfo(u)
 
 	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
@@ -393,11 +400,11 @@ func (room *RoomUserMgr) NotifyUserInfo(u *user.User) {
 	})
 }
 
-func (room *RoomUserMgr) GetAllUsetInfo(u *user.User) {
+func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
 	room.ForEachUser(func(eachuser *user.User) {
-		if eachuser.Id == u.Id {
-			return
-		}
+		//if eachuser.Id == u.Id {
+		//	return
+		//}
 		u.WriteMsg(&msg.G2C_UserEnter{
 			UserID:      eachuser.Id,          //用户 I D
 			FaceID:      eachuser.FaceID,      //头像索引
@@ -484,32 +491,6 @@ func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 	} else {
 		room.SetUsetStatus(u, US_SIT)
 	}
-}
-
-func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
-	room.ForEachUser(func(eachuser *user.User) {
-		if eachuser.Id == u.Id {
-			return
-		}
-		u.WriteMsg(&msg.G2C_UserEnter{
-			UserID:      eachuser.Id,          //用户 I D
-			FaceID:      eachuser.FaceID,      //头像索引
-			CustomID:    eachuser.CustomID,    //自定标识
-			Gender:      eachuser.Gender,      //用户性别
-			MemberOrder: eachuser.MemberOrder, //会员等级
-			TableID:     eachuser.RoomId,      //桌子索引
-			ChairID:     eachuser.ChairId,     //椅子索引
-			UserStatus:  eachuser.Status,      //用户状态
-			Score:       eachuser.Score,       //用户分数
-			WinCount:    eachuser.WinCount,    //胜利盘数
-			LostCount:   eachuser.LostCount,   //失败盘数
-			DrawCount:   eachuser.DrawCount,   //和局盘数
-			FleeCount:   eachuser.FleeCount,   //逃跑盘数
-			Experience:  eachuser.Experience,  //用户经验
-			NickName:    eachuser.NickName,    //昵称
-			HeaderUrl:   eachuser.HeadImgUrl,  //头像
-		})
-	})
 }
 
 func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
