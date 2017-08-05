@@ -112,7 +112,7 @@ func (u *User) SubCurrency(sub, subtype int) bool {
 	}
 
 	consum := datalog.ConsumLog{}
-	consum.AddConsumLogInfo(u.Id,subtype,sub)
+	consum.AddConsumLogInfo(u.Id, subtype, sub)
 	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,
@@ -140,6 +140,10 @@ func (u *User) AddCurrency(add int) bool {
 		log.Error("at AddCurrency UpdateWithMap error, %v,  sub Currency:%v", err.Error(), add)
 		return false
 	}
+	//通知客户端
+	u.UpdateUserAttr(map[string]interface{}{
+		"Diamond": u.Currency,
+	})
 	return true
 }
 
@@ -155,7 +159,6 @@ func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	}
 	return true
 }
-
 
 func (u *User) HasRecord(RoomId int) bool {
 	u.Lock()

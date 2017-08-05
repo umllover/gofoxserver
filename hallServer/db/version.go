@@ -50,7 +50,7 @@ func RanderDB(path string) bool {
 func updateDB() (err error, up bool) {
 	log.Debug("Start update db.")
 	var insetDBok bool
-	var insetSatas bool
+	//var insetSatas bool
 	defer func() {
 		if insetDBok {
 			_, err := DB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
@@ -59,13 +59,13 @@ func updateDB() (err error, up bool) {
 			}
 		}
 
-		if insetSatas {
-			_, err = StatsDB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
-			if err != nil {
-				log.Debug("%s", err.Error())
-				return
-			}
+		//if insetSatas {
+		_, err = StatsDB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
+		if err != nil {
+			log.Debug("%s", err.Error())
+			return
 		}
+		//}
 	}()
 
 	//var err error
@@ -106,7 +106,7 @@ func updateDB() (err error, up bool) {
 		log.Debug("%s", err.Error())
 		return err, up
 	}
-	insetSatas = true
+	//insetSatas = true
 	row, err = r.RowsAffected()
 	if err != nil {
 		log.Debug("%s", err.Error())
