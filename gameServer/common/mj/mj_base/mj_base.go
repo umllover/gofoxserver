@@ -181,15 +181,18 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
-	if user == nil {
-		roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
+	if logData != nil {
+		user, _ := room.UserMgr.GetUserByUid(logData.UserId)
+		if user == nil {
+			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
+		}
 	}
 	if retcode == 0 {
 		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
 	} else if retcode == NotOwner {
 		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 	}
+
 }
 
 //玩家准备
