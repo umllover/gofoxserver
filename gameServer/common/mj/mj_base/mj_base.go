@@ -45,6 +45,7 @@ type NewMjCtlConfig struct {
 func NewMJBase(KindId, ServiceId int) *Mj_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(KindId, ServiceId)
 	if !ok1 {
+		log.Error("at NewMJBase not foud template  kindid:%d  serverid:%d", KindId, ServiceId)
 		return nil
 	}
 
