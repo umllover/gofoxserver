@@ -46,11 +46,11 @@ func main() {
 
 	modules := []module.Module{}
 	modules = append(modules, userHandle.UserMgr)
-	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
 	modules = append(modules, Chat.Module)
 	modules = append(modules, kindList.GetModules()...)
 	modules = append(modules, consul.Module)
+	modules = append(modules, gate.Module)
 	leaf.Run(modules...)
 }
 
@@ -69,6 +69,7 @@ func Init() {
 	leaf.InitLog()
 	leaf.OnDestroy = func() {
 		conf.Shutdown = true
+		lconf.Shutdown = true
 		userHandle.KickOutUser()
 	}
 }

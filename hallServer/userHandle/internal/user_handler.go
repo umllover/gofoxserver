@@ -31,7 +31,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("CloseAgent", m.CloseAgent)
 	reg.RegisterRpc("GetUser", m.GetUser)
 	reg.RegisterRpc("SrarchTableResult", m.SrarchTableResult)
-	reg.RegisterRpc("RoomCloseInfo", m.RoomCloseInfo)
 	reg.RegisterRpc("matchResult", m.matchResult)
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
@@ -44,7 +43,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
-
+	reg.RegisterRpc("DeleteVaildIds", m.DeleteVaildIds)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
@@ -180,6 +179,10 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	game_list.ChanRPC.Go("sendGameList", agent)
 
 	m.Recharge(nil)
+	ids := player.GetRoomIds()
+	if len(ids) > 0 {
+		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
+	}
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -723,29 +726,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model
 	retMsg.ServerIP = user.EnterIP
 }
 
-//房间结束了
-func (m *UserModule) RoomCloseInfo(args []interface{}) {
-	info := args[0].(*msg.RoomEndInfo)
-	player := m.a.UserData().(*user.User)
-	if info.Status == 0 { //没开始就结束
-		record := player.GetRecord(info.RoomId)
-		if record != nil { //还原扣的钱
-			err := player.DelRecord(record.RoomId)
-			if err == nil {
-				player.AddCurrency(record.Amount)
-			} else {
-				log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
-			}
-
-		} else {
-			log.Error("at restoreToken not foud record uid:%d", player.Id)
-		}
-	}
-	player.DelRooms(info.RoomId)
-	player.DelGameLockInfo()
-	return
-}
-
 func (m *UserModule) matchResult(args []interface{}) {
 	ret := args[0].(bool)
 
@@ -818,12 +798,28 @@ func (m *UserModule) GameStart(args []interface{}) {
 	}
 }
 
-/// 游戏结束了
+//房间结束了
 func (m *UserModule) RoomEndInfo(args []interface{}) {
 	log.Debug("at RoomEndInfo ================= ")
-	msg := args[0].(*msg.RoomEndInfo)
+	info := args[0].(*msg.RoomEndInfo)
 	player := m.a.UserData().(*user.User)
-	player.DelRecord(msg.RoomId)
+	if info.Status == 0 { //没开始就结束
+		record := player.GetRecord(info.RoomId)
+		if record != nil { //还原扣的钱
+			err := player.DelRecord(record.RoomId)
+			if err == nil {
+				player.AddCurrency(record.Amount)
+			} else {
+				log.Error("at restoreToken not DelRecord error uid:%d", player.Id)
+			}
+
+		} else {
+			log.Error("at restoreToken not foud record uid:%d", player.Id)
+		}
+	}
+	player.DelRooms(info.RoomId)
+	player.DelGameLockInfo()
+	return
 }
 
 func (m *UserModule) Recharge(args []interface{}) {
@@ -868,6 +864,18 @@ func (m *UserModule) ForceClose(args []interface{}) {
 func (m *UserModule) SvrShutdown(args []interface{}) {
 	log.Debug("at SvrShutdown ..... ")
 	m.Close(ServerKick)
+}
+
+//重登的时候删除已经不存在的房间， 后期这些房间放在redis
+func (m *UserModule) DeleteVaildIds(args []interface{}) {
+	log.Debug("at DeleteVaildIds ................ ")
+	ids := args[0].([]int)
+	player := m.a.UserData().(*user.User)
+	for _, id := range ids {
+		log.Debug("at login DeleteVaildIds uid:%d, roomid : %d", player.Id, id)
+		player.DelRooms(id)
+		player.DelRecord(id)
+	}
 }
 
 //删除自己创建的房间

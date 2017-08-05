@@ -14,6 +14,7 @@ import (
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
+	log.Debug("ax xsmj CreaterRoom ")
 	info := args[0].(*msg.L2G_CreatorRoom)
 
 	if info.KindId != common.KIND_TYPE_XSMJ {

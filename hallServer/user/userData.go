@@ -230,3 +230,16 @@ func (u *User) CheckFree() bool {
 	}
 	return b
 }
+
+//发送活动次数信息
+func (u *User) GetRoomIds() (ret map[int]struct{}) {
+	ret = make(map[int]struct{})
+	for id, _ := range u.Rooms {
+		ret[id] = struct{}{}
+	}
+
+	for id, _ := range u.Records {
+		ret[id] = struct{}{}
+	}
+	return
+}

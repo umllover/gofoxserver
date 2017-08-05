@@ -18,4 +18,5 @@ var (
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
+	Shutdown        bool
 )

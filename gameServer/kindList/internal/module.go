@@ -5,7 +5,6 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
 	"mj/gameServer/mj_xs"
@@ -79,22 +78,10 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 
 func Clears() {
 	ClearRoomId()
-	ClearLockerInfo(conf.Server.NodeId)
-	ClearCreaerInfo(conf.Server.NodeId)
 }
 
 func ClearRoomId() {
 	model.RoomIdOp.DeleteByMap(map[string]interface{}{
 		"node_id": conf.Server.NodeId,
-	})
-}
-
-func ClearLockerInfo(nodeid int) {
-	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID=0 where 1=1 and GameNodeID=?", nodeid)
-}
-
-func ClearCreaerInfo(nodeid int) {
-	model.CreateRoomInfoOp.DeleteByMap(map[string]interface{}{
-		"node_id": nodeid,
 	})
 }

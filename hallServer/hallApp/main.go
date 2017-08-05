@@ -37,7 +37,6 @@ func main() {
 	}
 	Init()
 	log.Debug("enter hallApp main")
-	game_list.SetTest(*Test)
 	if *reloadDB {
 		db.NeedReloadBaseDB = true
 		log.Debug("need reload base db")
@@ -53,13 +52,13 @@ func main() {
 	user.LoadIncId()
 	leaf.Run(
 		userHandle.UserMgr,
-		gate.Module,
 		center.Module,
 		consul.Module,
 		game_list.Module,
 		race_msg.Module,
 		match_room.Module,
 		times_mgr.Module,
+		gate.Module,
 	)
 }
 
@@ -78,6 +77,7 @@ func Init() {
 	leaf.InitLog()
 	leaf.OnDestroy = func() {
 		conf.Shutdown = true
+		lconf.Shutdown = true
 		userHandle.KickOutUser()
 	}
 }

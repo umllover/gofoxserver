@@ -54,7 +54,6 @@ func SrarchTable(args []interface{}) {
 	}
 	_, has := roomInfo.MachPlayer[player.Id]
 	if !has {
-		CheckTimeOut(roomInfo, time.Now().Unix())
 		if roomInfo.MachCnt >= roomInfo.MaxPlayerCnt {
 			log.Debug("at SrarchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt, %v", recvMsg)
 			retcode = ErrRoomFull
@@ -77,6 +76,7 @@ func SrarchTable(args []interface{}) {
 }
 
 func delMatchPlayer(args []interface{}) {
+	log.Debug("at del match player ")
 	uid := args[0].(int64)
 	roomInfo := args[1].(*msg.RoomInfo)
 	delete(roomInfo.MachPlayer, uid)

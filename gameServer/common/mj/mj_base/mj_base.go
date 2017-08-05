@@ -114,19 +114,21 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 func (r *Mj_base) UserStandup(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2G_UserStandup{})
 	u := args[1].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-
-	if r.Status == RoomStatusStarting {
-		retcode = ErrGameIsStart
-		return
-	}
-
-	r.UserMgr.Standup(u)
+	r.ReqLeaveRoom([]interface{}{u})
+	return
+	//retcode := 0
+	//defer func() {
+	//	if retcode != 0 {
+	//		u.WriteMsg(RenderErrorMessage(retcode))
+	//	}
+	//}()
+	//
+	//if r.Status == RoomStatusStarting {
+	//	retcode = ErrGameIsStart
+	//	return
+	//}
+	//
+	//r.UserMgr.Standup(u)
 }
 
 func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
