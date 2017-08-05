@@ -155,6 +155,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	u.RoomId = r.id
 	u.ChatRoomId = r.ChatRoomId
 
+	log.Debug("=============================u.HallNodeName:", u.HallNodeName)
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "AddPlayerId",
