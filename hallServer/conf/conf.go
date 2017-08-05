@@ -28,7 +28,6 @@ var (
 	AgentAsynCallLen        = 50
 	AgentChanRPCLen         = 50
 
-	// cluster conf
-	HeartBeatInterval = 5
-	Test              = false
+	Shutdown = false
+	Test     = false
 )

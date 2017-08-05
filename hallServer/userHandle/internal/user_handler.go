@@ -496,6 +496,7 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 
 	retMsg.TableID = roomInfo.RoomID
 	retMsg.ServerIP = host
+	retMsg.KindID = roomInfo.KindID
 	return
 }
 

@@ -34,5 +34,7 @@ var (
 	// room
 	MaxRoomMsgLen       = 50
 	DestroyRoomInterval = 3600
-	Test                = false
+
+	Shutdown = false
+	Test     = false
 )

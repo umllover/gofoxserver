@@ -74,8 +74,10 @@ func Init() {
 	lconf.ServerName = conf.ServerName()
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	conf.Test = *Test
 	leaf.InitLog()
-	leaf.OnDestroy = userHandle.KickOutUser
+	leaf.OnDestroy = func() {
+		conf.Shutdown = true
+		userHandle.KickOutUser()
+	}
 }

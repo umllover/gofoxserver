@@ -200,26 +200,30 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 	if Agree {
 		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
-		if req == nil {
-			req = &ReqLeaveSet{CreTime: time.Now().Unix()}
-			r.ReqLeave[ReplyUid] = req
-		}
-		req.Agree = append(req.Agree, player.Id)
-		if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
-			r.DeleteReply(reqPlayer.Id)
-			return 1
+		if req != nil {
+			req.Agree = append(req.Agree, player.Id)
+			if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
+				r.DelLeavePly(reqPlayer.Id)
+				return 1
+			}
 		}
 	} else {
-		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: false})
-		r.DeleteReply(reqPlayer.Id)
-		return -1
+		if _, ok := r.ReqLeave[reqPlayer.Id]; ok {
+			r.DelLeavePly(reqPlayer.Id)
+			return -1
+		}
 	}
 
 	return 0
 }
 
-func (r *RoomUserMgr) DeleteReply(uid int64) {
+func (r *RoomUserMgr) DelLeavePly(uid int64) {
 	delete(r.ReqLeave, uid)
+}
+
+func (r *RoomUserMgr) AddLeavePly(uid int64) {
+	req := &ReqLeaveSet{CreTime: time.Now().Unix()}
+	r.ReqLeave[uid] = req
 }
 
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {

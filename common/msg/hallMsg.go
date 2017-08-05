@@ -71,6 +71,7 @@ type C2L_SearchServerTable struct {
 //查询房间的结果
 type L2C_SearchResult struct {
 	TableID  int    //桌子 I D 返回0 是没匹配到
+	KindID   int    //游戏id
 	ServerIP string // //要去链接的游戏服地址
 }
 
