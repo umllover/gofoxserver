@@ -381,6 +381,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 //广播某个玩家的信息
 func (room *RoomUserMgr) NotifyUserInfo(u *user.User) {
 	room.SendMsgAllNoSelf(u.Id, &msg.G2C_UserEnter{
+		KindID:      u.KindID,      //游戏id
 		UserID:      u.Id,          //用户 I D
 		FaceID:      u.FaceID,      //头像索引
 		CustomID:    u.CustomID,    //自定标识
@@ -402,10 +403,11 @@ func (room *RoomUserMgr) NotifyUserInfo(u *user.User) {
 
 func (room *RoomUserMgr) SendUserInfoToSelf(u *user.User) {
 	room.ForEachUser(func(eachuser *user.User) {
-		//if eachuser.Id == u.Id {
-		//	return
-		//}
+		if eachuser.Id == u.Id {
+			return
+		}
 		u.WriteMsg(&msg.G2C_UserEnter{
+			KindID:      u.KindID,             //游戏id
 			UserID:      eachuser.Id,          //用户 I D
 			FaceID:      eachuser.FaceID,      //头像索引
 			CustomID:    eachuser.CustomID,    //自定标识

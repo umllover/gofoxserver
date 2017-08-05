@@ -6,19 +6,17 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
+	"mj/common/utils"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
+	datalog "mj/hallServer/log"
 	"mj/hallServer/match_room"
 	"mj/hallServer/user"
 	"time"
-
-	"mj/common/utils"
-
-	datalog "mj/hallServer/log"
 
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"

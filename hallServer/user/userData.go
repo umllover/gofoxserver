@@ -170,12 +170,13 @@ func (u *User) HasRecord(RoomId int) bool {
 //删除扣钱记录
 func (u *User) DelRecord(id int) error {
 	u.Lock()
+	defer u.Unlock()
 	r, ok := u.Records[id]
 	if ok {
 		delete(u.Records, id)
+		return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
 	}
-	u.Unlock()
-	return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
+	return nil
 }
 
 func (u *User) GetRecord(id int) *model.TokenRecord {

@@ -582,6 +582,8 @@ func (room *xs_data) SumGameScore(WinUser []int) {
 //特殊胡牌类型及算分
 func (room *xs_data) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID int) {
 
+	type1Cnt := 0
+	type2Cnt := 0
 	score := room.Source
 	winScore := &room.HuKindScore[HuUserID]
 	for _, v := range TagAnalyseItem {
@@ -720,6 +722,9 @@ func (room *xs_data) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID 
 		//无花字
 		kind = room.IsWuHuaZi(v, room.FlowerCnt)
 		if kind > 0 {
+			if winScore[IDX_SUB_SCORE_BL] > 0 || winScore[IDX_SUB_SCORE_MQBL] > 0 {
+				continue
+			}
 			winScore[IDX_SUB_SCORE_WHZ] = 3 * score
 			log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
@@ -729,25 +734,30 @@ func (room *xs_data) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUserID 
 			winScore[IDX_SUB_SCORE_ZYS] = 12 * score
 			log.Debug("字一色，%d", winScore[IDX_SUB_SCORE_ZYS])
 		}
-		var res bool
-		kind, res = room.IsZiPaiGang(v)
+		kind, type1Cnt, type2Cnt = room.IsZiPaiGang(v) //字牌杠
 		if kind > 0 {
-			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && res ||
-				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && !res {
-				//排除重复算分
-				continue
+			if winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0 {
+				winScore[IDX_SUB_SCORE_ZPG] = type1Cnt * score
+			} else if winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0 {
+				winScore[IDX_SUB_SCORE_ZPG] = type2Cnt * score
+			} else {
+				winScore[IDX_SUB_SCORE_ZPG] = (type2Cnt + type1Cnt) * score
 			}
-			winScore[IDX_SUB_SCORE_ZPG] = (kind - CHR_ZI_PAI_GANG) * score
+			type1Cnt = 0
+			type2Cnt = 0
 			log.Debug("字牌杠，%d", winScore[IDX_SUB_SCORE_ZPG])
 		}
-		kind, res = room.IsKeZi(v) //字牌刻字
+		kind, type1Cnt, type2Cnt = room.IsKeZi(v) //字牌刻字
 		if kind > 0 {
-			if (winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0) && res ||
-				(winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0) && !res {
-				//排除重复算分
-				continue
+			if winScore[IDX_SUB_SCORE_DSX] > 0 || winScore[IDX_SUB_SCORE_XSX] > 0 {
+				winScore[IDX_SUB_SCORE_ZPKZ] = type1Cnt * score
+			} else if winScore[IDX_SUB_SCORE_DSY] > 0 || winScore[IDX_SUB_SCORE_XSY] > 0 {
+				winScore[IDX_SUB_SCORE_ZPKZ] = type2Cnt * score
+			} else {
+				winScore[IDX_SUB_SCORE_ZPKZ] = (type2Cnt + type1Cnt) * score
 			}
-			winScore[IDX_SUB_SCORE_ZPKZ] = (kind - CHR_ZI_KE_PAI) * score
+			type1Cnt = 0
+			type2Cnt = 0
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("字牌刻字 %d", winScore[IDX_SUB_SCORE_ZPKZ])
 		}

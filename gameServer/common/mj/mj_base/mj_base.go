@@ -1,27 +1,23 @@
 package mj_base
 
 import (
+	"errors"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_zp_msg"
+	"mj/gameServer/RoomMgr"
 	. "mj/gameServer/common"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
+	datalog "mj/gameServer/log"
 	"mj/gameServer/user"
 	"time"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/timer"
-
-	"errors"
-
-	datalog "mj/gameServer/log"
-
-	"mj/gameServer/RoomMgr"
-
-	"github.com/lovelly/leaf/log"
 )
 
 type Mj_base struct {

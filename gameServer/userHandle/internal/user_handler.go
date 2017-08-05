@@ -177,6 +177,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
+		KindID:      user.KindID,      //游戏id
 		UserID:      user.Id,          //用户 I D
 		FaceID:      user.FaceID,      //头像索引
 		CustomID:    user.CustomID,    //自定标识
