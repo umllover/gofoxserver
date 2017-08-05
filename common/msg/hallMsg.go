@@ -15,6 +15,17 @@ type C2L_Login struct {
 	SessionKey   string //暂时无效
 }
 
+//重连
+type C2L_ReConnect struct {
+	LogonPass string //密码
+	Accounts  string //账号
+}
+
+//重连结果
+type C2L_ReConnectRsp struct {
+	Code int // 非0 为失败
+}
+
 //注册消息
 type C2L_Regist struct {
 	ModuleID     int //模块标识

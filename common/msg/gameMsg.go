@@ -30,6 +30,19 @@ type G2C_LogonFailure struct {
 	DescribeString string
 }
 
+//重连游戏服
+type C2G_Reconnect struct {
+	KindID   int
+	ServerID int
+	UserID   int64  //用户 I D
+	Password string //登录密码
+}
+
+//重连游戏服结果
+type G2C_ReconnectRsp struct {
+	Code int //非0位失败
+}
+
 // 请求更换椅子消息
 type C2G_GR_UserChairReq struct {
 }
