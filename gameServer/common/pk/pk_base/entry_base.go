@@ -226,9 +226,6 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 		}
 	}
-	if retcode == 0 {
-		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
-	}
 }
 
 //玩家准备

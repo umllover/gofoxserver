@@ -1022,14 +1022,40 @@ func (room *RoomData) RepalceCard() {
 			}
 			var TmpRepertoryCard []int //玩家手里的牌
 			cards := strings.Split(v.Cards, "#")
+			for i, _ := range cards {
+				cards[i] = strings.Replace(cards[i], " ", "", -1)
+				cards[i] = strings.Replace(cards[i], ",", "，", -1)
+				cards[i] = strings.TrimLeft(cards[i],"，")
+				cards[i] = strings.TrimRight(cards[i],"，")
+			}
 			if len(cards) < len(chairIds) {
 				break
 			}
-
+			testCards := make([]int, 0)
 			for idx, chair := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
+				testCards = append(testCards, card...)
 				room.SetUserCard(chair, card)
 			}
+
+			mycard := make(map[int]int)
+			for _, v := range mycard {
+				mycard[v]++
+				if v <= 0x37 {
+					if mycard[v] > 4 {
+						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						return
+					}
+				}
+
+				if v > 0x37 {
+					if mycard[v] > 1 {
+						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						return
+					}
+				}
+			}
+
 			bankUser := room.BankerUser
 			TmpRepertoryCard = room.GetUserCard(bankUser)
 			m := GetCardByIdx(room.ConfigIdx)

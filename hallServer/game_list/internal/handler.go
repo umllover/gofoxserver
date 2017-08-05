@@ -186,6 +186,7 @@ func updateRoom(args []interface{}) {
 		log.Debug("at  UpdateRoom not foud RoomId:%d", info.RoomId)
 		return
 	}
+	log.Debug("=============================info.Data[HallNodeName].(string):", info.Data["HallNodeName"].(string))
 
 	switch info.OpName {
 	case "AddPlayCnt":
