@@ -34,7 +34,6 @@ type DataManager interface {
 	// 明牌
 	ShowCard(u *user.User)
 	// 托管
-	ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int)
 	OtherOperation(args []interface{})
 }
 
@@ -50,11 +49,9 @@ type LogicManager interface {
 
 	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool)
 	// 以下接口不通用
-	GetSSSCardType(cardData []int, bCardCount int, btSpecialCard []int) int
-	GetType(bCardData []int, bCardCount int) *TagAnalyseType
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
 	SetParamToLogic(args interface{}) // 设置算法必要参数
-	CompareSSSCard(bInFirstList []int, bInNextList []int, bFirstCount int, bNextCount int, bComPerWithOther bool) bool
+
 }
 
 ////////////////////////////////////////////

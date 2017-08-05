@@ -228,9 +228,6 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 		if user == nil {
 			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 		}
-		if retcode == 0 {
-			roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
-		}
 	}
 }
 

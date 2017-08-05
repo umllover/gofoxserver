@@ -190,12 +190,13 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 		if user == nil {
 			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 		}
-		if retcode == 0 {
-			roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
-		} else if retcode == NotOwner {
-			roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
-		}
 	}
+	if retcode == 0 {
+		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
+	} else if retcode == NotOwner {
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
+	}
+
 }
 
 //玩家准备
