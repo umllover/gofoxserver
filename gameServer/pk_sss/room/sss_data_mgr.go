@@ -47,13 +47,6 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string
 	return d
 }
 
-//type sssOtherInfo struct {
-//	WanFa        int
-//	JiaYiSe      bool
-//	JiaGongGong  bool
-//	JiaDaXiaoWan bool
-//}
-
 type sss_data_mgr struct {
 	*pk_base.RoomData
 
@@ -176,6 +169,36 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 
 }
 
+func (room *sss_data_mgr) cleanRoom(UserCnt int) {
+	log.Debug("清理房间")
+
+	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
+	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
+
+	room.LeftCardCount = room.GetCfg().MaxRepertory
+
+	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
+
+	/////////////////////////////
+
+	room.PlayerCards = make([][]int, UserCnt)
+	room.PlayerSegmentCards = make([][][]int, UserCnt)
+	room.Results = make([][]int, UserCnt)
+	for i := range room.Results {
+		room.Results[i] = make([]int, 3)
+	}
+	room.SpecialResults = make([]int, UserCnt)
+	room.ToltalResults = make([]int, UserCnt)
+	room.CompareResults = make([][]int, UserCnt)
+	for i := range room.CompareResults {
+		room.CompareResults[i] = make([]int, 3)
+	}
+	room.SpecialCompareResults = make([]int, UserCnt)
+	room.ShootState = make([][]int, 6)
+	room.ShootResults = make([]int, 6)
+
+}
+
 func (r *sss_data_mgr) ComputeChOut() {
 	lg := r.PkBase.LogicMgr
 	userMgr := r.PkBase.UserMgr
@@ -256,7 +279,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
 				log.Debug("中墩同花顺")
 				r.Results[i][1] = 10
+			case CT_FIVE_SAME:
+				log.Debug("中墩五同")
+				r.Results[i][1] = 14
 			}
+
 			//尾墩
 			switch lg.GetCardType(r.PlayerSegmentCards[i][2]) {
 			case CT_SINGLE: //散牌
@@ -286,6 +313,9 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
 				log.Debug("后墩同花顺")
 				r.Results[i][2] = 5
+			case CT_FIVE_SAME:
+				log.Debug("后墩五同")
+				r.Results[i][2] = 7
 			}
 		}
 	})
@@ -410,8 +440,11 @@ func (room *sss_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	room.LeftCardCount -= 1
 	return room.bCardData[room.LeftCardCount]
 }
+
 func (room *sss_data_mgr) StartDispatchCard() {
-	log.Debug("begin start game sss")
+	//清理上一局数据
+	room.cleanRoom(room.PlayerCount)
+
 	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
 	defaultCards := pk_base.GetCardByIdx(room.ConfigIdx)
@@ -506,34 +539,17 @@ func (room *sss_data_mgr) AfterStartGame() {
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
 
-	//room.SpecialTypeTable[u] = bSpecialType
-	//room.Dragon[u] = bDragon
-
-	// room.m_bSegmentCard[u] = append(room.m_bSegmentCard[u], bFrontCard, bMidCard, bBackCard)
-
-	// room.m_bUserCardData[u] = make([]int, 0, 13)
-	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bFrontCard...)
-	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bMidCard...)
-	// room.m_bUserCardData[u] = append(room.m_bUserCardData[u], bBackCard...)
-
 	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
 	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], FrontCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], MidCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], BackCard...)
 
-	// btSpecialDataTemp := make([]int, 13)
-
-	// if bSpecialType {
-	// 	util.DeepCopy(&btSpecialDataTemp, &btSpecialData)
-	// }
-
 	userMgr.ForEachUser(func(user *user.User) {
 		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
 	})
 
 	room.OpenCardMap[u] = true
-	//log.Debug("%d cccccc", len(room.OpenCardMap))
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		// 游戏结束
 		//userMgr.ForEachUser(func(u *user.User) {
@@ -617,24 +633,6 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 		gameEnd.BAllSpecialCard = false
 
-		// nSpecialCard := 0
-		// nDragon := 0
-
-		// userMgr.ForEachUser(func(u *user.User) {
-		// 	if room.SpecialTypeTable[u] {
-		// 		nSpecialCard++
-		// 	}
-		// 	if room.Dragon[u] {
-		// 		nDragon++
-		// 	}
-		// })
-
-		// if room.PlayerCount == nSpecialCard+nDragon || room.PlayerCount <= nSpecialCard+1 {
-		// 	gameEnd.BAllSpecialCard = true
-		// } else {
-		// 	gameEnd.BAllSpecialCard = false
-		// }
-
 		userMgr.ForEachUser(func(u *user.User) {
 			gameEnd.CbCardData[u.ChairId] = make([]int, 13)
 			copy(gameEnd.CbCardData[u.ChairId], room.PlayerCards[u.ChairId])
@@ -645,16 +643,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 			gameEnd.LGameScore[u.ChairId] = room.ToltalResults[u.ChairId]
 			gameEnd.CbSpecialCompareResult[u.ChairId] = room.SpecialCompareResults[u.ChairId]
 			gameEnd.BSpecialCard[u.ChairId] = false
-			// for i := range room.m_bShootState {
-			// 	if room.m_bShootState[i][0] != nil {
-			// 		gameEnd.ShootState[i][0] = room.m_bShootState[i][0].ChairId
 
-			// 	}
-			// 	if room.m_bShootState[i][1] != nil {
-			// 		gameEnd.ShootState[i][1] = room.m_bShootState[i][1].ChairId
-
-			// 	}
-			// }
 		})
 
 		userMgr.ForEachUser(func(u *user.User) {

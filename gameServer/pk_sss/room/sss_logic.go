@@ -23,6 +23,7 @@ const (
 	CT_FIVE_STRAIGHT_FLUSH_NO_A           //没A同花顺
 	CT_FIVE_STRAIGHT_FLUSH_FIRST_A        //A在前同花顺
 	CT_FIVE_STRAIGHT_FLUSH_BACK_A         //A在后同花顺
+	CT_FIVE_SAME                          //五同
 )
 
 //特殊牌型
@@ -67,25 +68,26 @@ type TagAnalyseItem struct {
 	bTwoFirst   []int //对牌位置
 	bThreeFirst []int //三条位置
 	bFourFirst  []int //四张位置
+	bFiveFirst  []int //五张位置
 	bStraight   bool  //是否顺子
 }
 
 type tagAnalyseType struct {
 }
 
-//分析结构
-type tagAnalyseData struct {
-	bOneCount   int   //单张数目
-	bTwoCount   int   //两张数目
-	bThreeCount int   //三张数目
-	bFourCount  int   //四张数目
-	bFiveCount  int   //五张数目
-	bOneFirst   []int //单牌位置
-	bTwoFirst   []int //对牌位置
-	bThreeFirst []int //三条位置
-	bFourFirst  []int //四张位置
-	bStraight   bool  //是否顺子
-}
+// //分析结构
+// type tagAnalyseData struct {
+// 	bOneCount   int   //单张数目
+// 	bTwoCount   int   //两张数目
+// 	bThreeCount int   //三张数目
+// 	bFourCount  int   //四张数目
+// 	bFiveCount  int   //五张数目
+// 	bOneFirst   []int //单牌位置
+// 	bTwoFirst   []int //对牌位置
+// 	bThreeFirst []int //三条位置
+// 	bFourFirst  []int //四张位置
+// 	bStraight   bool  //是否顺子
+// }
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
@@ -238,6 +240,9 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 			case 4:
 				analyseItem.bFourFirst[analyseItem.bFourCount] = bFirstCardIndex
 				analyseItem.bFourCount++
+			case 5:
+				analyseItem.bFiveFirst[analyseItem.bFiveCount] = bFirstCardIndex
+				analyseItem.bFiveCount++
 			}
 		}
 
@@ -311,6 +316,11 @@ func (lg *sss_logic) GetCardType(metaCardData []int) int {
 		//错误类型
 		return CT_INVALID
 	case 5: //五张牌型
+		//五同
+		if 1 == TagAnalyseItemArray.bFiveCount {
+			return CT_FIVE_SAME
+		}
+
 		bFlushNoA := false
 		bFlushFirstA := false
 		bFlushBackA := false
@@ -1315,6 +1325,13 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return 1
 				}
 				if lg.GetCardColor(bNextList[0]) < lg.GetCardColor(bFirstList[0]) {
+					return -1
+				}
+				return 0
+			case CT_FIVE_SAME: // 五同
+				if lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) {
+					return 1
+				} else {
 					return -1
 				}
 				return 0
