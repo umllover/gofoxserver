@@ -1019,7 +1019,7 @@ func (room *RoomData) RepalceCard() {
 	for _, v := range base.GameTestpaiCache.All() {
 		//log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && room.ID == v.RoomID {
-			chairIds := utils.GetStrIntSixteenList(v.ChairId, "#")
+			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break
 			}
