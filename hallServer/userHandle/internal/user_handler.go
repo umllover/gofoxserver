@@ -46,7 +46,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("DeleteVaildIds", m.DeleteVaildIds)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
-	reg.RegisterC2S(&msg.C2G_Reconnect{}, m.handleReconnect)
+	reg.RegisterC2S(&msg.C2L_ReConnect{}, m.handleReconnect)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
 	reg.RegisterC2S(&msg.C2L_User_Individual{}, m.GetUserIndividual)
 	reg.RegisterC2S(&msg.C2L_CreateTable{}, m.CreateRoom)
