@@ -2,6 +2,8 @@ package game_list
 
 import (
 	"mj/hallServer/game_list/internal"
+
+	"github.com/lovelly/leaf/chanrpc"
 )
 
 var (
@@ -21,6 +23,6 @@ func GetSvrByNodeID(kindId int) string {
 	return internal.GetSvrByNodeID(kindId)
 }
 
-func SetTest(v bool) {
-	internal.Test = v
+func SetMachRpc(rpc *chanrpc.Server) {
+	internal.MatchRpc = rpc
 }

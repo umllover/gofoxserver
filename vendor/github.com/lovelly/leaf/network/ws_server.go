@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/log"
 )
 
@@ -48,10 +49,11 @@ type WSHandler struct {
 
 func (handler *WSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug("WSHandler new conn remoteArrd:%s", r.RemoteAddr)
-	if r.Method != "GET" {
+	if r.Method != "GET" || conf.Shutdown {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
+
 	conn, err := handler.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Debug("upgrade error: %v", err)

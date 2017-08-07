@@ -52,6 +52,7 @@ type Gate struct {
 }
 
 func (gate *Gate) Run(closeSig chan bool) {
+	time.Sleep(4 * time.Second)
 	newAgent := func(conn network.Conn) network.Agent {
 		a := &agent{conn: conn, gate: gate}
 		if gate.NewChanRPCFunc != nil {

@@ -170,12 +170,13 @@ func (u *User) HasRecord(RoomId int) bool {
 //删除扣钱记录
 func (u *User) DelRecord(id int) error {
 	u.Lock()
+	defer u.Unlock()
 	r, ok := u.Records[id]
 	if ok {
 		delete(u.Records, id)
+		return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
 	}
-	u.Unlock()
-	return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
+	return nil
 }
 
 func (u *User) GetRecord(id int) *model.TokenRecord {
@@ -228,4 +229,17 @@ func (u *User) CheckFree() bool {
 		log.Debug("b", b)
 	}
 	return b
+}
+
+//发送活动次数信息
+func (u *User) GetRoomIds() (ret map[int]struct{}) {
+	ret = make(map[int]struct{})
+	for id, _ := range u.Rooms {
+		ret[id] = struct{}{}
+	}
+
+	for id, _ := range u.Records {
+		ret[id] = struct{}{}
+	}
+	return
 }

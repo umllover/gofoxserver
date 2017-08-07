@@ -61,6 +61,7 @@ type RoomData struct {
 	LastCatchCardUser int    //最后一个摸牌的用户
 	MinusHeadCount    int    //头部空缺
 	MinusLastCount    int    //尾部空缺
+	TingCnt           [4]int //听牌个数
 
 	SiceCount       int                    //色子大小
 	UserActionDone  bool                   //操作完成
@@ -101,7 +102,6 @@ type RoomData struct {
 }
 
 func (room *RoomData) InitRoomOne() {
-	log.Debug("AAAAAAAAAAAAAA ", room.MjBase.UserMgr)
 	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
@@ -149,6 +149,7 @@ func (room *RoomData) GetRoomId() int {
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
+		PlayerCnt:         room.MjBase.UserMgr.GetMaxPlayerCnt(),                         //玩家数量
 		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPlayCnt(),                          //局数限制
 		DrawTimeLimit:     room.MjBase.TimerMgr.GetTimeLimit(),                           //时间限制
 		PlayCount:         room.MjBase.TimerMgr.GetPlayCount(),                           //已玩局数
@@ -907,7 +908,7 @@ func (room *RoomData) GetSice() (int, int) {
 
 //开始发牌
 func (room *RoomData) StartDispatchCard() {
-	log.Debug("begin start game hzmj")
+	log.Debug("begin sStartDispatchCard")
 	userMgr := room.MjBase.UserMgr
 	gameLogic := room.MjBase.LogicMgr
 
@@ -919,6 +920,7 @@ func (room *RoomData) StartDispatchCard() {
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	room.SiceCount, minSice = room.GetSice()
 
+	log.Debug("confi index ==== %d", room.ConfigIdx)
 	gameLogic.RandCardList(room.RepertoryCard, GetCardByIdx(room.ConfigIdx))
 
 	//万能牌设置
@@ -944,19 +946,9 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
 	if conf.Test {
+		log.Debug("begin reoakce test card ======= ")
 		room.RepalceCard()
 	}
-
-	////TODO 测试用
-	//newCard := make([]int, room.GetCfg().MaxIdx)
-	//newCard[gameLogic.SwitchToCardIndex(0x1)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x3)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x7)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
-	//room.CardIndex[room.BankerUser] = newCard
-	//room.RepertoryCard[55] = 0x1
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)

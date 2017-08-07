@@ -98,6 +98,8 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
+
+	log.Debug("rand card s ==: ", cbCardBuffer)
 	return
 }
 

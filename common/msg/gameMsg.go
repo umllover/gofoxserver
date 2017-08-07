@@ -30,6 +30,19 @@ type G2C_LogonFailure struct {
 	DescribeString string
 }
 
+//重连游戏服
+type C2G_Reconnect struct {
+	KindID   int
+	ServerID int
+	UserID   int64  //用户 I D
+	Password string //登录密码
+}
+
+//重连游戏服结果
+type G2C_ReconnectRsp struct {
+	Code int //非0位失败
+}
+
 // 请求更换椅子消息
 type C2G_GR_UserChairReq struct {
 }
@@ -98,6 +111,7 @@ type C2G_GameOption struct {
 //房间信息
 type G2C_PersonalTableTip struct {
 	TableOwnerUserID  int64                  //桌主 I D
+	PlayerCnt         int                    //玩家数量
 	DrawCountLimit    int                    //局数限制
 	DrawTimeLimit     int                    //时间限制
 	PlayCount         int                    //已玩局数
@@ -250,7 +264,7 @@ type G2C_ConfigFinish struct {
 
 //用户信息
 type G2C_UserEnter struct {
-	GameID int   //游戏 I D
+	KindID int   //游戏 I D
 	UserID int64 //用户 I D
 
 	//头像信息

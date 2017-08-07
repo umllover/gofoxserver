@@ -5,10 +5,8 @@ import (
 	"mj/gameServer/common"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
-	"mj/gameServer/db"
 	"mj/gameServer/db/model"
 	"mj/gameServer/mj_hz"
-	"mj/gameServer/mj_xs"
 	"mj/gameServer/mj_zp"
 	"mj/gameServer/pk_ddz"
 	"mj/gameServer/pk_nn_tb"
@@ -26,7 +24,6 @@ var (
 	Kinds    = map[int]room_base.Module{ // Register here
 		common.KIND_TYPE_HZMJ: hzmj.Module,
 		common.KIND_TYPE_ZPMJ: zpmj.Module,
-		common.KIND_TYPE_XSMJ: mj_xs.Module,
 		common.KIND_TYPE_TBNN: pk_nn_tb.Module,
 		common.KIND_TYPE_DDZ:  pk_ddz.Module,
 		common.KIND_TYPE_SSS:  pk_sss.Module,
@@ -79,22 +76,10 @@ func GetModByKind(kind int) (room_base.Module, bool) {
 
 func Clears() {
 	ClearRoomId()
-	ClearLockerInfo(conf.Server.NodeId)
-	ClearCreaerInfo(conf.Server.NodeId)
 }
 
 func ClearRoomId() {
 	model.RoomIdOp.DeleteByMap(map[string]interface{}{
 		"node_id": conf.Server.NodeId,
-	})
-}
-
-func ClearLockerInfo(nodeid int) {
-	db.DB.Exec("update gamescorelocker set EnterIP='', GameNodeID=0 where 1=1 and GameNodeID=?", nodeid)
-}
-
-func ClearCreaerInfo(nodeid int) {
-	model.CreateRoomInfoOp.DeleteByMap(map[string]interface{}{
-		"node_id": nodeid,
 	})
 }
