@@ -167,6 +167,21 @@ func GetStrIntList(str string, split ...string) []int {
 	return intList
 }
 
+func GetStrIntSixteenList(str string, split ...string) []int {
+	var sper string
+	if len(split) == 1 {
+		sper = split[0]
+	} else {
+		sper = "，"
+	}
+	intList := make([]int, 0)
+	for _, v := range strings.Split(str, sper) {
+		intV, _ := strconv.ParseInt(v, 16, 32)
+		intList = append(intList, int(intV))
+	}
+	return intList
+}
+
 func GetStrFromIntList(data []int) string {
 	strList := make([]string, 0)
 	for _, v := range data {

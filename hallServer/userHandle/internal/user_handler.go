@@ -30,7 +30,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("NewAgent", m.NewAgent)
 	reg.RegisterRpc("CloseAgent", m.CloseAgent)
 	reg.RegisterRpc("GetUser", m.GetUser)
-	reg.RegisterRpc("SrarchTableResult", m.SrarchTableResult)
+	reg.RegisterRpc("SearchTableResult", m.SearchTableResult)
 	reg.RegisterRpc("matchResult", m.matchResult)
 	reg.RegisterRpc("LeaveRoom", m.leaveRoom)
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
@@ -424,6 +424,18 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 			retCode = NotEnoughFee
 			return
 		}
+		record := &model.TokenRecord{}
+		record.UserId = player.Id
+		record.RoomId = rid
+		record.Amount = money
+		record.TokenType = recvMsg.PayType
+		record.KindID = recvMsg.Kind
+		record.PlayCnt = recvMsg.DrawCountLimit
+		if !player.AddRecord(record) {
+			retCode = ErrServerError
+			player.AddCurrency(money)
+			return
+		}
 	}
 
 	//搜集创建房间数据
@@ -504,7 +516,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	retCode = 0
 }
 
-func (m *UserModule) SrarchTableResult(args []interface{}) {
+func (m *UserModule) SearchTableResult(args []interface{}) {
 	roomInfo := args[0].(*msg.RoomInfo)
 	player := m.a.UserData().(*user.User)
 	retMsg := &msg.L2C_SearchResult{}
@@ -545,22 +557,26 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 		money = feeTemp.AATableFee
 	}
 
-	//非限时免费 并且 不是全付方式 并且 钱大于零
+	//扣除费用
+	isSubMoney := false
 	if !player.CheckFree() && money > 0 {
+		//全付房主扣的钱不是在这里扣
 		if roomInfo.CreateUserId != player.Id && roomInfo.PayType == AA_PAY_TYPE {
 			if !player.SubCurrency(money, roomInfo.PayType) {
 				retcode = NotEnoughFee
 				return
 			}
+			isSubMoney = true
 		}
 	}
 
-	if !player.HasRecord(roomInfo.RoomID) {
+	//扣过钱的增加记录
+	if isSubMoney && !player.HasRecord(roomInfo.RoomID) {
 		record := &model.TokenRecord{}
 		record.UserId = player.Id
 		record.RoomId = roomInfo.RoomID
 		record.Amount = money
-		record.TokenType = AA_PAY_TYPE
+		record.TokenType = roomInfo.PayType
 		record.KindID = template.KindID
 		record.PlayCnt = roomInfo.PayCnt
 		if !player.AddRecord(record) {
@@ -568,8 +584,8 @@ func (m *UserModule) SrarchTableResult(args []interface{}) {
 			player.AddCurrency(money)
 			return
 		}
-	} else { //已近口过钱了， 还来搜索房间
-		log.Debug("player %d double srach room: %d", player.Id, roomInfo.RoomID)
+	} else { //已近扣过钱了， 还来搜索房间
+		log.Debug("player %d double search room: %d", player.Id, roomInfo.RoomID)
 	}
 
 	player.KindID = roomInfo.KindID
@@ -820,7 +836,7 @@ func (m *UserModule) matchResult(args []interface{}) {
 
 	if ret {
 		r := args[1].(*msg.RoomInfo)
-		m.SrarchTableResult([]interface{}{r})
+		m.SearchTableResult([]interface{}{r})
 	} else {
 		retMsg := &msg.L2C_SearchResult{}
 		retMsg.TableID = INVALID_TABLE

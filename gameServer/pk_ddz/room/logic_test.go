@@ -181,10 +181,10 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func TestRemoveCard(t *testing.T) {
-	info := &msg.L2G_CreatorRoom{}
-	lg := NewDDZLogic(pk_base.IDX_DDZ, info)
-	b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
-	log.Debug("怕怕%v", b)
+	//info := &msg.L2G_CreatorRoom{}
+	//lg := NewDDZLogic(pk_base.IDX_DDZ, info)
+	//b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
+	//log.Debug("怕怕%v", b)
 }
 
 //func TestCardType(t *testing.T) {
@@ -237,12 +237,15 @@ func TestRemoveCard(t *testing.T) {
 //}
 
 func TestCompareCard(t *testing.T) {
-	return
+	//return
 	lg := new(ddz_logic)
+	lg.SetParamToLogic(8)
+	ntype, b := lg.CompareCardWithParam([]int{}, []int{5, 7, 8, 8}, []interface{}{CT_ERROR})
+	log.Debug("比牌结果%#x,%d", ntype, b)
 
-	c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
-	nMax, b := lg.recursionIsPlane(c0, 4)
-	log.Debug("测试飞机%d, %d", nMax, b)
+	//c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
+	//nMax, b := lg.recursionIsPlane(c0, 4)
+	//log.Debug("测试飞机%d, %d", nMax, b)
 
 	//var card1 []int = []int{0x03, 0x13, 0x23, 0x33}
 	//var card2 []int = []int{0x0d, 0x1d, 0x2d, 0x3d}
@@ -311,7 +314,7 @@ func init() {
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	//lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
