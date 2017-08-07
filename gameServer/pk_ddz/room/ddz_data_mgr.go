@@ -87,6 +87,7 @@ func (room *ddz_data_mgr) resetData() {
 	room.RepertoryCard = make([]int, nMaxCardCount)
 	room.BankerCard = [3]int{}
 	room.HandCardData = append([][]int{})
+	room.RecordOutCards = []int{}
 
 	room.ScoreTimes = 0
 }
@@ -253,6 +254,10 @@ func (room *ddz_data_mgr) SendGameStart() {
 	})
 
 	// 打乱牌
+	if room.GameType == GAME_TYPE_HAPPY {
+		// 欢乐场，从数据库里取
+
+	}
 	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetCardByIdx(room.ConfigIdx))
 
 	// 底牌
@@ -534,7 +539,14 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		}
 	}
 
+	// 用户出牌后重置定时器
 	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
+	if r.GameType == GAME_TYPE_CLASSIC {
+		// 经典场，把出牌数据收集起来
+		for i := 0; i < len(nowCard.CardData); i++ {
+			r.RecordOutCards = append(r.RecordOutCards, nowCard.CardData[i])
+		}
+	}
 	// 判断是否火箭
 	if nowCard.CardType >= CT_KING {
 		r.KingCount = append(r.KingCount, len(nowCard.CardData))
@@ -632,6 +644,7 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 		return
 	}
 
+	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	r.CurrentUser = r.nextUser(u.ChairId)
 	r.TurnCardStatus[u.ChairId] = OUTCARD_PASS
 	r.TurnCardStatus[r.CurrentUser] = OUTCARD_OUTING
@@ -744,6 +757,18 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		util.DeepCopy(&DataGameConclude.RecordInfo, &r.RecordInfo)
 	}
 
+	// 经典场把历史出牌存数据库
+	if r.GameType == GAME_TYPE_CLASSIC {
+		// 检查出牌是否完整
+		nMaxCardCount := r.GetCfg().MaxRepertory
+		if r.EightKing {
+			nMaxCardCount += 6
+		}
+		if nMaxCardCount == len(r.RecordOutCards) {
+			// 数量相等才能存数据库
+			// ----存数据库----
+		}
+	}
 	r.sendGameEndMsg(DataGameConclude)
 }
 
