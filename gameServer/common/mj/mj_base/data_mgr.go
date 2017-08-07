@@ -1021,11 +1021,11 @@ func (room *RoomData) RepalceCard() {
 			if len(cards) < len(chairIds) {
 				break
 			}
+
 			testCards := make([]int, 0)
-			for idx, chair := range chairIds {
+			for idx, _ := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
 				testCards = append(testCards, card...)
-				room.SetUserCard(chair, card)
 			}
 
 			mycard := make(map[int]int)
@@ -1033,29 +1033,34 @@ func (room *RoomData) RepalceCard() {
 				mycard[value]++
 				if (value <= 0x37 && v.KindID == 391) || (value <= 0x37 && v.KindID == 390) {
 					if mycard[value] > 4 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
 				if value <= 0x29 && v.KindID == 389 {
 					if mycard[value] > 4 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
 				if value > 0x29 && v.KindID == 389 {
 					if mycard[value] > 1 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
 
 				if value > 0x37 {
 					if mycard[value] > 1 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
+			}
+
+			for idx, chair := range chairIds {
+				card := utils.GetStrIntList(cards[idx], "，")
+				room.SetUserCard(chair, card)
 			}
 
 			bankUser := room.BankerUser
