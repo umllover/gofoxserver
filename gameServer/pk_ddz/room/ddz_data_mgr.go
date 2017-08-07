@@ -56,6 +56,7 @@ type ddz_data_mgr struct {
 	TurnCardStatus []int                          // 用户出牌状态
 	TurnCardData   [][]pk_ddz_msg.C2G_DDZ_OutCard // 出牌数据
 	RepertoryCard  []int                          // 库存扑克
+	RecordOutCards []int                          // 出牌历史记录
 
 	// 扑克信息
 	BankerCard   [3]int  // 游戏底牌
@@ -88,7 +89,6 @@ func (room *ddz_data_mgr) resetData() {
 	room.HandCardData = append([][]int{})
 
 	room.ScoreTimes = 0
-	room.HistoryScores = make([]*pk_base.HistoryScore, room.PlayerCount)
 }
 
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
@@ -124,12 +124,6 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
 	StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间 	// 首出时间
-	StatusFree.TurnScore = append(StatusFree.TurnScore, 12)
-	StatusFree.CollectScore = append(StatusFree.CollectScore, 11)
-	//for _, v := range room.HistoryScores {
-	//	StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
-	//	StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	//}
 
 	// 发送明牌标识
 	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
@@ -175,20 +169,7 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 		StatusCall.HandCardCount[i] = len(room.HandCardData[i])
 	}
 
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
 	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
-
-	StatusCall.TurnScore = make([]int, UserCnt)
-	StatusCall.CollectScore = make([]int, UserCnt)
-
-	//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusCall.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusCall.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}
 
 	StatusCall.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
@@ -243,19 +224,6 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	}
 	StatusPlay.EachBombCount = util.CopySlicInt(room.EachBombCount)
 	StatusPlay.KingCount = util.CopySlicInt(room.KingCount)
-
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
-	StatusPlay.TurnScore = make([]int, UserCnt)
-	StatusPlay.CollectScore = make([]int, UserCnt)
-
-	//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}
 
 	StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
