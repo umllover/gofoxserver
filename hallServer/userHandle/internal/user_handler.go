@@ -178,7 +178,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		"HallNodeID": conf.Server.NodeId,
 	})
 	BuildClientMsg(retMsg, player, accountData)
-	game_list.ChanRPC.Go("sendGameList", agent)
+	game_list.ChanRPC.Call0("sendGameList", agent)
 
 	m.Recharge(nil)
 	ids := player.GetRoomIds()
