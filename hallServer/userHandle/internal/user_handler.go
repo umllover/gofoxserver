@@ -417,25 +417,25 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 
 	//检测是否有限时免费
 	if !player.CheckFree() {
-		money := feeTemp.TableFee
-		if recvMsg.PayType == AA_PAY_TYPE {
-			money = feeTemp.TableFee / template.MaxPlayer
-		}
-		if !player.SubCurrency(money, recvMsg.PayType) {
-			retCode = NotEnoughFee
-			return
-		}
-		record := &model.TokenRecord{}
-		record.UserId = player.Id
-		record.RoomId = rid
-		record.Amount = money
-		record.TokenType = recvMsg.PayType
-		record.KindID = recvMsg.Kind
-		record.PlayCnt = recvMsg.DrawCountLimit
-		if !player.AddRecord(record) {
-			retCode = ErrServerError
-			player.AddCurrency(money)
-			return
+		//AA在加入的时候扣钱
+		if recvMsg.PayType == SELF_PAY_TYPE {
+			money := feeTemp.TableFee
+			if !player.SubCurrency(money, recvMsg.PayType) {
+				retCode = NotEnoughFee
+				return
+			}
+			record := &model.TokenRecord{}
+			record.UserId = player.Id
+			record.RoomId = rid
+			record.Amount = money
+			record.TokenType = recvMsg.PayType
+			record.KindID = recvMsg.Kind
+			record.PlayCnt = recvMsg.DrawCountLimit
+			if !player.AddRecord(record) {
+				retCode = ErrServerError
+				player.AddCurrency(money)
+				return
+			}
 		}
 	}
 
@@ -553,40 +553,30 @@ func (m *UserModule) SearchTableResult(args []interface{}) {
 		return
 	}
 
-	money := feeTemp.TableFee
-	if roomInfo.PayType == AA_PAY_TYPE {
-		money = feeTemp.AATableFee
-	}
-
 	//扣除费用
-	isSubMoney := false
-	if !player.CheckFree() && money > 0 {
-		//全付房主扣的钱不是在这里扣
-		if roomInfo.CreateUserId != player.Id && roomInfo.PayType == AA_PAY_TYPE {
+	if !player.CheckFree() {
+		money := feeTemp.AATableFee
+		//全付的费用在创建房间时扣除
+		if money > 0 && roomInfo.PayType == AA_PAY_TYPE {
 			if !player.SubCurrency(money, roomInfo.PayType) {
 				retcode = NotEnoughFee
 				return
 			}
-			isSubMoney = true
+			if !player.HasRecord(roomInfo.RoomID) {
+				record := &model.TokenRecord{}
+				record.UserId = player.Id
+				record.RoomId = roomInfo.RoomID
+				record.Amount = money
+				record.TokenType = roomInfo.PayType
+				record.KindID = template.KindID
+				record.PlayCnt = roomInfo.PayCnt
+				if !player.AddRecord(record) {
+					retcode = ErrServerError
+					player.AddCurrency(money)
+					return
+				}
+			}
 		}
-	}
-
-	//扣过钱的增加记录
-	if isSubMoney && !player.HasRecord(roomInfo.RoomID) {
-		record := &model.TokenRecord{}
-		record.UserId = player.Id
-		record.RoomId = roomInfo.RoomID
-		record.Amount = money
-		record.TokenType = roomInfo.PayType
-		record.KindID = template.KindID
-		record.PlayCnt = roomInfo.PayCnt
-		if !player.AddRecord(record) {
-			retcode = ErrServerError
-			player.AddCurrency(money)
-			return
-		}
-	} else { //已近扣过钱了， 还来搜索房间
-		log.Debug("player %d double search room: %d", player.Id, roomInfo.RoomID)
 	}
 
 	player.KindID = roomInfo.KindID

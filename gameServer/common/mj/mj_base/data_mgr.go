@@ -95,8 +95,8 @@ type RoomData struct {
 	ChangeBanker    bool                   //庄家是否变动
 	OtherInfo       map[string]interface{} //客户端动态的配置信息
 
-	BanUser    [4]int    //是否出牌禁忌
-	BanCardCnt [4][9]int //禁忌卡牌
+	BanUser    []int   //是否出牌禁忌
+	BanCardCnt [][]int //禁忌卡牌
 
 	//timer
 	OperateTime []*timer.Timer //操作定时器
@@ -912,8 +912,11 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.IsResponse = make([]bool, UserCnt)
 	room.PerformAction = make([]int, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
+	room.BanUser = make([]int, UserCnt)
+	room.BanCardCnt = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
+		room.BanCardCnt[i] = make([]int, 9)
 	}
 	room.UserActionDone = false
 	room.SendStatus = Not_Send

@@ -232,7 +232,9 @@ const (
 	IDX_SUB_SCORE_ZYS   = 35 //字一色
 	IDX_SUB_SCORE_ZPG   = 36 //字牌杠
 
-	COUNT_KIND_SCORE = 37 //分数子项个数
+	//IDX_SUB_SCORE_ZJF = 37 //todo,庄家分==客户端
+
+	COUNT_KIND_SCORE = 37 //todo,分数子项个数==客户端
 
 )
 
