@@ -1148,20 +1148,19 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("字牌刻字 %d", winScore[IDX_SUB_SCORE_ZPKZ])
 		}
-	}
-	//单吊
-	if room.TingCnt[room.CurrentUser] == 1 {
-		if room.CurrentUser == room.ProvideUser {
-			winScore[IDX_SUB_SCORE_DDPH] = 1 * score
-			room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDPH)
-			log.Debug("单吊平胡,%d", winScore[IDX_SUB_SCORE_DDPH])
-		} else {
-			winScore[IDX_SUB_SCORE_DDZM] = 1 * score
-			room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDZM)
-			log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
+		kind = room.IsDanDiao(v) //单吊
+		if kind > 0 {
+			if room.CurrentUser == room.ProvideUser {
+				winScore[IDX_SUB_SCORE_DDZM] = 1 * score
+				room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDZM)
+				log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
+			} else {
+				winScore[IDX_SUB_SCORE_DDPH] = 1 * score
+				room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDPH)
+				log.Debug("单吊平胡,%d", winScore[IDX_SUB_SCORE_DDPH])
+			}
 		}
 	}
-
 }
 
 //特殊胡牌算分规则
@@ -1205,7 +1204,7 @@ func (room *ZP_RoomData) SpecialCardScore(HuUserID int) {
 			case IDX_SUB_SCORE_MQQ:
 				winScore[k] = 4 * score
 			case IDX_SUB_SCORE_BL:
-				winScore[k] = 4 * score
+				winScore[k] = 8 * score
 			case IDX_SUB_SCORE_DH:
 				winScore[k] = 4 * score
 			case IDX_SUB_SCORE_TH:
@@ -1637,6 +1636,7 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 		}
 	} else { //荒庄
 		room.BankerUser = room.BankerUser
+		room.LianZhuang += 1 //连庄次数
 	}
 }
 

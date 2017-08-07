@@ -1034,29 +1034,46 @@ func (room *RoomData) RepalceCard() {
 			if len(cards) < len(chairIds) {
 				break
 			}
+
 			testCards := make([]int, 0)
-			for idx, chair := range chairIds {
+			for idx, _ := range chairIds {
 				card := utils.GetStrIntList(cards[idx], "，")
 				testCards = append(testCards, card...)
-				room.SetUserCard(chair, card)
 			}
 
 			mycard := make(map[int]int)
-			for _, v := range mycard {
-				mycard[v]++
-				if v <= 0x37 {
-					if mycard[v] > 4 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+			for _, value := range testCards {
+				mycard[value]++
+				if (value <= 0x37 && v.KindID == 391) || (value <= 0x37 && v.KindID == 390) {
+					if mycard[value] > 4 {
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+						return
+					}
+				}
+				if value <= 0x29 && v.KindID == 389 {
+					if mycard[value] > 4 {
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+						return
+					}
+				}
+				if value > 0x29 && v.KindID == 389 {
+					if mycard[value] > 1 {
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
 
-				if v > 0x37 {
-					if mycard[v] > 1 {
-						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+				if value > 0x37 {
+					if mycard[value] > 1 {
+						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
 						return
 					}
 				}
+			}
+
+			for idx, chair := range chairIds {
+				card := utils.GetStrIntList(cards[idx], "，")
+				room.SetUserCard(chair, card)
 			}
 
 			bankUser := room.BankerUser
@@ -1834,7 +1851,7 @@ func (room *RoomData) IsXiaoSanYuan(pAnalyseItem *TagAnalyseItem) int {
 		if cardColor == 3 {
 			cardV := (v & MASK_VALUE) - 5
 			if cardV < 0 {
-				return 0
+				continue
 			}
 			colorCount[cardV] = 1
 		}
@@ -1945,14 +1962,11 @@ func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 
 	for k, v := range pAnalyseItem.WeaveKind {
-		log.Debug("================= pAnalyseItem.WeaveKind:%d", pAnalyseItem.WeaveKind)
-		log.Debug("================= pAnalyseItem.IsAnalyseGet:%d", pAnalyseItem.IsAnalyseGet[k])
 		if (v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT)) != 0 || v == WIK_PENG {
 			if pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
 			}
 		} else if v == WIK_GANG {
-			log.Debug("有暗杠 Param:%d", pAnalyseItem.Param[k])
 			if pAnalyseItem.Param[k] == WIK_MING_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
 				return 0
 			}
@@ -2091,9 +2105,13 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //单吊
-func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) bool {
+func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) int {
 
-	return false
+	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	if pAnalyseItem.CardEye == HuOfCard {
+		return CHR_DAN_DIAO
+	}
+	return 0
 }
 
 //自摸

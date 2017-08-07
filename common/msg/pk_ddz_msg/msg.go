@@ -27,11 +27,6 @@ func init() {
 	Processor.Register(&G2C_DDZ_ShowCard{})
 }
 
-// 游戏场景
-type G2C_DDZ_GAMESTATUS struct {
-	StatusData string // 场景附带消息，json格式
-}
-
 //空闲状态
 type G2C_DDZ_StatusFree struct {
 	// 游戏属性
@@ -46,10 +41,6 @@ type G2C_DDZ_StatusFree struct {
 	TimeCallScore   int // 叫分时间
 	TimeStartGame   int // 开始时间
 	TimeHeadOutCard int // 首出时间
-
-	// 历史积分
-	TurnScore    []int //积分信息
-	CollectScore []int //积分信息
 
 	ShowCardSign []bool // 用户明牌标识
 	TrusteeSign  []bool // 托管标识
@@ -72,10 +63,6 @@ type G2C_DDZ_StatusCall struct {
 	BankerScore   int   // 庄家叫分
 	ScoreInfo     []int // 叫分信息
 	HandCardCount []int //扑克数目
-
-	// 历史积分
-	TurnScore    []int // 积分信息
-	CollectScore []int // 积分信息
 
 	// 明牌
 	ShowCardSign []bool  // 明牌标识
@@ -110,9 +97,6 @@ type G2C_DDZ_StatusPlay struct {
 
 	EachBombCount []int // 炸弹个数
 	KingCount     []int // 八王个数
-	//历史积分
-	TurnScore    []int //积分信息
-	CollectScore []int //积分信息
 
 	// 明牌
 	ShowCardSign []bool  // 明牌标识
@@ -185,14 +169,6 @@ type G2C_DDZ_TRUSTEE struct {
 type G2C_DDZ_ShowCard struct {
 	ShowCardUser int   // 明牌用户
 	CardData     []int // 明牌数据
-}
-
-// 叫分失败
-type G2C_DDZ_CALLScoreFail struct {
-	CallScoreUser int    // 当前叫分玩家
-	CallScore     int    // 当前叫分
-	ErrorCode     int    // 错误代码
-	ErrorStr      string // 错误信息
 }
 
 //////////////////////////////////////////////////////////////////////////////////
