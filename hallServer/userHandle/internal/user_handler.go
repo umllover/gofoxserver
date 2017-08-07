@@ -110,6 +110,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
 			agent.WriteMsg(retMsg)
+			agent.WriteMsg(&msg.L2C_ServerListFinish{})
 		}
 	}()
 
