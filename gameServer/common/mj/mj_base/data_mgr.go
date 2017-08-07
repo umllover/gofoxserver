@@ -1006,7 +1006,7 @@ func (room *RoomData) RepalceCard() {
 	for _, v := range base.GameTestpaiCache.All() {
 		//log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && room.ID == v.RoomID {
-			chairIds := utils.GetStrIntList(v.ChairId, "#")
+			chairIds := utils.GetStrIntSixteenList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break
 			}
@@ -1024,42 +1024,15 @@ func (room *RoomData) RepalceCard() {
 
 			testCards := make([]int, 0)
 			for idx, _ := range chairIds {
-				card := utils.GetStrIntList(cards[idx], "，")
+				card := utils.GetStrIntSixteenList(cards[idx], "，")
 				testCards = append(testCards, card...)
 			}
-
-			mycard := make(map[int]int)
-			for _, value := range testCards {
-				mycard[value]++
-				if (value <= 0x37 && v.KindID == 391) || (value <= 0x37 && v.KindID == 390) {
-					if mycard[value] > 4 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-				if value <= 0x29 && v.KindID == 389 {
-					if mycard[value] > 4 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-				if value > 0x29 && v.KindID == 389 {
-					if mycard[value] > 1 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-
-				if value > 0x37 {
-					if mycard[value] > 1 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
+			isRight := room.CheckUserCard(v.KindID, testCards)
+			if isRight == false {
+				break
 			}
-
 			for idx, chair := range chairIds {
-				card := utils.GetStrIntList(cards[idx], "，")
+				card := utils.GetStrIntSixteenList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
 
@@ -1130,7 +1103,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 	log.Debug("end SetUserCard %v", userCard)
 }
 
-//获取用户手牌
+//获取用户手牌用于调试
 func (room *RoomData) GetUserCard(bankUser int) []int {
 	var userCard = make([]int, 0)
 	log.Debug("%v", room.CardIndex)
@@ -1162,6 +1135,53 @@ func (room *RoomData) GetUserCard(bankUser int) []int {
 
 	log.Debug("userCard %v", userCard)
 	return userCard
+}
+
+//用户手牌是否设置错误用于调试
+func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
+	mycard := make(map[int]int)
+	for _, value := range testCards {
+		mycard[value]++
+		if (value <= 0x37 && KindID == 391) || (value <= 0x37 && KindID == 390) {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value <= 0x29 && KindID == 389 {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value > 0x29 && KindID == 389 {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+
+		if value > 0x37 {
+			if mycard[value] > 1 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value < 1 || (value > 0x09 && value < 0x11) || (value > 0x19 && value < 0x21) {
+			log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+		if KindID == 389 && ((value > 0x29 && value < 0x35) || value > 0x35) {
+			log.Error("红中麻将首牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+
+		if KindID == 391 && ((value > 0x29 && value < 0x31) || (value > 0x37 && value < 0x41) || (value > 0x48)) {
+			log.Error("漳浦麻将首牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+	}
+	return true
 }
 
 func (room *RoomData) CheckZiMo() {
