@@ -112,7 +112,7 @@ func (u *User) SubCurrency(sub, subtype int) bool {
 	}
 
 	consum := datalog.ConsumLog{}
-	consum.AddConsumLogInfo(u.Id,subtype,sub)
+	consum.AddConsumLogInfo(u.Id, subtype, sub)
 	u.Currency -= sub
 	err := model.UsertokenOp.UpdateWithMap(u.Id, map[string]interface{}{
 		"Currency": u.Currency,
@@ -140,6 +140,10 @@ func (u *User) AddCurrency(add int) bool {
 		log.Error("at AddCurrency UpdateWithMap error, %v,  sub Currency:%v", err.Error(), add)
 		return false
 	}
+	//通知客户端
+	u.UpdateUserAttr(map[string]interface{}{
+		"Diamond": u.Currency,
+	})
 	return true
 }
 
@@ -156,7 +160,6 @@ func (u *User) AddRecord(tr *model.TokenRecord) bool {
 	return true
 }
 
-
 func (u *User) HasRecord(RoomId int) bool {
 	u.Lock()
 	u.Unlock()
@@ -167,12 +170,13 @@ func (u *User) HasRecord(RoomId int) bool {
 //删除扣钱记录
 func (u *User) DelRecord(id int) error {
 	u.Lock()
+	defer u.Unlock()
 	r, ok := u.Records[id]
 	if ok {
 		delete(u.Records, id)
+		return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
 	}
-	u.Unlock()
-	return model.TokenRecordOp.Delete(r.RoomId, r.UserId)
+	return nil
 }
 
 func (u *User) GetRecord(id int) *model.TokenRecord {
@@ -225,4 +229,17 @@ func (u *User) CheckFree() bool {
 		log.Debug("b", b)
 	}
 	return b
+}
+
+//发送活动次数信息
+func (u *User) GetRoomIds() (ret map[int]struct{}) {
+	ret = make(map[int]struct{})
+	for id, _ := range u.Rooms {
+		ret[id] = struct{}{}
+	}
+
+	for id, _ := range u.Records {
+		ret[id] = struct{}{}
+	}
+	return
 }

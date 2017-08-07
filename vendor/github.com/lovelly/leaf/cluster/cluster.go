@@ -46,10 +46,7 @@ func Init() {
 		server.Start()
 	}
 
-	if conf.HeartBeatInterval <= 0 {
-		conf.HeartBeatInterval = 5
-		log.Release("invalid HeartBeatInterval, reset to %v", conf.HeartBeatInterval)
-	}
+
 }
 
 func AddClient(serverName, addr string) {

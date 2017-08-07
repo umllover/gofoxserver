@@ -5,7 +5,6 @@ import (
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -15,8 +14,6 @@ import (
 
 	"os"
 
-	"encoding/json"
-
 	"mj/gameServer/common/pk/pk_base"
 
 	//"mj/common/msg/pk_ddz_msg"
@@ -24,6 +21,8 @@ import (
 	"mj/common/cost"
 
 	"time"
+
+	"mj/common/msg"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -45,12 +44,12 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	//room.UserReady([]interface{}{nil, u1})
-	f := func() {
-		log.Debug("出发了")
-		tt.Reset(time.Duration(2) * time.Second)
-	}
-	tt = time.AfterFunc(time.Duration(2)*time.Second, f)
-	Wg.Wait()
+	//f := func() {
+	//	log.Debug("出发了")
+	//	tt.Reset(time.Duration(2) * time.Second)
+	//}
+	//tt = time.AfterFunc(time.Duration(2)*time.Second, f)
+	//Wg.Wait()
 }
 
 //
@@ -179,6 +178,13 @@ func TestDispatchCardData(t *testing.T) {
 
 func TestAnalyseCard(t *testing.T) {
 
+}
+
+func TestRemoveCard(t *testing.T) {
+	info := &msg.L2G_CreatorRoom{}
+	lg := NewDDZLogic(pk_base.IDX_DDZ, info)
+	b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
+	log.Debug("怕怕%v", b)
 }
 
 //func TestCardType(t *testing.T) {
@@ -318,24 +324,23 @@ func init() {
 
 	log.Debug("tmp=%v", temp)
 
-	info := &model.CreateRoomInfo{
-		RoomId:       777777,
+	info := &msg.L2G_CreatorRoom{
+		RoomID:       777777,
 		MaxPlayerCnt: 3,
 		KindId:       29,
 		ServiceId:    1,
-		Num:          1,
 	}
 
-	setCfg := map[string]interface{}{
-		"EightKing": 1,
-		"GameType":  2,
-	}
-	myCfg, cfgOk := json.Marshal(setCfg)
-	if cfgOk != nil {
-		log.Error("测试错误，退出程序")
-		os.Exit(0)
-	}
-	info.OtherInfo = string(myCfg)
+	//setCfg := map[string]interface{}{
+	//	"EightKing": 1,
+	//	"GameType":  2,
+	//}
+	//myCfg, cfgOk := json.Marshal(setCfg)
+	//if cfgOk != nil {
+	//	log.Error("测试错误，退出程序")
+	//	os.Exit(0)
+	//}
+	//info.OtherInfo = myCfg
 
 	_roombase := room_base.NewRoomBase()
 
@@ -356,7 +361,7 @@ func init() {
 		DataMgr:  ddzMrg,
 		UserMgr:  userg,
 		LogicMgr: NewDDZLogic(pk_base.IDX_DDZ, info),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, nil),
+		TimerMgr: room_base.NewRoomTimerMgr(10, temp, nil),
 	}
 	r.Init(cfg)
 	room = r

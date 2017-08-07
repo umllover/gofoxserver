@@ -4,10 +4,7 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	"mj/common/msg"
 	"mj/hallServer/db"
-
-	"github.com/lovelly/leaf/log"
 )
 
 type Item struct {
@@ -104,15 +101,4 @@ func IncRoomCnt(roomid int) (int, error) {
 	}
 
 	return Ret[0], nil
-}
-
-func CheckTimeOut(r *msg.RoomInfo, now int64) {
-	for uid, t := range r.MachPlayer {
-		if t < now {
-			if _, ok := r.Players[uid]; !ok {
-				log.Error("at CheckTimeOut player :%d not join room ")
-				delete(r.MachPlayer, uid)
-			}
-		}
-	}
 }

@@ -1,8 +1,11 @@
 package internal
 
 import (
+	"errors"
+	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
+	rgst "mj/common/register"
 	"mj/hallServer/center"
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
@@ -10,17 +13,10 @@ import (
 	"mj/hallServer/id_generate"
 	"mj/hallServer/user"
 	"strconv"
-
-	rgst "mj/common/register"
-
-	"errors"
-
+	"sync"
 	"time"
 
-	"fmt"
-
-	"sync"
-
+	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -32,7 +28,7 @@ var (
 	gameListLock sync.RWMutex
 	roomList     = make(map[int]*msg.RoomInfo)    // key1 is roomId
 	roomKindList = make(map[int]map[int]struct{}) //key1 is kind Id key2 incId
-	Test         = false
+	MatchRpc     *chanrpc.Server
 )
 
 type ServerInfo struct {
@@ -51,10 +47,10 @@ func init() {
 	reg.RegisterRpc("NewServerAgent", NewServerAgent)
 	reg.RegisterRpc("FaildServerAgent", FaildServerAgent)
 	reg.RegisterRpc("SendPlayerBrief", sendPlayerBrief)
-	reg.RegisterRpc("GetMatchRooms", getMatchRooms)
 	reg.RegisterRpc("GetMatchRoomsByKind", GetMatchRoomsByKind)
 	reg.RegisterRpc("GetRoomByRoomId", GetRoomByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
+	reg.RegisterRpc("CheckVaildIds", CheckVaildIds)
 
 	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
@@ -186,6 +182,7 @@ func updateRoom(args []interface{}) {
 		log.Debug("at  UpdateRoom not foud RoomId:%d", info.RoomId)
 		return
 	}
+	log.Debug("=============================info.OpName=%v, info.Data[HallNodeName]=%v", info.OpName, info.Data["HallNodeName"])
 
 	switch info.OpName {
 	case "AddPlayCnt":
@@ -216,13 +213,20 @@ func updateRoom(args []interface{}) {
 		}
 
 	case "DelPlayerId":
+		log.Debug("at hall room DelPlayerId ........................")
 		id := int64(info.Data["UID"].(float64))
 		status := int(info.Data["Status"].(float64))
-		ply := room.Players[id]
-		delete(room.Players, id)
-		room.CurCnt = len(room.Players)
-		if ply.HallNodeName == conf.ServerName() {
-			center.SendToThisNodeUser(id, "LeaveRoom", &msg.LeaveRoom{RoomId: room.RoomID, Status: status})
+		ply, ok := room.Players[id]
+		if ok {
+			delete(room.Players, id)
+			room.CurCnt = len(room.Players)
+			if ply.HallNodeName == conf.ServerName() {
+				center.SendToThisNodeUser(id, "LeaveRoom", &msg.LeaveRoom{RoomId: room.RoomID, Status: status})
+			}
+
+			if MatchRpc != nil {
+				MatchRpc.Go("delMatchPlayer", id, room)
+			}
 		}
 	}
 
@@ -241,7 +245,7 @@ func NewServerAgent(args []interface{}) {
 			log.Debug("data === %v", data)
 			ret := data.(*msg.S2S_KindListResult)
 			for _, v := range ret.Data {
-				if Test {
+				if conf.Test {
 					if v.NodeID != conf.Server.NodeId {
 						continue
 					}
@@ -259,7 +263,7 @@ func NewServerAgent(args []interface{}) {
 			log.Debug("data ======= %v", data)
 			ret := data.(*msg.S2S_GetRoomsResult)
 			for _, v := range ret.Data {
-				if Test {
+				if conf.Test {
 					if v.NodeID != conf.Server.NodeId {
 						continue
 					}
@@ -358,7 +362,7 @@ func FaildServerAgent(args []interface{}) {
 		if v.NodeID == id {
 			for uid, _ := range v.MachPlayer { //房间因为服务器宕机关闭
 				///通知大厅房间结束
-				center.SendToThisNodeUser(uid, "RoomCloseInfo", &msg.RoomEndInfo{RoomId: roomId, Status: v.Status, CreateUid: v.CreateUserId})
+				center.SendToThisNodeUser(uid, "RoomEndInfo", &msg.RoomEndInfo{RoomId: roomId, Status: v.Status, CreateUid: v.CreateUserId})
 			}
 			delete(roomList, roomId)
 			ids[roomId] = true
@@ -391,25 +395,12 @@ func sendPlayerBrief(args []interface{}) {
 	u.WriteMsg(retMsg)
 }
 
-func getMatchRooms(args []interface{}) (interface{}, error) {
-	ret := make(map[int][]*msg.RoomInfo)
-	for _, v := range roomList {
-		if !v.IsPublic {
-			continue
-		}
-		if v.MaxPlayerCnt >= len(v.MachPlayer) {
-			continue
-		}
-		ret[v.KindID] = append(ret[v.KindID], v)
-	}
-	return ret, nil
-}
-
 //不公开的房间 和人数满的 无法被获取到
 func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 	kind := args[0].(int)
 	ret := make([]*msg.RoomInfo, 0)
 
+	now := time.Now().Unix()
 	log.Debug("at GetMatchRoomsByKind === %v", roomKindList)
 	log.Debug("at GetMatchRoomsByKind rooms  === %v", roomList)
 	for roomID, _ := range roomKindList[kind] {
@@ -418,6 +409,7 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 			fmt.Println("111111111111")
 			continue
 		}
+		CheckTimeOut(v, now)
 		if !v.IsPublic {
 			fmt.Println("222222222222")
 			continue
@@ -434,6 +426,7 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 func GetRoomByRoomId(args []interface{}) (interface{}, error) {
 	roomid := args[0].(int)
 	ret, ok := roomList[roomid]
+	CheckTimeOut(ret, time.Now().Unix())
 	if !ok {
 		return nil, errors.New("not foud")
 	}
@@ -447,4 +440,30 @@ func HaseRoom(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	return nil, errors.New("no room")
+}
+
+func CheckVaildIds(args []interface{}) {
+	ids := args[0].(map[int]struct{})
+	ch := args[1].(*chanrpc.Server)
+	var invalidIds []int
+	for id, _ := range ids {
+		_, ok := roomList[id]
+		if !ok {
+			invalidIds = append(invalidIds, id)
+		}
+	}
+	if len(invalidIds) > 0 {
+		ch.Go("DeleteVaildIds", invalidIds)
+	}
+}
+
+func CheckTimeOut(r *msg.RoomInfo, now int64) {
+	for uid, t := range r.MachPlayer {
+		if t < now {
+			if _, ok := r.Players[uid]; !ok {
+				log.Error("at CheckTimeOut player :%d not join room ")
+				delete(r.MachPlayer, uid)
+			}
+		}
+	}
 }

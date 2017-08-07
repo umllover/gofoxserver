@@ -1,27 +1,23 @@
 package mj_base
 
 import (
+	"errors"
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_zp_msg"
+	"mj/gameServer/RoomMgr"
 	. "mj/gameServer/common"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
+	datalog "mj/gameServer/log"
 	"mj/gameServer/user"
 	"time"
 
+	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 	"github.com/lovelly/leaf/timer"
-
-	"errors"
-
-	datalog "mj/gameServer/log"
-
-	"mj/gameServer/RoomMgr"
-
-	"github.com/lovelly/leaf/log"
 )
 
 type Mj_base struct {
@@ -49,6 +45,7 @@ type NewMjCtlConfig struct {
 func NewMJBase(KindId, ServiceId int) *Mj_base {
 	Temp, ok1 := base.GameServiceOptionCache.Get(KindId, ServiceId)
 	if !ok1 {
+		log.Error("at NewMJBase not foud template  kindid:%d  serverid:%d", KindId, ServiceId)
 		return nil
 	}
 
@@ -81,7 +78,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 	r.TimerMgr.StartCreatorTimer(func() {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-		roomLogData.UpdateGameLogRecode(logData.RecodeId, 4)
+		roomLogData.UpdateGameLogRecode(logData, 4)
 		r.OnEventGameConclude(0, nil, GER_DISMISS)
 	})
 
@@ -118,19 +115,21 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 func (r *Mj_base) UserStandup(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2G_UserStandup{})
 	u := args[1].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode))
-		}
-	}()
-
-	if r.Status == RoomStatusStarting {
-		retcode = ErrGameIsStart
-		return
-	}
-
-	r.UserMgr.Standup(u)
+	r.ReqLeaveRoom([]interface{}{u})
+	return
+	//retcode := 0
+	//defer func() {
+	//	if retcode != 0 {
+	//		u.WriteMsg(RenderErrorMessage(retcode))
+	//	}
+	//}()
+	//
+	//if r.Status == RoomStatusStarting {
+	//	retcode = ErrGameIsStart
+	//	return
+	//}
+	//
+	//r.UserMgr.Standup(u)
 }
 
 func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
@@ -185,16 +184,18 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
-	now := time.Now()
-	user, _ := room.UserMgr.GetUserByUid(logData.UserId)
-	if user == nil {
-		roomLogData.UpdateRoomLogForOthers(logData.RecodeId, CreateRoomForOthers)
+	if logData != nil {
+		user, _ := room.UserMgr.GetUserByUid(logData.UserId)
+		if user == nil {
+			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
+		}
 	}
 	if retcode == 0 {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomNormalDistmiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
 	} else if retcode == NotOwner {
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 	}
+
 }
 
 //玩家准备
@@ -232,6 +233,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.UserMgr.IsAllReady() {
+		room.UserMgr.ResetBeginPlayer()
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 			RoomId: room.DataMgr.GetRoomId(),
 			OpName: "AddPlayCnt",
@@ -345,14 +347,13 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		GameStatus:  room.Status,
 		AllowLookon: AllowLookon,
 	})
-
+	//把所有玩家信息推送给自己
+	room.UserMgr.SendUserInfoToSelf(u)
 	room.DataMgr.SendPersonalTableTip(u)
 
 	if room.Status == RoomStatusReady || room.Status == RoomStatusEnd { // 没开始
 		room.DataMgr.SendStatusReady(u)
 	} else { //开始了
-		//把所有玩家信息推送给自己
-		room.UserMgr.SendUserInfoToSelf(u)
 		room.DataMgr.SendStatusPlay(u)
 	}
 }
@@ -456,7 +457,6 @@ func (room *Mj_base) OnRecUserTrustee(args []interface{}) {
 
 // 吃碰杠胡各种操作
 func (room *Mj_base) UserOperateCard(args []interface{}) {
-	log.Debug("???????????????????????????????2222222222222")
 	u := args[0].(*user.User)
 	OperateCode := args[1].(int)
 	OperateCard := args[2].([]int)
@@ -550,17 +550,14 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 //玩家离开房间
 func (room *Mj_base) ReqLeaveRoom(args []interface{}) {
 	player := args[0].(*user.User)
-	leaveFunc := func() {
+	if room.Status == RoomStatusReady {
 		if room.UserMgr.LeaveRoom(player, room.Status) {
 			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
 		} else {
 			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrLoveRoomFaild})
 		}
-		room.UserMgr.DeleteReply(player.Id)
-	}
-	if room.Status == RoomStatusReady {
-		leaveFunc()
 	} else {
+		room.UserMgr.AddLeavePly(player.Id)
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
 			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
@@ -579,7 +576,7 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 	if ret == 1 {
 		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
 		if reqPlayer != nil {
-			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
+			reqPlayer.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
 		}
 
 		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
@@ -587,7 +584,7 @@ func (room *Mj_base) ReplyLeaveRoom(args []interface{}) {
 		room.TimerMgr.StopReplytIimer(ReplyUid)
 		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
 		if reqPlayer != nil {
-			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrRefuseLeave})
+			reqPlayer.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrRefuseLeave})
 		}
 	}
 }

@@ -12,8 +12,6 @@ import (
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
 
-	"time"
-
 	datalog "mj/gameServer/log"
 
 	"github.com/lovelly/leaf/log"
@@ -179,6 +177,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	agent.WriteMsg(&msg.G2C_ConfigFinish{})
 
 	agent.WriteMsg(&msg.G2C_UserEnter{
+		KindID:      user.KindID,      //游戏id
 		UserID:      user.Id,          //用户 I D
 		FaceID:      user.FaceID,      //头像索引
 		CustomID:    user.CustomID,    //自定标识
@@ -368,24 +367,23 @@ func (m *UserModule) DissumeRoom(args []interface{}) {
 	user := m.a.UserData().(*client.User)
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(user.RoomId, user.KindID, user.ServerID)
-	now := time.Now()
 	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
 
 	if user.KindID == 0 {
 		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 
 	if user.RoomId == 0 {
 		log.Error("at DissumeRoom not foud roomdid userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData.RecodeId, now, RoomErrorDismiss)
+		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
 		return
 	}
 
