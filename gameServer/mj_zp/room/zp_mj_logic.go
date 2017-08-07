@@ -283,7 +283,6 @@ func (lg *ZP_Logic) AnalyseCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem) (
 					//}
 					SetWeaveCount := cbWeaveCount
 					for i := 0; i < cbLessKindItem; i++ {
-						log.Debug("################### cbLessKindItem i:%d,cbWeaveCount:%d", i, cbWeaveCount)
 						analyseItem.Param[i+SetWeaveCount] = 0
 						analyseItem.IsAnalyseGet[i+SetWeaveCount] = pKindItem[i].IsAnalyseGet
 						analyseItem.WeaveKind[i+SetWeaveCount] = pKindItem[i].WeaveKind

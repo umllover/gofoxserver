@@ -179,6 +179,7 @@ type G2C_StatusPlay struct {
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //叫分时间
 	CreateTime      int64 //开始时间
+	PlayCount       int   //已玩局数
 
 	//游戏变量
 	CellScore   int   //单元积分
@@ -187,6 +188,7 @@ type G2C_StatusPlay struct {
 	MagicIndex  int   //财神索引
 	ChaHuaCnt   []int //插花数
 	BuHuaCnt    []int //补花数
+	BuHuaCard   []int //最新补花卡牌
 	ZhuaHuaCnt  int   //抓花数
 
 	//规则
@@ -205,6 +207,7 @@ type G2C_StatusPlay struct {
 	OutCardData  int     //出牌扑克
 	DiscardCount []int   //丢弃数目
 	DiscardCard  [][]int //丢弃记录
+	BanOutCard   []int   //禁出卡牌
 
 	//扑克数据
 	CardCount    []int //扑克数目
