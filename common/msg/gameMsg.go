@@ -322,13 +322,13 @@ type C2G_GameChart_ToAll struct {
 }
 
 type G2C_GameChart_ToAll struct {
-	ChatColor    int
-	SendUserID   int64
-	TargetUserID int
-	ClientID     int
-	ChatIndex    int
-	ChatString   string
-	ChatType     int //1是语音 0 是普通聊天
+	ChatColor    int    //颜色 无效
+	SendUserID   int64  //谁发的消息
+	TargetUserID int    //发给谁的消息  无效
+	ClientID     int    //无效
+	ChatIndex    int    //消息的下标， 如 1 我的等的花都谢了  2快点吗
+	ChatString   string //消息内容 ，
+	ChatType     int    //1是语音 0 是普通聊天
 }
 
 //结束消息， 各个游戏自己实现
