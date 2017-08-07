@@ -426,10 +426,10 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 func GetRoomByRoomId(args []interface{}) (interface{}, error) {
 	roomid := args[0].(int)
 	ret, ok := roomList[roomid]
-	CheckTimeOut(ret, time.Now().Unix())
 	if !ok {
 		return nil, errors.New("not foud")
 	}
+	CheckTimeOut(ret, time.Now().Unix())
 	return ret, nil
 }
 

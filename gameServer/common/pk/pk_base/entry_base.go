@@ -241,6 +241,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 
 	if room.UserMgr.IsAllReady() {
 		log.Debug("all user are ready start game")
+		room.UserMgr.ResetBeginPlayer()
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间局数变更
 			RoomId: room.DataMgr.GetRoomId(),
 			OpName: "AddPlayCnt",
@@ -268,12 +269,13 @@ func (room *Entry_base) UserReLogin(args []interface{}) error {
 	if roomUser == nil {
 		return errors.New(" UserReLogin not old user ")
 	}
-	log.Debug("at ReLogin have old user ")
+	log.Debug("at ReLogin have old user new room id:%d", u.RoomId)
 	u.ChairId = roomUser.ChairId
-	u.RoomId = roomUser.RoomId
+	u.RoomId = room.DataMgr.GetRoomId()
 	u.Status = roomUser.Status
 	u.ChatRoomId = roomUser.ChatRoomId
 	room.UserMgr.ReLogin(u, room.Status)
+	log.Debug("room id === %d ", u.RoomId)
 	return nil
 }
 
@@ -335,11 +337,6 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 		}
 	}()
 
-	if u.ChairId == INVALID_CHAIR {
-		retcode = ErrNoSitdowm
-		return
-	}
-
 	AllowLookon := 0
 	if u.Status == US_LOOKON {
 		AllowLookon = 1
@@ -354,10 +351,12 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 	if room.Status == RoomStatusReady { // 没开始
 		room.DataMgr.SendStatusReady(u)
 	} else { //开始了
-		//把所有玩家信息推送给自己
-		room.UserMgr.SendUserInfoToSelf(u)
 		room.DataMgr.SendStatusPlay(u)
 	}
+
+	//把所有玩家信息推送给自己
+	room.UserMgr.SendUserInfoToSelf(u)
+
 }
 
 //游戏结束

@@ -334,10 +334,12 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		}
 	}()
 
-	if u.ChairId == INVALID_CHAIR {
-		retcode = ErrNoSitdowm
-		return
-	}
+	log.Debug("at SetGameOption room id :%d", u.RoomId)
+
+	//if u.ChairId == INVALID_CHAIR {
+	//	retcode = ErrNoSitdowm
+	//	return
+	//}
 
 	AllowLookon := 0
 	if u.Status == US_LOOKON {
@@ -347,8 +349,7 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 		GameStatus:  room.Status,
 		AllowLookon: AllowLookon,
 	})
-	//把所有玩家信息推送给自己
-	room.UserMgr.SendUserInfoToSelf(u)
+
 	room.DataMgr.SendPersonalTableTip(u)
 
 	if room.Status == RoomStatusReady || room.Status == RoomStatusEnd { // 没开始
@@ -356,6 +357,10 @@ func (room *Mj_base) SetGameOption(args []interface{}) {
 	} else { //开始了
 		room.DataMgr.SendStatusPlay(u)
 	}
+
+	//把所有玩家信息推送给自己
+	room.UserMgr.SendUserInfoToSelf(u)
+
 }
 
 //出牌
@@ -409,6 +414,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	u.UserLimit &= ^LimitPeng
 	u.UserLimit &= ^LimitGang
 
+	log.Debug("AAAAAAAAAAAAAAAAA ")
 	room.DataMgr.NotifySendCard(u, CardData, false)
 
 	//响应判断

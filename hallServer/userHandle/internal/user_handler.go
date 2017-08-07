@@ -286,7 +286,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_CreateTable)
 	retMsg := &msg.L2C_CreateTableSucess{}
 	agent := args[1].(gate.Agent)
-	retCode := 0
+	retCode := -1
 	defer func() {
 		if retCode == 0 {
 			agent.WriteMsg(retMsg)
@@ -326,6 +326,12 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		return
 	}
 
+	playerCnt := recvMsg.PlayerCnt
+	if playerCnt < template.MinPlayer || playerCnt > template.MaxPlayer {
+		log.Debug(" client player ctn invalid %d ", playerCnt)
+		playerCnt = template.MaxPlayer
+	}
+
 	//检测是否有限时免费
 	if !player.CheckFree() {
 		money := feeTemp.TableFee
@@ -357,7 +363,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	_, err := cluster.Call1GameSvr(nodeId, &msg.L2G_CreatorRoom{
 		CreatorUid:   player.Id,
 		PayType:      recvMsg.PayType,
-		MaxPlayerCnt: template.MaxPlayer,
+		MaxPlayerCnt: playerCnt,
 		RoomID:       rid,
 		PlayCnt:      recvMsg.DrawCountLimit,
 		KindId:       recvMsg.Kind,
@@ -425,6 +431,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	retMsg.Beans = feeTemp.TableFee
 	retMsg.RoomCard = player.Currency
 	retMsg.ServerIP = host
+	retCode = 0
 }
 
 func (m *UserModule) SearchTableResult(args []interface{}) {

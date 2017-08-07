@@ -55,6 +55,7 @@ type L2C_RegistResult struct {
 type C2L_CreateTable struct {
 	DrawCountLimit int                    //局数限制
 	Password       string                 //密码设置
+	PlayerCnt      int                    //玩家人数
 	Kind           int                    //游戏类型
 	ServerId       int                    //子类型
 	PayType        int                    //1是自己付钱， 2是AA
@@ -178,7 +179,7 @@ type C2L_DianZhan struct {
 
 //点赞结果
 type L2C_DianZhanRsp struct {
-	Star int //当前赞数
+	Code int //非0 位失败
 }
 
 // 通知被别人点赞了
