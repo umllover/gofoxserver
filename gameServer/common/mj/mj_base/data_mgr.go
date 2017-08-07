@@ -1023,8 +1023,8 @@ func (room *RoomData) RepalceCard() {
 			for i, _ := range cards {
 				cards[i] = strings.Replace(cards[i], " ", "", -1)
 				cards[i] = strings.Replace(cards[i], ",", "，", -1)
-				cards[i] = strings.TrimLeft(cards[i],"，")
-				cards[i] = strings.TrimRight(cards[i],"，")
+				cards[i] = strings.TrimLeft(cards[i], "，")
+				cards[i] = strings.TrimRight(cards[i], "，")
 			}
 			if len(cards) < len(chairIds) {
 				break
@@ -1037,17 +1037,29 @@ func (room *RoomData) RepalceCard() {
 			}
 
 			mycard := make(map[int]int)
-			for _, v := range mycard {
-				mycard[v]++
-				if v <= 0x37 {
-					if mycard[v] > 4 {
+			for _, value := range testCards {
+				mycard[value]++
+				if (value <= 0x37 && v.KindID == 391) || (value <= 0x37 && v.KindID == 390) {
+					if mycard[value] > 4 {
+						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						return
+					}
+				}
+				if value <= 0x29 && v.KindID == 389 {
+					if mycard[value] > 4 {
+						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
+						return
+					}
+				}
+				if value > 0x29 && v.KindID == 389 {
+					if mycard[value] > 1 {
 						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
 						return
 					}
 				}
 
-				if v > 0x37 {
-					if mycard[v] > 1 {
+				if value > 0x37 {
+					if mycard[value] > 1 {
 						log.Debug("手牌设置出错 cards  ==== card :%d  ## :%v", v, mycard)
 						return
 					}
