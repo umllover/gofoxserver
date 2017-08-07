@@ -182,7 +182,6 @@ func updateRoom(args []interface{}) {
 		log.Debug("at  UpdateRoom not foud RoomId:%d", info.RoomId)
 		return
 	}
-	log.Debug("=============================info.Data[HallNodeName].(string):", info.Data["HallNodeName"].(string))
 
 	switch info.OpName {
 	case "AddPlayCnt":
@@ -426,10 +425,10 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 func GetRoomByRoomId(args []interface{}) (interface{}, error) {
 	roomid := args[0].(int)
 	ret, ok := roomList[roomid]
-	CheckTimeOut(ret, time.Now().Unix())
 	if !ok {
 		return nil, errors.New("not foud")
 	}
+	CheckTimeOut(ret, time.Now().Unix())
 	return ret, nil
 }
 
