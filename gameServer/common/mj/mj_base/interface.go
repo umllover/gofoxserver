@@ -41,6 +41,7 @@ type DataManager interface {
 	OutOfChiCardRule(CardData, ChairId int) bool                     //吃啥打啥
 	SendOperateResult(u *user.User, wrave *msg.WeaveItem)            //通知操作结果
 	ResetUserOperateEx(u *user.User)                                 //清除状态
+	SendCardToCli(u *user.User, bTail bool)                          //发送扑克消息
 
 	GetResumeUser() int
 	GetGangStatus() int

@@ -92,6 +92,7 @@ type RoomData struct {
 	Ting            []bool                 //是否听牌
 	BankerUser      int                    //庄家用户
 	FlowerCnt       [4]int                 //补花数
+	ChangeBanker    bool                   //庄家是否变动
 	OtherInfo       map[string]interface{} //客户端动态的配置信息
 
 	BanUser    []int   //是否出牌禁忌
@@ -827,18 +828,8 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		}
 	}
 
+	room.MjBase.DataMgr.SendCardToCli(u, bTail)
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
-	//构造数据
-	SendCard := &mj_hz_msg.G2C_HZMJ_SendCard{}
-	SendCard.SendCardUser = wCurrentUser
-	SendCard.CurrentUser = wCurrentUser
-	SendCard.Tail = bTail
-	SendCard.ActionMask = room.UserAction[wCurrentUser]
-	SendCard.CardData = room.ProvideCard
-	//发送数据
-	u.WriteMsg(SendCard)
-	SendCard.CardData = 0
-	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
 
 	room.UserActionDone = false
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
@@ -847,11 +838,45 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	return 0
 }
 
+func (room *RoomData) SendCardToCli(u *user.User, bTail bool) {
+	//构造数据
+	SendCard := &mj_hz_msg.G2C_HZMJ_SendCard{}
+	SendCard.SendCardUser = room.CurrentUser
+	SendCard.CurrentUser = room.CurrentUser
+	SendCard.Tail = bTail
+	SendCard.ActionMask = room.UserAction[room.CurrentUser]
+	SendCard.CardData = room.ProvideCard
+	//发送数据
+	u.WriteMsg(SendCard)
+
+	SendCardOther := &mj_hz_msg.G2C_HZMJ_SendCard{}
+	SendCardOther.SendCardUser = room.CurrentUser
+	SendCardOther.CurrentUser = room.CurrentUser
+	SendCardOther.Tail = bTail
+	SendCardOther.ActionMask = room.UserAction[room.CurrentUser]
+	SendCardOther.CardData = 0
+	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCardOther)
+}
+
 func (room *RoomData) BeforeStartGame(UserCnt int) {
 	room.InitRoom(UserCnt)
 }
 
 func (room *RoomData) StartGameing() {
+	gameLogic := room.MjBase.LogicMgr
+	//万能牌设置
+	if room.GetCfg().MagicCard != 0 {
+		gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(room.GetCfg().MagicCard))
+	}
+
+	//洗牌
+	gameLogic.RandCardList(room.RepertoryCard, GetCardByIdx(room.ConfigIdx))
+
+	log.Debug("======房间Id：%d", room.ID)
+	//选取庄家
+	room.ElectionBankerUser()
+
+	//发牌
 	room.StartDispatchCard()
 }
 
@@ -903,8 +928,8 @@ func (room *RoomData) InitRoom(UserCnt int) {
 }
 
 func (room *RoomData) GetSice() (int, int) {
-	Sice1 := util.RandInterval(1, 7)
-	Sice2 := util.RandInterval(1, 7)
+	Sice1 := util.RandInterval(1, 6)
+	Sice2 := util.RandInterval(1, 6)
 	minSice := int(math.Min(float64(Sice1), float64(Sice2)))
 	return Sice2<<8 | Sice1, minSice
 }
@@ -922,18 +947,6 @@ func (room *RoomData) StartDispatchCard() {
 	var minSice int
 	UserCnt := userMgr.GetMaxPlayerCnt()
 	room.SiceCount, minSice = room.GetSice()
-
-	log.Debug("confi index ==== %d", room.ConfigIdx)
-	gameLogic.RandCardList(room.RepertoryCard, GetCardByIdx(room.ConfigIdx))
-
-	//万能牌设置
-	if room.GetCfg().MagicCard != 0 {
-		gameLogic.SetMagicIndex(gameLogic.SwitchToCardIndex(room.GetCfg().MagicCard))
-	}
-
-	log.Debug("======房间Id：%d", room.ID)
-	//选取庄家
-	room.ElectionBankerUser()
 
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
@@ -1027,42 +1040,15 @@ func (room *RoomData) RepalceCard() {
 
 			testCards := make([]int, 0)
 			for idx, _ := range chairIds {
-				card := utils.GetStrIntList(cards[idx], "，")
+				card := utils.GetStrIntSixteenList(cards[idx], "，")
 				testCards = append(testCards, card...)
 			}
-
-			mycard := make(map[int]int)
-			for _, value := range testCards {
-				mycard[value]++
-				if (value <= 0x37 && v.KindID == 391) || (value <= 0x37 && v.KindID == 390) {
-					if mycard[value] > 4 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-				if value <= 0x29 && v.KindID == 389 {
-					if mycard[value] > 4 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-				if value > 0x29 && v.KindID == 389 {
-					if mycard[value] > 1 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
-
-				if value > 0x37 {
-					if mycard[value] > 1 {
-						log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
-						return
-					}
-				}
+			isRight := room.CheckUserCard(v.KindID, testCards)
+			if isRight == false {
+				break
 			}
-
 			for idx, chair := range chairIds {
-				card := utils.GetStrIntList(cards[idx], "，")
+				card := utils.GetStrIntSixteenList(cards[idx], "，")
 				room.SetUserCard(chair, card)
 			}
 
@@ -1133,7 +1119,7 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 	log.Debug("end SetUserCard %v", userCard)
 }
 
-//获取用户手牌
+//获取用户手牌用于调试
 func (room *RoomData) GetUserCard(bankUser int) []int {
 	var userCard = make([]int, 0)
 	log.Debug("%v", room.CardIndex)
@@ -1165,6 +1151,53 @@ func (room *RoomData) GetUserCard(bankUser int) []int {
 
 	log.Debug("userCard %v", userCard)
 	return userCard
+}
+
+//用户手牌是否设置错误用于调试
+func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
+	mycard := make(map[int]int)
+	for _, value := range testCards {
+		mycard[value]++
+		if (value <= 0x37 && KindID == 391) || (value <= 0x37 && KindID == 390) {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value <= 0x29 && KindID == 389 {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value > 0x29 && KindID == 389 {
+			if mycard[value] > 4 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+
+		if value > 0x37 {
+			if mycard[value] > 1 {
+				log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+				return false
+			}
+		}
+		if value < 1 || (value > 0x09 && value < 0x11) || (value > 0x19 && value < 0x21) {
+			log.Error("手牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+		if KindID == 389 && ((value > 0x29 && value < 0x35) || value > 0x35) {
+			log.Error("红中麻将首牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+
+		if KindID == 391 && ((value > 0x29 && value < 0x31) || (value > 0x37 && value < 0x41) || (value > 0x48)) {
+			log.Error("漳浦麻将首牌设置出错 cards  ==== card :%d  ## :%v", value, mycard)
+			return false
+		}
+	}
+	return true
 }
 
 func (room *RoomData) CheckZiMo() {
@@ -2176,6 +2209,7 @@ func (room *RoomData) GetLastCard() (card int) {
 
 //选举庄家
 func (room *RoomData) ElectionBankerUser() {
+	userMgr := room.MjBase.UserMgr
 	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
 	if room.BankerUser == INVALID_CHAIR && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi { //房卡模式下先把庄家给房主
 		if OwnerUser != nil {
@@ -2184,6 +2218,14 @@ func (room *RoomData) ElectionBankerUser() {
 			log.Error("get bamkerUser error at StartGame")
 		}
 	} else {
-		room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
+		//庄家设置
+		if room.BankerUser == room.ProvideUser {
+			room.BankerUser = room.ProvideUser
+			room.ChangeBanker = false
+		} else {
+			room.BankerUser = (room.BankerUser - 1 + userMgr.GetCurPlayerCnt()) % userMgr.GetCurPlayerCnt()
+			room.ChangeBanker = true
+		}
+		//room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
 	}
 }
