@@ -492,6 +492,7 @@ func (dg *ddz_logic) isThreeTakeTwo(cardArr []int) (int, bool) {
 
 // 是否三带一
 func (dg *ddz_logic) isThreeTakeOne(cardArr []int) (int, bool) {
+	log.Debug("是否三带一%v", cardArr)
 	if len(cardArr) == 4 {
 		tmpArr, nKingCount := dg.removeKingFromCard(cardArr)
 		// 超过一张王就不可能符合
@@ -784,6 +785,7 @@ func (dg *ddz_logic) SetParamToLogic(args interface{}) {
 
 // 比牌
 func (dg *ddz_logic) CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool) {
+	log.Debug("进入比牌")
 	firstCount := len(firstCardData)
 	nextCount := len(lastCardData)
 
@@ -791,6 +793,10 @@ func (dg *ddz_logic) CompareCardWithParam(firstCardData []int, lastCardData []in
 
 	nextType := dg.GetCardType(lastCardData)
 
+	if nextType == CT_ERROR {
+		log.Debug("需要出牌的类型无效")
+		return CT_ERROR, false
+	}
 	if firstType == CT_ERROR && nextType != CT_ERROR {
 		return nextType, true
 	}
@@ -954,14 +960,14 @@ func (dg *ddz_logic) getCountWithCardValue(cardArr []int, v int) int {
 
 // 去掉牌中的大小王
 func (dg *ddz_logic) removeKingFromCard(cardsArr []int) ([]int, int) {
-	cardArr := util.CopySlicInt(cardsArr)
+	var cardArr []int
 	var nCount int
 
-	for i, v := range cardArr {
+	for _, v := range cardsArr {
 		if v >= 0x4e {
 			nCount++
-			copy(cardArr[i:], cardArr[i+1:])
-			cardArr = cardArr[:len(cardArr)-1]
+		} else {
+			cardArr = append(cardArr, v)
 		}
 	}
 
@@ -970,14 +976,15 @@ func (dg *ddz_logic) removeKingFromCard(cardsArr []int) ([]int, int) {
 
 // 去掉某个值的牌
 func (dg *ddz_logic) removeValuesFromCard(cardArr []int, cardValue int) ([]int, int) {
-	tmpArr := util.CopySlicInt(cardArr)
-	var nCount int
 
-	for i, v := range tmpArr {
+	var nCount int
+	var tmpArr []int
+
+	for _, v := range cardArr {
 		if dg.GetCardValue(v) == cardValue {
 			nCount++
-			copy(tmpArr[i:], tmpArr[i+1:])
-			tmpArr = tmpArr[:len(tmpArr)-1]
+		} else {
+			tmpArr = append(tmpArr, v)
 		}
 	}
 	return tmpArr, nCount

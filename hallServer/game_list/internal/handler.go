@@ -98,7 +98,7 @@ func GetRoomList(args []interface{}) {
 }
 
 //////////////////// rpc
-func sendGameList(args []interface{}) {
+func sendGameList(args []interface{}) error {
 	agent := args[0].(gate.Agent)
 	list := make(msg.L2C_ServerList, 0)
 	for _, v := range gameLists {
@@ -110,7 +110,7 @@ func sendGameList(args []interface{}) {
 	skeleton.AfterFunc(1*time.Second, func() {
 		agent.WriteMsg(&msg.L2C_ServerListFinish{})
 	})
-
+	return nil
 }
 
 func updateGameInfo(args []interface{}) {

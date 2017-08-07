@@ -46,6 +46,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("DeleteVaildIds", m.DeleteVaildIds)
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
+	reg.RegisterC2S(&msg.C2L_ReConnect{}, m.handleReconnect)
 	reg.RegisterC2S(&msg.C2L_Regist{}, m.handleMBRegist)
 	reg.RegisterC2S(&msg.C2L_User_Individual{}, m.GetUserIndividual)
 	reg.RegisterC2S(&msg.C2L_CreateTable{}, m.CreateRoom)
@@ -62,6 +63,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_ReqBindMaskCode{}, m.ReqBindMaskCode)
 	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
 	reg.RegisterC2S(&msg.C2L_ReqTimesInfo{}, m.ReqTimesInfo)
+	reg.RegisterC2S(&msg.C2L_TimeSync{}, m.TimeSync)
 }
 
 //连接进来的通知
@@ -176,13 +178,93 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		"HallNodeID": conf.Server.NodeId,
 	})
 	BuildClientMsg(retMsg, player, accountData)
-	game_list.ChanRPC.Go("sendGameList", agent)
+	game_list.ChanRPC.Call0("sendGameList", agent)
 
 	m.Recharge(nil)
 	ids := player.GetRoomIds()
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
+}
+
+//重连
+func (m *UserModule) handleReconnect(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_ReConnect)
+	retMsg := &msg.L2C_ReConnectRsp{}
+	agent := m.a
+	retMsg.Code = -1
+
+	log.Debug("enter mbLogin  user:%s", recvMsg.Accounts)
+
+	defer func() {
+		if retMsg.Code != 0 {
+			m.Close(ServerKick)
+			str := fmt.Sprintf("重连失败, 错误码: %d", retMsg.Code)
+			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retMsg.Code, DescribeString: str})
+		} else {
+			agent.WriteMsg(retMsg)
+		}
+	}()
+
+	if recvMsg.Accounts == "" {
+		retMsg.Code = ParamError
+		return
+	}
+
+	accountData, ok := model.AccountsinfoOp.GetByMap(map[string]interface{}{
+		"Accounts": recvMsg.Accounts,
+	})
+
+	if ok != nil || accountData == nil {
+		retMsg.Code = NotFoudAccout
+		return
+	}
+
+	if accountData.LogonPass != recvMsg.LogonPass {
+		retMsg.Code = ErrPasswd
+		return
+	}
+
+	player := user.NewUser(accountData.UserID)
+	player.Id = accountData.UserID
+	lok := loadUser(player)
+	if !lok {
+		retMsg.Code = LoadUserInfoError
+		return
+	}
+
+	if player.Roomid != 0 {
+		_, have := game_list.ChanRPC.Call1("HaseRoom", player.Roomid)
+		if have != nil {
+			log.Debug("user :%d room %d is close ", player.Id, player.Roomid)
+			player.DelGameLockInfo()
+		}
+	}
+
+	oldUser := getUser(accountData.UserID)
+	if oldUser != nil {
+		log.Debug("ar handleReconnect old user ====== %d  %d ", oldUser.KindID, oldUser.Roomid)
+		m.KickOutUser(oldUser)
+	}
+
+	player.Agent = agent
+	AddUser(player.Id, player)
+	agent.SetUserData(player)
+	player.LoadTimes()
+	player.HallNodeID = conf.Server.NodeId
+	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
+		"HallNodeID": conf.Server.NodeId,
+	})
+	infoMsg := &msg.L2C_LogonSuccess{}
+	BuildClientMsg(infoMsg, player, accountData)
+	player.WriteMsg(infoMsg)
+	retMsg.Code = 0
+}
+
+//请求同步时间
+func (m *UserModule) TimeSync(args []interface{}) {
+	player := m.a.UserData().(*user.User)
+	player.WriteMsg(&msg.L2C_TimeSync{ServerTime: time.Now().Unix()})
 }
 
 func (m *UserModule) handleMBRegist(args []interface{}) {
@@ -944,7 +1026,7 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 func (m *UserModule) DianZhan(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_DianZhan)
 	//player := m.a.UserData().(*user.User)
-	AddOfflineHandler(MailTypeDianZhan, recvMsg.UserID, nil)
+	AddOfflineHandler(MailTypeDianZhan, recvMsg.UserID, nil, true)
 }
 
 //续费

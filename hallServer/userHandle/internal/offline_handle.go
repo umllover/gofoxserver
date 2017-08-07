@@ -33,7 +33,7 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	}
 }
 
-func AddOfflineHandler(htype int, uid int64, data interface{}) bool {
+func AddOfflineHandler(htype int, uid int64, data interface{}, Notify bool) bool {
 	h := &model.UserOfflineHandler{
 		UserId: uid,
 		HType:  htype,
@@ -54,7 +54,10 @@ func AddOfflineHandler(htype int, uid int64, data interface{}) bool {
 		return false
 	}
 
-	center.SendMsgToHallUser(uid, &msg.S2S_OfflineHandler{EventID: int(id)})
+	if Notify {
+		center.SendMsgToHallUser(uid, &msg.S2S_OfflineHandler{EventID: int(id)})
+	}
+
 	return true
 }
 

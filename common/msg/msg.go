@@ -93,6 +93,10 @@ func init() {
 	Processor.Register(&G2C_ReplyRsp{})
 	Processor.Register(&C2G_ReplyLeaveRoom{})
 	Processor.Register(&C2L_ReqTimesInfo{})
+	Processor.Register(&C2L_TimeSync{})
+	Processor.Register(&L2C_TimeSync{})
+	Processor.Register(&C2L_ReConnect{})
+	Processor.Register(&L2C_ReConnectRsp{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
