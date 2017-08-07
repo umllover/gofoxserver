@@ -107,9 +107,6 @@ func sendGameList(args []interface{}) error {
 		}
 	}
 	agent.WriteMsg(&list)
-	skeleton.AfterFunc(1*time.Second, func() {
-		agent.WriteMsg(&msg.L2C_ServerListFinish{})
-	})
 	return nil
 }
 
