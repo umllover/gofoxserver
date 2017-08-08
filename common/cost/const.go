@@ -295,4 +295,7 @@ const (
 	LeaveRoomTimer       = "LeaveRoomTimer"
 )
 
-/////////////// funcs
+/////////////// Redis key //////////////////////
+const (
+	CreatorRoom = "CreatorRoom:%d"
+)

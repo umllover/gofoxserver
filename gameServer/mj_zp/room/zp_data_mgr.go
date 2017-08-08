@@ -1514,7 +1514,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 		StatusPlay.BuHuaCnt[i] = room.FlowerCnt[i]
 		if room.FlowerCnt[i] > 0 {
 			index := room.FlowerCnt[i] - 1
-			StatusPlay.BuHuaCard[i] = room.FlowerCard[i][index]
+			StatusPlay.BuHuaCard = append(StatusPlay.BuHuaCard, room.FlowerCard[i][index])
 		}
 	}
 
