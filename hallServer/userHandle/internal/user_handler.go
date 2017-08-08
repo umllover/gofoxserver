@@ -355,6 +355,8 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 		MemberOrder: player.MemberOrder, //会员等级
 		Score:       player.Score,
 		HeadImgUrl:  player.HeadImgUrl,
+		Star:        player.Star,
+		Sign:        player.Sign,
 	}
 
 	player.WriteMsg(retmsg)
