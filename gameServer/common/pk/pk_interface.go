@@ -1,10 +1,7 @@
 package pk
 
 import (
-	"mj/common/utils"
-	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"strconv"
 )
 
 type DataManager interface {
@@ -53,4 +50,3 @@ type LogicManager interface {
 	SetParamToLogic(args interface{}) // 设置算法必要参数
 
 }
-
