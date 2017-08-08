@@ -15,6 +15,8 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(IncUserid{}, "inc_userid").SetKeys(false,"NodeId")
 	   db.DBMap.AddTableWithName(Mail{}, "mail").SetKeys(false,"MailId","UserId")
 	   db.DBMap.AddTableWithName(RaceMsgInfo{}, "race_msg_info").SetKeys(true, "MsgID")
+	   db.DBMap.AddTableWithName(RecordOutcardDdz{}, "record_outcard_ddz").SetKeys(false,"RecordID")
+	   db.DBMap.AddTableWithName(RecordOutcardDdzKing{}, "record_outcard_ddz_king").SetKeys(false,"RecordID")
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(RoomRecord{}, "room_record").SetKeys(false,"RoomId")
 	   db.DBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
