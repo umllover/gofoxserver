@@ -1330,8 +1330,6 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 		}
 
 		nowCnt := 0
-		tempScore := [COUNT_KIND_SCORE]int{}
-		util.DeepCopy(&tempScore, playerScore)
 		if i == room.ProvideUser && winCnt == 1 { //自摸情况
 			for index := 0; index < UserCnt; index++ {
 				if index == i {
@@ -1340,7 +1338,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				nowCnt++
 
 				//基础分
-				playerScore[IDX_SUB_SCORE_JC] += 1 * score
+				playerScore[IDX_SUB_SCORE_JC] = 1 * score
 				room.SumScore[index] -= 1 * score
 				room.SumScore[i] += 1 * score
 				log.Debug("基础分:%d,SumScore:%d", playerScore[IDX_SUB_SCORE_JC], room.SumScore[i])
@@ -1348,22 +1346,19 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				//胡牌
 				testScore := 0 //todo,测试
 				for j := IDX_SUB_SCORE_ZPKZ; j < COUNT_KIND_SCORE; j++ {
-					if nowCnt > 1 {
-						playerScore[j] += tempScore[j]
-					}
-					testScore += tempScore[j] //todo,测试
-					room.SumScore[i] += tempScore[j]
-					room.SumScore[index] -= tempScore[j]
+					testScore += playerScore[j] //todo,测试
+					room.SumScore[i] += playerScore[j]
+					room.SumScore[index] -= playerScore[j]
 				}
 				log.Debug("胡牌分：%d", testScore)
 
 				//庄家分
 				if i == room.BankerUser {
-					playerScore[IDX_SUB_SCORE_ZF] += 1 * score
+					playerScore[IDX_SUB_SCORE_ZF] = 1 * score
 					room.SumScore[i] += 1 * score
 					room.SumScore[index] -= 1 * score
 				} else if index == room.BankerUser {
-					playerScore[IDX_SUB_SCORE_ZF] += 1 * score
+					playerScore[IDX_SUB_SCORE_ZF] = 1 * score
 					room.SumScore[i] += 1 * score
 					room.SumScore[index] -= 1 * score
 				}
@@ -1372,10 +1367,10 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				//连庄
 				if i == room.BankerUser { //庄W
 					room.SumScore[index] -= room.LianZhuang * score
-					playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
+					playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang * score
 					room.SumScore[room.BankerUser] += room.LianZhuang * score
 				} else if room.ProvideUser == room.BankerUser && nowCnt == 0 { // 边W
-					playerScore[IDX_SUB_SCORE_LZ] += room.LianZhuang * score
+					playerScore[IDX_SUB_SCORE_LZ] = room.LianZhuang * score
 					room.SumScore[i] += room.LianZhuang * score
 					room.SumScore[room.BankerUser] -= room.LianZhuang * score
 				}
@@ -1383,22 +1378,22 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 				//补花得分
 				if room.FlowerCnt[i] < 8 {
-					playerScore[IDX_SUB_SCORE_HUA] += room.FlowerCnt[i] * score
+					playerScore[IDX_SUB_SCORE_HUA] = room.FlowerCnt[i] * score
 					room.SumScore[index] -= room.FlowerCnt[i] * score
 				} else { //八张花牌
-					playerScore[IDX_SUB_SCORE_HUA] += 16 * score
+					playerScore[IDX_SUB_SCORE_HUA] = 16 * score
 					room.SumScore[index] -= 16 * score
 				}
 
 				//插花分
-				room.ChaHuaScore[i] = (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
+				room.ChaHuaScore[i] += (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				room.ChaHuaScore[index] = -1 * (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				room.SumScore[index] += room.ChaHuaScore[index]
 				room.SumScore[i] += room.ChaHuaScore[i]
 				log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[index], room.SumScore[i])
 
 				//抓花分
-				playerScore[IDX_SUB_SCORE_ZH] += room.ZhuaHuaScore[i] * score
+				playerScore[IDX_SUB_SCORE_ZH] = room.ZhuaHuaScore[i] * score
 				room.SumScore[index] -= room.ZhuaHuaScore[i] * score
 				room.SumScore[i] += room.ZhuaHuaScore[i] * score
 				log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
@@ -1409,7 +1404,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			log.Debug("补分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
 		} else {
 			//基础分
-			playerScore[IDX_SUB_SCORE_JC] += 1 * score
+			playerScore[IDX_SUB_SCORE_JC] = 1 * score
 			room.SumScore[room.ProvideUser] -= 1 * score
 			room.SumScore[i] += 1 * score
 			log.Debug("基础分:%d,SumScore:%d", playerScore[IDX_SUB_SCORE_JC], room.SumScore[i])
@@ -1417,9 +1412,9 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 			//胡牌
 			testScore := 0 //todo,测试
 			for j := IDX_SUB_SCORE_ZPKZ; j < COUNT_KIND_SCORE; j++ {
-				testScore += tempScore[j] //todo,测试
+				testScore += playerScore[j] //todo,测试
 				room.SumScore[i] += playerScore[j]
-				room.SumScore[room.ProvideUser] -= tempScore[j]
+				room.SumScore[room.ProvideUser] -= playerScore[j]
 			}
 			log.Debug("胡牌分：%d", testScore)
 
@@ -1435,7 +1430,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 			//庄家分
 			if i == room.BankerUser || room.BankerUser == room.ProvideUser {
-				playerScore[IDX_SUB_SCORE_ZF] += 1 * score
+				playerScore[IDX_SUB_SCORE_ZF] = 1 * score
 				room.SumScore[i] += 1 * score
 				room.SumScore[room.ProvideUser] -= 1 * score
 			}
