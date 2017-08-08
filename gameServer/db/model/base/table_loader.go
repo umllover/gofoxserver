@@ -18,21 +18,25 @@ func LoadBaseData() {
 	GameTestpaiCache.LoadAll()
 	GlobalVarCache.LoadAll()
 	GoodsCache.LoadAll()
+	IncAgentNumCache.LoadAll()
 	PersonalTableFeeCache.LoadAll()
 	PersonalTableFeeBak728Cache.LoadAll()
 	RefreshInTimeCache.LoadAll()
 	ServerListCache.LoadAll()
-	ShopCache.LoadAll()
+	UpgradeCache.LoadAll()
+	UpgradeAdvisorCache.LoadAll()
 	db.BaseDataCaches["Activity"] = ActivityCache
 	db.BaseDataCaches["FreeLimit"] = FreeLimitCache
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
 	db.BaseDataCaches["GameTestpai"] = GameTestpaiCache
 	db.BaseDataCaches["GlobalVar"] = GlobalVarCache
 	db.BaseDataCaches["Goods"] = GoodsCache
+	db.BaseDataCaches["IncAgentNum"] = IncAgentNumCache
 	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	db.BaseDataCaches["PersonalTableFeeBak728"] = PersonalTableFeeBak728Cache
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
 	db.BaseDataCaches["ServerList"] = ServerListCache
-	db.BaseDataCaches["Shop"] = ShopCache
-	log.Debug("loadBaseData %v, %v %v", 11, time.Now().UnixNano()-start, "ns")
+	db.BaseDataCaches["Upgrade"] = UpgradeCache
+	db.BaseDataCaches["UpgradeAdvisor"] = UpgradeAdvisorCache
+	log.Debug("loadBaseData %v, %v %v", 13, time.Now().UnixNano()-start, "ns")
 }

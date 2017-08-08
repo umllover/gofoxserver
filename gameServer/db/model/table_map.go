@@ -10,7 +10,6 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(CreateRoomInfo{}, "create_room_info").SetKeys(false,"RoomId")
 	   db.DBMap.AddTableWithName(Gamescoreinfo{}, "gamescoreinfo").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Gamescorelocker{}, "gamescorelocker").SetKeys(false,"UserID")
-	   db.DBMap.AddTableWithName(Globalspreadinfo{}, "globalspreadinfo").SetKeys(false,"ID")
 	   db.DBMap.AddTableWithName(GoodsLive{}, "goods_live").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(IncUserid{}, "inc_userid").SetKeys(false,"NodeId")
 	   db.DBMap.AddTableWithName(Mail{}, "mail").SetKeys(false,"MailId","UserId")
@@ -19,9 +18,6 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(RecordOutcardDdzKing{}, "record_outcard_ddz_king").SetKeys(false,"RecordID")
 	   db.DBMap.AddTableWithName(RoomId{}, "room_id").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(RoomRecord{}, "room_record").SetKeys(false,"RoomId")
-	   db.DBMap.AddTableWithName(Systemgrantcount{}, "systemgrantcount").SetKeys(false,"DateID","RegisterIP")
-	   db.DBMap.AddTableWithName(Systemstatusinfo{}, "systemstatusinfo").SetKeys(false,"StatusName")
-	   db.DBMap.AddTableWithName(Systemstreaminfo{}, "systemstreaminfo").SetKeys(false,"DateID")
 	   db.DBMap.AddTableWithName(TokenRecord{}, "token_record").SetKeys(false,"RoomId","UserId")
 	   db.DBMap.AddTableWithName(UserDayTimes{}, "user_day_times").SetKeys(false,"UserId","KeyId")
 	   db.DBMap.AddTableWithName(UserMaskCode{}, "user_mask_code").SetKeys(false,"UserId")
@@ -34,6 +30,5 @@ func InitTableMap() {
 	   db.DBMap.AddTableWithName(Usertoken{}, "usertoken").SetKeys(false,"UserID")
 	   db.DBMap.AddTableWithName(Version{}, "version").SetKeys(false,"Id")
 	   db.DBMap.AddTableWithName(VersionLocker{}, "version_locker").SetKeys(false,"Id")
-	   db.DBMap.AddTableWithName(VersionUpdateTest{}, "version_update_test").SetKeys(false,"Id")
 	*/
 }
