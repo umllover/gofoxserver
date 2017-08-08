@@ -227,7 +227,7 @@ var userUpdateSql = [][]string{
 		id int(11) NOT NULL,
 		user_id bigint(11) NOT NULL,
 		h_type int(11) NOT NULL,
-		context varchar(11) NOT NULL,
+		context varchar(255) NOT NULL,
 		expiry_time timestamp NULL DEFAULT NULL,
 		PRIMARY KEY (id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
