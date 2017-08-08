@@ -178,6 +178,12 @@ const (
 	AA_PAY_TYPE   = 2 //AA付钱
 )
 
+//离线处理消息枚举
+const (
+	MailTypeDianZhan    = 1
+	MailTypeReturnMoney = 2
+)
+
 //踢出玩家原因
 const (
 	UserOffline    = 0 //socket 断开 主动断线

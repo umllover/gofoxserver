@@ -33,7 +33,6 @@ type ZP_RoomData struct {
 
 	FollowCard   []int       //跟牌
 	IsFollowCard bool        //是否跟牌
-	FlowerCnt    [4]int      //补花数
 	FlowerCard   [][]int     //记录花牌
 	LianZhuang   int         //连庄次数
 	ChaHuaMap    map[int]int //插花数
@@ -48,10 +47,10 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
+func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info)
 
 	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
@@ -130,12 +129,12 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.HuKindType = room.HuKindType[0:0]
 	room.HuKindType = append(room.HuKindType, 1)
 	room.FollowCardScore = make([]int, UserCnt)
-	room.FlowerCnt = [4]int{}
 	room.SumScore = [4]int{}
 	room.HuKindScore = [4][COUNT_KIND_SCORE]int{}
 	room.ZhuaHuaMap = [16]*mj_zp_msg.HuaUser{}
 	room.ZhuaHuaScore = [4]int{}
 
+	room.FlowerCnt = make([]int, UserCnt)
 	room.IsResponse = make([]bool, UserCnt)
 	room.OperateCard = make([][]int, UserCnt)
 	room.FlowerCard = make([][]int, UserCnt)
@@ -417,7 +416,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
-		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
 	}
 
 	//分发扑克
@@ -1510,6 +1509,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.BuHuaCnt = make([]int, UserCnt)
 	StatusPlay.ChaHuaCnt = make([]int, UserCnt)
 	StatusPlay.BanOutCard = make([]int, UserCnt)
+	StatusPlay.BuHuaCard = make([]int, UserCnt)
 
 	StatusPlay.ZhuaHuaCnt = room.ZhuaHuaCnt
 	for k, v := range room.ChaHuaMap {
@@ -1519,7 +1519,7 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 		StatusPlay.BuHuaCnt[i] = room.FlowerCnt[i]
 		if room.FlowerCnt[i] > 0 {
 			index := room.FlowerCnt[i] - 1
-			StatusPlay.BuHuaCard = append(StatusPlay.BuHuaCard, room.FlowerCard[i][index])
+			StatusPlay.BuHuaCard[i] = room.FlowerCard[i][index]
 		}
 	}
 
@@ -2146,7 +2146,7 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 			cardindex = i
 			if room.CardIndex[wChairID][cardindex] > 0 {
 				card := room.MjBase.LogicMgr.SwitchToCardData(cardindex)
-				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BankerUser == wChairID) {
+				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BanUser[wChairID]&LimitChi != 0) {
 					break
 				} else {
 					log.Debug("超时吃啥打啥")

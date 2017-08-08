@@ -5,7 +5,6 @@ import (
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -181,8 +180,8 @@ func init() {
 		return
 	}
 
-	info := &model.CreateRoomInfo{
-		RoomId:       777777,
+	info := &msg.L2G_CreatorRoom{
+		RoomID:       777777,
 		MaxPlayerCnt: 4,
 		KindId:       389,
 		ServiceId:    1,
@@ -196,7 +195,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info.RoomId, u1.Id, IDX_HZMJ, "", temp, r, info.OtherInfo)
+	datag := NewDataMgr(info.RoomID, u1.Id, IDX_HZMJ, "", temp, r, info)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,

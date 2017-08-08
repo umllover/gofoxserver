@@ -2,16 +2,13 @@ package internal
 
 import (
 	"encoding/json"
+	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/center"
 	"mj/hallServer/db/model"
 	"mj/hallServer/user"
 
 	"github.com/lovelly/leaf/log"
-)
-
-const (
-	MailTypeDianZhan = 1
 )
 
 //后期压力这个服务改为redis 做
@@ -29,7 +26,9 @@ func loadHandles(player *user.User) {
 func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	switch v.HType {
 	case MailTypeDianZhan:
-		hanDlerDianZhan(player, v)
+		handlerDianZhan(player, v)
+	case MailTypeReturnMoney:
+		handlerReturnMoney(player, v)
 	}
 }
 
@@ -61,11 +60,25 @@ func AddOfflineHandler(htype int, uid int64, data interface{}, Notify bool) bool
 	return true
 }
 
-func hanDlerDianZhan(player *user.User, msg *model.UserOfflineHandler) {
+func handlerDianZhan(player *user.User, msg *model.UserOfflineHandler) {
 	player.Star++
 	model.UserattrOp.UpdateWithMap(player.UserId, map[string]interface{}{
 		"star": player.Star,
 	})
 
 	//player.WriteMsg(msg.L2C_BeStar{Star:player.Star})
+}
+
+//返还钱给玩家
+func handlerReturnMoney(player *user.User, data *model.UserOfflineHandler) {
+	ReturnMoney := &msg.RoomReturnMoney{}
+	err := json.Unmarshal([]byte(data.Context), ReturnMoney)
+	if err != nil {
+		log.Error("at handlerReturnMoney Unmarshal error ")
+		return
+	}
+	record := player.GetRecord(ReturnMoney.RoomId)
+	if record != nil {
+		player.AddCurrency(record.Amount)
+	}
 }

@@ -2,6 +2,7 @@ package internal
 
 import (
 	"mj/common/base"
+	"mj/hallServer/center"
 
 	"github.com/lovelly/leaf/module"
 )
@@ -16,6 +17,7 @@ type MgrModule struct {
 
 func (m *MgrModule) OnInit() {
 	m.Skeleton = skeleton
+	center.SetOfflineHandler(AddOfflineHandler)
 }
 
 func (m *MgrModule) OnDestroy() {
