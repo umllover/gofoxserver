@@ -1690,8 +1690,12 @@ func (room *ZP_RoomData) RecordBanCard(OperateCode, ChairId int) {
 	room.BanUser[ChairId] |= OperateCode
 }
 
-//吃啥打啥
+//出牌禁忌--吃啥打啥
 func (room *ZP_RoomData) OutOfChiCardRule(CardData, ChairId int) bool {
+	defer func() {
+		room.BanUser[ChairId] = 0
+		room.BanCardCnt[ChairId] = make([]int, 9)
+	}()
 	if room.BanUser[ChairId]&LimitChi != 0 && room.BanCardCnt[ChairId][LimitChi] == CardData {
 		return false
 	}
@@ -1916,12 +1920,6 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		log.Debug("荒庄结束,room.LeftCardCount:%d,room.EndLeftCount:%d", room.GetLeftCard(), room.EndLeftCount)
 		room.ProvideUser = INVALID_CHAIR
 		return 1
-	}
-
-	//清理出牌禁忌
-	if room.SendStatus != Gang_Send {
-		room.BanUser[wCurrentUser] = 0
-		room.BanCardCnt[wCurrentUser] = make([]int, 9)
 	}
 
 	//发送扑克
