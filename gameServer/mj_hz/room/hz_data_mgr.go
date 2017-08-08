@@ -28,7 +28,7 @@ type HuaUser struct {
 
 func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *msg.L2G_CreatorRoom) *hz_data {
 	d := new(hz_data)
-	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info)
 
 	getData, ok := d.OtherInfo["zhaMa"].(float64)
 	if !ok {

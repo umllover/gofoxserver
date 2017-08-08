@@ -17,7 +17,7 @@ import (
 
 func NewDDZDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *DDZ_Entry) *ddz_data_mgr {
 	d := new(ddz_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
 	d.initParam()
 
 	var setInfo pk_ddz_msg.C2G_DDZ_CreateRoomInfo

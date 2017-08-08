@@ -47,10 +47,10 @@ type ZP_RoomData struct {
 	SumScore        [4]int                   //游戏总分
 }
 
-func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
+func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *ZP_base) *ZP_RoomData {
 	r := new(ZP_RoomData)
 	r.ChaHuaMap = make(map[int]int)
-	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	r.RoomData = mj_base.NewDataMgr(info.RoomID, uid, configIdx, name, temp, base.Mj_base, info)
 
 	r.IniSource = temp.IniScore
 	getData, ok := r.OtherInfo["zhuaHua"].(float64)
@@ -417,7 +417,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 
 	//选取庄家
 	if room.BankerUser == INVALID_CHAIR {
-		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
 	}
 
 	//分发扑克

@@ -179,7 +179,7 @@ func updateRoom(args []interface{}) {
 		log.Debug("at  UpdateRoom not foud RoomId:%d", info.RoomId)
 		return
 	}
-	log.Debug("=============================info.OpName=%v, info.Data[HallNodeName]=%v", info.OpName, info.Data["HallNodeName"])
+	//log.Debug("=============================info.OpName=%v, info.Data[HallNodeName]=%v", info.OpName, info.Data["HallNodeName"])
 
 	switch info.OpName {
 	case "AddPlayCnt":
@@ -213,12 +213,13 @@ func updateRoom(args []interface{}) {
 		log.Debug("at hall room DelPlayerId ........................")
 		id := int64(info.Data["UID"].(float64))
 		status := int(info.Data["Status"].(float64))
+		payType := info.Data["PayType"].(int)
 		ply, ok := room.Players[id]
 		if ok {
 			delete(room.Players, id)
 			room.CurCnt = len(room.Players)
 			if ply.HallNodeName == conf.ServerName() {
-				center.SendToThisNodeUser(id, "LeaveRoom", &msg.LeaveRoom{RoomId: room.RoomID, Status: status})
+				center.SendToThisNodeUser(id, "LeaveRoom", &msg.LeaveRoom{RoomId: room.RoomID, Status: status, PayType: payType})
 			}
 
 			if MatchRpc != nil {

@@ -22,7 +22,7 @@ import (
 	"github.com/lovelly/leaf/util"
 )
 
-func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base, setinfo map[string]interface{}) *RoomData {
+func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *Mj_base, info *msg.L2G_CreatorRoom) *RoomData {
 	r := new(RoomData)
 	r.ID = id
 	if name == "" {
@@ -30,10 +30,11 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 	} else {
 		r.Name = name
 	}
-	r.CreateUser = uid
+	r.CreatorUid = uid
+	r.CreatorNodeId = info.CreatorNodeId
 	r.Source = temp.Source
 	r.IniSource = temp.IniScore
-	r.OtherInfo = setinfo //客户端动态的配置信息
+	r.OtherInfo = info.OtherInfo //客户端动态的配置信息
 	r.MjBase = base
 	r.ConfigIdx = configIdx
 	return r
@@ -41,11 +42,12 @@ func NewDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameSe
 
 //当一张桌子理解
 type RoomData struct {
-	ID         int
-	Name       string //房间名字
-	CreateUser int64  //创建房间的人
-	MjBase     *Mj_base
-	ConfigIdx  int //配置索引
+	ID            int
+	Name          string //房间名字
+	CreatorUid    int64  //创建房间的人
+	CreatorNodeId int    //创建房间者的NodeId
+	MjBase        *Mj_base
+	ConfigIdx     int //配置索引
 
 	IsResponse        []bool //标记是否对吃碰杠胡做出过动作
 	PerformAction     []int  //记住玩家出的动作， 用来等待优先级更高的玩家
@@ -113,8 +115,12 @@ func (room *RoomData) GetUserScore(chairid int) int {
 	return room.HistorySe.AllScore[chairid]
 }
 
-func (room *RoomData) GetCreater() int64 {
-	return room.CreateUser
+func (room *RoomData) GetCreator() int64 {
+	return room.CreatorUid
+}
+
+func (room *RoomData) GetCreatorNodeId() int {
+	return room.CreatorNodeId
 }
 
 func (room *RoomData) GetCfg() *MJ_CFG {
@@ -122,7 +128,7 @@ func (room *RoomData) GetCfg() *MJ_CFG {
 }
 
 func (room *RoomData) CanOperatorRoom(uid int64) bool {
-	if uid == room.CreateUser {
+	if uid == room.CreatorUid {
 		return true
 	}
 	return false
@@ -149,7 +155,7 @@ func (room *RoomData) GetRoomId() int {
 }
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
-		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
+		TableOwnerUserID:  room.CreatorUid,                                               //桌主 I D
 		PlayerCnt:         room.MjBase.UserMgr.GetMaxPlayerCnt(),                         //玩家数量
 		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPlayCnt(),                          //局数限制
 		DrawTimeLimit:     room.MjBase.TimerMgr.GetTimeLimit(),                           //时间限制
@@ -1237,7 +1243,7 @@ func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
 func (room *RoomData) CheckZiMo() {
 	////听牌判断
 	//Count := 0
-	//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+	//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
 	//HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	//if room.Ting[room.BankerUser] == false {
 	//	Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
@@ -2246,7 +2252,7 @@ func (room *RoomData) GetLastCard() (card int) {
 //选举庄家
 func (room *RoomData) ElectionBankerUser() {
 	userMgr := room.MjBase.UserMgr
-	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreateUser)
+	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
 	if room.BankerUser == INVALID_CHAIR && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi { //房卡模式下先把庄家给房主
 		if OwnerUser != nil {
 			room.BankerUser = OwnerUser.ChairId

@@ -11,6 +11,8 @@ import (
 	"mj/gameServer/user"
 	"time"
 
+	"mj/common/msg"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -34,9 +36,9 @@ const (
 	TIME_OPEN_CARD  = 3000
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, otherInfo map[string]interface{}) *nntb_data_mgr {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, info *msg.L2G_CreatorRoom) *nntb_data_mgr {
 	d := new(nntb_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base, otherInfo)
+	d.RoomData = pk_base.NewDataMgr(id, uid, ConfigIdx, name, temp, base.Entry_base, info)
 	return d
 }
 

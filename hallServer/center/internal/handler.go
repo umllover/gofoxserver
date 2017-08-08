@@ -3,7 +3,7 @@ package internal
 import (
 	"errors"
 	"mj/common/consul"
-	"mj/common/cost"
+	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/register"
 	"mj/hallServer/conf"
@@ -18,7 +18,8 @@ import (
 )
 
 var (
-	GamelistRpc *chanrpc.Server
+	GamelistRpc       *chanrpc.Server
+	AddOfflineHandler func(htype int, uid int64, data interface{}, Notify bool) bool
 )
 
 func init() {
@@ -36,6 +37,8 @@ func init() {
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 	reg.RegisterS2S(&msg.S2S_HanldeFromUserMsg{}, HanldeFromGameMsg)
 
+	reg.RegisterS2S(&msg.RoomReturnMoney{}, RoomReturnMoney)
+
 	consul.SetHookRpc(ChanRPC)
 }
 
@@ -44,7 +47,7 @@ func SelfNodeAddPlayer(args []interface{}) {
 	uid := args[0].(int64)
 	ch := args[1].(*chanrpc.Server)
 	Users[uid] = ch
-	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodeLogin{
+	cluster.Broadcast(HallPrefix, &msg.S2S_NotifyOtherNodeLogin{
 		Uid:        uid,
 		ServerName: conf.ServerName(),
 	})
@@ -54,7 +57,7 @@ func SelfNodeAddPlayer(args []interface{}) {
 func SelfNodeDelPlayer(args []interface{}) {
 	uid := args[0].(int64)
 	delete(Users, uid)
-	cluster.Broadcast(cost.HallPrefix, &msg.S2S_NotifyOtherNodelogout{
+	cluster.Broadcast(HallPrefix, &msg.S2S_NotifyOtherNodelogout{
 		Uid: uid,
 	})
 }
@@ -172,7 +175,7 @@ func serverStart(args []interface{}) {
 	svr := args[0].(*consul.CacheInfo)
 	log.Debug("%s on line", svr.Csid)
 	cluster.AddClient(&cluster.NsqClient{Addr: svr.Host, ServerName: svr.Csid})
-	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服启动
+	if ok, _ := regexp.Match(GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服启动
 		GamelistRpc.Go("NewServerAgent", svr.Csid)
 	}
 }
@@ -193,7 +196,7 @@ func serverFaild(args []interface{}) {
 		return
 	}
 	cluster.RemoveClient(svr.Csid)
-	if ok, _ := regexp.Match(cost.GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服关闭
+	if ok, _ := regexp.Match(GamePrefix, []byte(svr.Csid)); ok { //如果是游戏服关闭
 		GamelistRpc.Go("FaildServerAgent", id)
 	}
 }

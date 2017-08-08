@@ -32,7 +32,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 		return nil
 	}
 	zpBase := room_base.NewRoomBase()
-	zpData := NewDataMgr(info, info.CreatorUid, mj_base.IDX_ZPMJ, "", temp, r)
+	zpData := NewZPDataMgr(info, info.CreatorUid, mj_base.IDX_ZPMJ, "", temp, r)
 	if zpData == nil {
 		log.Error("at creator zpmj error NewDataMgr faild roomID:%d,", info.RoomID)
 		return nil
