@@ -195,7 +195,7 @@ const (
 	IDX_SUB_SCORE_AG  = 3 //暗杠
 	IDX_SUB_SCORE_FB  = 4 //分饼
 	IDX_SUB_SCORE_ZH  = 5 //抓花
-	IDX_SUB_SCORE_CH  = 6 //插花
+	IDX_SUB_SCORE_ZF  = 6 //庄分
 	//胡牌+分
 	IDX_SUB_SCORE_ZPKZ = 7  //字牌刻字
 	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
@@ -232,9 +232,7 @@ const (
 	IDX_SUB_SCORE_ZYS   = 35 //字一色
 	IDX_SUB_SCORE_ZPG   = 36 //字牌杠
 
-	//IDX_SUB_SCORE_ZJF = 37 //todo,庄家分==客户端
-
-	COUNT_KIND_SCORE = 37 //todo,分数子项个数==客户端
+	COUNT_KIND_SCORE = 37 //分数子项个数
 
 )
 
