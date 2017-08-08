@@ -315,7 +315,7 @@ func (room *Mj_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
-	BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	BirefInf.CreateUserId = room.DataMgr.GetCreator()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
 	BirefInf.MachPlayer = make(map[int64]int64) //todo
@@ -627,6 +627,10 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 				RoomId: room.DataMgr.GetRoomId(),
 				Status: room.Status,
 			})
+
+			//全付的房间，若没开始过并且创建的房主没在，则返还给他钱
+			room.CheckRoomReturnMoney()
+
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
 		}
@@ -643,6 +647,25 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
+}
+
+//检测房间是否该返还房主钱
+func (room *Mj_base) CheckRoomReturnMoney() {
+	//全付的房间，并且没开始过游戏
+	if room.UserMgr.GetPayType() != SELF_PAY_TYPE && room.Status != RoomStatusReady {
+		return
+	}
+	//要求房主没在房间内才在这边返还，否则走的是其他逻辑返还
+	creatorId := room.DataMgr.GetCreator()
+	isCreatorInRoom := false
+	room.UserMgr.ForEachUser(func(u *user.User) {
+		if u.Id == creatorId {
+			isCreatorInRoom = true
+		}
+	})
+	if !isCreatorInRoom {
+		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
+	}
 }
 
 //托管

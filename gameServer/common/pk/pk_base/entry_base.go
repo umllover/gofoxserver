@@ -320,7 +320,7 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
-	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	//BirefInf.CreateUserId = room.DataMgr.GetCreator()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
 	BirefInf.MachPlayer = make(map[int64]int64)

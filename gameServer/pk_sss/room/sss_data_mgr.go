@@ -36,7 +36,7 @@ func init() {
 
 func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info.OtherInfo)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
 	//var setInfo sssOtherInfo
 	//if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
 	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
