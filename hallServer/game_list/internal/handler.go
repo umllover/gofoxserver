@@ -213,7 +213,7 @@ func updateRoom(args []interface{}) {
 		log.Debug("at hall room DelPlayerId ........................")
 		id := int64(info.Data["UID"].(float64))
 		status := int(info.Data["Status"].(float64))
-		payType := info.Data["PayType"].(int)
+		payType := int(info.Data["PayType"].(float64))
 		ply, ok := room.Players[id]
 		if ok {
 			delete(room.Players, id)
