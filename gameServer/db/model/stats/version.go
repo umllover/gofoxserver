@@ -16,8 +16,8 @@ import (
 
 // +gen *
 type Version struct {
-	Id  int `db:"id" json:"id"`   //
 	Ver int `db:"ver" json:"ver"` //
+	Id  int `db:"id" json:"id"`   //
 }
 
 type versionOp struct{}
@@ -95,10 +95,10 @@ func (op *versionOp) Insert(m *Version) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *versionOp) InsertTx(ext sqlx.Ext, m *Version) (int64, error) {
-	sql := "insert into version(id,ver) values(?,?)"
+	sql := "insert into version(ver,id) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.Id,
 		m.Ver,
+		m.Id,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -110,9 +110,9 @@ func (op *versionOp) InsertTx(ext sqlx.Ext, m *Version) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *versionOp) InsertUpdate(obj *Version, m map[string]interface{}) error {
-	sql := "insert into version(id,ver) values(?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.Id,
-		obj.Ver,
+	sql := "insert into version(ver,id) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.Ver,
+		obj.Id,
 	}
 	var set_sql string
 	for k, v := range m {
