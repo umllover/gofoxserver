@@ -262,6 +262,24 @@ var userUpdateSql = [][]string{
 	2: []string{
 		"ALTER TABLE token_record add play_cnt int(11) NOT NULL DEFAULT 0  COMMENT '可玩的局数';",
 	},
+
+	3: []string{
+		`CREATE TABLE record_outcard_ddz (
+		RecordID bigint(11) NOT NULL COMMENT '记录ID',
+		CreateTime int(11) NOT NULL COMMENT '创建时间',
+		CardData text COMMENT '牌数据，数组转成字符串',
+		PRIMARY KEY (RecordID)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
+
+	4: []string{
+		`CREATE TABLE record_outcard_ddz_king (
+		RecordID bigint(11) NOT NULL COMMENT '记录ID八王表',
+		CreateTime int(11) NOT NULL COMMENT '创建时间',
+		CardData text COMMENT '牌数据，数组转成字符串',
+		PRIMARY KEY (RecordID)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////
