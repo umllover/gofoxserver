@@ -2129,16 +2129,17 @@ func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 //截头
 func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
 	cardValue := room.OutCardData & MASK_VALUE
+	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
 		} else if pAnalyseItem.IsAnalyseGet[k] {
 			//1-2 胡3
-			if cardValue == 3 && room.OutCardData == pAnalyseItem.CardData[k][2] {
+			if cardValue == 3 && HuOfCard == pAnalyseItem.CardData[k][2] {
 				return CHR_JIE_TOU
 			}
 			//8-9 胡7
-			if cardValue == 7 && room.OutCardData == pAnalyseItem.CardData[k][0] {
+			if cardValue == 7 && HuOfCard == pAnalyseItem.CardData[k][0] {
 				return CHR_JIE_TOU
 			}
 		}
@@ -2149,11 +2150,12 @@ func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
 
 //空心
 func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
+	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
 		} else if pAnalyseItem.IsAnalyseGet[k] {
-			if room.OutCardData == pAnalyseItem.CardData[k][1] {
+			if HuOfCard == pAnalyseItem.CardData[k][1] {
 				return CHR_KONG_XIN
 			}
 		}
