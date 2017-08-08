@@ -309,25 +309,11 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
-	room.OperateCard[u.ChairId] = make([]int, 4)
-	opcard := OperateCard[0]
-	room.OperateCard[u.ChairId][0] = opcard
-
-	if OperateCode&WIK_LEFT != 0 {
-		room.OperateCard[u.ChairId][1] = opcard + 1
-		room.OperateCard[u.ChairId][2] = opcard + 2
-	} else if OperateCode&WIK_CENTER != 0 {
-		room.OperateCard[u.ChairId][1] = opcard - 1
-		room.OperateCard[u.ChairId][2] = opcard + 1
-	} else if OperateCode&WIK_RIGHT != 0 {
-		room.OperateCard[u.ChairId][1] = opcard - 1
-		room.OperateCard[u.ChairId][2] = opcard - 2
+	if len(OperateCard) > 2 {
+		room.OperateCard[u.ChairId] = make([]int, 4)
+		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
 	} else {
-		room.OperateCard[u.ChairId][1] = opcard
-		room.OperateCard[u.ChairId][2] = opcard
-		if OperateCode&WIK_GANG != 0 {
-			room.OperateCard[u.ChairId][3] = opcard
-		}
+		room.OperateCard[u.ChairId] = OperateCard
 	}
 
 	u.UserLimit = 0
@@ -373,6 +359,42 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	}
 	//走到这里一定是所有人都响应完了
 	return cbTargetAction, wTargetUser
+}
+
+func (room *RoomData) BuildOpCard(ChairId, OperateCode, opcard int) {
+	if OperateCode&WIK_LEFT != 0 {
+		room.OperateCard[ChairId][0] = opcard
+		room.OperateCard[ChairId][1] = opcard + 1
+		room.OperateCard[ChairId][2] = opcard + 2
+	} else if OperateCode&WIK_CENTER != 0 {
+		room.OperateCard[ChairId][0] = opcard - 1
+		room.OperateCard[ChairId][1] = opcard
+		room.OperateCard[ChairId][2] = opcard + 1
+	} else if OperateCode&WIK_RIGHT != 0 {
+		room.OperateCard[ChairId][0] = opcard - 2
+		room.OperateCard[ChairId][1] = opcard - 1
+		room.OperateCard[ChairId][2] = opcard
+	} else {
+		room.OperateCard[ChairId][0] = opcard
+		room.OperateCard[ChairId][1] = opcard
+		room.OperateCard[ChairId][2] = opcard
+		if OperateCode&WIK_GANG != 0 {
+			room.OperateCard[ChairId][3] = opcard
+		}
+	}
+}
+
+func (room *RoomData) GetOpCard(ChairId int) int {
+	OperateCode := room.PerformAction[ChairId]
+	if OperateCode&WIK_LEFT != 0 {
+		return room.OperateCard[ChairId][0]
+	} else if OperateCode&WIK_CENTER != 0 {
+		return room.OperateCard[ChairId][1]
+	} else if OperateCode&WIK_RIGHT != 0 {
+		return room.OperateCard[ChairId][2]
+	} else {
+		return room.OperateCard[ChairId][0]
+	}
 }
 
 func (room *RoomData) UserChiHu(wTargetUser, userCnt int) {
@@ -430,19 +452,19 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 }
 
 func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
-	opCard := room.OperateCard[wTargetUser][0]
+	opCard := room.OperateCard[wTargetUser]
 	var card []int
 	switch ChoOp {
 	case WIK_LEFT:
-		card = []int{opCard + 1, opCard + 2}
+		card = opCard[1:3]
 	case WIK_RIGHT:
-		card = []int{opCard - 1, opCard - 2}
+		card = opCard[0:2]
 	case WIK_CENTER:
-		card = []int{opCard - 1, opCard + 1}
+		card = []int{opCard[0], opCard[2]}
 	case WIK_PENG:
-		card = []int{opCard, opCard}
+		card = []int{opCard[0], opCard[0]}
 	case WIK_GANG: //杠牌操作
-		card = []int{opCard, opCard, opCard}
+		card = []int{opCard[0], opCard[0], opCard[0]}
 	default:
 		return false
 	}
@@ -569,7 +591,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	wrave.CardData = make([]int, 4)
 	wrave.CardData = util.CopySlicInt(room.OperateCard[wTargetUser])
-	wrave.CenterCard = wrave.CardData[0]
+	wrave.CenterCard = room.GetOpCard(wTargetUser)
 
 	//用户状态
 	room.ResetUserOperate()
