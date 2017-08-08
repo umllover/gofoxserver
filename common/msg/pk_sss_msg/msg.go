@@ -89,6 +89,7 @@ type G2C_SSS_COMPARE struct {
 type G2C_SSS_Record struct {
 	AllResult [][]int `json:"allResult"` //每一局总分
 	AllScore  []int   `json:"allScore"`  //总分
+	Reason    int     `json:"Reason"`    //结束原因
 }
 
 //游戏状态
@@ -110,6 +111,7 @@ type G2C_SSS_StatusPlay struct {
 	MaxPlayCount       int             `json:"maxPlayCount"`       //总局数
 	Laizi              []int           `json:"Laizi"`              //癞子牌
 	PublicCards        []int           `json:"PublicCards"`        //公共牌
+	Record             G2C_SSS_Record  `json:"Record"`             //结算数据
 }
 
 //分段信息

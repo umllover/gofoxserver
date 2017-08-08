@@ -47,6 +47,12 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string
 	return d
 }
 
+type sssCardType struct {
+	CT      int
+	Item    *TagAnalyseItem
+	isLaiZi bool
+}
+
 type sss_data_mgr struct {
 	*pk_base.RoomData
 
@@ -94,24 +100,27 @@ type sss_data_mgr struct {
 	AllResult [][]int //每一局的结果
 
 	gameEndStatus *pk_sss_msg.G2C_SSS_COMPARE
+	gameRecord    *pk_sss_msg.G2C_SSS_Record
 
 	/////////////////////////
 
 	//PlayerNum             int       //玩家数量
-	Players               []int     //玩家
-	PlayerCards           [][]int   //玩家手牌
-	PlayerSegmentCards    [][][]int //玩家组牌结果
-	Results               [][]int   //玩家每一道牌的水数
-	SpecialResults        []int     //玩家特殊牌水数
-	ToltalResults         []int     //玩家总共水数
-	CompareResults        [][]int   //玩家每一道比较结果
-	SpecialCompareResults []int     //玩家特殊牌型比较结果
-	ShootState            [][]int   //打枪(0赢的玩家,1输的玩家)
-	ShootResults          []int     //打枪的水数
-	ShootNum              int       //几家打枪
-	AddCards              []int     //加牌
-	PublicCards           []int     //公共牌
-	UniversalCards        []int     //万能牌
+	Players               []int           //玩家
+	PlayerCards           [][]int         //玩家手牌
+	PlayerSpecialCardType []sssCardType   //玩家特殊牌型数据
+	PlayerSegmentCards    [][][]int       //玩家组牌结果
+	PlayerSegmentCardType [][]sssCardType //玩家组牌牌型数据
+	Results               [][]int         //玩家每一道牌的水数
+	SpecialResults        []int           //玩家特殊牌水数
+	ToltalResults         []int           //玩家总共水数
+	CompareResults        [][]int         //玩家每一道比较结果
+	SpecialCompareResults []int           //玩家特殊牌型比较结果
+	ShootState            [][]int         //打枪(0赢的玩家,1输的玩家)
+	ShootResults          []int           //打枪的水数
+	ShootNum              int             //几家打枪
+	AddCards              []int           //加牌
+	PublicCards           []int           //公共牌
+	UniversalCards        []int           //万能牌
 
 }
 
@@ -144,12 +153,15 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
+	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
 
 	/////////////////////////////
 	//room.PlayerNum = UserCnt
 	room.Players = make([]int, UserCnt)
 	room.PlayerCards = make([][]int, UserCnt)
+	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
 	room.PlayerSegmentCards = make([][][]int, UserCnt)
+	room.PlayerSegmentCardType = make([][]sssCardType, UserCnt)
 	room.Results = make([][]int, UserCnt)
 	for i := range room.Results {
 		room.Results[i] = make([]int, 3)
@@ -182,7 +194,9 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 	/////////////////////////////
 
 	room.PlayerCards = make([][]int, UserCnt)
+	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
 	room.PlayerSegmentCards = make([][][]int, UserCnt)
+	room.PlayerSegmentCardType = make([][]sssCardType, UserCnt)
 	room.Results = make([][]int, UserCnt)
 	for i := range room.Results {
 		room.Results[i] = make([]int, 3)
@@ -199,13 +213,35 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 
 }
 
+func (r *sss_data_mgr) checkLaiZi(carData []int) bool {
+	if len(r.UniversalCards) > 0 {
+		for _, v := range carData {
+			for _, v1 := range r.UniversalCards {
+				if v == v1 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (r *sss_data_mgr) ComputeChOut() {
-	lg := r.PkBase.LogicMgr
+	lg := r.PkBase.LogicMgr.(*sss_logic)
+	lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		i := u.ChairId
+		var ct int
+		var item *TagAnalyseItem
+
+		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		switch lg.GetCardType(r.PlayerCards[i]) {
+		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
+		r.PlayerSpecialCardType[i].CT = ct
+		r.PlayerSpecialCardType[i].Item = item
+		r.PlayerSpecialCardType[i].isLaiZi = r.checkLaiZi(r.PlayerCards[i])
+		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
 			r.SpecialResults[i] = 104
@@ -225,8 +261,9 @@ func (r *sss_data_mgr) ComputeChOut() {
 			log.Debug("六对半")
 			r.SpecialResults[i] = 6
 			//有炸弹（四条）
-			if lg.GetCardType(r.PlayerSegmentCards[i][1]) == CT_FIVE_FOUR_ONE ||
-				lg.GetCardType(r.PlayerSegmentCards[i][2]) == CT_FIVE_FOUR_ONE {
+			ct1, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][1])
+			ct2, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][2])
+			if ct1 == CT_FIVE_FOUR_ONE || ct2 == CT_FIVE_FOUR_ONE {
 				r.SpecialResults[i] = 10
 			}
 		case CT_THREE_STRAIGHT: //三顺子
@@ -239,7 +276,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 			//todo 有同花顺
 		default: //普通牌型
 			//前敦
-			switch lg.GetCardType(r.PlayerSegmentCards[i][0]) {
+			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][0])
+			r.PlayerSegmentCardType[i][0].CT = ct
+			r.PlayerSegmentCardType[i][0].Item = item
+			r.PlayerSegmentCardType[i][0].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][0])
+			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("前敦散牌")
 				r.Results[i][0] = 1
@@ -251,7 +292,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 				r.Results[i][0] = 3
 			}
 			//中墩
-			switch lg.GetCardType(r.PlayerSegmentCards[i][1]) {
+			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][1])
+			r.PlayerSegmentCardType[i][1].CT = ct
+			r.PlayerSegmentCardType[i][1].Item = item
+			r.PlayerSegmentCardType[i][1].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][1])
+			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("中墩散牌")
 				r.Results[i][1] = 1
@@ -285,7 +330,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 			}
 
 			//尾墩
-			switch lg.GetCardType(r.PlayerSegmentCards[i][2]) {
+			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][2])
+			r.PlayerSegmentCardType[i][2].CT = ct
+			r.PlayerSegmentCardType[i][2].Item = item
+			r.PlayerSegmentCardType[i][2].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][2])
+			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("后墩散牌")
 				r.Results[i][2] = 1
@@ -323,6 +372,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 func (r *sss_data_mgr) ComputeResult() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
+	lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	//打枪次数
 	shootPlayerNum := make([]int, r.PlayerCount)
@@ -335,7 +385,7 @@ func (r *sss_data_mgr) ComputeResult() {
 
 				//都是普通牌型
 				if r.SpecialResults[i] == 0 && r.SpecialResults[j] == 0 {
-					firstResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][0], r.PlayerSegmentCards[i][0])
+					firstResult := lg.SSSCompareCard(r.PlayerSegmentCardType[j][0], r.PlayerSegmentCardType[i][0])
 					switch firstResult {
 					case 1:
 						winPoint += r.Results[i][0]
@@ -344,7 +394,7 @@ func (r *sss_data_mgr) ComputeResult() {
 						winPoint -= r.Results[j][0]
 						r.CompareResults[i][0] -= r.Results[j][0]
 					}
-					midResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][1], r.PlayerSegmentCards[i][1])
+					midResult := lg.SSSCompareCard(r.PlayerSegmentCardType[j][1], r.PlayerSegmentCardType[i][1])
 					switch midResult {
 					case 1:
 						winPoint += r.Results[i][1]
@@ -353,7 +403,7 @@ func (r *sss_data_mgr) ComputeResult() {
 						winPoint -= r.Results[j][1]
 						r.CompareResults[i][1] -= r.Results[j][1]
 					}
-					backResult := lg.SSSCompareCard(r.PlayerSegmentCards[j][2], r.PlayerSegmentCards[i][2])
+					backResult := lg.SSSCompareCard(r.PlayerSegmentCardType[j][2], r.PlayerSegmentCardType[i][2])
 					switch backResult {
 					case 1:
 						winPoint += r.Results[i][2]
@@ -382,7 +432,7 @@ func (r *sss_data_mgr) ComputeResult() {
 				}
 				//都是特殊牌型
 				if r.SpecialResults[i] > 0 && r.SpecialResults[j] > 0 {
-					switch lg.SSSCompareCard(r.PlayerCards[j], r.PlayerCards[i]) {
+					switch lg.SSSCompareCard(r.PlayerSpecialCardType[j], r.PlayerSpecialCardType[i]) {
 					case 1:
 						winPoint += r.SpecialResults[i]
 						r.SpecialCompareResults[i] += r.SpecialResults[i]
@@ -495,7 +545,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 
 	userMgr.ForEachUser(func(u *user.User) {
 		room.PlayerCards[u.ChairId] = make([]int, 0, 13)
-		for i := 0; i < pk_base.GetCfg(pk_base.IDX_SSS).MaxCount; i++ {
+		for i := 0; i < 13; i++ {
 			room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], room.GetOneCard())
 		}
 	})
@@ -651,8 +701,8 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 		})
 		room.gameEndStatus = gameEnd
 
-		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()] = gameEnd.LGameScore
-		room.PkBase.TimerMgr.AddPlayCount()
+		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()-1] = gameEnd.LGameScore
+		//room.PkBase.TimerMgr.AddPlayCount()
 		//最后一局
 		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
 			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
@@ -661,15 +711,16 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 			for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
 				for j := range allScore {
-
 					allScore[j] += room.AllResult[i][j]
 				}
 			}
 			gameRecord.AllScore = allScore
 
+			gameRecord.Reason = GER_NORMAL
 			userMgr.ForEachUser(func(u *user.User) {
 				u.WriteMsg(gameRecord)
 			})
+			room.gameRecord = gameRecord
 		}
 
 	}
@@ -729,7 +780,7 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	statusPlay.BAllHandCardData = make([][]int, 0)
 	//SGameEnd           G2C_SSS_COMPARE `json:"sGameEnd"`           //游戏结束数据
 	statusPlay.SGameEnd = *room.gameEndStatus
-
+	statusPlay.Record = *room.gameRecord
 	statusPlay.PlayerCount = room.PkBase.UserMgr.GetCurPlayerCnt()
 	statusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
