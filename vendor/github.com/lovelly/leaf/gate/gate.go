@@ -25,7 +25,7 @@ var (
 
 func filterMsg(b []byte) bool {
 	for _, msg := range filter {
-		if ok, _ := regexp.Match(msg, b); !ok {
+		if ok, _ := regexp.Match(msg, b); ok {
 			return true
 		}
 	}
