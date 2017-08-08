@@ -259,6 +259,7 @@ func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	outData.ReplaceUser = u.ChairId
 	outData.ReplaceCard = CardData
 	outData.NewCard = room.SendCardData
+	outData.ActionMask = room.UserAction[u.ChairId]
 	room.MjBase.UserMgr.SendMsgAll(outData)
 
 	log.Debug("[用户补花结束] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
