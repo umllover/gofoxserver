@@ -91,7 +91,7 @@ type RoomData struct {
 	CurrentUser     int                    //当前操作用户
 	Ting            []bool                 //是否听牌
 	BankerUser      int                    //庄家用户
-	FlowerCnt       [4]int                 //补花数
+	FlowerCnt       []int                  //补花数
 	ChangeBanker    bool                   //庄家是否变动
 	OtherInfo       map[string]interface{} //客户端动态的配置信息
 
@@ -921,7 +921,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
 	}
-	room.FlowerCnt = [4]int{}
+	room.FlowerCnt = make([]int, UserCnt)
 	room.ChiHuKind = make([]int, UserCnt)
 	room.ChiPengCount = make([]int, UserCnt)
 	room.GangCard = make([]bool, UserCnt) //杠牌状态
@@ -1827,7 +1827,7 @@ func (room *RoomData) IsAnKe(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //无花字
-func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 	if FlowerCnt[room.CurrentUser] != 0 {
 		return 0
 	}
@@ -1965,7 +1965,7 @@ func (room *RoomData) IsHunYiSe(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //清一色
-func (room *RoomData) IsQingYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsQingYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 	cardColor := pAnalyseItem.CardEye & MASK_COLOR
 	for _, v := range pAnalyseItem.CenterCard {
 		if v&MASK_COLOR != cardColor {
@@ -1980,7 +1980,7 @@ func (room *RoomData) IsQingYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int)
 }
 
 //花一色
-func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 	cardColor := pAnalyseItem.CardEye & MASK_COLOR
 	for _, v := range pAnalyseItem.CenterCard {
 		if v&MASK_COLOR != cardColor {
@@ -1996,7 +1996,7 @@ func (room *RoomData) IsHuaYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) 
 }
 
 //字一色
-func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsZiYiSe(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 	if FlowerCnt[room.CurrentUser] != 0 {
 		return 0
 	}
@@ -2034,7 +2034,7 @@ func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //佰六
-func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 
 	if FlowerCnt[room.CurrentUser] > 0 {
 		return 0
@@ -2072,7 +2072,7 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) i
 }
 
 //门清佰六
-func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt [4]int) int {
+func (room *RoomData) IsMenQingBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) int {
 	if room.IsMenQing(pAnalyseItem) > 0 && room.IsBaiLiu(pAnalyseItem, FlowerCnt) > 0 {
 		return CHR_QING_BAI_LIU
 	}

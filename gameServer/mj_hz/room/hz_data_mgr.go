@@ -56,7 +56,7 @@ func (room *hz_data) InitRoom(UserCnt int) {
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
 	}
-	room.FlowerCnt = [4]int{}
+	room.FlowerCnt = make([]int, UserCnt)
 	room.ChiHuKind = make([]int, UserCnt)
 	room.ChiPengCount = make([]int, UserCnt)
 	room.GangCard = make([]bool, UserCnt) //杠牌状态
