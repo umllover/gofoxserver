@@ -74,7 +74,7 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	room.DataMgr.RecordOutCarCnt()
 
 	//记录跟牌
-	room.DataMgr.RecordFollowCard(CardData)
+	room.DataMgr.RecordFollowCard(u.ChairId, CardData)
 
 	u.UserLimit &= ^LimitChiHu
 	u.UserLimit &= ^LimitPeng

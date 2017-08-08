@@ -34,6 +34,7 @@ type IDBCnf interface {
 	GetAccountDBMaxOpen() int
 	GetAccountDBMaxIdle() int
 	GetRedisAddr() string
+	GetRedisPwd() string
 }
 
 func InitDB(cnf IDBCnf) {
@@ -48,9 +49,14 @@ func InitDB(cnf IDBCnf) {
 
 		//RdsDB = redis.NewClient(&redis.Options{
 		//	Addr:     cnf.GetRedisAddr(),
-		//	Password: "",
+		//	Password: cnf.GetRedisPwd(),
 		//	DB:       0,
 		//})
+		//
+		//ret := RdsDB.Ping()
+		//if ret.Err() != nil {
+		//	log.Fatal("connect redis error ")
+		//}
 	})
 }
 

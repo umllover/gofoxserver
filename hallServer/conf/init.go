@@ -50,6 +50,7 @@ var Server struct {
 
 	ConnAddrs       map[string]string
 	RedisAddr       string
+	RedisPwd        string
 	AuthServerUrl   string
 	PendingWriteNum int
 	WatchAddr       string
@@ -92,6 +93,10 @@ func (c *DBConfig) GetAccoutDSN() string {
 
 func (c *DBConfig) GetRedisAddr() string {
 	return Server.RedisAddr
+}
+
+func (c *DBConfig) GetRedisPwd() string {
+	return Server.RedisPwd
 }
 
 func (c *DBConfig) GetBaseDSN() string {

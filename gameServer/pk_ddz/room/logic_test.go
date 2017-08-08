@@ -24,6 +24,8 @@ import (
 
 	"mj/common/msg"
 
+	"encoding/json"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/gate"
@@ -43,6 +45,15 @@ var (
 var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
+	a := []int{1, 2, 1, 3}
+	str, err := json.Marshal(a)
+	log.Debug("%v", a)
+	log.Debug("%d,%s", err, str)
+
+	var b []int
+	err = json.Unmarshal(str, &b)
+	log.Debug("%d", err)
+	log.Debug("%v", b)
 	//room.UserReady([]interface{}{nil, u1})
 	//f := func() {
 	//	log.Debug("出发了")
@@ -239,8 +250,8 @@ func TestRemoveCard(t *testing.T) {
 func TestCompareCard(t *testing.T) {
 	//return
 	lg := new(ddz_logic)
-	lg.SetParamToLogic(8)
-	ntype, b := lg.CompareCardWithParam([]int{}, []int{5, 7, 8, 8}, []interface{}{CT_ERROR})
+	lg.SetParamToLogic(0xd)
+	ntype, b := lg.CompareCardWithParam([]int{3, 4, 5, 6, 7}, []int{7, 0xd, 0xd, 0xd}, []interface{}{CT_SINGLE_LINE | 0x57})
 	log.Debug("比牌结果%#x,%d", ntype, b)
 
 	//c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}

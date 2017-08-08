@@ -84,6 +84,9 @@ func main() {
 
 //非协程安全 todo 后期改为redis
 func IncRoomCnt(roomid int) (int, error) {
+	//ret := db.RdsDB.Incr(fmt.Sprintf("IncRoom:%d", roomid))
+	//cnt, err := ret.Result()
+	//return int(cnt), err
 	_, err := db.DB.Exec("UPDATE create_room_info set user_cnt = user_cnt+1 WHERE room_id=?", roomid)
 	if err != nil {
 		return 0, err
