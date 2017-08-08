@@ -2146,7 +2146,7 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 			cardindex = i
 			if room.CardIndex[wChairID][cardindex] > 0 {
 				card := room.MjBase.LogicMgr.SwitchToCardData(cardindex)
-				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BankerUser == wChairID) {
+				if !(card == room.BanCardCnt[wChairID][LimitChi] && room.BanUser[wChairID]&LimitChi != 0) {
 					break
 				} else {
 					log.Debug("超时吃啥打啥")
