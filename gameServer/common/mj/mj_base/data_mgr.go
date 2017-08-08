@@ -309,7 +309,26 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
-	room.OperateCard[u.ChairId] = OperateCard
+	room.OperateCard[u.ChairId] = make([]int, 4)
+	opcard := OperateCard[0]
+	room.OperateCard[u.ChairId][0] = opcard
+
+	if OperateCode&WIK_LEFT != 0 {
+		room.OperateCard[u.ChairId][1] = opcard + 1
+		room.OperateCard[u.ChairId][2] = opcard + 2
+	} else if OperateCode&WIK_CENTER != 0 {
+		room.OperateCard[u.ChairId][1] = opcard - 1
+		room.OperateCard[u.ChairId][2] = opcard + 1
+	} else if OperateCode&WIK_RIGHT != 0 {
+		room.OperateCard[u.ChairId][1] = opcard - 1
+		room.OperateCard[u.ChairId][2] = opcard - 2
+	} else {
+		room.OperateCard[u.ChairId][1] = opcard
+		room.OperateCard[u.ChairId][2] = opcard
+		if OperateCode&WIK_GANG != 0 {
+			room.OperateCard[u.ChairId][3] = opcard
+		}
+	}
 
 	u.UserLimit = 0
 	//放弃操作
@@ -404,43 +423,32 @@ func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 		Wrave.ProvideUser = room.ProvideUser
 	}
 
-	Wrave.CardData[0] = cbTargetCard
-	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
-		Wrave.CardData[1] = room.OperateCard[wTargetUser][1]
-		Wrave.CardData[2] = room.OperateCard[wTargetUser][2]
-	} else {
-		Wrave.CardData[1] = cbTargetCard
-		Wrave.CardData[2] = cbTargetCard
-		if cbTargetAction&WIK_GANG != 0 {
-			Wrave.Param = WIK_MING_GANG
-			Wrave.CardData[3] = cbTargetCard
-		}
-	}
+	Wrave.CardData = util.CopySlicInt(room.OperateCard[wTargetUser])
+
 	log.Debug("###############杠牌：%v", Wrave)
 	room.WeaveItemArray[wTargetUser] = append(room.WeaveItemArray[wTargetUser], Wrave)
 }
 
 func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
-	opCard := room.OperateCard[wTargetUser]
+	opCard := room.OperateCard[wTargetUser][0]
 	var card []int
 	switch ChoOp {
 	case WIK_LEFT:
-		card = opCard[1:]
+		card = []int{opCard + 1, opCard + 2}
 	case WIK_RIGHT:
-		card = opCard[0:2]
+		card = []int{opCard - 1, opCard - 2}
 	case WIK_CENTER:
-		card = append(card, opCard[0])
-		card = append(card, opCard[2])
+		card = []int{opCard - 1, opCard + 1}
 	case WIK_PENG:
-		card = []int{opCard[0], opCard[0]}
+		card = []int{opCard, opCard}
 	case WIK_GANG: //杠牌操作
-		card = []int{opCard[0], opCard[0], opCard[0]}
+		card = []int{opCard, opCard, opCard}
 	default:
 		return false
 	}
 	//删除扑克
 	if !room.MjBase.LogicMgr.RemoveCardByArr(room.CardIndex[wTargetUser], card) {
-		log.Error("not foud card at RemoveCardByOP")
+		log.Error("not foud card at RemoveCardByOP :%v :%v", card, room.CardIndex[wTargetUser])
 		return false
 	}
 	room.ChiPengCount[wTargetUser]++
@@ -558,16 +566,10 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	} else {
 		wrave.ProvideUser = room.ProvideUser
 	}
-	cbTargetCard := room.OperateCard[wTargetUser][0]
+
 	wrave.CardData = make([]int, 4)
-	wrave.CardData[0] = cbTargetCard
-	if cbTargetAction&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) != 0 {
-		wrave.CardData[1] = room.OperateCard[wTargetUser][1]
-		wrave.CardData[2] = room.OperateCard[wTargetUser][2]
-	} else if cbTargetAction&WIK_PENG != 0 {
-		wrave.CardData[1] = cbTargetCard
-		wrave.CardData[2] = cbTargetCard
-	}
+	wrave.CardData = util.CopySlicInt(room.OperateCard[wTargetUser])
+	wrave.CenterCard = wrave.CardData[0]
 
 	//用户状态
 	room.ResetUserOperate()
