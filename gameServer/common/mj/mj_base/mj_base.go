@@ -663,6 +663,7 @@ func (room *Mj_base) CheckRoomReturnMoney() {
 			isCreatorInRoom = true
 		}
 	})
+	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
 	if !isCreatorInRoom {
 		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
 	}
