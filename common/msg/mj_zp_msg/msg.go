@@ -101,6 +101,7 @@ type G2C_ZPMJ_GameConclude struct {
 	LianZhuang   int          //连庄
 	ScoreKind    [4][37]int   //得分类型
 	ZhuaHua      [16]*HuaUser //用户抓花
+	ChaHuaScore  []int        //插花分
 	//type HuaUser struct {
 	//	chairID int
 	//	card    int

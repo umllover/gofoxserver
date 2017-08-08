@@ -195,7 +195,7 @@ const (
 	IDX_SUB_SCORE_AG  = 3 //暗杠
 	IDX_SUB_SCORE_FB  = 4 //分饼
 	IDX_SUB_SCORE_ZH  = 5 //抓花
-	IDX_SUB_SCORE_CH  = 6 //插花
+	IDX_SUB_SCORE_ZF  = 6 //庄分
 	//胡牌+分
 	IDX_SUB_SCORE_ZPKZ = 7  //字牌刻字
 	IDX_SUB_SCORE_ZM   = 8  //自摸(自摸+1台)
@@ -295,4 +295,7 @@ const (
 	LeaveRoomTimer       = "LeaveRoomTimer"
 )
 
-/////////////// funcs
+/////////////// Redis key //////////////////////
+const (
+	CreatorRoom = "CreatorRoom:%d"
+)

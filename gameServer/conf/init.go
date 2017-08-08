@@ -51,6 +51,8 @@ var Server struct {
 	PdrNsqdAddr     string
 
 	ConsulAddr      string
+	RedisAddr       string
+	RedisPwd        string
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
@@ -100,6 +102,14 @@ func (c *DBConfig) GetBaseDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
 		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&charset=utf8mb4")
 	return s
+}
+
+func (c *DBConfig) GetRedisAddr() string {
+	return Server.RedisAddr
+}
+
+func (c *DBConfig) GetRedisPwd() string {
+	return Server.RedisPwd
 }
 
 func (c *DBConfig) GetUserDSN() string {

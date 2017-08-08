@@ -22,7 +22,7 @@ type C2L_ReConnect struct {
 }
 
 //重连结果
-type C2L_ReConnectRsp struct {
+type L2C_ReConnectRsp struct {
 	Code int // 非0 为失败
 }
 
@@ -55,6 +55,7 @@ type L2C_RegistResult struct {
 type C2L_CreateTable struct {
 	DrawCountLimit int                    //局数限制
 	Password       string                 //密码设置
+	PlayerCnt      int                    //玩家人数
 	Kind           int                    //游戏类型
 	ServerId       int                    //子类型
 	PayType        int                    //1是自己付钱， 2是AA
@@ -178,7 +179,7 @@ type C2L_DianZhan struct {
 
 //点赞结果
 type L2C_DianZhanRsp struct {
-	Star int //当前赞数
+	Code int //非0 位失败
 }
 
 // 通知被别人点赞了
@@ -219,6 +220,15 @@ type L2C_ChangeSignRsp struct {
 
 //玩家请求次数信息
 type C2L_ReqTimesInfo struct {
+}
+
+//客户单请求同步时间
+type C2L_TimeSync struct {
+}
+
+//服务器下发当前时间
+type L2C_TimeSync struct {
+	ServerTime int64 //时间戳
 }
 
 //登录时下发已领取过的奖励信息

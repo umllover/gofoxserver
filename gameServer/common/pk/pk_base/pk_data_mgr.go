@@ -66,7 +66,6 @@ type RoomData struct {
 
 	EachRoundScoreMap map[int][]int // 每局比分
 
-	HistoryScores    []*HistoryScore //历史积分
 	CurrentPlayCount int
 
 	OtherInfo map[string]interface{} //其他配置信息

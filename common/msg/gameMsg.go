@@ -179,6 +179,7 @@ type G2C_StatusPlay struct {
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //叫分时间
 	CreateTime      int64 //开始时间
+	PlayCount       int   //已玩局数
 
 	//游戏变量
 	CellScore   int   //单元积分
@@ -187,6 +188,7 @@ type G2C_StatusPlay struct {
 	MagicIndex  int   //财神索引
 	ChaHuaCnt   []int //插花数
 	BuHuaCnt    []int //补花数
+	BuHuaCard   []int //最新补花卡牌
 	ZhuaHuaCnt  int   //抓花数
 
 	//规则
@@ -205,6 +207,7 @@ type G2C_StatusPlay struct {
 	OutCardData  int     //出牌扑克
 	DiscardCount []int   //丢弃数目
 	DiscardCard  [][]int //丢弃记录
+	BanOutCard   []int   //禁出卡牌
 
 	//扑克数据
 	CardCount    []int //扑克数目
@@ -322,13 +325,13 @@ type C2G_GameChart_ToAll struct {
 }
 
 type G2C_GameChart_ToAll struct {
-	ChatColor    int
-	SendUserID   int64
-	TargetUserID int
-	ClientID     int
-	ChatIndex    int
-	ChatString   string
-	ChatType     int //1是语音 0 是普通聊天
+	ChatColor    int    //颜色 无效
+	SendUserID   int64  //谁发的消息
+	TargetUserID int    //发给谁的消息  无效
+	ClientID     int    //无效
+	ChatIndex    int    //消息的下标， 如 1 我的等的花都谢了  2快点吗
+	ChatString   string //消息内容 ，
+	ChatType     int    //1是语音 0 是普通聊天
 }
 
 //结束消息， 各个游戏自己实现

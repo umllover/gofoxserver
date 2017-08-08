@@ -772,3 +772,57 @@ func (lg *BaseLogic) GetIteratorFunc(needCnt, allCnt int) func() []int {
 		return cbIndex
 	}
 }
+
+func (lg *BaseLogic) IsZFB(card int) bool {
+	return card == 0x35 || card == 0x36 || card == 0x37
+}
+
+func (lg *BaseLogic) IsFeng(card, quanfeng int) bool {
+	return (card == 0x31 || card == 0x32 || card == 0x33 || card == 0x34) && ((card&MASK_VALUE)-1) == quanfeng
+}
+
+func (lg *BaseLogic) IsZhengHua(card, ProvideUser, playerCnt, BankerUser int) bool {
+	zHua1, zHua2 := lg.GetZhengHuaCard(ProvideUser, playerCnt, BankerUser)
+	return card == zHua1 || card == zHua2
+}
+
+func (lg *BaseLogic) GetZhengHuaCard(ProvideUser, PlayerCount, BankerUser int) (int, int) {
+	if ProvideUser == BankerUser { //东风位
+		return 0x38, 0x3C
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-1)%PlayerCount { //南风位
+		return 0x39, 0x3D
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //西风位
+		return 0x3A, 0x3E
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //北风位
+		return 0x3B, 0x3F
+	}
+
+	log.Error("at GetZhengHuaCard error ..... ")
+	return 0, 0
+}
+
+func (lg *BaseLogic) IsWeiFeng(card, ProvideUser, PlayerCount, BankerUser int) bool {
+	if ProvideUser == BankerUser { //东风位
+		return card == 0x31
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-1)%PlayerCount { //南风位
+		return card == 0x32
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //西风位
+		return card == 0x33
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //北风位
+		return card == 0x34
+	}
+
+	return false
+}

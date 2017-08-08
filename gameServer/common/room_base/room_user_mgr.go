@@ -96,6 +96,7 @@ func (r *RoomUserMgr) GetCurPlayerCnt() int {
 	return r.PlayerCount
 }
 
+//开始时确定的玩家
 func (r *RoomUserMgr) GetBeginPlayer() int {
 	return r.BeginPlayer
 }
@@ -203,7 +204,7 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		req := r.ReqLeave[ReplyUid]
 		if req != nil {
 			req.Agree = append(req.Agree, player.Id)
-			if len(req.Agree) >= r.UserCnt-1 { // - 1 is self
+			if len(req.Agree) >= r.BeginPlayer-1 { // - 1 is self
 				r.DelLeavePly(reqPlayer.Id)
 				return 1
 			}

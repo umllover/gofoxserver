@@ -22,7 +22,7 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 			return errors.New("json message pointer required 11")
 		}
 
-		if m.a == nil && msgType.Elem().Name() != "C2G_GR_LogonMobile" {
+		if m.a.UserData() == nil && msgType.Elem().Name() != "C2G_GR_LogonMobile" {
 			return errors.New("user not login")
 		}
 

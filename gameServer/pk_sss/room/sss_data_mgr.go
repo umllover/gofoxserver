@@ -388,9 +388,6 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 
 }
 
-func (room *sss_data_mgr) AfterEnd(a bool) {
-	log.Debug("SSS AfterEnd")
-}
 
 //解散结束
 func (room *sss_data_mgr) DismissEnd(a int) {

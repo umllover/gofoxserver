@@ -56,6 +56,7 @@ type ddz_data_mgr struct {
 	TurnCardStatus []int                          // 用户出牌状态
 	TurnCardData   [][]pk_ddz_msg.C2G_DDZ_OutCard // 出牌数据
 	RepertoryCard  []int                          // 库存扑克
+	RecordOutCards []int                          // 出牌历史记录
 
 	// 扑克信息
 	BankerCard   [3]int  // 游戏底牌
@@ -86,9 +87,9 @@ func (room *ddz_data_mgr) resetData() {
 	room.RepertoryCard = make([]int, nMaxCardCount)
 	room.BankerCard = [3]int{}
 	room.HandCardData = append([][]int{})
+	room.RecordOutCards = []int{}
 
 	room.ScoreTimes = 0
-	room.HistoryScores = make([]*pk_base.HistoryScore, room.PlayerCount)
 }
 
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
@@ -124,12 +125,6 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
 	StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
 	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间 	// 首出时间
-	StatusFree.TurnScore = append(StatusFree.TurnScore, 12)
-	StatusFree.CollectScore = append(StatusFree.CollectScore, 11)
-	//for _, v := range room.HistoryScores {
-	//	StatusFree.TurnScore = append(StatusFree.TurnScore, v.TurnScore)
-	//	StatusFree.CollectScore = append(StatusFree.TurnScore, v.CollectScore)
-	//}
 
 	// 发送明牌标识
 	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
@@ -175,20 +170,7 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 		StatusCall.HandCardCount[i] = len(room.HandCardData[i])
 	}
 
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
 	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
-
-	StatusCall.TurnScore = make([]int, UserCnt)
-	StatusCall.CollectScore = make([]int, UserCnt)
-
-	//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusCall.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusCall.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}
 
 	StatusCall.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
@@ -244,19 +226,6 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay.EachBombCount = util.CopySlicInt(room.EachBombCount)
 	StatusPlay.KingCount = util.CopySlicInt(room.KingCount)
 
-	UserCnt := room.PkBase.UserMgr.GetMaxPlayerCnt()
-	StatusPlay.TurnScore = make([]int, UserCnt)
-	StatusPlay.CollectScore = make([]int, UserCnt)
-
-	//历史积分
-	for j := 0; j < UserCnt; j++ {
-		//设置变量
-		if room.HistoryScores[j] != nil {
-			StatusPlay.TurnScore[j] = room.HistoryScores[j].TurnScore
-			StatusPlay.CollectScore[j] = room.HistoryScores[j].CollectScore
-		}
-	}
-
 	StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
 
@@ -285,6 +254,10 @@ func (room *ddz_data_mgr) SendGameStart() {
 	})
 
 	// 打乱牌
+	if room.GameType == GAME_TYPE_HAPPY {
+		// 欢乐场，从数据库里取
+
+	}
 	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetCardByIdx(room.ConfigIdx))
 
 	// 底牌
@@ -566,7 +539,14 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 		}
 	}
 
+	// 用户出牌后重置定时器
 	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
+	if r.GameType == GAME_TYPE_CLASSIC {
+		// 经典场，把出牌数据收集起来
+		for i := 0; i < len(nowCard.CardData); i++ {
+			r.RecordOutCards = append(r.RecordOutCards, nowCard.CardData[i])
+		}
+	}
 	// 判断是否火箭
 	if nowCard.CardType >= CT_KING {
 		r.KingCount = append(r.KingCount, len(nowCard.CardData))
@@ -664,6 +644,7 @@ func (r *ddz_data_mgr) PassCard(u *user.User) {
 		return
 	}
 
+	r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	r.CurrentUser = r.nextUser(u.ChairId)
 	r.TurnCardStatus[u.ChairId] = OUTCARD_PASS
 	r.TurnCardStatus[r.CurrentUser] = OUTCARD_OUTING
@@ -776,6 +757,18 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		util.DeepCopy(&DataGameConclude.RecordInfo, &r.RecordInfo)
 	}
 
+	// 经典场把历史出牌存数据库
+	if r.GameType == GAME_TYPE_CLASSIC {
+		// 检查出牌是否完整
+		nMaxCardCount := r.GetCfg().MaxRepertory
+		if r.EightKing {
+			nMaxCardCount += 6
+		}
+		if nMaxCardCount == len(r.RecordOutCards) {
+			// 数量相等才能存数据库
+			// ----存数据库----
+		}
+	}
 	r.sendGameEndMsg(DataGameConclude)
 }
 

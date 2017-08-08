@@ -98,7 +98,7 @@ func GetRoomList(args []interface{}) {
 }
 
 //////////////////// rpc
-func sendGameList(args []interface{}) {
+func sendGameList(args []interface{}) error {
 	agent := args[0].(gate.Agent)
 	list := make(msg.L2C_ServerList, 0)
 	for _, v := range gameLists {
@@ -107,10 +107,7 @@ func sendGameList(args []interface{}) {
 		}
 	}
 	agent.WriteMsg(&list)
-	skeleton.AfterFunc(1*time.Second, func() {
-		agent.WriteMsg(&msg.L2C_ServerListFinish{})
-	})
-
+	return nil
 }
 
 func updateGameInfo(args []interface{}) {
@@ -426,10 +423,10 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 func GetRoomByRoomId(args []interface{}) (interface{}, error) {
 	roomid := args[0].(int)
 	ret, ok := roomList[roomid]
-	CheckTimeOut(ret, time.Now().Unix())
 	if !ok {
 		return nil, errors.New("not foud")
 	}
+	CheckTimeOut(ret, time.Now().Unix())
 	return ret, nil
 }
 
