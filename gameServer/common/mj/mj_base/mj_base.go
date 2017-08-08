@@ -159,23 +159,8 @@ func (room *Mj_base) GetUserChairInfo(args []interface{}) {
 	u.WriteMsg(info)
 }
 
-//解散房间
+//大厅服发来的解散房间
 func (room *Mj_base) DissumeRoom(args []interface{}) {
-	u := args[0].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 && u != nil {
-			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
-		}
-	}()
-
-	if u != nil { //u== nil 强制解散
-		if !room.DataMgr.CanOperatorRoom(u.Id) {
-			retcode = NotOwner
-			return
-		}
-	}
-
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})
@@ -190,12 +175,6 @@ func (room *Mj_base) DissumeRoom(args []interface{}) {
 			roomLogData.UpdateRoomLogForOthers(logData, CreateRoomForOthers)
 		}
 	}
-	if retcode == 0 {
-		roomLogData.UpdateRoomLogRecode(logData, RoomNormalDistmiss)
-	} else if retcode == NotOwner {
-		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
-	}
-
 }
 
 //玩家准备

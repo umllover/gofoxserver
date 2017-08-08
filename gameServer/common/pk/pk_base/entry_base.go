@@ -197,21 +197,8 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 	}
 }
 
-//解散房间
+//大厅服发来的解散房间
 func (room *Entry_base) DissumeRoom(args []interface{}) {
-	u := args[0].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
-		}
-	}()
-
-	if !room.DataMgr.CanOperatorRoom(u.Id) {
-		retcode = NotOwner
-		return
-	}
-
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})

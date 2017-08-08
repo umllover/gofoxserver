@@ -12,8 +12,6 @@ import (
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
 
-	datalog "mj/gameServer/log"
-
 	"github.com/lovelly/leaf/log"
 )
 
@@ -37,7 +35,6 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2G_REQUserChairInfo{}, m.GetUserChairInfo)
 	reg.RegisterC2S(&msg.C2G_UserReady{}, m.UserReady)
 	reg.RegisterC2S(&msg.C2G_GR_UserChairReq{}, m.UserChairReq)
-	reg.RegisterC2S(&msg.C2G_HostlDissumeRoom{}, m.DissumeRoom)
 	reg.RegisterC2S(&msg.C2G_LeaveRoom{}, m.ReqLeaveRoom)
 	reg.RegisterC2S(&msg.C2G_ReplyLeaveRoom{}, m.ReplyLeaveRoom)
 
@@ -360,34 +357,6 @@ func (m *UserModule) UserStandup(args []interface{}) {
 //客户端请求更换椅子
 func (m *UserModule) UserChairReq(args []interface{}) {
 
-}
-
-//解散房间
-func (m *UserModule) DissumeRoom(args []interface{}) {
-	user := m.a.UserData().(*client.User)
-	roomLogData := datalog.RoomLog{}
-	logData := roomLogData.GetRoomLogRecode(user.RoomId, user.KindID, user.ServerID)
-	log.Debug("解散房间ddebug======================================================%d", user.RoomId)
-
-	if user.KindID == 0 {
-		log.Error("at DissumeRoom not foud module userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at DissumeRoom not foud roomdid userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
-		return
-	}
-	r := RoomMgr.GetRoom(user.RoomId)
-	if r == nil {
-		log.Error("at DissumeRoom not foud roomd userid:%d", user.Id)
-		roomLogData.UpdateRoomLogRecode(logData, RoomErrorDismiss)
-		return
-	}
-
-	r.GetChanRPC().Go("DissumeRoom", user)
 }
 
 func (m *UserModule) ReqLeaveRoom(args []interface{}) {

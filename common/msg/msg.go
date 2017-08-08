@@ -81,7 +81,6 @@ func init() {
 	Processor.Register(&C2G_UserReady{})
 	Processor.Register(&G2C_Hu_Data{})
 	Processor.Register(&SysMsg{})
-	Processor.Register(&C2G_HostlDissumeRoom{})
 	Processor.Register(&G2C_CancelTable{})
 	Processor.Register(&G2C_PersonalTableEnd{})
 	Processor.Register(&G2C_GameConclude{})
