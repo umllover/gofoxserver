@@ -1659,7 +1659,7 @@ func (room *RoomData) OnUserListenCard(u *user.User, bListenCard bool) bool {
 }
 
 //记录分饼
-func (room *RoomData) RecordFollowCard(cbCenterCard int) bool {
+func (room *RoomData) RecordFollowCard(wTargetUser, cbCenterCard int) bool {
 	return true
 }
 

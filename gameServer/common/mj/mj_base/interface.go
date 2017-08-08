@@ -34,7 +34,7 @@ type DataManager interface {
 	GetChaHua(u *user.User, setCount int)                            //获取插花
 	OnUserReplaceCard(u *user.User, CardData int) bool               //替换牌
 	OnUserListenCard(u *user.User, bListenCard bool) bool            //听牌
-	RecordFollowCard(cbCenterCard int) bool                          //记录跟牌
+	RecordFollowCard(wTargetUser, cbCenterCard int) bool             //记录跟牌
 	RecordOutCarCnt() int                                            //记录出牌数
 	OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int)       //抓花 扎码出库
 	RecordBanCard(OperateCode, ChairId int)                          //记录出牌禁忌
