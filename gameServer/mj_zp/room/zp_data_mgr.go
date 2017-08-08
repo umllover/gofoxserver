@@ -793,8 +793,13 @@ func (room *ZP_RoomData) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []i
 }
 
 //记录分饼
-func (room *ZP_RoomData) RecordFollowCard(cbCenterCard int) bool {
+func (room *ZP_RoomData) RecordFollowCard(wTargetUser, cbCenterCard int) bool {
 	if room.IsFollowCard {
+		return false
+	}
+
+	if len(room.WeaveItemArray[wTargetUser]) > 0 {
+		room.IsFollowCard = true //取消跟牌
 		return false
 	}
 
