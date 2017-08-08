@@ -1045,10 +1045,11 @@ func (room *RoomData) RepalceCard() {
 			testCards := make([]int, 0)
 			for idx, value := range chairIds {
 				card := utils.GetStrIntSixteenList(cards[idx], "，")
+				log.Debug("用户手牌：%v", card)
 				if value == 0 && max < len(card) {
- 					log.Error("给庄家设置的手牌数目过多")
+					log.Error("给庄家设置的手牌数目过多")
 					return
-				} else if mim < len(card) {
+				} else if value != 0 && mim < len(card) {
 					log.Error("给其他用户设置的手牌数目过多")
 					return
 				}
