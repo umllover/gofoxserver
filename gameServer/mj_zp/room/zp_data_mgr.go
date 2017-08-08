@@ -2136,7 +2136,7 @@ func (room *ZP_RoomData) ResetUserOperateEx(u *user.User) {
 
 func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 	cardindex := INVALID_BYTE
-	if room.SendCardData != 0 {
+	if room.SendCardData != 0 && room.SendCardData < 0x41 {
 		cardindex = room.MjBase.LogicMgr.SwitchToCardIndex(room.SendCardData)
 	} else {
 		for i := room.GetCfg().MaxIdx - 1 - room.GetCfg().HuaCount; i > 0; i-- {

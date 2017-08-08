@@ -1040,9 +1040,18 @@ func (room *RoomData) RepalceCard() {
 				break
 			}
 
+			max := room.GetCfg().MaxCount
+			mim := room.GetCfg().MaxCount - 1
 			testCards := make([]int, 0)
-			for idx, _ := range chairIds {
+			for idx, value := range chairIds {
 				card := utils.GetStrIntSixteenList(cards[idx], "，")
+				if value == 0 && max < len(card) {
+ 					log.Error("给庄家设置的手牌数目过多")
+					return
+				} else if mim < len(card) {
+					log.Error("给其他用户设置的手牌数目过多")
+					return
+				}
 				testCards = append(testCards, card...)
 			}
 			isRight := room.CheckUserCard(v.KindID, testCards)
