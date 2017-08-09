@@ -32,6 +32,7 @@ type GameServiceOption struct {
 	DynamicJoin        int    `db:"DynamicJoin" json:"DynamicJoin"`               // 是够允许游戏开始后加入 1是允许
 	OutCardTime        int    `db:"OutCardTime" json:"OutCardTime"`               // 多久没出牌自动出牌
 	OperateCardTime    int    `db:"OperateCardTime" json:"OperateCardTime"`       // 操作最大时间
+	TimeRoomTrustee    int    `db:"TimeRoomTrustee" json:"TimeRoomTrustee"`       // 房间进入托管时间
 }
 
 var DefaultGameServiceOption = GameServiceOption{}
