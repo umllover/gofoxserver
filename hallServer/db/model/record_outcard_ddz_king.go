@@ -11,31 +11,27 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//version_update_test
+//record_outcard_ddz_king
 //
 
 // +gen *
-type VersionUpdateTest struct {
-	Id     int `db:"id" json:"id"`         //
-	Test21 int `db:"test21" json:"test21"` //
-	Test22 int `db:"test22" json:"test22"` //
-	Test23 int `db:"test23" json:"test23"` //
-	Test31 int `db:"test31" json:"test31"` //
-	Test32 int `db:"test32" json:"test32"` //
-	Test33 int `db:"test33" json:"test33"` //
+type RecordOutcardDdzKing struct {
+	RecordID   int64  `db:"RecordID" json:"RecordID"`     // 记录ID八王表
+	CreateTime int    `db:"CreateTime" json:"CreateTime"` // 创建时间
+	CardData   string `db:"CardData" json:"CardData"`     // 牌数据，数组转成字符串
 }
 
-type versionUpdateTestOp struct{}
+type recordOutcardDdzKingOp struct{}
 
-var VersionUpdateTestOp = &versionUpdateTestOp{}
-var DefaultVersionUpdateTest = &VersionUpdateTest{}
+var RecordOutcardDdzKingOp = &recordOutcardDdzKingOp{}
+var DefaultRecordOutcardDdzKing = &RecordOutcardDdzKing{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
-	obj := &VersionUpdateTest{}
-	sql := "select * from version_update_test where id=? "
+func (op *recordOutcardDdzKingOp) Get(RecordID int64) (*RecordOutcardDdzKing, bool) {
+	obj := &RecordOutcardDdzKing{}
+	sql := "select * from record_outcard_ddz_king where RecordID=? "
 	err := db.DB.Get(obj, sql,
-		id,
+		RecordID,
 	)
 
 	if err != nil {
@@ -44,9 +40,9 @@ func (op *versionUpdateTestOp) Get(id int) (*VersionUpdateTest, bool) {
 	}
 	return obj, true
 }
-func (op *versionUpdateTestOp) SelectAll() ([]*VersionUpdateTest, error) {
-	objList := []*VersionUpdateTest{}
-	sql := "select * from version_update_test "
+func (op *recordOutcardDdzKingOp) SelectAll() ([]*RecordOutcardDdzKing, error) {
+	objList := []*RecordOutcardDdzKing{}
+	sql := "select * from record_outcard_ddz_king "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -55,11 +51,11 @@ func (op *versionUpdateTestOp) SelectAll() ([]*VersionUpdateTest, error) {
 	return objList, nil
 }
 
-func (op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionUpdateTest, error) {
-	result := []*VersionUpdateTest{}
+func (op *recordOutcardDdzKingOp) QueryByMap(m map[string]interface{}) ([]*RecordOutcardDdzKing, error) {
+	result := []*RecordOutcardDdzKing{}
 	var params []interface{}
 
-	sql := "select * from version_update_test where 1=1 "
+	sql := "select * from record_outcard_ddz_king where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -72,7 +68,7 @@ func (op *versionUpdateTestOp) QueryByMap(m map[string]interface{}) ([]*VersionU
 	return result, nil
 }
 
-func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdateTest, error) {
+func (op *recordOutcardDdzKingOp) GetByMap(m map[string]interface{}) (*RecordOutcardDdzKing, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -84,7 +80,7 @@ func (op *versionUpdateTestOp) GetByMap(m map[string]interface{}) (*VersionUpdat
 }
 
 /*
-func (i *VersionUpdateTest) Insert() error {
+func (i *RecordOutcardDdzKing) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -94,21 +90,17 @@ func (i *VersionUpdateTest) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *versionUpdateTestOp) Insert(m *VersionUpdateTest) (int64, error) {
+func (op *recordOutcardDdzKingOp) Insert(m *RecordOutcardDdzKing) (int64, error) {
 	return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *versionUpdateTestOp) InsertTx(ext sqlx.Ext, m *VersionUpdateTest) (int64, error) {
-	sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?)"
+func (op *recordOutcardDdzKingOp) InsertTx(ext sqlx.Ext, m *RecordOutcardDdzKing) (int64, error) {
+	sql := "insert into record_outcard_ddz_king(RecordID,CreateTime,CardData) values(?,?,?)"
 	result, err := ext.Exec(sql,
-		m.Id,
-		m.Test21,
-		m.Test22,
-		m.Test23,
-		m.Test31,
-		m.Test32,
-		m.Test33,
+		m.RecordID,
+		m.CreateTime,
+		m.CardData,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -119,15 +111,11 @@ func (op *versionUpdateTestOp) InsertTx(ext sqlx.Ext, m *VersionUpdateTest) (int
 }
 
 //存在就更新， 不存在就插入
-func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string]interface{}) error {
-	sql := "insert into version_update_test(id,test21,test22,test23,test31,test32,test33) values(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.Id,
-		obj.Test21,
-		obj.Test22,
-		obj.Test23,
-		obj.Test31,
-		obj.Test32,
-		obj.Test33,
+func (op *recordOutcardDdzKingOp) InsertUpdate(obj *RecordOutcardDdzKing, m map[string]interface{}) error {
+	sql := "insert into record_outcard_ddz_king(RecordID,CreateTime,CardData) values(?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.RecordID,
+		obj.CreateTime,
+		obj.CardData,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -143,7 +131,7 @@ func (op *versionUpdateTestOp) InsertUpdate(obj *VersionUpdateTest, m map[string
 }
 
 /*
-func (i *VersionUpdateTest) Update()  error {
+func (i *RecordOutcardDdzKing) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -153,21 +141,17 @@ func (i *VersionUpdateTest) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionUpdateTestOp) Update(m *VersionUpdateTest) error {
+func (op *recordOutcardDdzKingOp) Update(m *RecordOutcardDdzKing) error {
 	return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *versionUpdateTestOp) UpdateTx(ext sqlx.Ext, m *VersionUpdateTest) error {
-	sql := `update version_update_test set test21=?,test22=?,test23=?,test31=?,test32=?,test33=? where id=?`
+func (op *recordOutcardDdzKingOp) UpdateTx(ext sqlx.Ext, m *RecordOutcardDdzKing) error {
+	sql := `update record_outcard_ddz_king set CreateTime=?,CardData=? where RecordID=?`
 	_, err := ext.Exec(sql,
-		m.Test21,
-		m.Test22,
-		m.Test23,
-		m.Test31,
-		m.Test32,
-		m.Test33,
-		m.Id,
+		m.CreateTime,
+		m.CardData,
+		m.RecordID,
 	)
 
 	if err != nil {
@@ -179,14 +163,14 @@ func (op *versionUpdateTestOp) UpdateTx(ext sqlx.Ext, m *VersionUpdateTest) erro
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionUpdateTestOp) UpdateWithMap(id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, id, m)
+func (op *recordOutcardDdzKingOp) UpdateWithMap(RecordID int64, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, RecordID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *versionUpdateTestOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[string]interface{}) error {
+func (op *recordOutcardDdzKingOp) UpdateWithMapTx(ext sqlx.Ext, RecordID int64, m map[string]interface{}) error {
 
-	sql := `update version_update_test set %s where 1=1 and id=? ;`
+	sql := `update record_outcard_ddz_king set %s where 1=1 and RecordID=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -197,39 +181,39 @@ func (op *versionUpdateTestOp) UpdateWithMapTx(ext sqlx.Ext, id int, m map[strin
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, id)
+	params = append(params, RecordID)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *VersionUpdateTest) Delete() error{
+func (i *RecordOutcardDdzKing) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *versionUpdateTestOp) Delete(id int) error {
-	return op.DeleteTx(db.DB, id)
+func (op *recordOutcardDdzKingOp) Delete(RecordID int64) error {
+	return op.DeleteTx(db.DB, RecordID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *versionUpdateTestOp) DeleteTx(ext sqlx.Ext, id int) error {
-	sql := `delete from version_update_test where 1=1
-        and id=?
+func (op *recordOutcardDdzKingOp) DeleteTx(ext sqlx.Ext, RecordID int64) error {
+	sql := `delete from record_outcard_ddz_king where 1=1
+        and RecordID=?
         `
 	_, err := ext.Exec(sql,
-		id,
+		RecordID,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *recordOutcardDdzKingOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from version_update_test where 1=1 `
+	sql := `select count(*) from record_outcard_ddz_king where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -243,13 +227,13 @@ func (op *versionUpdateTestOp) CountByMap(m map[string]interface{}) (int64, erro
 	return count, nil
 }
 
-func (op *versionUpdateTestOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *recordOutcardDdzKingOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *versionUpdateTestOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *recordOutcardDdzKingOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from version_update_test where 1=1 "
+	sql := "delete from record_outcard_ddz_king where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
