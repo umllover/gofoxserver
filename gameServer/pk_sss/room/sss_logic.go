@@ -630,8 +630,16 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		}
 
 		//三同花
-
-		//return CT_THREE_FLUSH, TagAnalyseItemArray
+		bThree_C := true
+		for i := 0; i < 4; i++ {
+			GetOutNum := lg.GetColorCard(cardData, i)
+			if GetOutNum != 0 && GetOutNum != 3 && GetOutNum != 5 && GetOutNum != 8 && GetOutNum != 10 && GetOutNum != 13 {
+				bThree_C = false
+			}
+		}
+		if bThree_C {
+			return CT_THREE_FLUSH, TagAnalyseItemArray
+		}
 
 	}
 
@@ -1373,4 +1381,14 @@ func (lg *sss_logic) GetCardWithValue(cbCard []int, cbCount int, cbValue int) in
 	}
 
 	return cbTemp
+}
+
+func (lg *sss_logic) GetColorCard(cbCard []int, cbColor int) int {
+	GetOutNum := 0
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			GetOutNum++
+		}
+	}
+	return GetOutNum
 }
