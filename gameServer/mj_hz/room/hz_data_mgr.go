@@ -28,7 +28,7 @@ type HuaUser struct {
 
 func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *msg.L2G_CreatorRoom) *hz_data {
 	d := new(hz_data)
-	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info)
 
 	getData, ok := d.OtherInfo["zhaMa"].(float64)
 	if !ok {
@@ -56,7 +56,7 @@ func (room *hz_data) InitRoom(UserCnt int) {
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
 	}
-	room.FlowerCnt = [4]int{}
+	room.FlowerCnt = make([]int, UserCnt)
 	room.ChiHuKind = make([]int, UserCnt)
 	room.ChiPengCount = make([]int, UserCnt)
 	room.GangCard = make([]bool, UserCnt) //杠牌状态

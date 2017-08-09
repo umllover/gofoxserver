@@ -32,8 +32,6 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 		if ok {
 			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
 			return nil
-		} else {
-			log.Debug("2222222222222")
 		}
 
 		err = msg.Processor.RouteByType(msgType, data, m.a)

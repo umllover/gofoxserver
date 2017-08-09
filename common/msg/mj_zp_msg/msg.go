@@ -52,6 +52,7 @@ type G2C_MJZP_ReplaceCard struct {
 	ReplaceUser  int  //补牌用户
 	ReplaceCard  int  //补牌扑克
 	NewCard      int  //补完扑克
+	ActionMask   int  //动作掩码
 	IsInitFlower bool //是否开局补花，true开局补花
 }
 

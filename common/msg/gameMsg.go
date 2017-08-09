@@ -79,8 +79,6 @@ type C2G_ReplyLeaveRoom struct {
 	UserID int64 //同意或者拒绝谁
 }
 
-//解散房间
-type C2G_HostlDissumeRoom struct{}
 
 type G2C_CancelTable struct{}
 type G2C_PersonalTableEnd struct{}

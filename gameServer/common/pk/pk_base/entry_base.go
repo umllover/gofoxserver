@@ -197,21 +197,8 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 	}
 }
 
-//解散房间
+//大厅服发来的解散房间
 func (room *Entry_base) DissumeRoom(args []interface{}) {
-	u := args[0].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
-		}
-	}()
-
-	if !room.DataMgr.CanOperatorRoom(u.Id) {
-		retcode = NotOwner
-		return
-	}
-
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})
@@ -320,7 +307,7 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
-	//BirefInf.CreateUserId = room.DataMgr.GetCreater()
+	//BirefInf.CreateUserId = room.DataMgr.GetCreator()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()
 	BirefInf.Players = make(map[int64]*msg.PlayerBrief)
 	BirefInf.MachPlayer = make(map[int64]int64)

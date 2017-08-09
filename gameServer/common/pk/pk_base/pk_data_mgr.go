@@ -11,7 +11,7 @@ import (
 	"github.com/lovelly/leaf/log"
 )
 
-func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, setinfo map[string]interface{}) *RoomData {
+func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameServiceOption, base *Entry_base, info *msg.L2G_CreatorRoom) *RoomData {
 	r := new(RoomData)
 	r.id = id
 	if name == "" {
@@ -19,7 +19,8 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 	} else {
 		r.Name = name
 	}
-	r.CreateUser = uid
+	r.CreatorUid = uid
+	r.CreatorNodeId = info.CreatorNodeId
 	r.PkBase = base
 	r.ConfigIdx = ConfigIdx
 
@@ -31,20 +32,21 @@ func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *dbase.GameS
 
 	r.KindID = temp.KindID
 	r.ServerID = temp.ServerID
-	r.OtherInfo = setinfo
+	r.OtherInfo = info.OtherInfo
 
 	return r
 }
 
 //当一张桌子理解
 type RoomData struct {
-	id         int
-	KindID     int
-	ServerID   int
-	Name       string //房间名字
-	CreateUser int64  //创建房间的人
-	PkBase     *Entry_base
-	ConfigIdx  int //配置文件索引
+	id            int
+	KindID        int
+	ServerID      int
+	Name          string //房间名字
+	CreatorUid    int64  //创建房间的人
+	CreatorNodeId int    //创建房间者的NodeId
+	PkBase        *Entry_base
+	ConfigIdx     int //配置文件索引
 
 	IsGoldOrGameScore int    //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	Password          string // 密码
@@ -100,12 +102,16 @@ func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
 }
 
-func (room *RoomData) GetCreater() int64 {
-	return room.CreateUser
+func (room *RoomData) GetCreator() int64 {
+	return room.CreatorUid
+}
+
+func (room *RoomData) GetCreatorNodeId() int {
+	return room.CreatorNodeId
 }
 
 func (room *RoomData) CanOperatorRoom(uid int64) bool {
-	if uid == room.CreateUser {
+	if uid == room.CreatorUid {
 		return true
 	}
 	return false
@@ -121,7 +127,7 @@ func (room *RoomData) GetRoomId() int {
 
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
 	u.WriteMsg(&msg.G2C_PersonalTableTip{
-		TableOwnerUserID:  room.CreateUser,                                               //桌主 I D
+		TableOwnerUserID:  room.CreatorUid,                                               //桌主 I D
 		PlayerCnt:         room.PkBase.UserMgr.GetMaxPlayerCnt(),                         //玩家数量
 		DrawCountLimit:    room.PkBase.TimerMgr.GetMaxPlayCnt(),                          //局数限制
 		DrawTimeLimit:     room.PkBase.TimerMgr.GetTimeLimit(),                           //时间限制

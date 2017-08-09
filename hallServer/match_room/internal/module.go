@@ -117,6 +117,12 @@ func (m *MatchModule) Match() {
 					if err != nil {
 						break
 					}
+
+					if cnt > r.MaxPlayerCnt {
+						log.Debug("at MatchModule roomInfo.MachCnt >= roomInfo.MaxPlayerCnt 222, %v", cnt)
+						break
+					}
+
 					r.MachPlayer[player.Uid] = time.Now().Unix() + ResetMatchTime
 					r.MachCnt = cnt
 				}

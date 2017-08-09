@@ -67,6 +67,12 @@ func SearchTable(args []interface{}) {
 			return
 		}
 
+		if cnt > roomInfo.MaxPlayerCnt {
+			log.Debug("at SearchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt 222, %v", recvMsg)
+			retcode = ErrRoomFull
+			return
+		}
+
 		roomInfo.MachCnt = cnt
 		roomInfo.MachPlayer[player.Id] = time.Now().Unix() + ResetMatchTime
 	}
@@ -79,5 +85,10 @@ func delMatchPlayer(args []interface{}) {
 	log.Debug("at del match player ")
 	uid := args[0].(int64)
 	roomInfo := args[1].(*msg.RoomInfo)
+	if roomInfo.MachCnt > roomInfo.MaxPlayerCnt {
+		roomInfo.MachCnt = roomInfo.MaxPlayerCnt
+	}
+	roomInfo.MachCnt -= 1
 	delete(roomInfo.MachPlayer, uid)
+	UpRoomCnt(roomInfo.RoomID, roomInfo.MachCnt)
 }
