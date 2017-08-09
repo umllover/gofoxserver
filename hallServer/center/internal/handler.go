@@ -37,8 +37,6 @@ func init() {
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 	reg.RegisterS2S(&msg.S2S_HanldeFromUserMsg{}, HanldeFromGameMsg)
 
-	reg.RegisterS2S(&msg.RoomReturnMoney{}, RoomReturnMoney)
-
 	consul.SetHookRpc(ChanRPC)
 }
 
@@ -85,8 +83,8 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 		return
 	} else {
 		AddOfflineHandler(FuncName, uid, args[2], true)
+		log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	}
-	log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	return
 }
 

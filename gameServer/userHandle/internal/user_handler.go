@@ -8,6 +8,7 @@ import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/account"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
@@ -116,7 +117,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := model.AccountsinfoOp.Get(recvMsg.UserID)
+	accountData, ok := account.AccountsinfoOp.Get(recvMsg.UserID)
 	if !ok || accountData == nil {
 		retcode = NotFoudAccout
 		return

@@ -519,3 +519,22 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		cluster.SendMsgToHallUser(u.HallNodeId, u.Id, data)
 	}
 }
+
+//检测房间是否该返还房主钱
+func (room *RoomUserMgr) CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId int, creatorId int64) {
+	//全付的房间，并且没开始过游戏
+	if room.PayType != SELF_PAY_TYPE && roomStatus != RoomStatusReady {
+		return
+	}
+	//要求房主没在房间内才在这边返还，否则走的是其他逻辑返还
+	isCreatorInRoom := false
+	room.ForEachUser(func(u *user.User) {
+		if u.Id == creatorId {
+			isCreatorInRoom = true
+		}
+	})
+	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
+	if !isCreatorInRoom {
+		cluster.SendMsgToHall(CreatorNodeId, &msg.RoomReturnMoney{RoomId: roomId, CreatorUid: creatorId})
+	}
+}

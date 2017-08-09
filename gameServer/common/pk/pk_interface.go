@@ -32,6 +32,10 @@ type DataManager interface {
 	ShowCard(u *user.User)
 	// 托管
 	OtherOperation(args []interface{})
+
+	//
+	GetCreatorNodeId() int
+	GetCreator() int64
 }
 
 type LogicManager interface {

@@ -10,6 +10,7 @@ import (
 	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db/model"
+	"mj/hallServer/db/model/account"
 	"mj/hallServer/db/model/base"
 	"mj/hallServer/game_list"
 	"mj/hallServer/id_generate"
@@ -119,7 +120,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := model.AccountsinfoOp.GetByMap(map[string]interface{}{
+	accountData, ok := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 
@@ -215,7 +216,7 @@ func (m *UserModule) handleReconnect(args []interface{}) {
 		return
 	}
 
-	accountData, ok := model.AccountsinfoOp.GetByMap(map[string]interface{}{
+	accountData, ok := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 
@@ -276,10 +277,10 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_Regist)
 	agent := args[1].(gate.Agent)
 	retMsg := &msg.L2C_RegistResult{}
-	var accountData *model.Accountsinfo
+	var accountData *account.Accountsinfo
 	defer func() {
 		if retcode != 0 {
-			model.AccountsinfoOp.DeleteByMap(map[string]interface{}{
+			account.AccountsinfoOp.DeleteByMap(map[string]interface{}{
 				"Accounts": recvMsg.Accounts,
 			})
 			if accountData != nil {
@@ -299,8 +300,8 @@ func (m *UserModule) handleMBRegist(args []interface{}) {
 	retcode, _, _ = RegistUser(recvMsg, agent)
 }
 
-func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *model.Accountsinfo) {
-	accountData, _ := model.AccountsinfoOp.GetByMap(map[string]interface{}{
+func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *account.Accountsinfo) {
+	accountData, _ := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 	if accountData != nil {
@@ -309,7 +310,7 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 
 	//todo 名字排重等等等 验证
 	now := time.Now()
-	accInfo := &model.Accountsinfo{
+	accInfo := &account.Accountsinfo{
 		UserID:           user.GetUUID(),
 		Gender:           recvMsg.Gender,   //用户性别
 		Accounts:         recvMsg.Accounts, //登录帐号
@@ -326,7 +327,7 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *mo
 		RegisterIP:       agent.RemoteAddr().String(), //连接地址
 	}
 
-	_, err := model.AccountsinfoOp.Insert(accInfo)
+	_, err := account.AccountsinfoOp.Insert(accInfo)
 	if err != nil {
 		log.Error("RegistUser err :%s", err.Error())
 		return InsertAccountError, nil, nil
@@ -725,7 +726,7 @@ func loadUser(u *user.User) bool {
 	return true
 }
 
-func createUser(UserID int64, accountData *model.Accountsinfo) (*user.User, bool) {
+func createUser(UserID int64, accountData *account.Accountsinfo) (*user.User, bool) {
 	U := user.NewUser(UserID)
 	U.Accountsmember = &model.Accountsmember{
 		UserID: UserID,
@@ -795,7 +796,7 @@ func createUser(UserID int64, accountData *model.Accountsinfo) (*user.User, bool
 	return U, true
 }
 
-func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *model.Accountsinfo) {
+func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *account.Accountsinfo) {
 	retMsg.FaceID = user.FaceID //头像标识
 	retMsg.Gender = user.Gender
 	retMsg.UserID = user.Id
@@ -1108,7 +1109,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	room.RenewalCnt++
 
 	cluster.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
-		HallName: GetHallSvrName(conf.Server.NodeId), UserId: player.UserId})
+		HallNodeID: conf.Server.NodeId, UserId: player.UserId})
 }
 
 func (m *UserModule) RenewalFeeFaild(args []interface{}) {

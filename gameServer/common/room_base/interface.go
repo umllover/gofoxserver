@@ -59,6 +59,7 @@ type UserManager interface {
 	AddLeavePly(uid int64)
 	GetBeginPlayer() int
 	ResetBeginPlayer()
+	CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId int, creatorId int64)
 
 	GetCurPlayerCnt() int
 	GetPayType() int

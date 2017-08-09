@@ -614,7 +614,7 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 			})
 
 			//全付的房间，若没开始过并且创建的房主没在，则返还给他钱
-			room.CheckRoomReturnMoney()
+			room.UserMgr.CheckRoomReturnMoney(roomStatus, room.DataMgr.GetCreatorNodeId(), room.DataMgr.GetRoomId(), room.DataMgr.GetCreator())
 
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
@@ -632,26 +632,6 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.SetUsetStatus(u, US_SIT)
 	})
-}
-
-//检测房间是否该返还房主钱
-func (room *Mj_base) CheckRoomReturnMoney() {
-	//全付的房间，并且没开始过游戏
-	if room.UserMgr.GetPayType() != SELF_PAY_TYPE && room.Status != RoomStatusReady {
-		return
-	}
-	//要求房主没在房间内才在这边返还，否则走的是其他逻辑返还
-	creatorId := room.DataMgr.GetCreator()
-	isCreatorInRoom := false
-	room.UserMgr.ForEachUser(func(u *user.User) {
-		if u.Id == creatorId {
-			isCreatorInRoom = true
-		}
-	})
-	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
-	if !isCreatorInRoom {
-		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
-	}
 }
 
 ////todo,房间托管

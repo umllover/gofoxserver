@@ -73,6 +73,14 @@ type RoomData struct {
 	OtherInfo map[string]interface{} //其他配置信息
 }
 
+func (r *RoomData) GetCreatorNodeId() int {
+	return r.CreatorNodeId
+}
+
+func (r *RoomData) GetCreator() int64 {
+	return r.CreatorUid
+}
+
 func (r *RoomData) OnCreateRoom() {
 	log.Debug("at pk data mgr create room")
 	// 初始化积分
@@ -100,14 +108,6 @@ func (r *RoomData) OnCreateRoom() {
 
 func (room *RoomData) GetCfg() *PK_CFG {
 	return GetCfg(room.ConfigIdx)
-}
-
-func (room *RoomData) GetCreator() int64 {
-	return room.CreatorUid
-}
-
-func (room *RoomData) GetCreatorNodeId() int {
-	return room.CreatorNodeId
 }
 
 func (room *RoomData) CanOperatorRoom(uid int64) bool {
