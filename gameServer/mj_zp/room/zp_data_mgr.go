@@ -442,15 +442,15 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
-	//temp[28] = 3 //三张一同
-	//temp[29] = 3 //三张二同
-	//temp[30] = 3 //三张三同
-	//temp[27] = 3 //三张四同
-	//temp[32] = 3 //三张五同
-	//temp[1] = 2
+	//temp[0] = 3 //三张一同
+	//temp[1] = 3 //三张二同
+	//temp[2] = 3 //三张三同
+	//temp[3] = 3 //三张四同
+	//temp[4] = 3 //三张五同
+	//temp[5] = 2
 	//
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x33
+	//room.SendCardData = 0x04
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -849,7 +849,14 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
-	room.OperateCard[u.ChairId] = OperateCard
+	room.OperateCard[u.ChairId] = make([]int, 4)
+	if len(OperateCard) > 2 {
+		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
+	} else {
+		for i, card := range OperateCard {
+			room.OperateCard[u.ChairId][i] = card
+		}
+	}
 	room.StopOperateCardTimer(u) //清理定时
 
 	u.UserLimit = 0
