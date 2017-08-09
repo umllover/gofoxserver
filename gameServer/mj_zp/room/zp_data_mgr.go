@@ -161,7 +161,6 @@ func (room *ZP_RoomData) StartGameing() {
 				_, ok := room.ChaHuaMap[i]
 				if !ok {
 					room.ChaHuaMap[i] = 0
-				} else {
 				}
 			}
 			//洗牌
@@ -201,6 +200,11 @@ func (room *ZP_RoomData) AfterStartGame() {
 //获得插花
 func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	log.Debug("获得插花")
+	_, ok := room.ChaHuaMap[u.ChairId]
+	if ok {
+		log.Debug("%d 已经插花", u.ChairId)
+		return
+	}
 	room.ChaHuaMap[u.ChairId] = setCount
 
 	sendData := &mj_zp_msg.G2C_MJZP_UserCharHua{}
