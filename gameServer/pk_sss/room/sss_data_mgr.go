@@ -61,50 +61,21 @@ type sss_data_mgr struct {
 	jiaYiSe      bool
 	jiaGongGong  bool
 	jiaDaXiaoWan bool
-	//laiZi        []int
-	//publicCards  []int
 
 	bCardData []int //牌的总数
-	// m_bUserCardData         map[*user.User][]int   //玩家扑克
-	// m_bSegmentCard          map[*user.User][][]int //分段扑克
-	// m_bFinishSegment        []int                  //完成分段
-	// m_bShowCardCount        int                    //摊牌数目
-	// m_bCompleteCompareCount int                    //完成比较
-	// m_bOverTime             []int                  //摊牌超时
-	// m_bUserLeft             []int                  //玩家强退
-
-	// SpecialTypeTable map[*user.User]bool  //是否特殊牌型
-	// Dragon           map[*user.User]bool  //是否倒水
-	// m_nPlayerCount   int                  //实际玩家人数
-	// CbResult         map[*user.User][]int //每一道的道数
-	// cbSpecialResult  map[*user.User]int   //特殊牌型的道数
 
 	LeftCardCount int                 //剩下拍的数量
 	OpenCardMap   map[*user.User]bool //摊牌数据
-	//比较结果
-
-	// m_bCompareResult        map[*user.User][]int //每一道比较结果
-	// m_bShootState           [][]*user.User       //打枪(0赢的玩家,1输的玩家)
-	// m_bThreeKillResult      map[*user.User]int   //全垒打加减分
-	// m_bToltalWinDaoShu      map[*user.User]int   //总共道数
-	// m_bCompareDouble        map[*user.User]int   //打枪的道数
-	// m_bSpecialCompareResult map[*user.User]int   //特殊牌型比较结果
-	// m_lGameScore            map[*user.User]int   //游戏积分
-	// m_nXShoot               int                  //几家打枪
-	// m_lCellScore            int                  //单元底分
 
 	// 游戏状态
 
 	GameStatus int
-	// BtCardSpecialData []int
+
 	AllResult [][]int //每一局的结果
 
 	gameEndStatus *pk_sss_msg.G2C_SSS_COMPARE
 	gameRecord    *pk_sss_msg.G2C_SSS_Record
 
-	/////////////////////////
-
-	//PlayerNum             int       //玩家数量
 	Players               []int           //玩家
 	PlayerCards           [][]int         //玩家手牌
 	PlayerSpecialCardType []sssCardType   //玩家特殊牌型数据
@@ -127,58 +98,9 @@ type sss_data_mgr struct {
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")
-
-	//room.cbSpecialResult = make(map[*user.User]int, UserCnt)
-	//room.CbResult = make(map[*user.User][]int, UserCnt)
 	room.PlayerCount = UserCnt
-	//room.m_bSegmentCard = make(map[*user.User][][]int, UserCnt)
-	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
-	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
-	//room.Dragon = make(map[*user.User]bool, UserCnt)
-	//room.SpecialTypeTable = make(map[*user.User]bool, UserCnt)
-	//room.m_bUserCardData = make(map[*user.User][]int, UserCnt)
-	//room.m_bCompareDouble = make(map[*user.User]int, UserCnt)
-	//room.m_bCompareResult = make(map[*user.User][]int, UserCnt)
-	//room.m_bShootState = make([][]*user.User, UserCnt)
-	//room.m_bSpecialCompareResult = make(map[*user.User]int, UserCnt)
-	//room.m_bThreeKillResult = make(map[*user.User]int, UserCnt)
-	//room.m_bToltalWinDaoShu = make(map[*user.User]int, UserCnt)
-	//room.m_lGameScore = make(map[*user.User]int, UserCnt)
-	//room.m_nXShoot = 0
-	//room.BtCardSpecialData = make([]int, 13)
-	room.LeftCardCount = room.GetCfg().MaxRepertory
-
-	//room.laiZi = make([]int, 0, 6)
-
-	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
-
-	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
-	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
-
-	/////////////////////////////
-	//room.PlayerNum = UserCnt
 	room.Players = make([]int, UserCnt)
-	room.PlayerCards = make([][]int, UserCnt)
-	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
-	room.PlayerSegmentCards = make([][][]int, UserCnt)
-	room.PlayerSegmentCardType = make([][]sssCardType, UserCnt)
-	room.Results = make([][]int, UserCnt)
-	for i := range room.Results {
-		room.Results[i] = make([]int, 3)
-	}
-	room.SpecialResults = make([]int, UserCnt)
-	room.ToltalResults = make([]int, UserCnt)
-	room.CompareResults = make([][]int, UserCnt)
-	for i := range room.CompareResults {
-		room.CompareResults[i] = make([]int, 3)
-	}
-	room.SpecialCompareResults = make([]int, UserCnt)
-	room.ShootState = make([][]int, 6)
-	room.ShootResults = make([]int, 6)
-	room.AddCards = make([]int, 0)
-	room.PublicCards = make([]int, 0, 3)
-	room.UniversalCards = make([]int, 0, 3)
-
+	room.cleanRoom(UserCnt)
 }
 
 func (room *sss_data_mgr) cleanRoom(UserCnt int) {
@@ -191,8 +113,6 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 
 	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
-	/////////////////////////////
-
 	room.PlayerCards = make([][]int, UserCnt)
 	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
 	room.PlayerSegmentCards = make([][][]int, UserCnt)
@@ -210,6 +130,10 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 	room.SpecialCompareResults = make([]int, UserCnt)
 	room.ShootState = make([][]int, 6)
 	room.ShootResults = make([]int, 6)
+
+	room.AddCards = make([]int, 0)
+	room.PublicCards = make([]int, 0, 3)
+	room.UniversalCards = make([]int, 0, 3)
 
 }
 
