@@ -185,7 +185,7 @@ var userUpdateSql = [][]string{
 		`CREATE TABLE user_offline_handler (
 		id int(11) NOT NULL,
 		user_id bigint(11) NOT NULL,
-		h_type varchar(255 NOT NULL,
+		h_type varchar(255) NOT NULL,
 		context varchar(255) NOT NULL,
 		expiry_time timestamp NULL DEFAULT NULL,
 		PRIMARY KEY (id)
