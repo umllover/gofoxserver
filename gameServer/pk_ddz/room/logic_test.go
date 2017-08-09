@@ -5,6 +5,7 @@ import (
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -31,6 +32,7 @@ import (
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"github.com/lovelly/leaf/util"
 )
 
 var (
@@ -47,7 +49,11 @@ var Wg sync.WaitGroup
 func TestGameStart_1(t *testing.T) {
 	a := []int{1, 2, 1, 3}
 	str, err := json.Marshal(a)
-	log.Debug("%v", a)
+
+	var str1 string
+	str1 = string(str)
+
+	log.Debug("%s", str1)
 	log.Debug("%d,%s", err, str)
 
 	var b []int
@@ -314,7 +320,7 @@ func TestCompareCard(t *testing.T) {
 func init() {
 
 	Wg.Add(1)
-	return
+	//return
 	conf.Init("/Users/zhangyudong/Documents/GIT/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -331,6 +337,26 @@ func init() {
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 
+	allData, err := model.RecordOutcardDdzOp.SelectAll()
+	log.Debug("非八王场取到的记录%v,%v", err, allData)
+	if err == nil {
+		nCount := len(allData)
+		if nCount > 0 {
+			n := nCount - 10000
+			if n < 0 {
+				n = 0
+			}
+			nIndex := util.RandInterval(0, nCount-n-1)
+			data := allData[n:]
+			var data1 []int
+			json.Unmarshal([]byte(data[nIndex].CardData), &data1)
+
+			log.Debug("数据库取到的牌数据%v", data1)
+			log.Debug("长度%d", len(data1))
+		}
+	}
+
+	return
 	temp, ok := base.GameServiceOptionCache.Get(29, 1)
 	if !ok {
 		return
