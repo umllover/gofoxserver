@@ -63,7 +63,7 @@ var cfg = []*MJ_CFG{
 		MaxCount:     14,
 		MaxRepertory: 112,
 		HuaIndex:     0,
-		HuaCount:     8,
+		HuaCount:     0,
 		MagicCard:    53,
 	},
 
