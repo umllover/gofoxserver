@@ -4,7 +4,6 @@ import (
 	"errors"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/nn_tb_msg"
 	. "mj/gameServer/common"
 	"mj/gameServer/common/pk"
 	"mj/gameServer/common/room_base"
@@ -197,21 +196,8 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 	}
 }
 
-//解散房间
+//大厅服发来的解散房间
 func (room *Entry_base) DissumeRoom(args []interface{}) {
-	u := args[0].(*user.User)
-	retcode := 0
-	defer func() {
-		if retcode != 0 {
-			u.WriteMsg(RenderErrorMessage(retcode, "解散房间失败."))
-		}
-	}()
-
-	if !room.DataMgr.CanOperatorRoom(u.Id) {
-		retcode = NotOwner
-		return
-	}
-
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})
@@ -420,43 +406,6 @@ func (room *Entry_base) CalculateRevenue(ChairId, lScore int) int {
 
 	return 0
 }
-
-//叫分(倍数)
-func (room *Entry_base) CallScore(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
-	u := args[1].(*user.User)
-
-	room.DataMgr.CallScore(u, recvMsg.CallScore)
-	return
-}
-
-//加注
-func (r *Entry_base) AddScore(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
-	u := args[1].(*user.User)
-
-	r.DataMgr.AddScore(u, recvMsg.Score)
-	return
-}
-
-// 亮牌
-func (r *Entry_base) OpenCard(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
-	u := args[1].(*user.User)
-
-	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
-	return
-}
-
-// 十三水摊牌
-func (r *Entry_base) ShowSSsCard(args []interface{}) {
-	//recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
-	//u := args[1].(*user.User)
-
-	//r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
-	return
-}
-
 func (r *Entry_base) getRoomUser(uid int64) *user.User {
 	u, _ := r.UserMgr.GetUserByUid(uid)
 	return u

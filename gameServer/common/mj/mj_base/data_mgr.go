@@ -315,11 +315,13 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
+	room.OperateCard[u.ChairId] = make([]int, 4)
 	if len(OperateCard) > 2 {
-		room.OperateCard[u.ChairId] = make([]int, 4)
 		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
 	} else {
-		room.OperateCard[u.ChairId] = OperateCard
+		for i, card := range OperateCard {
+			room.OperateCard[u.ChairId][i] = card
+		}
 	}
 
 	u.UserLimit = 0

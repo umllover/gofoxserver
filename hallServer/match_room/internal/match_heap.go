@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"mj/hallServer/db"
+
+	"github.com/lovelly/leaf/log"
 )
 
 type Item struct {
@@ -104,4 +106,11 @@ func IncRoomCnt(roomid int) (int, error) {
 	}
 
 	return Ret[0], nil
+}
+
+func UpRoomCnt(roomid int, cnt int) {
+	_, err := db.DB.Exec("UPDATE create_room_info set user_cnt = ? WHERE room_id=?", cnt, roomid)
+	if err != nil {
+		log.Error("UpRoomCnt error:%s", err.Error())
+	}
 }

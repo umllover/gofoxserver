@@ -992,7 +992,7 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 
 	info := player.GetRoom(recvMsg.RoomId)
-	if info != nil {
+	if info == nil {
 		player.WriteMsg(&msg.L2C_DeleteRoomResult{Code: ErrNotFondCreatorRoom})
 		return
 	}
