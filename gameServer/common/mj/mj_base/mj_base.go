@@ -79,7 +79,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
-		r.OnEventGameConclude(0, nil, GER_DISMISS)
+		r.OnEventGameConclude(0, nil, NO_START_GER_DISMISS)
 	})
 
 	r.DataMgr.InitRoomOne()
@@ -585,6 +585,9 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 		room.AfterEnd(true, cbReason)
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(true, cbReason)
+	case NO_START_GER_DISMISS: //没开始就解散
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	}
 	room.Status = RoomStatusEnd
