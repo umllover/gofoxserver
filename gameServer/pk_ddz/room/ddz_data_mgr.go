@@ -444,10 +444,11 @@ func (r *ddz_data_mgr) sendCardRuleOfNormal() {
 	for i := 0; i < 3; i++ {
 		r.BankerCard[i] = RepertoryCard[r.MaxCardCount-i-1]
 	}
+	RepertoryCard = RepertoryCard[:len(RepertoryCard)-3]
 
 	log.Debug("底牌%v", r.BankerCard)
 
-	cardCount := r.MaxCardCount / r.PkBase.Temp.MaxPlayer
+	cardCount := (r.MaxCardCount - 3) / r.PlayerCount
 
 	// 初始化牌
 	r.HandCardData = append([][]int{})
