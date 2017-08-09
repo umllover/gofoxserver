@@ -2093,7 +2093,7 @@ func (room *RoomData) IsMenQing(pAnalyseItem *TagAnalyseItem) int {
 				return 0
 			}
 		} else if v == WIK_GANG {
-			if pAnalyseItem.Param[k] == WIK_MING_GANG && pAnalyseItem.IsAnalyseGet[k] == false {
+			if !(pAnalyseItem.Param[k] == WIK_AN_GANG && pAnalyseItem.IsAnalyseGet[k] == false) {
 				return 0
 			}
 		}
