@@ -32,7 +32,7 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	}
 }
 
-func AddOfflineHandler(htype int, uid int64, data interface{}, Notify bool) bool {
+func AddOfflineHandler(htype string, uid int64, data interface{}, Notify bool) bool {
 	h := &model.UserOfflineHandler{
 		UserId: uid,
 		HType:  htype,

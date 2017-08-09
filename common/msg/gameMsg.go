@@ -79,7 +79,6 @@ type C2G_ReplyLeaveRoom struct {
 	UserID int64 //同意或者拒绝谁
 }
 
-
 type G2C_CancelTable struct{}
 type G2C_PersonalTableEnd struct{}
 
@@ -340,6 +339,19 @@ type G2C_GameConclude struct {
 
 type G2C_KickOut struct {
 	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
+}
+
+//补花
+type C2G_ReplaceCard struct {
+	CardData int //扑克数据
+}
+
+//补花
+type G2C_ReplaceCard struct {
+	ReplaceUser  int //补牌用户
+	ReplaceCard  int //补牌扑克
+	NewCard      int //补完扑克
+	IsInitFlower bool //是否开局补花，true开局补花
 }
 
 ///////////////////////// game chart end ///////////////////////////////
