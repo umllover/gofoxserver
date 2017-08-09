@@ -5,7 +5,6 @@ import (
 	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/common/msg/mj_hz_msg"
-	"mj/common/msg/mj_zp_msg"
 	"mj/common/utils"
 	. "mj/gameServer/common/mj"
 	"mj/gameServer/db/model/base"
@@ -65,43 +64,49 @@ type RoomData struct {
 	MinusLastCount    int    //尾部空缺
 	TingCnt           [4]int //听牌个数
 
-	SiceCount       int                    //色子大小
-	UserActionDone  bool                   //操作完成
-	SendStatus      int                    //发牌状态
-	GangStatus      int                    //杠牌状态
-	GangOutCard     bool                   //杠后出牌
-	ProvideGangUser int                    //供杠用户
-	GangCard        []bool                 //杠牌状态
-	GangCount       []int                  //杠牌次数
-	RepertoryCard   []int                  //库存扑克
-	UserGangScore   []int                  //游戏中杠的输赢
-	ChiHuKind       []int                  //吃胡结果
-	ChiHuRight      []int                  //胡牌类型
-	UserAction      []int                  //用户动作
-	OperateCard     [][]int                //操作扑克
-	ChiPengCount    []int                  //吃碰杠次数
-	CardIndex       [][]int                //用户扑克[GAME_PLAYER][MAX_INDEX]
-	WeaveItemArray  [][]*msg.WeaveItem     //组合扑克
-	DiscardCard     [][]int                //丢弃记录
-	OutCardData     int                    //出牌扑克
-	OutCardUser     int                    //当前出牌用户
-	HeapHead        int                    //堆立头部
-	HeapTail        int                    //堆立尾部
-	HeapCardInfo    [][]int                //堆牌信息
-	SendCardData    int                    //发牌扑克
-	HistorySe       *HistoryScore          //历史积分
-	CurrentUser     int                    //当前操作用户
-	Ting            []bool                 //是否听牌
-	BankerUser      int                    //庄家用户
-	FlowerCnt       []int                  //补花数
-	ChangeBanker    bool                   //庄家是否变动
-	OtherInfo       map[string]interface{} //客户端动态的配置信息
+	SiceCount       int                //色子大小
+	UserActionDone  bool               //操作完成
+	SendStatus      int                //发牌状态
+	GangStatus      int                //杠牌状态
+	GangOutCard     bool               //杠后出牌
+	ProvideGangUser int                //供杠用户
+	GangCard        []bool             //杠牌状态
+	GangCount       []int              //杠牌次数
+	RepertoryCard   []int              //库存扑克
+	UserGangScore   []int              //游戏中杠的输赢
+	ChiHuKind       []int              //吃胡结果
+	ChiHuRight      []int              //胡牌类型
+	UserAction      []int              //用户动作
+	OperateCard     [][]int            //操作扑克
+	ChiPengCount    []int              //吃碰杠次数
+	CardIndex       [][]int            //用户扑克[GAME_PLAYER][MAX_INDEX]
+	WeaveItemArray  [][]*msg.WeaveItem //组合扑克
+	DiscardCard     [][]int            //丢弃记录
+	OutCardData     int                //出牌扑克
+	OutCardUser     int                //当前出牌用户
+	HeapHead        int                //堆立头部
+	HeapTail        int                //堆立尾部
+	HeapCardInfo    [][]int            //堆牌信息
+	SendCardData    int                //发牌扑克
+	HistorySe       *HistoryScore      //历史积分
+	CurrentUser     int                //当前操作用户
+	Ting            []bool             //是否听牌
+	BankerUser      int                //庄家用户
+
+	FlowerCnt    []int                  //补花数
+	FlowerCard   [][]int                //记录花牌
+	ChangeBanker bool                   //庄家是否变动
+	OtherInfo    map[string]interface{} //客户端动态的配置信息
 
 	BanUser    []int   //是否出牌禁忌
 	BanCardCnt [][]int //禁忌卡牌
 
 	//timer
 	OperateTime []*timer.Timer //操作定时器
+}
+
+func (room *RoomData) GetDataMgr() DataManager {
+	return room.MjBase.DataMgr
 }
 
 func (room *RoomData) InitRoomOne() {
@@ -910,6 +915,9 @@ func (room *RoomData) StartGameing() {
 
 	//发牌
 	room.StartDispatchCard()
+
+	//开局补花
+	room.InitBuHua()
 }
 
 func (room *RoomData) AfterStartGame() {
@@ -964,6 +972,93 @@ func (room *RoomData) GetSice() (int, int) {
 	Sice2 := util.RandInterval(1, 6)
 	minSice := int(math.Min(float64(Sice1), float64(Sice2)))
 	return Sice2<<8 | Sice1, minSice
+}
+
+//开局补花
+func (room *RoomData) InitBuHua() {
+	log.Debug("开局补花")
+	if room.GetCfg().HuaIndex == 0 {
+		log.Debug("not hua card at InitBuHua")
+	}
+
+	playerIndex := room.BankerUser
+	playerCNT := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	for i := 0; i < playerCNT; i++ {
+		if playerIndex > 3 {
+			playerIndex = 0
+		}
+
+		for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
+			if room.CardIndex[playerIndex][j] == 1 {
+				index := j
+				for {
+					NewCard := room.GetSendCard(true, playerCNT)
+					newCardIndex := SwitchToCardIndex(NewCard)
+					ReplaceCard := SwitchToCardData(index)
+					room.GetDataMgr().SendReplaceCard(playerIndex, ReplaceCard, NewCard, true)
+					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), NewCard)
+					room.FlowerCnt[playerIndex]++
+					room.FlowerCard[playerIndex] = append(room.FlowerCard[playerIndex], ReplaceCard)
+					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
+						room.CardIndex[playerIndex][j]--
+						room.CardIndex[playerIndex][newCardIndex]++
+						if playerIndex == room.BankerUser {
+							room.SendCardData = NewCard
+						}
+						break
+					} else {
+						index = newCardIndex
+					}
+				}
+			}
+		}
+		playerIndex++
+	}
+}
+
+//用户补花
+func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
+	if room.GetCfg().HuaIndex <= 0 {
+		log.Debug("atOnUserReplaceCard  HuaIndex === 0")
+		return true
+	}
+
+	log.Debug("[用户补花开始] 用户：%d补花：%d", u.ChairId, CardData)
+	gameLogic := room.MjBase.LogicMgr
+	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
+		log.Error("[用户补花] 用户：%d补花失败", u.ChairId)
+		return false
+	}
+
+	//记录补花
+	room.FlowerCnt[u.ChairId]++
+	room.FlowerCard[u.ChairId] = append(room.FlowerCard[u.ChairId], CardData)
+
+	//是否花杠
+	if room.FlowerCnt[u.ChairId] == 8 {
+		room.UserAction[u.ChairId] |= WIK_CHI_HU
+	}
+
+	//状态变量
+	room.SendStatus = BuHua_Send
+	room.GangStatus = WIK_GANERAL
+	room.ProvideGangUser = INVALID_CHAIR
+
+	//派发扑克
+	room.DispatchCardData(u.ChairId, true)
+	room.GetDataMgr().SendReplaceCard(u.ChairId, CardData, room.SendCardData, false)
+
+	log.Debug("[用户补花结束] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
+	return true
+}
+
+func (room *RoomData) SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) {
+	room.MjBase.UserMgr.SendMsgAll(&msg.G2C_ReplaceCard{
+		ReplaceUser:  ReplaceUser,
+		ReplaceCard:  ReplaceCard,
+		NewCard:      NewCard,
+		IsInitFlower: IsInitFlower,
+	})
 }
 
 //开始发牌
@@ -1625,40 +1720,6 @@ func (room *RoomData) GetTrusteeOutCard(wChairID int) int {
 
 //插花
 func (room *RoomData) GetChaHua(u *user.User, setCount int) {
-}
-
-//补花
-func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
-	gameLogic := room.MjBase.LogicMgr
-	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
-		return false
-	}
-
-	//记录补花
-	room.FlowerCnt[u.ChairId]++
-
-	//是否花杠
-	if room.FlowerCnt[u.ChairId] == 8 {
-		room.MjBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
-	}
-
-	//状态变量
-	room.SendStatus = BuHua_Send
-	room.GangStatus = WIK_GANERAL
-	room.ProvideUser = INVALID_CHAIR
-
-	//派发扑克
-	room.DispatchCardData(u.ChairId, true)
-
-	outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
-	outData.IsInitFlower = false
-	outData.ReplaceUser = u.ChairId
-	outData.ReplaceCard = CardData
-	outData.NewCard = room.SendCardData
-	room.MjBase.UserMgr.SendMsgAll(outData)
-
-	log.Debug("[用户补花] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
-	return true
 }
 
 //用户听牌

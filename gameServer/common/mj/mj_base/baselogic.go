@@ -713,7 +713,7 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 	//吃牌判断
 	var i int
 	var cbEatKind int
-	CurrentIndex := SwitchToCardIndex(cbCurrentCard)
+	CurrentIndex := lg.SwitchToIdx(cbCurrentCard)
 	for i = 0; i < len(cbItemKind); i++ {
 		cbValueIndex := CurrentIndex % 9
 		if cbValueIndex >= cbExcursion[i] && (cbValueIndex-cbExcursion[i]) <= 6 {

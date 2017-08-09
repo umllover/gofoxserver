@@ -190,7 +190,7 @@ func (u *User) DelGameLockInfo() {
 		return
 	}
 
-	log.Debug("at DelGameLockInfo######################### ")
+	log.Debug("at DelGameLockInfo")
 	u.KindID = 0
 	u.ServerID = 0
 	u.GameNodeID = 0

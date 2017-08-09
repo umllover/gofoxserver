@@ -84,7 +84,7 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 		ch.Go(FuncName, args[2:]...)
 		return
 	} else {
-
+		//AddOfflineHandler(FuncName, uid, args[2], true)
 	}
 	log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	return

@@ -79,7 +79,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
-		r.OnEventGameConclude(0, nil, GER_DISMISS)
+		r.OnEventGameConclude(0, nil, NO_START_GER_DISMISS)
 	})
 
 	r.DataMgr.InitRoomOne()
@@ -586,6 +586,9 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 	case USER_LEAVE: //用户请求解散
 		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(true, cbReason)
+	case NO_START_GER_DISMISS: //没开始就解散
+		room.DataMgr.DismissEnd(cbReason)
+		room.AfterEnd(true, cbReason)
 	}
 	room.Status = RoomStatusEnd
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
@@ -594,17 +597,18 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
+	roomStatus := room.Status
 	room.TimerMgr.AddPlayCount()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
+		log.Debug("Forced :%v, room.Status:%d, PlayTurnCount:%d, temp PlayTurnCount:%d", Forced, roomStatus, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 		closeFunc := func() {
 			room.IsClose = true
-			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 				RoomId: room.DataMgr.GetRoomId(),
-				Status: room.Status,
+				Status: roomStatus,
 			})
 
 			//全付的房间，若没开始过并且创建的房主没在，则返还给他钱
@@ -642,6 +646,7 @@ func (room *Mj_base) CheckRoomReturnMoney() {
 			isCreatorInRoom = true
 		}
 	})
+	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
 	if !isCreatorInRoom {
 		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
 	}

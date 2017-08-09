@@ -43,16 +43,14 @@ type G2C_DDZ_StatusFree struct {
 	TimeHeadOutCard int // 首出时间
 
 	ShowCardSign []bool // 用户明牌标识
-	TrusteeSign  []bool // 托管标识
 }
 
 //叫分状态
 type G2C_DDZ_StatusCall struct {
 	// 时间信息
-	TimeOutCard     int //出牌时间
-	TimeCallScore   int //叫分时间
-	TimeStartGame   int //开始时间
-	TimeHeadOutCard int //首出时间
+	TimeOutCard   int //出牌时间
+	TimeCallScore int //叫分时间
+	TimeStartGame int //开始时间
 
 	// 游戏信息
 	GameType      int   // 游戏类型(0：经典场 1：欢乐场 2：癞子场)
@@ -67,6 +65,9 @@ type G2C_DDZ_StatusCall struct {
 	// 明牌
 	ShowCardSign []bool  // 明牌标识
 	ShowCardData [][]int // 明牌数据
+
+	// 托管状态
+	TrusteeSign []bool // 托管标识
 }
 
 //游戏状态
@@ -101,6 +102,9 @@ type G2C_DDZ_StatusPlay struct {
 	// 明牌
 	ShowCardSign []bool  // 明牌标识
 	ShowCardData [][]int // 明牌数据
+
+	// 托管
+	TrusteeSign []bool // 托管标识
 }
 
 //发送扑克

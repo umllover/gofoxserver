@@ -33,7 +33,6 @@ type ZP_RoomData struct {
 
 	FollowCard   []int       //跟牌
 	IsFollowCard bool        //是否跟牌
-	FlowerCard   [][]int     //记录花牌
 	LianZhuang   int         //连庄次数
 	ChaHuaMap    map[int]int //插花数
 	ChaHuaScore  []int       //插花分
@@ -162,7 +161,6 @@ func (room *ZP_RoomData) StartGameing() {
 				_, ok := room.ChaHuaMap[i]
 				if !ok {
 					room.ChaHuaMap[i] = 0
-				} else {
 				}
 			}
 			//洗牌
@@ -202,6 +200,11 @@ func (room *ZP_RoomData) AfterStartGame() {
 //获得插花
 func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	log.Debug("获得插花")
+	_, ok := room.ChaHuaMap[u.ChairId]
+	if ok {
+		log.Debug("%d 已经插花", u.ChairId)
+		return
+	}
 	room.ChaHuaMap[u.ChairId] = setCount
 
 	sendData := &mj_zp_msg.G2C_MJZP_UserCharHua{}
@@ -228,42 +231,14 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	}
 }
 
-//用户补花
-func (room *ZP_RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
-	log.Debug("[用户补花开始] 用户：%d补花：%d", u.ChairId, CardData)
-	gameLogic := room.MjBase.LogicMgr
-	if gameLogic.RemoveCard(room.CardIndex[u.ChairId], CardData) == false {
-		log.Error("[用户补花] 用户：%d补花失败", u.ChairId)
-		return false
-	}
-
-	//记录补花
-	room.FlowerCnt[u.ChairId]++
-	room.FlowerCard[u.ChairId] = append(room.FlowerCard[u.ChairId], CardData)
-
-	//是否花杠
-	if room.FlowerCnt[u.ChairId] == 8 {
-		room.UserAction[u.ChairId] |= WIK_CHI_HU
-	}
-
-	//状态变量
-	room.SendStatus = BuHua_Send
-	room.GangStatus = WIK_GANERAL
-	room.ProvideGangUser = INVALID_CHAIR
-
-	//派发扑克
-	room.DispatchCardData(u.ChairId, true)
-
-	outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
-	outData.IsInitFlower = false
-	outData.ReplaceUser = u.ChairId
-	outData.ReplaceCard = CardData
-	outData.NewCard = room.SendCardData
-	outData.ActionMask = room.UserAction[u.ChairId]
-	room.MjBase.UserMgr.SendMsgAll(outData)
-
-	log.Debug("[用户补花结束] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)
-	return true
+func (room *ZP_RoomData) SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) {
+	room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_ReplaceCard{
+		ReplaceUser:  ReplaceUser,
+		ReplaceCard:  ReplaceCard,
+		NewCard:      NewCard,
+		IsInitFlower: IsInitFlower,
+		ActionMask:   room.UserAction[ReplaceUser],
+	})
 }
 
 //用户听牌
@@ -310,48 +285,6 @@ func (room *ZP_RoomData) RemoveAllZiCar(NewDataArray, OriDataArray []int) {
 		}
 		NewDataArray[bufferCount] = v
 		bufferCount++
-	}
-}
-
-//开局补花
-func (room *ZP_RoomData) InitBuHua() {
-	log.Debug("开局补花")
-	playerIndex := room.BankerUser
-	playerCNT := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	for i := 0; i < playerCNT; i++ {
-		if playerIndex > 3 {
-			playerIndex = 0
-		}
-		outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
-		outData.ReplaceUser = playerIndex
-		outData.IsInitFlower = true
-
-		for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
-			if room.CardIndex[playerIndex][j] == 1 {
-				index := j
-				for {
-					outData.NewCard = room.GetSendCard(true, playerCNT)
-					newCardIndex := SwitchToCardIndex(outData.NewCard)
-					outData.ReplaceCard = SwitchToCardData(index)
-					room.MjBase.UserMgr.SendMsgAll(outData)
-
-					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), outData.NewCard)
-					room.FlowerCnt[playerIndex]++
-					room.FlowerCard[playerIndex] = append(room.FlowerCard[playerIndex], outData.ReplaceCard)
-					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
-						room.CardIndex[playerIndex][j]--
-						room.CardIndex[playerIndex][newCardIndex]++
-						if playerIndex == room.BankerUser {
-							room.SendCardData = outData.NewCard
-						}
-						break
-					} else {
-						index = newCardIndex
-					}
-				}
-			}
-		}
-		playerIndex++
 	}
 }
 
@@ -442,15 +375,15 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	////todo,测试手牌
 	//var temp []int
 	//temp = make([]int, 42)
-	//temp[28] = 3 //三张一同
-	//temp[29] = 3 //三张二同
-	//temp[30] = 3 //三张三同
-	//temp[27] = 3 //三张四同
-	//temp[32] = 3 //三张五同
-	//temp[1] = 2
+	//temp[0] = 3 //三张一同
+	//temp[1] = 3 //三张二同
+	//temp[2] = 3 //三张三同
+	//temp[3] = 3 //三张四同
+	//temp[4] = 3 //三张五同
+	//temp[5] = 2
 	//
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x33
+	//room.SendCardData = 0x04
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -849,7 +782,14 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
-	room.OperateCard[u.ChairId] = OperateCard
+	room.OperateCard[u.ChairId] = make([]int, 4)
+	if len(OperateCard) > 2 {
+		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
+	} else {
+		for i, card := range OperateCard {
+			room.OperateCard[u.ChairId][i] = card
+		}
+	}
 	room.StopOperateCardTimer(u) //清理定时
 
 	u.UserLimit = 0
@@ -1933,21 +1873,16 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
 		for {
 			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
-				outData := &mj_zp_msg.G2C_MJZP_ReplaceCard{}
-				outData.IsInitFlower = false
-				outData.ReplaceUser = wCurrentUser
-				outData.ReplaceCard = room.ProvideCard
+				oldCard := room.ProvideCard
 				room.ProvideCard = room.GetSendCard(true, room.MjBase.UserMgr.GetMaxPlayerCnt())
-				outData.NewCard = room.ProvideCard
-				room.MjBase.UserMgr.SendMsgAll(outData)
-
+				room.SendReplaceCard(wCurrentUser, oldCard, room.ProvideCard, false)
 				room.FlowerCnt[wCurrentUser]++
-				newCardIndex := SwitchToCardIndex(outData.NewCard)
-				oldCardIndex := SwitchToCardIndex(outData.ReplaceCard)
+				newCardIndex := SwitchToCardIndex(room.ProvideCard)
+				oldCardIndex := SwitchToCardIndex(oldCard)
 				room.CardIndex[wCurrentUser][newCardIndex]++
 				room.CardIndex[wCurrentUser][oldCardIndex]--
-				room.FlowerCard[wCurrentUser] = append(room.FlowerCard[wCurrentUser], outData.ReplaceCard)
-				log.Debug("用户%d补花数：%d %d", wCurrentUser, room.FlowerCnt[wCurrentUser], outData.ReplaceCard)
+				room.FlowerCard[wCurrentUser] = append(room.FlowerCard[wCurrentUser], oldCard)
+				log.Debug("用户%d补花数：%d %d", wCurrentUser, room.FlowerCnt[wCurrentUser], oldCard)
 			} else {
 				break
 			}
