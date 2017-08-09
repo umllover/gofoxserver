@@ -321,7 +321,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
 	room.OperateCard[u.ChairId] = make([]int, 4)
-	if len(OperateCard) > 2 {
+	if len(OperateCard) < 2 {
 		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
 	} else {
 		for i, card := range OperateCard {
@@ -980,7 +980,7 @@ func (room *RoomData) InitBuHua() {
 	if room.GetCfg().HuaIndex == 0 {
 		log.Debug("not hua card at InitBuHua")
 	}
-
+	logic := room.MjBase.LogicMgr
 	playerIndex := room.BankerUser
 	playerCNT := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	for i := 0; i < playerCNT; i++ {
@@ -993,10 +993,10 @@ func (room *RoomData) InitBuHua() {
 				index := j
 				for {
 					NewCard := room.GetSendCard(true, playerCNT)
-					newCardIndex := SwitchToCardIndex(NewCard)
-					ReplaceCard := SwitchToCardData(index)
+					newCardIndex := logic.SwitchToCardIndex(NewCard)
+					ReplaceCard := logic.SwitchToCardData(index)
 					room.GetDataMgr().SendReplaceCard(playerIndex, ReplaceCard, NewCard, true)
-					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, SwitchToCardData(index), NewCard)
+					log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, logic.SwitchToCardData(index), NewCard)
 					room.FlowerCnt[playerIndex]++
 					room.FlowerCard[playerIndex] = append(room.FlowerCard[playerIndex], ReplaceCard)
 					if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {

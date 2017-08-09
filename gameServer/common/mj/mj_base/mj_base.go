@@ -27,10 +27,11 @@ type Mj_base struct {
 	DataMgr  DataManager
 	LogicMgr LogicManager
 
-	Temp            *base.GameServiceOption //模板
-	Status          int
-	IsClose         bool
-	DelayCloseTimer *timer.Timer
+	Temp             *base.GameServiceOption //模板
+	Status           int
+	IsClose          bool
+	DelayCloseTimer  *timer.Timer
+	RoomTrusteeTimer *timer.Timer
 }
 
 //创建的配置文件
@@ -599,6 +600,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	roomStatus := room.Status
 	room.TimerMgr.AddPlayCount()
+	//room.OnRoomTrustee()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
@@ -651,6 +653,33 @@ func (room *Mj_base) CheckRoomReturnMoney() {
 		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
 	}
 }
+
+////todo,房间托管
+//func (room *Mj_base) OnRoomTrustee() {
+//	TrusteeCnt := 0
+//	room.UserMgr.ForEachUser(func(u *user.User) {
+//		if room.UserMgr.IsTrustee(u.ChairId) {
+//			TrusteeCnt++
+//		}
+//	})
+//
+//	var AddPlayCount func()
+//	AddPlayCount = func() {
+//		if room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
+//			room.TimerMgr.AddPlayCount()
+//			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
+//		} else {
+//			room.OnEventGameConclude(0, nil, GER_NORMAL)
+//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
+//		}
+//	}
+//
+//	if TrusteeCnt == room.UserMgr.GetMaxPlayerCnt() && room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
+//		log.Debug("进入房间托管")
+//		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+//	}
+//}
 
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
