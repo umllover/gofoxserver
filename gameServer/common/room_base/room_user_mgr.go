@@ -174,7 +174,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 			"Name":         u.NickName,
 			"HeadUrl":      u.HeadImgUrl,
 			"Icon":         u.IconID,
-			"HallNodeName": u.HallNodeName,
+			"HallNodeName": GetHallSvrName(u.HallNodeId),
 			"Status":       status,
 		},
 	})
@@ -508,7 +508,7 @@ func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
 		return
 	}
 
-	cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
+	cluster.SendMsgToHallUser(u.HallNodeId, u.Id, data)
 }
 
 func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
@@ -516,6 +516,6 @@ func (room *RoomUserMgr) SendMsgToHallServerAll(data interface{}) {
 		if u == nil {
 			continue
 		}
-		cluster.SendDataToHallUser(u.HallNodeName, u.Id, data)
+		cluster.SendMsgToHallUser(u.HallNodeId, u.Id, data)
 	}
 }

@@ -1,9 +1,10 @@
 package cluster
 
 import (
-	"github.com/lovelly/leaf/log"
 	"fmt"
 	"mj/common/msg"
+
+	"github.com/lovelly/leaf/log"
 
 	"github.com/lovelly/leaf/chanrpc"
 )
@@ -23,14 +24,14 @@ func GetHallSvrName(sververId int) string {
 }
 
 //发消息给大厅服务器上的玩家
-func SendDataToHallUser(HallNodeName string, uid int64, data interface{}) {
+func SendMsgToHallUser(svrid int, uid int64, data interface{}) {
 	bdate, err := Processor.Marshal(data)
 	if err != nil {
 		log.Error("at SendDataToHallUser error:%s", err.Error())
 		return
 	}
 
-	Go(HallNodeName, &msg.S2S_HanldeFromUserMsg{Uid: uid, Data: bdate[0]})
+	Go(GetHallSvrName(svrid), &msg.S2S_HanldeFromUserMsg{Uid: uid, Data: bdate[0]})
 }
 
 //发送消息给游戏服

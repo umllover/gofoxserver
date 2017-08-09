@@ -1038,7 +1038,7 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 //点赞
 func (m *UserModule) DianZhan(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_DianZhan)
-	AddOfflineHandler(MailTypeDianZhan, recvMsg.UserID, nil, true)
+	AddOfflineHandler(OfflineTypeDianZhan, recvMsg.UserID, nil, true)
 }
 
 //续费

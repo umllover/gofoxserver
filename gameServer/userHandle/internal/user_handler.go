@@ -138,7 +138,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	user.ServerID = recvMsg.ServerID
 	user.Id = accountData.UserID
 	user.Status = US_FREE
-	user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
+	user.HallNodeId = recvMsg.HallNodeID
 	lok := loadUser(user)
 	if !lok {
 		retcode = LoadUserInfoError

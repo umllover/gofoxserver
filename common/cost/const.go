@@ -181,8 +181,9 @@ const (
 
 //离线处理消息枚举
 const (
-	MailTypeDianZhan    = 1
-	MailTypeReturnMoney = 2
+	OfflineTypeDianZhan = "DianZhan"
+	OfflineRoomEndInfo  = "RoomEndInfo"
+	OfflineReturnMoney  = "RoomReturnMoney"
 )
 
 //踢出玩家原因

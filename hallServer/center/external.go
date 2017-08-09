@@ -24,6 +24,6 @@ func SendMsgToHallUser(uid int64, data interface{}) {
 	ChanRPC.Go("SendMsgToHallUser", uid, data)
 }
 
-func SetOfflineHandler(fn func(htype int, uid int64, data interface{}, Notify bool) bool) {
+func SetOfflineHandler(fn func(htype string, uid int64, data interface{}, Notify bool) bool) {
 	internal.AddOfflineHandler = fn
 }

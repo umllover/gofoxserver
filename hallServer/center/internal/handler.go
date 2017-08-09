@@ -19,7 +19,7 @@ import (
 
 var (
 	GamelistRpc       *chanrpc.Server
-	AddOfflineHandler func(htype int, uid int64, data interface{}, Notify bool) bool
+	AddOfflineHandler func(htype string, uid int64, data interface{}, Notify bool) bool
 )
 
 func init() {
@@ -84,7 +84,7 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 		ch.Go(FuncName, args[2:]...)
 		return
 	} else {
-		//AddOfflineHandler(FuncName, uid, args[2], true)
+		AddOfflineHandler(FuncName, uid, args[2], true)
 	}
 	log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	return

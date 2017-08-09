@@ -131,10 +131,10 @@ type S2S_OfflineHandler struct {
 
 //通知游戏服续费
 type S2S_RenewalFee struct {
-	RoomID   int
-	AddCnt   int
-	HallName string
-	UserId   int64
+	RoomID     int
+	AddCnt     int
+	HallNodeID int
+	UserId     int64
 }
 
 //type L2L_NewRoomInfo struct {

@@ -7,5 +7,5 @@ import (
 
 func RoomReturnMoney(args []interface{}) {
 	recvMsg := args[0].(*msg.RoomReturnMoney)
-	AddOfflineHandler(MailTypeReturnMoney, recvMsg.CreatorUid, recvMsg, true)
+	AddOfflineHandler(OfflineRoomEndInfo, recvMsg.CreatorUid, recvMsg, true)
 }

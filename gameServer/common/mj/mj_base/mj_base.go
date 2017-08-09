@@ -99,7 +99,7 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 	defer func() {
 		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
 		if retcode != 0 {
-			cluster.SendDataToHallUser(u.HallNodeName, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
+			cluster.SendMsgToHallUser(u.HallNodeId, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
 		}
 	}()
 
