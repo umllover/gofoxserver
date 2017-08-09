@@ -104,7 +104,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			m.Close(ServerKick)
+			m.Close(KickOutUnlawfulMsg)
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.G2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {

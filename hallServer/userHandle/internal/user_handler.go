@@ -106,7 +106,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	defer func() {
 		if retcode != 0 {
-			m.Close(ServerKick)
+			m.Close(KickOutUnlawfulMsg)
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
@@ -203,7 +203,7 @@ func (m *UserModule) handleReconnect(args []interface{}) {
 
 	defer func() {
 		if retMsg.Code != 0 {
-			m.Close(ServerKick)
+			m.Close(KickOutUnlawfulMsg)
 			str := fmt.Sprintf("重连失败, 错误码: %d", retMsg.Code)
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retMsg.Code, DescribeString: str})
 		} else {
