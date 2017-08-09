@@ -56,6 +56,7 @@ type Accountsinfo struct {
 	Birthday         *time.Time `db:"Birthday" json:"Birthday"`                 // 生日
 	OpenID           string     `db:"OpenID" json:"OpenID"`                     //
 	SessionKey       string     `db:"SessionKey" json:"SessionKey"`             //
+	IsAgent          int8       `db:"is_agent" json:"is_agent"`                 //
 }
 
 type accountsinfoOp struct{}
@@ -133,7 +134,7 @@ func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
-	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey,is_agent) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.ProtectID,
@@ -174,6 +175,7 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.Birthday,
 		m.OpenID,
 		m.SessionKey,
+		m.IsAgent,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -185,7 +187,7 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 
 //存在就更新， 不存在就插入
 func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface{}) error {
-	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey,is_agent) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.UserID,
 		obj.ProtectID,
 		obj.SpreaderID,
@@ -225,6 +227,7 @@ func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface
 		obj.Birthday,
 		obj.OpenID,
 		obj.SessionKey,
+		obj.IsAgent,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -256,7 +259,7 @@ func (op *accountsinfoOp) Update(m *Accountsinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
-	sql := `update accountsinfo set ProtectID=?,SpreaderID=?,Accounts=?,NickName=?,PassPortID=?,Compellation=?,LogonPass=?,IsAndroid=?,InsurePass=?,MasterOrder=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,WebLogonTimes=?,GameLogonTimes=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,HeadImgUrl=?,UnionID=?,QQ=?,EMail=?,DwellingPlace=?,PostalCode=?,Birthday=?,OpenID=?,SessionKey=? where UserID=?`
+	sql := `update accountsinfo set ProtectID=?,SpreaderID=?,Accounts=?,NickName=?,PassPortID=?,Compellation=?,LogonPass=?,IsAndroid=?,InsurePass=?,MasterOrder=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,WebLogonTimes=?,GameLogonTimes=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,HeadImgUrl=?,UnionID=?,QQ=?,EMail=?,DwellingPlace=?,PostalCode=?,Birthday=?,OpenID=?,SessionKey=?,is_agent=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.ProtectID,
 		m.SpreaderID,
@@ -296,6 +299,7 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 		m.Birthday,
 		m.OpenID,
 		m.SessionKey,
+		m.IsAgent,
 		m.UserID,
 	)
 

@@ -11,26 +11,26 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//increment_key
+//inc_userid
 //
 
 // +gen *
-type IncrementKey struct {
-	IncrementName  string `db:"increment_name" json:"increment_name"`   //
-	IncrementValue int64  `db:"increment_value" json:"increment_value"` //
+type IncUserid struct {
+	NodeId int   `db:"node_id" json:"node_id"` //
+	IncId  int64 `db:"inc_id" json:"inc_id"`   //
 }
 
-type incrementKeyOp struct{}
+type incUseridOp struct{}
 
-var IncrementKeyOp = &incrementKeyOp{}
-var DefaultIncrementKey = &IncrementKey{}
+var IncUseridOp = &incUseridOp{}
+var DefaultIncUserid = &IncUserid{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *incrementKeyOp) Get(increment_name string) (*IncrementKey, bool) {
-	obj := &IncrementKey{}
-	sql := "select * from increment_key where increment_name=? "
+func (op *incUseridOp) Get(node_id int) (*IncUserid, bool) {
+	obj := &IncUserid{}
+	sql := "select * from inc_userid where node_id=? "
 	err := db.AccountDB.Get(obj, sql,
-		increment_name,
+		node_id,
 	)
 
 	if err != nil {
@@ -39,9 +39,9 @@ func (op *incrementKeyOp) Get(increment_name string) (*IncrementKey, bool) {
 	}
 	return obj, true
 }
-func (op *incrementKeyOp) SelectAll() ([]*IncrementKey, error) {
-	objList := []*IncrementKey{}
-	sql := "select * from increment_key "
+func (op *incUseridOp) SelectAll() ([]*IncUserid, error) {
+	objList := []*IncUserid{}
+	sql := "select * from inc_userid "
 	err := db.AccountDB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -50,11 +50,11 @@ func (op *incrementKeyOp) SelectAll() ([]*IncrementKey, error) {
 	return objList, nil
 }
 
-func (op *incrementKeyOp) QueryByMap(m map[string]interface{}) ([]*IncrementKey, error) {
-	result := []*IncrementKey{}
+func (op *incUseridOp) QueryByMap(m map[string]interface{}) ([]*IncUserid, error) {
+	result := []*IncUserid{}
 	var params []interface{}
 
-	sql := "select * from increment_key where 1=1 "
+	sql := "select * from inc_userid where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -67,7 +67,7 @@ func (op *incrementKeyOp) QueryByMap(m map[string]interface{}) ([]*IncrementKey,
 	return result, nil
 }
 
-func (op *incrementKeyOp) GetByMap(m map[string]interface{}) (*IncrementKey, error) {
+func (op *incUseridOp) GetByMap(m map[string]interface{}) (*IncUserid, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (op *incrementKeyOp) GetByMap(m map[string]interface{}) (*IncrementKey, err
 }
 
 /*
-func (i *IncrementKey) Insert() error {
+func (i *IncUserid) Insert() error {
     err := db.AccountDBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -89,16 +89,16 @@ func (i *IncrementKey) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *incrementKeyOp) Insert(m *IncrementKey) (int64, error) {
+func (op *incUseridOp) Insert(m *IncUserid) (int64, error) {
 	return op.InsertTx(db.AccountDB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *incrementKeyOp) InsertTx(ext sqlx.Ext, m *IncrementKey) (int64, error) {
-	sql := "insert into increment_key(increment_name,increment_value) values(?,?)"
+func (op *incUseridOp) InsertTx(ext sqlx.Ext, m *IncUserid) (int64, error) {
+	sql := "insert into inc_userid(node_id,inc_id) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.IncrementName,
-		m.IncrementValue,
+		m.NodeId,
+		m.IncId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -109,10 +109,10 @@ func (op *incrementKeyOp) InsertTx(ext sqlx.Ext, m *IncrementKey) (int64, error)
 }
 
 //存在就更新， 不存在就插入
-func (op *incrementKeyOp) InsertUpdate(obj *IncrementKey, m map[string]interface{}) error {
-	sql := "insert into increment_key(increment_name,increment_value) values(?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.IncrementName,
-		obj.IncrementValue,
+func (op *incUseridOp) InsertUpdate(obj *IncUserid, m map[string]interface{}) error {
+	sql := "insert into inc_userid(node_id,inc_id) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.NodeId,
+		obj.IncId,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -128,7 +128,7 @@ func (op *incrementKeyOp) InsertUpdate(obj *IncrementKey, m map[string]interface
 }
 
 /*
-func (i *IncrementKey) Update()  error {
+func (i *IncUserid) Update()  error {
     _,err := db.AccountDBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -138,16 +138,16 @@ func (i *IncrementKey) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *incrementKeyOp) Update(m *IncrementKey) error {
+func (op *incUseridOp) Update(m *IncUserid) error {
 	return op.UpdateTx(db.AccountDB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *incrementKeyOp) UpdateTx(ext sqlx.Ext, m *IncrementKey) error {
-	sql := `update increment_key set increment_value=? where increment_name=?`
+func (op *incUseridOp) UpdateTx(ext sqlx.Ext, m *IncUserid) error {
+	sql := `update inc_userid set inc_id=? where node_id=?`
 	_, err := ext.Exec(sql,
-		m.IncrementValue,
-		m.IncrementName,
+		m.IncId,
+		m.NodeId,
 	)
 
 	if err != nil {
@@ -159,14 +159,14 @@ func (op *incrementKeyOp) UpdateTx(ext sqlx.Ext, m *IncrementKey) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *incrementKeyOp) UpdateWithMap(increment_name string, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.AccountDB, increment_name, m)
+func (op *incUseridOp) UpdateWithMap(node_id int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.AccountDB, node_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *incrementKeyOp) UpdateWithMapTx(ext sqlx.Ext, increment_name string, m map[string]interface{}) error {
+func (op *incUseridOp) UpdateWithMapTx(ext sqlx.Ext, node_id int, m map[string]interface{}) error {
 
-	sql := `update increment_key set %s where 1=1 and increment_name=? ;`
+	sql := `update inc_userid set %s where 1=1 and node_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -177,39 +177,39 @@ func (op *incrementKeyOp) UpdateWithMapTx(ext sqlx.Ext, increment_name string, m
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, increment_name)
+	params = append(params, node_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *IncrementKey) Delete() error{
+func (i *IncUserid) Delete() error{
     _,err := db.AccountDBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *incrementKeyOp) Delete(increment_name string) error {
-	return op.DeleteTx(db.AccountDB, increment_name)
+func (op *incUseridOp) Delete(node_id int) error {
+	return op.DeleteTx(db.AccountDB, node_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *incrementKeyOp) DeleteTx(ext sqlx.Ext, increment_name string) error {
-	sql := `delete from increment_key where 1=1
-        and increment_name=?
+func (op *incUseridOp) DeleteTx(ext sqlx.Ext, node_id int) error {
+	sql := `delete from inc_userid where 1=1
+        and node_id=?
         `
 	_, err := ext.Exec(sql,
-		increment_name,
+		node_id,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *incrementKeyOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from increment_key where 1=1 `
+	sql := `select count(*) from inc_userid where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -223,13 +223,13 @@ func (op *incrementKeyOp) CountByMap(m map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (op *incrementKeyOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.AccountDB, m)
 }
 
-func (op *incrementKeyOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *incUseridOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from increment_key where 1=1 "
+	sql := "delete from inc_userid where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
