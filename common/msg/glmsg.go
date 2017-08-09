@@ -144,7 +144,6 @@ type S2S_RenewalFee struct {
 //回复大厅续费失败
 type S2S_RenewalFeeFaild struct {
 	RoomId   int
-	RecodeID int
 	ResultId int
 }
 

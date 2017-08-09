@@ -1115,7 +1115,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 func (m *UserModule) RenewalFeeFaild(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_RenewalFeeFaild)
 	player := m.a.UserData().(*user.User)
-	record := player.GetRecord(recvMsg.RecodeID)
+	record := player.GetRecord(recvMsg.RoomId)
 	if record != nil {
 		player.AddCurrency(record.Amount)
 		player.DelRecord(record.RoomId)
