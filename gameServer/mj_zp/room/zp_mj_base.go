@@ -174,6 +174,10 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
 			cbGangKind := room.DataMgr.AnGang(u, OperateCode, OperateCard)
+			if cbGangKind == 0 {
+				return
+			}
+
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {
