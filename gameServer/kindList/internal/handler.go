@@ -72,7 +72,7 @@ func RenewalFee(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_RenewalFee)
 	defer func() {
 		if retCode != 0 { //通知大厅续费失败
-			cluster.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID, ResultId: retCode})
+			cluster.SendMsgToHallUser(recvMsg.HallNodeID, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
 		}
 		log.Debug("at RenewalFee .... end call, retCode=%d", retCode)
 	}()

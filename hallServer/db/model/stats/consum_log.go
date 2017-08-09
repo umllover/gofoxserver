@@ -19,7 +19,7 @@ import (
 type ConsumLog struct {
 	RecodeId   int        `db:"recode_id" json:"recode_id"`     //
 	UserId     int64      `db:"user_id" json:"user_id"`         // 用户索引
-	ConsumType int        `db:"consum_type" json:"consum_type"` // 消费类型 0钻石 1自己付钱 2 AA付钱 3道具
+	ConsumType int        `db:"consum_type" json:"consum_type"` // 消费类型 0钻石 1开房 3道具
 	ConsumNum  int        `db:"consum_num" json:"consum_num"`   // 消费数量
 	ConsumTime *time.Time `db:"consum_time" json:"consum_time"` // 消费时间
 }
@@ -99,8 +99,9 @@ func (op *consumLogOp) Insert(m *ConsumLog) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *consumLogOp) InsertTx(ext sqlx.Ext, m *ConsumLog) (int64, error) {
-	sql := "insert into consum_log(user_id,consum_type,consum_num,consum_time) values(?,?,?,?)"
+	sql := "insert into consum_log(recode_id,user_id,consum_type,consum_num,consum_time) values(?,?,?,?,?)"
 	result, err := ext.Exec(sql,
+		m.RecodeId,
 		m.UserId,
 		m.ConsumType,
 		m.ConsumNum,
@@ -116,8 +117,9 @@ func (op *consumLogOp) InsertTx(ext sqlx.Ext, m *ConsumLog) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *consumLogOp) InsertUpdate(obj *ConsumLog, m map[string]interface{}) error {
-	sql := "insert into consum_log(user_id,consum_type,consum_num,consum_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.UserId,
+	sql := "insert into consum_log(recode_id,user_id,consum_type,consum_num,consum_time) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.RecodeId,
+		obj.UserId,
 		obj.ConsumType,
 		obj.ConsumNum,
 		obj.ConsumTime,

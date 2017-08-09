@@ -26,10 +26,12 @@ func loadHandles(player *user.User) {
 func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	ret := false
 	switch v.HType {
-	case MailTypeDianZhan:
+	case OfflineTypeDianZhan:
 		ret = handlerDianZhan(player, v)
-	case MailTypeReturnMoney:
-		ret = handlerReturnMoney(player, v)
+	case OfflineRoomEndInfo:
+		ret = handlerOfflineRoomEndInfo(player, v)
+	case OfflineReturnMoney:
+		ret = handlerOfflineRoomReturnMone(player, v)
 	}
 
 	if ret {
@@ -37,7 +39,7 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	}
 }
 
-func AddOfflineHandler(htype int, uid int64, data interface{}, Notify bool) bool {
+func AddOfflineHandler(htype string, uid int64, data interface{}, Notify bool) bool {
 	log.Debug("#################### AddOfflineHandler htype=%d, uid=%d, data=%v", htype, uid, data)
 	h := &model.UserOfflineHandler{
 		UserId: uid,
@@ -76,7 +78,25 @@ func handlerDianZhan(player *user.User, msg *model.UserOfflineHandler) bool {
 }
 
 //返还钱给玩家
-func handlerReturnMoney(player *user.User, data *model.UserOfflineHandler) bool {
+func handlerOfflineRoomEndInfo(player *user.User, data *model.UserOfflineHandler) bool {
+	ReturnMoney := &msg.RoomReturnMoney{}
+	err := json.Unmarshal([]byte(data.Context), ReturnMoney)
+	if err != nil {
+		log.Error("at handlerReturnMoney Unmarshal error ")
+		return false
+	}
+	record := player.GetRecord(ReturnMoney.RoomId)
+	log.Debug("############## handlerReturnMoney RoomId=%d, record=%v", ReturnMoney.RoomId, record)
+	if record != nil {
+		log.Debug("############## record.RoomId=%d, record.Amount=%d", record.RoomId, record.Amount)
+		player.DelRecord(record.RoomId)
+		player.AddCurrency(record.Amount)
+	}
+	return true
+}
+
+//返还钱给玩家
+func handlerOfflineRoomReturnMone(player *user.User, data *model.UserOfflineHandler) bool {
 	ReturnMoney := &msg.RoomReturnMoney{}
 	err := json.Unmarshal([]byte(data.Context), ReturnMoney)
 	if err != nil {

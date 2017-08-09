@@ -19,7 +19,7 @@ import (
 type UserOfflineHandler struct {
 	Id         int        `db:"id" json:"id"`                   //
 	UserId     int64      `db:"user_id" json:"user_id"`         //
-	HType      int        `db:"h_type" json:"h_type"`           //
+	HType      string     `db:"h_type" json:"h_type"`           //
 	Context    string     `db:"context" json:"context"`         //
 	ExpiryTime *time.Time `db:"expiry_time" json:"expiry_time"` //
 }

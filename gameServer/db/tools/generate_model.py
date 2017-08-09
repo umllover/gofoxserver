@@ -16,10 +16,11 @@ sys.setdefaultencoding('utf8')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(HERE)
+ACCOUNT_MODEL_DIR = os.path.join(ROOT_DIR, 'model', 'account')
 BASE_MODEL_DIR = os.path.join(ROOT_DIR, 'model', 'base')
 USER_MODEL_DIR = os.path.join(ROOT_DIR, 'model')
 STATS_MODEL_DIR = os.path.join(ROOT_DIR, 'model', 'stats')
-MODEL_DIRS = [BASE_MODEL_DIR, USER_MODEL_DIR, STATS_MODEL_DIR]
+MODEL_DIRS = [USER_MODEL_DIR,ACCOUNT_MODEL_DIR,BASE_MODEL_DIR, STATS_MODEL_DIR]
 for d in MODEL_DIRS :
     if not os.path.exists(d):
         os.makedirs(d)
@@ -200,6 +201,8 @@ def render(conn, db_name, db_map, model_dir, package_name, is_base_db):
         db_sel = "DB"
         if package_name == "stats":
             db_sel = "StatsDB"
+        elif package_name == "account":
+            db_sel = "AccountDB"
         elif package_name == "base":
             db_sel = "BaseDB"
 
@@ -317,6 +320,15 @@ def run():
     with open(CONFIG_FILE, "r") as f:
         config = json.loads(f.read())
     print "config:", config
+
+    account_db_conn = pymysql.connect(host=config['AccountDbHost'],
+                                   port=config['AccountDbPort'],
+                                   charset='utf8',
+                                   user=config['AccountDbUsername'],
+                                   passwd=config['AccountDbPassword'],
+                                   db='information_schema', cursorclass=DictCursor)
+    render(account_db_conn, config['AccountDbName'],
+           'AccountDBMap', ACCOUNT_MODEL_DIR, 'account', False)
 
     base_db_conn = pymysql.connect(host=config['BaseDbHost'],
                                    port=config['BaseDbPort'],
