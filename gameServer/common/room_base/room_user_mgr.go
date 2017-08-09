@@ -165,7 +165,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	u.RoomId = r.id
 	u.ChatRoomId = r.ChatRoomId
 
-	log.Debug("=============================u.HallNodeName:", u.HallNodeName)
+	//log.Debug("=============================u.HallNodeName:", u.HallNodeName)
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
 		OpName: "AddPlayerId",
@@ -352,6 +352,7 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 	if oldUser != nil {
 		return ChairHasUser
 	}
+
 	if room.ChatRoomId == 0 {
 		id, err := Chat.ChanRPC.Call1("createRoom", u.Agent)
 		if err != nil {
