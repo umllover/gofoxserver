@@ -31,7 +31,7 @@ type Onlineorder struct {
 	AgentId       int        `db:"agent_id" json:"agent_id"`             //
 	TransactionId string     `db:"transaction_id" json:"transaction_id"` //
 	IsSettle      int8       `db:"is_settle" json:"is_settle"`           //
-	Quantity      string     `db:"quantity" json:"quantity"`             //
+	Quantity      int        `db:"quantity" json:"quantity"`             //
 }
 
 type onlineorderOp struct{}
