@@ -10,6 +10,9 @@ import (
 
 	"time"
 
+	"encoding/json"
+	"mj/gameServer/db/model"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 	"github.com/mitchellh/mapstructure"
@@ -55,10 +58,10 @@ type ddz_data_mgr struct {
 	// 出牌信息
 	TurnCardStatus []int                          // 用户出牌状态
 	TurnCardData   [][]pk_ddz_msg.C2G_DDZ_OutCard // 出牌数据
-	RepertoryCard  []int                          // 库存扑克
 	RecordOutCards []int                          // 出牌历史记录
 
 	// 扑克信息
+	MaxCardCount int     // 最大扑克数
 	BankerCard   [3]int  // 游戏底牌
 	HandCardData [][]int // 手上扑克
 	ShowCardSign []bool  // 用户明牌标识
@@ -80,11 +83,11 @@ func (room *ddz_data_mgr) resetData() {
 	room.TurnCardStatus = make([]int, room.PlayerCount)
 	room.TurnCardData = make([][]pk_ddz_msg.C2G_DDZ_OutCard, room.PlayerCount)
 
-	nMaxCardCount := room.GetCfg().MaxRepertory
+	room.MaxCardCount = room.GetCfg().MaxRepertory
 	if room.EightKing {
-		nMaxCardCount += 6
+		room.MaxCardCount += 6
 	}
-	room.RepertoryCard = make([]int, nMaxCardCount)
+
 	room.BankerCard = [3]int{}
 	room.HandCardData = append([][]int{})
 	room.RecordOutCards = []int{}
@@ -129,11 +132,6 @@ func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	// 发送明牌标识
 	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusFree.ShowCardSign, &room.ShowCardSign)
-
-	// 发送托管标识
-	trustees := room.PkBase.UserMgr.GetTrustees()
-	StatusFree.TrusteeSign = make([]bool, len(trustees))
-	util.DeepCopy(&StatusFree.TrusteeSign, &trustees)
 
 	u.WriteMsg(StatusFree)
 
@@ -183,7 +181,13 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 		}
 	}
 
+	// 发送托管标识
+	trustees := room.PkBase.UserMgr.GetTrustees()
+	StatusCall.TrusteeSign = make([]bool, len(trustees))
+	util.DeepCopy(&StatusCall.TrusteeSign, &trustees)
+
 	log.Debug("叫分进行时%v", StatusCall)
+
 	u.WriteMsg(StatusCall)
 }
 
@@ -238,6 +242,10 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 			StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, nil)
 		}
 	}
+	// 发送托管标识
+	trustees := room.PkBase.UserMgr.GetTrustees()
+	StatusPlay.TrusteeSign = make([]bool, len(trustees))
+	util.DeepCopy(&StatusPlay.TrusteeSign, &trustees)
 
 	log.Debug("游戏进行时%v", StatusPlay)
 	u.WriteMsg(StatusPlay)
@@ -247,29 +255,20 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 func (room *ddz_data_mgr) SendGameStart() {
 
 	userMgr := room.PkBase.UserMgr
-	gameLogic := room.PkBase.LogicMgr
 
 	userMgr.ForEachUser(func(u *user.User) {
 		userMgr.SetUsetStatus(u, cost.US_PLAYING)
 	})
 
 	// 打乱牌
+	hasCard := false
 	if room.GameType == GAME_TYPE_HAPPY {
-		// 欢乐场，从数据库里取
-
+		hasCard = room.sendCardRuleOfHappyType()
 	}
-	gameLogic.RandCardList(room.RepertoryCard, pk_base.GetCardByIdx(room.ConfigIdx))
 
-	// 底牌
-	//util.DeepCopy(room.BankerCard[:], &room.RepertoryCard[len(room.RepertoryCard)-3:])
-	log.Debug("发牌数据%v,%v", room.BankerCard, room.RepertoryCard)
-	copy(room.BankerCard[:], room.RepertoryCard[len(room.RepertoryCard)-3:])
-	room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-3]
-
-	log.Debug("底牌%v", room.BankerCard)
-	log.Debug("剩余牌%v", room.RepertoryCard)
-
-	cardCount := len(room.RepertoryCard) / room.PkBase.Temp.MaxPlayer
+	if !hasCard {
+		room.sendCardRuleOfNormal()
+	}
 
 	//构造变量
 	GameStart := &pk_ddz_msg.G2C_DDZ_GameStart{}
@@ -282,41 +281,37 @@ func (room *ddz_data_mgr) SendGameStart() {
 		room.PkBase.LogicMgr.SetParamToLogic(room.LiziCard)
 	}
 
-	// 初始化叫分信息
-	for i := 0; i < room.PlayerCount; i++ {
-		room.ScoreInfo[i] = CALLSCORE_NOCALL
-	}
-
 	// 取上一次赢的玩家
 	if len(room.RecordInfo) > 0 {
 		room.CurrentUser = room.WinnerUser
 	}
 
-	// 初始化牌
-	room.HandCardData = append([][]int{})
+	// 如果是第一把，取黑桃三作为叫分者
 	for i := 0; i < room.PlayerCount; i++ {
-		tempCardData := util.CopySlicInt(room.RepertoryCard[len(room.RepertoryCard)-cardCount:])
-		room.PkBase.LogicMgr.SortCardList(tempCardData, len(tempCardData))
-		room.RepertoryCard = room.RepertoryCard[:len(room.RepertoryCard)-cardCount]
-		room.HandCardData = append(room.HandCardData, tempCardData)
-		if room.CurrentUser == cost.INVALID_CHAIR {
-			for _, v := range tempCardData {
-				if v == 0x33 {
-					room.CurrentUser = i
-					break
-				}
+		if room.CurrentUser != cost.INVALID_CHAIR {
+			break
+		}
+
+		tmpCardData := room.HandCardData[i]
+		for _, v := range tmpCardData {
+			if v == 0x33 {
+				room.CurrentUser = i
+				break
 			}
 		}
 	}
 
+	// 黑桃三可能在底牌，随机选一个
 	if room.CurrentUser == cost.INVALID_CHAIR {
 		room.CurrentUser = util.RandInterval(0, 2)
 	}
 
+	// 初始化叫分信息
+	for i := 0; i < room.PlayerCount; i++ {
+		room.ScoreInfo[i] = CALLSCORE_NOCALL
+	}
 	room.ScoreInfo[room.CurrentUser] = CALLSCORE_CALLING
-
 	GameStart.CallScoreUser = room.CurrentUser
-
 	GameStart.ShowCard = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&GameStart.ShowCard, &room.ShowCardSign)
 
@@ -339,6 +334,129 @@ func (room *ddz_data_mgr) SendGameStart() {
 
 	// 启动定时器
 	room.startOperateCardTimer(room.GetCfg().CallScoreTime)
+}
+
+// 欢乐场发牌规则
+func (r *ddz_data_mgr) sendCardRuleOfHappyType() bool {
+	// 欢乐场，从数据库里取
+	var dataCard []int
+	hasCard := false
+	if r.EightKing {
+		allData, err := model.RecordOutcardDdzKingOp.SelectAll()
+		log.Debug("八王场取到的记录%v,%v", err, allData)
+		if err == nil {
+			nCount := len(allData)
+			if nCount > 0 {
+				n := nCount - 10000
+				if n < 0 {
+					n = 0
+				}
+				nIndex := util.RandInterval(0, nCount-n-1)
+				data := allData[n:]
+
+				json.Unmarshal([]byte(data[nIndex].CardData), &dataCard)
+				if len(dataCard) == r.MaxCardCount {
+					hasCard = true
+					log.Debug("八王取到的牌%v", dataCard)
+				}
+
+				// 删除旧数据
+				for i := 0; i < n; i++ {
+					model.RecordOutcardDdzKingOp.Delete(allData[i].RecordID)
+				}
+			}
+		}
+	} else {
+		allData, err := model.RecordOutcardDdzOp.SelectAll()
+		log.Debug("非八王场取到的记录%v,%v", err, allData)
+		if err == nil {
+			nCount := len(allData)
+			if nCount > 0 {
+				n := nCount - 10000
+				if n < 0 {
+					n = 0
+				}
+				nIndex := util.RandInterval(0, nCount-n-1)
+				data := allData[n:]
+				json.Unmarshal([]byte(data[nIndex].CardData), &dataCard)
+				if len(dataCard) == r.MaxCardCount {
+					hasCard = true
+					log.Debug("非八王取到的牌%v", dataCard)
+				}
+
+				// 删除旧数据
+				for i := 0; i < n; i++ {
+					model.RecordOutcardDdzOp.Delete(allData[i].RecordID)
+				}
+			}
+		}
+	}
+	if hasCard {
+		nIndex := 0                                          // 当前索引
+		var nCount int                                       // 每次随机取的条数
+		var nMaxCount = (r.MaxCardCount - 3) / r.PlayerCount // 每个人牌的最大数
+		// 把结尾三张当成底牌
+		for i := 0; i < 3; i++ {
+			r.BankerCard[i] = dataCard[r.MaxCardCount-i-1]
+		}
+
+		for nIndex < len(dataCard)-3 {
+			for i := 0; i < r.PlayerCount; i++ {
+				if i >= len(r.HandCardData) {
+					r.HandCardData = append(r.HandCardData, []int{})
+				}
+
+				nSurplus := nMaxCount - len(r.HandCardData[i]) // 当前扑克还差多少
+				if nSurplus <= 0 {
+					continue
+				}
+				if nSurplus <= 6 {
+					// 当前剩余牌数小于6，则直接取6张
+					nCount = nSurplus
+				} else if nSurplus <= 12 {
+					// 6~12，随机取6~nSurplus
+					nCount = util.RandInterval(6, nSurplus)
+				} else {
+					// 大于12，则随机取6~12
+					nCount = util.RandInterval(6, 12)
+				}
+
+				for j := 0; j < nCount; j++ {
+					r.HandCardData[i] = append(r.HandCardData[i], dataCard[nIndex+j])
+				}
+				nIndex += nCount
+			}
+		}
+		for i := 0; i < r.PlayerCount; i++ {
+			log.Debug("已分配完的扑克%v", r.HandCardData[i])
+		}
+	}
+	return hasCard
+}
+
+// 普通发牌规则
+func (r *ddz_data_mgr) sendCardRuleOfNormal() {
+	var RepertoryCard []int = make([]int, r.MaxCardCount)
+	r.PkBase.LogicMgr.RandCardList(RepertoryCard, pk_base.GetCardByIdx(r.ConfigIdx))
+	log.Debug("随机打乱扑克后的牌%v", RepertoryCard)
+
+	// 底牌
+	for i := 0; i < 3; i++ {
+		r.BankerCard[i] = RepertoryCard[r.MaxCardCount-i-1]
+	}
+
+	log.Debug("底牌%v", r.BankerCard)
+
+	cardCount := r.MaxCardCount / r.PkBase.Temp.MaxPlayer
+
+	// 初始化牌
+	r.HandCardData = append([][]int{})
+	for i := 0; i < r.PlayerCount; i++ {
+		tempCardData := util.CopySlicInt(RepertoryCard[len(RepertoryCard)-cardCount:])
+		r.PkBase.LogicMgr.SortCardList(tempCardData, len(tempCardData))
+		RepertoryCard = RepertoryCard[:len(RepertoryCard)-cardCount]
+		r.HandCardData = append(r.HandCardData, tempCardData)
+	}
 }
 
 // 用户叫分(抢庄)
@@ -758,15 +876,43 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	}
 
 	// 经典场把历史出牌存数据库
+	log.Debug("当前类型%d", r.GameType)
 	if r.GameType == GAME_TYPE_CLASSIC {
+		log.Debug("是经典场")
 		// 检查出牌是否完整
 		nMaxCardCount := r.GetCfg().MaxRepertory
 		if r.EightKing {
 			nMaxCardCount += 6
 		}
+		// 把未打完的牌插入
+		for i := 0; i < r.PlayerCount; i++ {
+			cardData := r.HandCardData[i]
+			for _, v := range cardData {
+				r.RecordOutCards = append(r.RecordOutCards, v)
+			}
+		}
+		log.Debug("当前最大牌数%d-------%d", nMaxCardCount, r.RecordOutCards)
 		if nMaxCardCount == len(r.RecordOutCards) {
 			// 数量相等才能存数据库
 			// ----存数据库----
+			if r.EightKing {
+				var dbCardData model.RecordOutcardDdzKing
+				dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
+				cardData, err := json.Marshal(r.RecordOutCards)
+				if err == nil {
+					dbCardData.CardData = string(cardData)
+					model.RecordOutcardDdzKingOp.Insert(&dbCardData)
+				}
+			} else {
+				var dbCardData model.RecordOutcardDdz
+				dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
+				cardData, err := json.Marshal(r.RecordOutCards)
+				log.Debug("转换后的牌%s,%v", cardData, err)
+				if err == nil {
+					dbCardData.CardData = string(cardData)
+					model.RecordOutcardDdzOp.Insert(&dbCardData)
+				}
+			}
 		}
 	}
 	r.sendGameEndMsg(DataGameConclude)

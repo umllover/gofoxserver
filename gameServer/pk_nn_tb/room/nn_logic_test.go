@@ -16,3 +16,19 @@ func TestCompareCard(t *testing.T) {
 	}
 
 }
+
+
+func TestCompareCard1(t *testing.T) {
+	firstData := []int {
+		13, 11, 54, 51, 49,
+	}
+	nextData := []int {
+		13, 42, 39, 7, 54,
+	}
+	nn_logic := NewNNTBZLogic(pk_base.IDX_TBNN)
+	if nn_logic.CompareCard(firstData, nextData) {
+	} else {
+		t.Error("first data < next data is error", firstData, nextData)
+	}
+}
+
