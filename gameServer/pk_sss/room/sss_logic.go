@@ -194,6 +194,9 @@ func (lg *sss_logic) SSSSortCardList(cardData []int) {
 func (lg *sss_logic) GetCardLogicValue(cardData int) int {
 	//扑克属性
 	cardValue := lg.GetCardValue(cardData)
+	if cardValue == 14 || cardValue == 15 {
+		return 15
+	}
 	//转换数值
 	if cardValue == 1 {
 		cardValue += 13
@@ -1846,3 +1849,186 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 }
 
 func (*sss_logic) SortCardList(cardData []int, cardCount int) {}
+
+func (lg *sss_logic) IsAllLine(cbCard []int, cbCount int, bSameColor bool) bool {
+	if cbCount == 0 {
+		return true
+	}
+
+	if cbCount != 3 && cbCount != 5 && cbCount != 8 && cbCount != 10 && cbCount != 13 {
+		return false
+	}
+
+	if cbCount == 3 || cbCount == 5 {
+		return lg.IsLine(cbCard, cbCount, bSameColor)
+	}
+
+	cbTemp := make([]int, 13)
+
+	for i := 0; i < cbCount; i++ {
+		cbTemp[i] = cbCard[i]
+	}
+
+	cbIndex := []int{0, 1, 2, 3, 4}
+
+	for {
+
+		cbCarResult := make([]int, 5)
+		for i := 0; i < 5; i++ {
+			cbCarResult[i] = cbTemp[cbIndex[i]]
+			cbTemp[cbIndex[i]] = 0
+		}
+		lg.SortCardByValue(cbTemp, cbCount)
+
+		if lg.IsLine(cbCarResult, 5, bSameColor) && lg.IsAllLine(cbTemp, cbCount-5, bSameColor) {
+			cbSortCount := 0
+			for i := 0; i < 5; i++ {
+				cbCard[cbSortCount] = cbCarResult[i]
+				cbSortCount++
+			}
+			for i := 0; i < cbCount-5; i++ {
+				cbCard[cbSortCount] = cbTemp[i]
+				cbSortCount++
+			}
+			return true
+		} else {
+			for i := 0; i < cbCount; i++ {
+				cbTemp[i] = cbCard[i]
+			}
+		}
+
+		if cbIndex[4] == (cbCount - 1) {
+			i := 4
+			for ; i > 0; i-- {
+				if (cbIndex[i-1] + 1) != cbIndex[i] {
+					cbNewIndex := cbIndex[i-1]
+					for j := (i - 1); j < 5; j++ {
+						cbIndex[j] = cbNewIndex + j - (i - 1) + 1
+					}
+					break
+				}
+			}
+			if i == 0 {
+				break
+			}
+		} else {
+			cbIndex[4]++
+		}
+
+	}
+
+	return false
+}
+
+func (lg *sss_logic) IsLine(cbCard []int, cbCount int, bSameColor bool) bool {
+
+	lg.SortCardByValue(cbCard, cbCount)
+
+	cbBossCount := 0
+	cbFirst := 0xFF
+	cbSecond := 0xFF
+	cbLast := lg.GetCardLogicValue(cbCard[cbCount-1])
+	cbSortCard := make([]int, len(cbCard))
+
+	for i := 0; i < cbCount-1; i++ {
+		if cbCard[i] >= 0x4E {
+			cbBossCount++
+			continue
+		}
+
+		if cbFirst == 0xFF {
+			cbFirst = lg.GetCardLogicValue(cbCard[i])
+		} else if cbSecond == 0xFF {
+			cbSecond = lg.GetCardLogicValue(cbCard[i])
+		}
+
+		if bSameColor && lg.GetCardColor(cbCard[i]) != lg.GetCardColor(cbCard[i+1]) {
+			return false
+		}
+
+		if lg.GetCardLogicValue(cbCard[i]) == lg.GetCardLogicValue(cbCard[i+1]) {
+			return false
+		}
+
+	}
+
+	if cbFirst == 14 && cbSecond < (2+cbCount-1) {
+		cbSortCard[0] = lg.GetCardWithValue(cbCard, cbCount, 14)
+		for i := 2; i < (2 + cbCount - 1); i++ {
+			cbSortCard[i-1] = lg.GetCardWithValue(cbCard, cbCount, i)
+		}
+		for i := 0; i < cbCount; i++ {
+			cbCard[i] = cbSortCard[i]
+		}
+
+		return true
+	}
+
+	if cbFirst-cbLast+1 <= cbCount {
+		if cbFirst < (2 + cbCount - 1) {
+			cbSortCard[0] = lg.GetCardWithValue(cbCard, cbCount, 14)
+			for i := 2; i < (2 + cbCount - 1); i++ {
+				cbSortCard[i-1] = lg.GetCardWithValue(cbCard, cbCount, i)
+			}
+
+		} else if cbLast > 14-cbCount {
+			for i := 0; i < cbCount; i++ {
+				cbSortCard[i] = lg.GetCardWithValue(cbCard, cbCount, 14-i)
+			}
+
+		} else {
+			for i := 0; i < cbCount; i++ {
+				cbSortCard[i] = lg.GetCardWithValue(cbCard, cbCount, cbLast+cbCount-1-i)
+			}
+
+		}
+
+		for i := 0; i < cbCount; i++ {
+			cbCard[i] = cbSortCard[i]
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (lg *sss_logic) SortCardByValue(cbCard []int, cbCount int) {
+	for i := 0; i < cbCount-1; i++ {
+		for j := i; j < cbCount; j++ {
+			if lg.GetSortValue(cbCard[i]) < lg.GetSortValue(cbCard[j]) {
+				cbTemp := cbCard[i]
+				cbCard[i] = cbCard[j]
+				cbCard[j] = cbTemp
+			}
+		}
+	}
+}
+
+func (lg *sss_logic) GetSortValue(cbCard int) int {
+	if cbCard >= 0x4E {
+		return cbCard
+	}
+	return lg.GetCardLogicValue(cbCard)*4 + lg.GetCardColor(cbCard)
+}
+
+func (lg *sss_logic) GetCardWithValue(cbCard []int, cbCount int, cbValue int) int {
+	cbTemp := 0
+	for i := 0; i < cbCount; i++ {
+		if lg.GetCardLogicValue(cbCard[i]) == cbValue {
+			cbTemp = cbCard[i]
+			cbCard[i] = 0
+			return cbTemp
+		}
+	}
+
+	for i := 0; i < cbCount; i++ {
+		if lg.GetCardLogicValue(cbCard[i]) >= 15 {
+			cbTemp = cbCard[i]
+			cbCard[i] = 0
+			return cbTemp
+		}
+	}
+
+	return cbTemp
+}
