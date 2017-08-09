@@ -86,7 +86,8 @@ func handlerReturnMoney(player *user.User, data *model.UserOfflineHandler) bool 
 	record := player.GetRecord(ReturnMoney.RoomId)
 	log.Debug("############## handlerReturnMoney RoomId=%d, record=%v", ReturnMoney.RoomId, record)
 	if record != nil {
-		log.Debug("############## record.Amount=%d", record.Amount)
+		log.Debug("############## record.RoomId=%d, record.Amount=%d", record.RoomId, record.Amount)
+		player.DelRecord(record.RoomId)
 		player.AddCurrency(record.Amount)
 	}
 	return true

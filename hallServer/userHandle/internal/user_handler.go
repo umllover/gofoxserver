@@ -186,6 +186,9 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
+
+	//加载离线处理 放最后面
+	loadHandles(player)
 }
 
 //重连
@@ -719,9 +722,6 @@ func loadUser(u *user.User) bool {
 		u.Records[v.RoomId] = v
 	}
 
-	//加载离线处理 放最后面
-	loadHandles(u)
-
 	return true
 }
 
@@ -850,15 +850,19 @@ func (m *UserModule) leaveRoom(args []interface{}) {
 	rmsg := args[0].(*msg.LeaveRoom)
 	player := m.a.UserData().(*user.User)
 	log.Debug("at hall server leaveRoom uid:%v", player.Id)
-	record := player.GetRecord(rmsg.RoomId)
-	if record != nil {
-		player.DelRecord(record.RoomId)
-		//没开始就离开房间 并且不是全付的方式（全付主动退出不返还）
-		if rmsg.Status == RoomStatusReady && rmsg.PayType != SELF_PAY_TYPE {
-			player.AddCurrency(record.Amount)
+
+	//全付方式这边不返还
+	if rmsg.PayType != SELF_PAY_TYPE {
+		record := player.GetRecord(rmsg.RoomId)
+		if record != nil {
+			player.DelRecord(record.RoomId)
+			//没开始就离开房间
+			if rmsg.Status == RoomStatusReady {
+				player.AddCurrency(record.Amount)
+			}
+		} else {
+			log.Error("at restoreToken not foud record uid:%d", player.Id)
 		}
-	} else {
-		log.Error("at restoreToken not foud record uid:%d", player.Id)
 	}
 }
 

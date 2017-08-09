@@ -379,16 +379,17 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
+	roomStatus := room.Status
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
+		log.Debug("Forced :%v, room.Status:%d, PlayTurnCount:%d, temp PlayTurnCount:%d", Forced, roomStatus, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 		closeFunc := func() {
 			room.IsClose = true
-			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 				RoomId: room.DataMgr.GetRoomId(),
-				Status: room.Status,
+				Status: roomStatus,
 			})
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
