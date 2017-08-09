@@ -31,6 +31,7 @@ type TimerManager interface {
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
+	ResetPlayCount()
 	GetMaxPlayCnt() int
 	AddMaxPlayCnt(int)
 	GetCreatrTime() int64

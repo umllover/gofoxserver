@@ -145,6 +145,7 @@ type S2S_RenewalFee struct {
 type S2S_RenewalFeeFaild struct {
 	RoomId   int
 	RecodeID int
+	ResultId int
 }
 
 //通知创建房间

@@ -1091,7 +1091,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 			player.AddCurrency(money)
 			return
 		}
-	} else { //已经扣过钱了， 还来搜索房间
+	} else {
 		record.PlayCnt += feeTemp.DrawCountLimit
 		if record.Status != 1 {
 			log.Error("not foud status ")
@@ -1119,6 +1119,9 @@ func (m *UserModule) RenewalFeeFaild(args []interface{}) {
 		player.AddCurrency(record.Amount)
 		player.DelRecord(record.RoomId)
 	}
+
+	//TODO 通知玩家续费失败
+	//recvMsg.ResultId
 }
 
 //改名字

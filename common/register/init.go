@@ -43,4 +43,5 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_OfflineHandler{})
 	cluster.Processor.Register(&msg.RoomReturnMoney{})
 	cluster.Processor.Register(&msg.S2S_CloseRoom{})
+	cluster.Processor.Register(&msg.S2S_RenewalFeeFaild{})
 }
