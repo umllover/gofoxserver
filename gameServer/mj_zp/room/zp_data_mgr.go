@@ -1331,7 +1331,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				}
 
 				//插花分
-				room.ChaHuaScore[i] += (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
+				room.ChaHuaScore[i] = (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				room.ChaHuaScore[index] = -1 * (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				room.SumScore[index] += room.ChaHuaScore[index]
 				room.SumScore[i] += room.ChaHuaScore[i]
