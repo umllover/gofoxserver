@@ -1,14 +1,13 @@
 package room
 
 import (
-	"encoding/json"
 	. "mj/common/cost"
+	"mj/common/msg"
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -39,6 +38,23 @@ var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
 	room.UserReady([]interface{}{nil, u1})
+}
+
+func TestIndex(t *testing.T) {
+	fmt.Println("11111111111111111111 ")
+	var cards = []int{37, 37, 17, 35, 23, 36, 35, 8, 33, 40, 5, 1,
+		23, 3, 25, 7, 6, 25, 38, 34, 41, 2, 2, 33, 34, 25, 24, 8, 8, 40, 5,
+		21, 3, 39, 18, 4, 39, 36, 4, 22, 41, 8, 21, 38,
+		20, 39, 1, 17, 38, 4, 2, 34, 20, 24, 37, 21, 23, 9, 19, 41, 17, 22, 21,
+		24, 23, 6, 6, 24, 5, 22, 1, 9, 41, 9, 17, 38, 35, 9, 36,
+		33, 18, 7, 4, 40, 25, 37, 22, 2,
+		18, 19, 19, 35, 7, 33, 19, 36, 3, 20,
+		1, 40, 34, 6, 20, 5, 7, 3, 18, 39, 0, 0, 0, 0, 0, 0, 0, 0}
+	logic := room.LogicMgr.(*ZP_Logic)
+	for _, card := range cards {
+		idx := logic.SwitchToIdx(card)
+		fmt.Println(idx)
+	}
 }
 
 func TestZP_RoomData_StartDispatchCard(t *testing.T) {
@@ -150,7 +166,6 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	conf.Test = true
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
@@ -162,12 +177,12 @@ func init() {
 	}
 	temp.OutCardTime = 2
 
-	info := &model.CreateRoomInfo{
-		RoomId:       777777,
+	info := &msg.L2G_CreatorRoom{
+		RoomID:       777777,
 		MaxPlayerCnt: 4,
 		KindId:       391,
 		ServiceId:    1,
-		Num:          8,
+		PlayCnt:      8,
 	}
 
 	//游戏配置
@@ -177,17 +192,13 @@ func init() {
 		ScoreType  int
 	}
 	setCfg := map[string]interface{}{
-		"zhuaHua": 16,
+		"zhuaHua": float64(16),
 		"wanFa":   false,
-		"suanFen": 1,
+		"suanFen": float64(1),
 		"chaHua":  false,
 	}
-	myCfg, cfgOk := json.Marshal(setCfg)
-	if cfgOk != nil {
-		log.Error("测试错误，退出程序")
-		os.Exit(0)
-	}
-	info.OtherInfo = string(myCfg)
+
+	info.OtherInfo = setCfg
 
 	base := room_base.NewRoomBase()
 
@@ -197,7 +208,7 @@ func init() {
 	u1.ChairId = 0
 	userg.Users[0] = u1
 	r := NewMJBase(info)
-	datag := NewDataMgr(info, u1.Id, mj_base.IDX_ZPMJ, "", temp, r)
+	datag := NewZPDataMgr(info, u1.Id, mj_base.IDX_ZPMJ, "", temp, r)
 	if datag == nil {
 		log.Error("测试错误，退出程序")
 		os.Exit(0)
@@ -207,7 +218,7 @@ func init() {
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(mj_base.IDX_ZPMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
+		TimerMgr: room_base.NewRoomTimerMgr(info.PlayCnt, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	RegisterHandler(r)

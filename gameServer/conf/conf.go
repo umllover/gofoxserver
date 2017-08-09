@@ -28,9 +28,6 @@ var (
 	AgentAsynCallLen        = 50
 	AgentChanRPCLen         = 50
 
-	// cluster conf
-	HeartBeatInterval = 5
-
 	// room
 	MaxRoomMsgLen       = 50
 	DestroyRoomInterval = 3600

@@ -4,7 +4,6 @@ import (
 	"errors"
 	. "mj/common/cost"
 	"mj/common/msg"
-	"mj/common/msg/nn_tb_msg"
 	. "mj/gameServer/common"
 	"mj/gameServer/common/pk"
 	"mj/gameServer/common/room_base"
@@ -366,16 +365,17 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
+	roomStatus := room.Status
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
+		log.Debug("Forced :%v, room.Status:%d, PlayTurnCount:%d, temp PlayTurnCount:%d", Forced, roomStatus, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 		closeFunc := func() {
 			room.IsClose = true
-			log.Debug("Forced :%v, PlayTurnCount:%v, temp PlayTurnCount:%d", Forced, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			room.UserMgr.SendMsgToHallServerAll(&msg.RoomEndInfo{
 				RoomId: room.DataMgr.GetRoomId(),
-				Status: room.Status,
+				Status: roomStatus,
 			})
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
@@ -406,43 +406,6 @@ func (room *Entry_base) CalculateRevenue(ChairId, lScore int) int {
 
 	return 0
 }
-
-//叫分(倍数)
-func (room *Entry_base) CallScore(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
-	u := args[1].(*user.User)
-
-	room.DataMgr.CallScore(u, recvMsg.CallScore)
-	return
-}
-
-//加注
-func (r *Entry_base) AddScore(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
-	u := args[1].(*user.User)
-
-	r.DataMgr.AddScore(u, recvMsg.Score)
-	return
-}
-
-// 亮牌
-func (r *Entry_base) OpenCard(args []interface{}) {
-	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
-	u := args[1].(*user.User)
-
-	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
-	return
-}
-
-// 十三水摊牌
-func (r *Entry_base) ShowSSsCard(args []interface{}) {
-	//recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)
-	//u := args[1].(*user.User)
-
-	//r.DataMgr.ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
-	return
-}
-
 func (r *Entry_base) getRoomUser(uid int64) *user.User {
 	u, _ := r.UserMgr.GetUserByUid(uid)
 	return u
