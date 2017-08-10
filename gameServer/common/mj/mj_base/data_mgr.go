@@ -1111,11 +1111,6 @@ func (room *RoomData) StartDispatchCard() {
 
 	room.UserAction = make([]int, UserCnt)
 
-	gangCardResult := &TagGangCardResult{}
-	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
-
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-
 	return
 }
 
@@ -1123,14 +1118,21 @@ func (room *RoomData) StartDispatchCard() {
 func (room *RoomData) InitBankerAction() {
 	gameLogic := room.MjBase.LogicMgr
 	userMgr := room.MjBase.UserMgr
+
+	//杠牌判断
+	gangCardResult := &TagGangCardResult{}
+	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
+	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 	//胡牌判断
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
+	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
 		u := userMgr.GetUserByChairId(room.BankerUser)
 		room.SendOperateNotify(u, room.SendCardData)
 	}
+
 }
 
 func (room *RoomData) RepalceCard() {
@@ -1138,6 +1140,7 @@ func (room *RoomData) RepalceCard() {
 	for _, v := range base.GameTestpaiCache.All() {
 		//log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
 		if v.KindID == room.MjBase.Temp.KindID && v.ServerID == room.MjBase.Temp.ServerID && v.IsAcivate == 1 && room.ID == v.RoomID {
+			log.Debug("11111111111111111111111111111")
 			chairIds := utils.GetStrIntList(v.ChairId, "#")
 			if len(chairIds) < 1 {
 				break
@@ -1235,7 +1238,6 @@ func (room *RoomData) SetUserCard(charirID int, cards []int) {
 				log.Debug("%d======%d", inc, len(cards))
 				break
 			}
-			log.Debug("aaaaa ", cards[inc], "==========", gameLogic.SwitchToCardIndex(cards[inc]))
 			userCard[idx]--
 			userCard[gameLogic.SwitchToCardIndex(cards[inc])]++
 			inc++
