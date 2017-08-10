@@ -906,6 +906,9 @@ func (room *RoomData) AfterStartGame() {
 	room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
+
+	//检测起手动作
+	room.InitBankerAction()
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
@@ -1111,8 +1114,16 @@ func (room *RoomData) StartDispatchCard() {
 	gangCardResult := &TagGangCardResult{}
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 
-	//胡牌判断
+	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
 
+	return
+}
+
+//庄家开局动作
+func (room *RoomData) InitBankerAction() {
+	gameLogic := room.MjBase.LogicMgr
+	userMgr := room.MjBase.UserMgr
+	//胡牌判断
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
 	if hu {
@@ -1120,10 +1131,6 @@ func (room *RoomData) StartDispatchCard() {
 		u := userMgr.GetUserByChairId(room.BankerUser)
 		room.SendOperateNotify(u, room.SendCardData)
 	}
-
-	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-
-	return
 }
 
 func (room *RoomData) RepalceCard() {
