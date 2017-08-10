@@ -193,7 +193,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
-
+	m.SetElect([]interface{}{&msg.C2L_SetElect{ElectUid: player.Id}})
 }
 
 //重连
@@ -618,6 +618,22 @@ func (m *UserModule) GetCreatorRecord(args []interface{}) {
 	retMsg := &msg.L2C_CreatorRoomRecord{}
 	u := m.a.UserData().(*user.User)
 	retMsg.Records = u.GetRoomInfo()
+	var ids []int
+	for _, v := range retMsg.Records {
+		ids = append(ids, v.RoomID)
+	}
+
+	//更新状态
+	if len(ids) > 0 {
+		ret, _ := game_list.ChanRPC.Call1("GetRoomsStatus", ids)
+		m := ret.(map[int]int)
+		for _, v := range retMsg.Records {
+			status, ok := m[v.RoomID]
+			if ok {
+				v.Status = status
+			}
+		}
+	}
 	u.WriteMsg(retMsg)
 }
 

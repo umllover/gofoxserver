@@ -180,3 +180,7 @@ type StartRoom struct {
 type JoinRoomFaild struct {
 	RoomID int
 }
+
+type OfflineAddElectId struct {
+	TagUserID int64 //谁设置了你为推荐人
+}

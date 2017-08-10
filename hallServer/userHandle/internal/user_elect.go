@@ -17,6 +17,7 @@ func (m *UserModule) SetElect(args []interface{}) {
 	defer func() {
 		player.WriteMsg(retMsg)
 	}()
+
 	_, ok := model.UserattrOp.Get(recvMsg.ElectUid)
 	if !ok {
 		retMsg.RetCode = ErrNotFoudPlayer
@@ -26,13 +27,17 @@ func (m *UserModule) SetElect(args []interface{}) {
 		"elect_uid": player.ElectUid,
 	})
 
-	model.UserSpreadOp.Insert(&model.UserSpread{
-		UserId:    recvMsg.ElectUid,
-		SpreadUid: player.Id,
-	})
+	AddOfflineHandler(OfflineAddElectId, player.ElectUid, &msg.OfflineAddElectId{TagUserID: player.Id}, true)
 	recommen := recommenLog.RecommendLog{}
 	recommen.AddRecommendLog(player.Id, recvMsg.ElectUid)
 
+}
+
+//被别人设置了推荐人
+func (m *UserModule) OfflineAddElectId(args []interface{}) {
+	recvMsg := args[0].(*msg.OfflineAddElectId)
+	player := m.a.UserData().(*user.User)
+	HandlerAddElectId(player, recvMsg)
 }
 
 //领取推举人奖励

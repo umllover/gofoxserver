@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"auth_server/module/log"
-	"backend_server/module/global"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +11,8 @@ import (
 	"mj/hallServer/user"
 	"net/http"
 	"net/url"
+
+	"github.com/lovelly/leaf/log"
 )
 
 type Order struct {
@@ -65,7 +65,7 @@ func ReqGetMaskCode(phome string, maskCode int) {
 func VerifyCode(number string, codes string) {
 
 	// 修改为您的apikey(https://www.yunpian.com)登录官网后获取
-	apikey := global.GetGlobalVar("YUN_PIAN_API_KEY")
+	apikey := common.GetGlobalVar("YUN_PIAN_API_KEY")
 	// 修改为您要发送的手机号码，多个号码用逗号隔开
 	mobile := number
 	// 发送内容

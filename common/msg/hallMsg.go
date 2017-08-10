@@ -151,6 +151,11 @@ type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
 }
 
+//有人设置了你为推荐人
+type L2C_NotifyElectResult struct {
+	TagUserID int64 //谁设置你为推荐人
+}
+
 //请求获取验证号码
 type C2L_ReqBindMaskCode struct {
 	PhoneNumber string

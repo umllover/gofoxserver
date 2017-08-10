@@ -38,6 +38,12 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 		}
 	case OfflineReturnMoney:
 		ret = handlerOfflineRoomReturnMone(player, v)
+	case OfflineAddElectId:
+		AddElectId := &msg.OfflineAddElectId{}
+		err := json.Unmarshal([]byte(v.Context), AddElectId)
+		if err == nil {
+			ret = HandlerAddElectId(player, AddElectId)
+		}
 	}
 
 	if ret {
@@ -113,5 +119,14 @@ func handlerOfflineRoomReturnMone(player *user.User, data *model.UserOfflineHand
 		player.DelRecord(record.RoomId)
 		player.AddCurrency(record.Amount)
 	}
+	return true
+}
+
+func HandlerAddElectId(player *user.User, data *msg.OfflineAddElectId) bool {
+	model.UserSpreadOp.Insert(&model.UserSpread{
+		UserId:    player.Id,
+		SpreadUid: data.TagUserID,
+	})
+	player.WriteMsg(&msg.L2C_NotifyElectResult{TagUserID: data.TagUserID})
 	return true
 }

@@ -50,6 +50,7 @@ func init() {
 	reg.RegisterRpc("GetRoomByRoomId", GetRoomByRoomId)
 	reg.RegisterRpc("HaseRoom", HaseRoom)
 	reg.RegisterRpc("CheckVaildIds", CheckVaildIds)
+	reg.RegisterRpc("GetRoomsStatus", GetRoomsStatus)
 
 	reg.RegisterS2S(&msg.S2S_notifyDelRoom{}, notifyDelRoom)
 	reg.RegisterS2S(&msg.UpdateRoomInfo{}, updateRoom)
@@ -449,6 +450,18 @@ func CheckVaildIds(args []interface{}) {
 	if len(invalidIds) > 0 {
 		ch.Go("DeleteVaildIds", invalidIds)
 	}
+}
+
+func GetRoomsStatus(args []interface{}) (interface{}, error) {
+	retm := make(map[int]int)
+	ids := args[0].([]int)
+	for id, _ := range ids {
+		r, ok := roomList[id]
+		if ok {
+			retm[id] = r.Status
+		}
+	}
+	return retm, nil
 }
 
 func CheckTimeOut(r *msg.RoomInfo, now int64) {

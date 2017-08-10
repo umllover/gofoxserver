@@ -183,6 +183,7 @@ const (
 	OfflineTypeDianZhan = "DianZhan"
 	OfflineRoomEndInfo  = "RoomEndInfo"
 	OfflineReturnMoney  = "RoomReturnMoney"
+	OfflineAddElectId   = "OfflineAddElectId"
 )
 
 //踢出玩家原因
