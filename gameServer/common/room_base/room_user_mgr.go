@@ -535,6 +535,6 @@ func (room *RoomUserMgr) CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId 
 	})
 	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
 	if !isCreatorInRoom {
-		cluster.SendMsgToHall(CreatorNodeId, &msg.RoomReturnMoney{RoomId: roomId, CreatorUid: creatorId})
+		cluster.SendMsgToHallUser(CreatorNodeId,creatorId, &msg.RoomReturnMoney{RoomId: roomId, CreatorUid: creatorId})
 	}
 }

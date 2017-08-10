@@ -93,7 +93,9 @@ func handlerOfflineRoomEndInfo(player *user.User, ReturnMoney *msg.RoomReturnMon
 		player.DelRecord(record.RoomId)
 		player.AddCurrency(record.Amount)
 	}
+	player.DelRooms(ReturnMoney.RoomId)
 	return true
+
 }
 
 //返还钱给玩家
