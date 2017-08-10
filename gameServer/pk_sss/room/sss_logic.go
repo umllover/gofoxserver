@@ -381,13 +381,13 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 					} else {
 						cardData = []int{cardData[1], cardData[1] + 1, cardData[1] + 2, cardData[1] + 3, cardData[1] + 4}
 					}
-
+					return lg.SSSGetCardType(cardData)
 				}
 				a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[1]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
 				if a > 0 && a < 5 {
-					cardData = []int{cardData[1], cardData[1] + 1, cardData[1] + 2, cardData[1] + 3, cardData[1] + 4}
+					cardData = []int{cardData[1], cardData[1] - 1, cardData[1] - 2, cardData[1] - 3, cardData[1] - 4}
+					return lg.SSSGetCardType(cardData)
 				}
-				return lg.SSSGetCardType(cardData)
 			}
 			//铁支
 			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[1]}
