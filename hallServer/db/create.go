@@ -393,4 +393,15 @@ var statsUpdateSql = [][]string{
 		KEY IX_SystemStreamInfo_CollectDate (CollectDate)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 	},
+	1: []string{
+		`ALTER TABLE room_log
+		 MODIFY COLUMN create_time  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '录入日期' AFTER node_id,
+		 MODIFY COLUMN end_time  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '结束日期' AFTER create_time,
+		 CHANGE COLUMN timeout_nostart game_end_type  int(11) NOT NULL COMMENT '游戏结束类型 0是常规结束 1是游戏解散 2是玩家请求解散 3是没开始就解散' AFTER pay_type,
+		 CHANGE COLUMN start_endError room_end_type  int(11) NOT NULL COMMENT '解散房间类型 1出错解散房间 2正常解散房间' AFTER game_end_type;`,
+	},
+	2: []string{
+		`ALTER TABLE consum_log
+		MODIFY COLUMN recode_id  int(11) NOT NULL AUTO_INCREMENT FIRST ;`,
+	},
 }
