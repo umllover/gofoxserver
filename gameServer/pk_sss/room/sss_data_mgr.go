@@ -146,10 +146,25 @@ func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
 			for j := range r.UniversalCards {
 				if carData[i] == r.UniversalCards[j] {
 					tempData[i] = 0xFF
+					laiZiCount++
 				}
 			}
 		}
 	}
+
+	if laiZiCount == len(carData) {
+		bossCount := 0
+		for i := range carData {
+			if carData[i] == 0x4E || carData[i] == 0x4F {
+				tempData[i] = 0xFF
+				bossCount++
+			} else {
+				tempData[i] = carData[i]
+			}
+		}
+		return bossCount != 0, tempData
+	}
+
 	return laiZiCount > 0, tempData
 }
 

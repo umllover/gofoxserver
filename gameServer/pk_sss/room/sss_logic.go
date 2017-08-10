@@ -325,9 +325,9 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 	switch metaCount {
 	case 3: //三条类型
 		switch len(TagAnalyseItemArray.laiZi) {
-		case 3:
-			cardData = []int{0x31, 0x31, 0x31}
-			return lg.SSSGetCardType(cardData)
+		// case 3:
+		// 	cardData = []int{0x31, 0x31, 0x31}
+		// 	return lg.SSSGetCardType(cardData)
 		case 2:
 			cardData = []int{cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
@@ -358,9 +358,9 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		return CT_INVALID, TagAnalyseItemArray
 	case 5: //五张牌型
 		switch len(TagAnalyseItemArray.laiZi) {
-		case 5: //最大五同
-			cardData = []int{0x31, 0x31, 0x31, 0x31, 0x31}
-			return lg.SSSGetCardType(cardData)
+		// case 5: //最大五同
+		// 	cardData = []int{0x31, 0x31, 0x31, 0x31, 0x31}
+		// 	return lg.SSSGetCardType(cardData)
 		case 4: //五同
 			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
