@@ -137,22 +137,25 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 
 }
 
-func (r *sss_data_mgr) checkLaiZi(carData []int) bool {
+func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
+	laiZiCount := 0
+	tempData := make([]int, len(carData))
+	copy(tempData, carData)
 	if len(r.UniversalCards) > 0 {
-		for _, v := range carData {
-			for _, v1 := range r.UniversalCards {
-				if v == v1 {
-					return true
+		for i := range carData {
+			for j := range r.UniversalCards {
+				if carData[i] == r.UniversalCards[j] {
+					tempData[i] = 0xFF
 				}
 			}
 		}
 	}
-	return false
+	return laiZiCount > 0, tempData
 }
 
 func (r *sss_data_mgr) ComputeChOut() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
-	lg.UniversalCards = r.UniversalCards
+	//lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		i := u.ChairId
@@ -161,10 +164,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
+		isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
+		ct, item = lg.SSSGetCardType(tempData)
 		r.PlayerSpecialCardType[i].CT = ct
 		r.PlayerSpecialCardType[i].Item = item
-		r.PlayerSpecialCardType[i].isLaiZi = r.checkLaiZi(r.PlayerCards[i])
+		r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
@@ -200,10 +204,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 			//todo 有同花顺
 		default: //普通牌型
 			//前敦
-			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][0])
+			isLaiZi, tempData := r.checkLaiZi(r.PlayerSegmentCards[i][0])
+			ct, item = lg.SSSGetCardType(tempData)
 			r.PlayerSegmentCardType[i][0].CT = ct
 			r.PlayerSegmentCardType[i][0].Item = item
-			r.PlayerSegmentCardType[i][0].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][0])
+			r.PlayerSegmentCardType[i][0].isLaiZi = isLaiZi
 			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("前敦散牌")
@@ -216,10 +221,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 				r.Results[i][0] = 3
 			}
 			//中墩
-			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][1])
+			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][1])
+			ct, item = lg.SSSGetCardType(tempData)
 			r.PlayerSegmentCardType[i][1].CT = ct
 			r.PlayerSegmentCardType[i][1].Item = item
-			r.PlayerSegmentCardType[i][1].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][1])
+			r.PlayerSegmentCardType[i][1].isLaiZi = isLaiZi
 			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("中墩散牌")
@@ -233,7 +239,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_THREE: //三条
 				log.Debug("中墩三条")
 				r.Results[i][1] = 3
-			case CT_FIVE_MIXED_FLUSH_NO_A, CT_FIVE_MIXED_FLUSH_FIRST_A, CT_FIVE_MIXED_FLUSH_BACK_A: //顺子
+			case CT_FIVE_STRAIGHT: //顺子
 				log.Debug("中墩顺子")
 				r.Results[i][1] = 1
 			case CT_FIVE_FLUSH: //同花
@@ -245,7 +251,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_FOUR_ONE: //铁支
 				log.Debug("中墩铁支")
 				r.Results[i][1] = 8
-			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
+			case CT_FIVE_STRAIGHT_FLUSH:
 				log.Debug("中墩同花顺")
 				r.Results[i][1] = 10
 			case CT_FIVE_SAME:
@@ -254,10 +260,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 			}
 
 			//尾墩
-			ct, item = lg.SSSGetCardType(r.PlayerSegmentCards[i][2])
+			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][2])
+			ct, item = lg.SSSGetCardType(tempData)
 			r.PlayerSegmentCardType[i][2].CT = ct
 			r.PlayerSegmentCardType[i][2].Item = item
-			r.PlayerSegmentCardType[i][2].isLaiZi = r.checkLaiZi(r.PlayerSegmentCards[i][2])
+			r.PlayerSegmentCardType[i][2].isLaiZi = isLaiZi
 			switch ct {
 			case CT_SINGLE: //散牌
 				log.Debug("后墩散牌")
@@ -271,7 +278,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_THREE: //三条
 				log.Debug("后墩三条")
 				r.Results[i][2] = 3
-			case CT_FIVE_MIXED_FLUSH_NO_A, CT_FIVE_MIXED_FLUSH_FIRST_A, CT_FIVE_MIXED_FLUSH_BACK_A: //顺子
+			case CT_FIVE_STRAIGHT: //顺子
 				log.Debug("后墩顺子")
 				r.Results[i][1] = 1
 			case CT_FIVE_FLUSH: //同花
@@ -283,7 +290,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_FOUR_ONE: //铁支
 				log.Debug("后墩铁支")
 				r.Results[i][2] = 4
-			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A:
+			case CT_FIVE_STRAIGHT_FLUSH:
 				log.Debug("后墩同花顺")
 				r.Results[i][2] = 5
 			case CT_FIVE_SAME:
@@ -296,7 +303,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 func (r *sss_data_mgr) ComputeResult() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
-	lg.UniversalCards = r.UniversalCards
+	//lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	//打枪次数
 	shootPlayerNum := make([]int, r.PlayerCount)
