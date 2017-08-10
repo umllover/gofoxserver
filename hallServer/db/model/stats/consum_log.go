@@ -116,9 +116,8 @@ func (op *consumLogOp) InsertTx(ext sqlx.Ext, m *ConsumLog) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *consumLogOp) InsertUpdate(obj *ConsumLog, m map[string]interface{}) error {
-	sql := "insert into consum_log(user_id,consum_type,consum_num,consum_time) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{
-		obj.UserId,
+	sql := "insert into consum_log(user_id,consum_type,consum_num,consum_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserId,
 		obj.ConsumType,
 		obj.ConsumNum,
 		obj.ConsumTime,

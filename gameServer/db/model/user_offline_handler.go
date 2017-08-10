@@ -99,8 +99,9 @@ func (op *userOfflineHandlerOp) Insert(m *UserOfflineHandler) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userOfflineHandlerOp) InsertTx(ext sqlx.Ext, m *UserOfflineHandler) (int64, error) {
-	sql := "insert into user_offline_handler(user_id,h_type,context,expiry_time) values(?,?,?,?)"
+	sql := "insert into user_offline_handler(id,user_id,h_type,context,expiry_time) values(?,?,?,?,?)"
 	result, err := ext.Exec(sql,
+		m.Id,
 		m.UserId,
 		m.HType,
 		m.Context,
@@ -116,8 +117,9 @@ func (op *userOfflineHandlerOp) InsertTx(ext sqlx.Ext, m *UserOfflineHandler) (i
 
 //存在就更新， 不存在就插入
 func (op *userOfflineHandlerOp) InsertUpdate(obj *UserOfflineHandler, m map[string]interface{}) error {
-	sql := "insert into user_offline_handler(user_id,h_type,context,expiry_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.UserId,
+	sql := "insert into user_offline_handler(id,user_id,h_type,context,expiry_time) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.Id,
+		obj.UserId,
 		obj.HType,
 		obj.Context,
 		obj.ExpiryTime,
