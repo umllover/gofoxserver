@@ -1305,7 +1305,7 @@ func (room *RoomData) CheckTingCard(chairID int) bool {
 	////听牌判断
 	Count := 0
 	CheckUser := room.MjBase.UserMgr.GetUserByChairId(chairID)
-	if CheckUser {
+	if CheckUser != nil {
 		log.Error("at CheckTingCard not found user %d", chairID)
 		return false
 	}
