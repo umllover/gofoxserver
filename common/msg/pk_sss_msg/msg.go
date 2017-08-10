@@ -18,6 +18,8 @@ func init() {
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Record{})
+	Processor.Register(&G2C_SSS_TRUSTEE{})
+	Processor.Register(&C2G_SSS_TRUSTEE{})
 
 }
 
@@ -122,4 +124,15 @@ type CMD_C_ShowCard struct {
 	bSpecialType  bool  //是否是特殊牌
 	btSpecialData []int //特殊扑克
 	bDragon       bool  //是否乌龙
+}
+
+//托管
+type C2G_SSS_TRUSTEE struct {
+	Trustee bool //托管标志
+}
+
+//托管
+type G2C_SSS_TRUSTEE struct {
+	TrusteeUser int  //托管玩家
+	Trustee     bool //托管标志
 }
