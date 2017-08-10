@@ -193,7 +193,8 @@ type C2L_RenewalFees struct {
 
 //续费 再来一局 结果
 type L2C_RenewalFeesRsp struct {
-	Code int //非0位失败
+	Code   int   //非0位失败
+	UserID int64 //续费用户id
 }
 
 //修改名字

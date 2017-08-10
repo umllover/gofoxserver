@@ -1048,7 +1048,9 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 	retCode := 0
 	defer func() {
-		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode})
+		if retCode != 0 {
+			player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode, UserID: player.Id})
+		}
 	}()
 	if player.Roomid == 0 {
 		retCode = ErrNotInRoom

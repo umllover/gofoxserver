@@ -646,6 +646,9 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 			ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_LOSE
 		}
 
+		//设置玩家积分
+		u.Score = int64(ScoreInfoArray[u.ChairId].Score)
+
 		//历史积分
 		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
 		DetailScore[u.ChairId] = GameConclude.GameScore[u.ChairId]

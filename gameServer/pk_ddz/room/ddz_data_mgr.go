@@ -864,6 +864,11 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 		}
 	}
 
+	//设置玩家积分
+	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		u.Score = int64(DataGameConclude.GameScore[u.ChairId])
+	})
+
 	DataGameConclude.Reason = cbReason
 	if r.BankerUser != cost.INVALID_CHAIR {
 		DataGameConclude.GameScore[r.BankerUser] = 0 - score

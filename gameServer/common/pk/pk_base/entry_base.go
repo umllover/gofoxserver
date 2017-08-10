@@ -70,7 +70,7 @@ func (r *Entry_base) RegisterBaseFunc() {
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
 	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
 	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
-	r.GetChanRPC().Register("AddPlayCnt", r.AddPlayCnt)
+	r.GetChanRPC().Register("RenewalFeesSetInfo", r.RenewalFeesSetInfo)
 }
 
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
@@ -112,7 +112,7 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
 }
-func (r *Entry_base) AddPlayCnt(args []interface{}) (interface{}, error) {
+func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error) {
 	if r.IsClose {
 		return nil, errors.New("room is close ")
 	}

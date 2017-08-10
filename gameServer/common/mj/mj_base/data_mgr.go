@@ -120,6 +120,11 @@ func (room *RoomData) GetUserScore(chairid int) int {
 	return room.HistorySe.AllScore[chairid]
 }
 
+func (room *RoomData) ResetUserScore() {
+	room.HistorySe.AllScore = make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
+	room.HistorySe.DetailScore = [][]int{}
+}
+
 func (room *RoomData) GetCreator() int64 {
 	return room.CreatorUid
 }
@@ -1479,6 +1484,9 @@ func (room *RoomData) NormalEnd(cbReason int) {
 		} else {
 			ScoreInfoArray[u.ChairId].Type = SCORE_TYPE_LOSE
 		}
+
+		//设置玩家积分
+		u.Score = int64(ScoreInfoArray[u.ChairId].Score)
 
 		//历史积分
 		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
