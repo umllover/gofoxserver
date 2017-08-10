@@ -2168,8 +2168,8 @@ func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 
 //截头
 func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
-	cardValue := room.OutCardData & MASK_VALUE
 	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	cardValue := HuOfCard & MASK_VALUE
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
