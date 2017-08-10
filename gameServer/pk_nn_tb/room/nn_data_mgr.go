@@ -286,6 +286,8 @@ func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 		util.DeepCopy(&calScore.CardData[u.ChairId], &openCardInfo.CardData)
 		// 更新积分
 		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u.ChairId]
+		//设置玩家积分
+		u.Score = int64(room.InitScoreMap[u.ChairId])
 	})
 
 	log.Debug("normal end init score map %v", room.InitScoreMap)
