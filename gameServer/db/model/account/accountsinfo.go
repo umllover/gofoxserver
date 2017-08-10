@@ -1,4 +1,4 @@
-package model
+package account
 
 import (
 	"errors"
@@ -54,6 +54,9 @@ type Accountsinfo struct {
 	DwellingPlace    string     `db:"DwellingPlace" json:"DwellingPlace"`       // 详细住址
 	PostalCode       string     `db:"PostalCode" json:"PostalCode"`             // 邮政编码
 	Birthday         *time.Time `db:"Birthday" json:"Birthday"`                 // 生日
+	OpenID           string     `db:"OpenID" json:"OpenID"`                     //
+	SessionKey       string     `db:"SessionKey" json:"SessionKey"`             //
+	IsAgent          int8       `db:"is_agent" json:"is_agent"`                 //
 }
 
 type accountsinfoOp struct{}
@@ -65,7 +68,7 @@ var DefaultAccountsinfo = &Accountsinfo{}
 func (op *accountsinfoOp) Get(UserID int64) (*Accountsinfo, bool) {
 	obj := &Accountsinfo{}
 	sql := "select * from accountsinfo where UserID=? "
-	err := db.DB.Get(obj, sql,
+	err := db.AccountDB.Get(obj, sql,
 		UserID,
 	)
 
@@ -78,7 +81,7 @@ func (op *accountsinfoOp) Get(UserID int64) (*Accountsinfo, bool) {
 func (op *accountsinfoOp) SelectAll() ([]*Accountsinfo, error) {
 	objList := []*Accountsinfo{}
 	sql := "select * from accountsinfo "
-	err := db.DB.Select(&objList, sql)
+	err := db.AccountDB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -95,7 +98,7 @@ func (op *accountsinfoOp) QueryByMap(m map[string]interface{}) ([]*Accountsinfo,
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
 	}
-	err := db.DB.Select(&result, sql, params...)
+	err := db.AccountDB.Select(&result, sql, params...)
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
@@ -116,7 +119,7 @@ func (op *accountsinfoOp) GetByMap(m map[string]interface{}) (*Accountsinfo, err
 
 /*
 func (i *Accountsinfo) Insert() error {
-    err := db.DBMap.Insert(i)
+    err := db.AccountDBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
         return err
@@ -126,12 +129,12 @@ func (i *Accountsinfo) Insert() error {
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) Insert(m *Accountsinfo) (int64, error) {
-	return op.InsertTx(db.DB, m)
+	return op.InsertTx(db.AccountDB, m)
 }
 
 // 插入数据，自增长字段将被忽略
 func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error) {
-	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey,is_agent) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserID,
 		m.ProtectID,
@@ -170,6 +173,9 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 		m.DwellingPlace,
 		m.PostalCode,
 		m.Birthday,
+		m.OpenID,
+		m.SessionKey,
+		m.IsAgent,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -181,7 +187,7 @@ func (op *accountsinfoOp) InsertTx(ext sqlx.Ext, m *Accountsinfo) (int64, error)
 
 //存在就更新， 不存在就插入
 func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface{}) error {
-	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into accountsinfo(UserID,ProtectID,SpreaderID,Accounts,NickName,PassPortID,Compellation,LogonPass,IsAndroid,InsurePass,MasterOrder,Gender,Nullity,NullityOverDate,StunDown,MoorMachine,WebLogonTimes,GameLogonTimes,LastLogonIP,LastLogonDate,LastLogonMobile,LastLogonMachine,RegisterIP,RegisterDate,RegisterMobile,RegisterMachine,QQID,WXID,AgentID,AgentNumber,HeadImgUrl,UnionID,QQ,EMail,DwellingPlace,PostalCode,Birthday,OpenID,SessionKey,is_agent) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.UserID,
 		obj.ProtectID,
 		obj.SpreaderID,
@@ -219,6 +225,9 @@ func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface
 		obj.DwellingPlace,
 		obj.PostalCode,
 		obj.Birthday,
+		obj.OpenID,
+		obj.SessionKey,
+		obj.IsAgent,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -229,13 +238,13 @@ func (op *accountsinfoOp) InsertUpdate(obj *Accountsinfo, m map[string]interface
 		params = append(params, v)
 	}
 
-	_, err := db.DB.Exec(sql+set_sql, params...)
+	_, err := db.AccountDB.Exec(sql+set_sql, params...)
 	return err
 }
 
 /*
 func (i *Accountsinfo) Update()  error {
-    _,err := db.DBMap.Update(i)
+    _,err := db.AccountDBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
         return err
@@ -245,12 +254,12 @@ func (i *Accountsinfo) Update()  error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) Update(m *Accountsinfo) error {
-	return op.UpdateTx(db.DB, m)
+	return op.UpdateTx(db.AccountDB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
-	sql := `update accountsinfo set ProtectID=?,SpreaderID=?,Accounts=?,NickName=?,PassPortID=?,Compellation=?,LogonPass=?,IsAndroid=?,InsurePass=?,MasterOrder=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,WebLogonTimes=?,GameLogonTimes=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,HeadImgUrl=?,UnionID=?,QQ=?,EMail=?,DwellingPlace=?,PostalCode=?,Birthday=? where UserID=?`
+	sql := `update accountsinfo set ProtectID=?,SpreaderID=?,Accounts=?,NickName=?,PassPortID=?,Compellation=?,LogonPass=?,IsAndroid=?,InsurePass=?,MasterOrder=?,Gender=?,Nullity=?,NullityOverDate=?,StunDown=?,MoorMachine=?,WebLogonTimes=?,GameLogonTimes=?,LastLogonIP=?,LastLogonDate=?,LastLogonMobile=?,LastLogonMachine=?,RegisterIP=?,RegisterDate=?,RegisterMobile=?,RegisterMachine=?,QQID=?,WXID=?,AgentID=?,AgentNumber=?,HeadImgUrl=?,UnionID=?,QQ=?,EMail=?,DwellingPlace=?,PostalCode=?,Birthday=?,OpenID=?,SessionKey=?,is_agent=? where UserID=?`
 	_, err := ext.Exec(sql,
 		m.ProtectID,
 		m.SpreaderID,
@@ -288,6 +297,9 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 		m.DwellingPlace,
 		m.PostalCode,
 		m.Birthday,
+		m.OpenID,
+		m.SessionKey,
+		m.IsAgent,
 		m.UserID,
 	)
 
@@ -301,7 +313,7 @@ func (op *accountsinfoOp) UpdateTx(ext sqlx.Ext, m *Accountsinfo) error {
 
 // 用主键做条件，更新map里包含的字段名
 func (op *accountsinfoOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, UserID, m)
+	return op.UpdateWithMapTx(db.AccountDB, UserID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
@@ -325,14 +337,14 @@ func (op *accountsinfoOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[stri
 
 /*
 func (i *Accountsinfo) Delete() error{
-    _,err := db.DBMap.Delete(i)
+    _,err := db.AccountDBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
 func (op *accountsinfoOp) Delete(UserID int64) error {
-	return op.DeleteTx(db.DB, UserID)
+	return op.DeleteTx(db.AccountDB, UserID)
 }
 
 // 根据主键删除相关记录,Tx
@@ -356,7 +368,7 @@ func (op *accountsinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 		params = append(params, v)
 	}
 	count := int64(-1)
-	err := db.DB.Get(&count, sql, params...)
+	err := db.AccountDB.Get(&count, sql, params...)
 	if err != nil {
 		log.Error("CountByMap  error:%v data :%v", err.Error(), m)
 		return 0, err
@@ -365,7 +377,7 @@ func (op *accountsinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 }
 
 func (op *accountsinfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {
-	return op.DeleteByMapTx(db.DB, m)
+	return op.DeleteByMapTx(db.AccountDB, m)
 }
 
 func (op *accountsinfoOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {

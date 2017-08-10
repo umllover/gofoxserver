@@ -27,10 +27,11 @@ type Mj_base struct {
 	DataMgr  DataManager
 	LogicMgr LogicManager
 
-	Temp            *base.GameServiceOption //模板
-	Status          int
-	IsClose         bool
-	DelayCloseTimer *timer.Timer
+	Temp             *base.GameServiceOption //模板
+	Status           int
+	IsClose          bool
+	DelayCloseTimer  *timer.Timer
+	RoomTrusteeTimer *timer.Timer
 }
 
 //创建的配置文件
@@ -98,7 +99,7 @@ func (r *Mj_base) Sitdown(args []interface{}) {
 	defer func() {
 		u.WriteMsg(&msg.G2C_UserSitDownRst{Code: retcode})
 		if retcode != 0 {
-			cluster.SendDataToHallUser(u.HallNodeName, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
+			cluster.SendMsgToHallUser(u.HallNodeId, u.Id, &msg.JoinRoomFaild{RoomID: r.DataMgr.GetRoomId()})
 		}
 	}()
 
@@ -135,16 +136,24 @@ func (r *Mj_base) UserStandup(args []interface{}) {
 func (r *Mj_base) AddPlayCnt(args []interface{}) (interface{}, error) {
 	log.Debug("at AddPlayCnt .... ")
 	if r.IsClose {
-		return nil, errors.New("room is close ")
+		return 1, errors.New("room is close ")
 	}
+
 	addCnt := args[0].(int)
+	//不需要续费或者已经有人续过费了
+	if r.TimerMgr.GetPlayCount() < r.TimerMgr.GetMaxPlayCnt() {
+		return 2, errors.New("room playCnt >= maxPlayCnt")
+	}
+
 	r.TimerMgr.AddMaxPlayCnt(addCnt)
+	//r.TimerMgr.ResetPlayCount()
+
 	if r.DelayCloseTimer != nil {
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
 	log.Debug("at AddPlayCnt ...1111 . ")
-	return nil, nil
+	return 0, nil
 }
 
 //获取对方信息
@@ -195,8 +204,8 @@ func (room *Mj_base) UserReady(args []interface{}) {
 	}
 
 	if room.DelayCloseTimer != nil {
-		if room.TimerMgr.GetMaxPlayCnt() == room.TimerMgr.GetPlayCount() {
-			log.Debug("Max Play cnt")
+		if room.TimerMgr.GetMaxPlayCnt() <= room.TimerMgr.GetPlayCount() {
+			log.Debug("Max Play count limit, curCount=%d, maxCount=%d", room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 			retCode = ErrRenewalFee
 			return
 		} else {
@@ -599,6 +608,7 @@ func (room *Mj_base) OnEventGameConclude(ChairId int, user *user.User, cbReason 
 func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	roomStatus := room.Status
 	room.TimerMgr.AddPlayCount()
+	//room.OnRoomTrustee()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
@@ -612,7 +622,7 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 			})
 
 			//全付的房间，若没开始过并且创建的房主没在，则返还给他钱
-			room.CheckRoomReturnMoney()
+			room.UserMgr.CheckRoomReturnMoney(roomStatus, room.DataMgr.GetCreatorNodeId(), room.DataMgr.GetRoomId(), room.DataMgr.GetCreator())
 
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
@@ -632,25 +642,32 @@ func (room *Mj_base) AfterEnd(Forced bool, cbReason int) {
 	})
 }
 
-//检测房间是否该返还房主钱
-func (room *Mj_base) CheckRoomReturnMoney() {
-	//全付的房间，并且没开始过游戏
-	if room.UserMgr.GetPayType() != SELF_PAY_TYPE && room.Status != RoomStatusReady {
-		return
-	}
-	//要求房主没在房间内才在这边返还，否则走的是其他逻辑返还
-	creatorId := room.DataMgr.GetCreator()
-	isCreatorInRoom := false
-	room.UserMgr.ForEachUser(func(u *user.User) {
-		if u.Id == creatorId {
-			isCreatorInRoom = true
-		}
-	})
-	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
-	if !isCreatorInRoom {
-		cluster.SendMsgToHall(room.DataMgr.GetCreatorNodeId(), &msg.RoomReturnMoney{RoomId: room.DataMgr.GetRoomId(), CreatorUid: creatorId})
-	}
-}
+////todo,房间托管
+//func (room *Mj_base) OnRoomTrustee() {
+//	TrusteeCnt := 0
+//	room.UserMgr.ForEachUser(func(u *user.User) {
+//		if room.UserMgr.IsTrustee(u.ChairId) {
+//			TrusteeCnt++
+//		}
+//	})
+//
+//	var AddPlayCount func()
+//	AddPlayCount = func() {
+//		if room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
+//			room.TimerMgr.AddPlayCount()
+//			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
+//		} else {
+//			room.OnEventGameConclude(0, nil, GER_NORMAL)
+//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
+//		}
+//	}
+//
+//	if TrusteeCnt == room.UserMgr.GetMaxPlayerCnt() && room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
+//		log.Debug("进入房间托管")
+//		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+//	}
+//}
 
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {

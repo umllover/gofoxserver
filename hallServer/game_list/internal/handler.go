@@ -2,7 +2,6 @@ package internal
 
 import (
 	"errors"
-	"fmt"
 	. "mj/common/cost"
 	"mj/common/msg"
 	rgst "mj/common/register"
@@ -404,16 +403,13 @@ func GetMatchRoomsByKind(args []interface{}) (interface{}, error) {
 	for roomID, _ := range roomKindList[kind] {
 		v := roomList[roomID]
 		if v == nil {
-			fmt.Println("111111111111")
 			continue
 		}
 		CheckTimeOut(v, now)
 		if !v.IsPublic {
-			fmt.Println("222222222222")
 			continue
 		}
 		if v.MaxPlayerCnt <= v.MachCnt {
-			fmt.Println("3333333333333 %d", v.MaxPlayerCnt)
 			continue
 		}
 		ret = append(ret, v)

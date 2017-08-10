@@ -172,7 +172,7 @@ func (room *ZP_RoomData) StartGameing() {
 			//庄家开局动作
 			room.InitBankerAction()
 			//检查自摸
-			room.CheckZiMo()
+			room.CheckTingCard()
 			//定时
 			u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 			room.InitOutCardTimer(u)
@@ -186,7 +186,7 @@ func (room *ZP_RoomData) StartGameing() {
 		//庄家开局动作
 		room.InitBankerAction()
 		//检查自摸
-		room.CheckZiMo()
+		room.CheckTingCard()
 		//定时
 		u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 		room.InitOutCardTimer(u)
@@ -224,7 +224,7 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 		//庄家开局动作
 		room.InitBankerAction()
 		//检查自摸
-		room.CheckZiMo()
+		room.CheckTingCard()
 		//定时
 		u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 		room.InitOutCardTimer(u)
@@ -783,7 +783,7 @@ func (room *ZP_RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode in
 	room.IsResponse[u.ChairId] = true
 	room.PerformAction[u.ChairId] = OperateCode
 	room.OperateCard[u.ChairId] = make([]int, 4)
-	if len(OperateCard) > 2 {
+	if len(OperateCard) < 2 {
 		room.BuildOpCard(u.ChairId, OperateCode, OperateCard[0])
 	} else {
 		for i, card := range OperateCard {
@@ -1333,8 +1333,8 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				//插花分
 				room.ChaHuaScore[i] += (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				room.ChaHuaScore[index] = -1 * (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
-				room.SumScore[index] += room.ChaHuaScore[index]
-				room.SumScore[i] += room.ChaHuaScore[i]
+				room.SumScore[index] -= (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
+				room.SumScore[i] += (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
 				log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[index], room.SumScore[i])
 
 				//抓花分
@@ -1396,8 +1396,8 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 			//插花分
 			room.ChaHuaScore[i] = (room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]) * score
-			room.ChaHuaScore[room.ProvideUser] = -1 * (room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]) * score
-			room.SumScore[room.ProvideUser] += room.ChaHuaScore[room.ProvideUser]
+			room.ChaHuaScore[room.ProvideUser] += -1 * (room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]) * score
+			room.SumScore[room.ProvideUser] -= (room.ChaHuaMap[i] + room.ChaHuaMap[room.ProvideUser]) * score
 			room.SumScore[i] += room.ChaHuaScore[i]
 			log.Debug("插花分：%d SumScore:%d", room.ChaHuaMap[i]+room.ChaHuaMap[room.ProvideUser], room.SumScore[i])
 
@@ -2093,7 +2093,7 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 	return cardindex
 }
 
-func (room *ZP_RoomData) CheckZiMo() {
+func (room *ZP_RoomData) CheckTingCard() {
 
 }
 

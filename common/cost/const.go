@@ -181,16 +181,18 @@ const (
 
 //离线处理消息枚举
 const (
-	MailTypeDianZhan    = 1
-	MailTypeReturnMoney = 2
+	OfflineTypeDianZhan = "DianZhan"
+	OfflineRoomEndInfo  = "RoomEndInfo"
+	OfflineReturnMoney  = "RoomReturnMoney"
 )
 
 //踢出玩家原因
 const (
-	UserOffline    = 0 //socket 断开 主动断线
-	ServerKick     = 1 //服务器主动踢出
-	KickOutMsg     = 2 //踢号 重登
-	KickOutGameEnd = 3 //游戏结束，关闭房间踢出房间
+	UserOffline        = 0 //socket 断开 主动断线
+	ServerKick         = 1 //服务器主动踢出
+	KickOutMsg         = 2 //踢号 重登
+	KickOutGameEnd     = 3 //游戏结束，关闭房间踢出房间
+	KickOutUnlawfulMsg = 4 //非法消息
 )
 
 //积分类型

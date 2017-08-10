@@ -377,6 +377,10 @@ func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 				RoomId: room.DataMgr.GetRoomId(),
 				Status: roomStatus,
 			})
+
+			//全付的房间，若没开始过并且创建的房主没在，则返还给他钱
+			room.UserMgr.CheckRoomReturnMoney(roomStatus, room.DataMgr.GetCreatorNodeId(), room.DataMgr.GetRoomId(), room.DataMgr.GetCreator())
+
 			room.Destroy(room.DataMgr.GetRoomId())
 			room.UserMgr.RoomDissume()
 		}

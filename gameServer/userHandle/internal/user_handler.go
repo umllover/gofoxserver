@@ -8,6 +8,7 @@ import (
 	"mj/gameServer/RoomMgr"
 	"mj/gameServer/common"
 	"mj/gameServer/db/model"
+	"mj/gameServer/db/model/account"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	client "mj/gameServer/user"
@@ -103,7 +104,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	retcode := 0
 	defer func() {
 		if retcode != 0 {
-			m.Close(ServerKick)
+			m.Close(KickOutUnlawfulMsg)
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.G2C_LogonFailure{ResultCode: retcode, DescribeString: str})
 		} else {
@@ -116,7 +117,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := model.AccountsinfoOp.Get(recvMsg.UserID)
+	accountData, ok := account.AccountsinfoOp.Get(recvMsg.UserID)
 	if !ok || accountData == nil {
 		retcode = NotFoudAccout
 		return
@@ -138,7 +139,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	user.ServerID = recvMsg.ServerID
 	user.Id = accountData.UserID
 	user.Status = US_FREE
-	user.HallNodeName = GetHallSvrName(recvMsg.HallNodeID)
+	user.HallNodeId = recvMsg.HallNodeID
 	lok := loadUser(user)
 	if !lok {
 		retcode = LoadUserInfoError

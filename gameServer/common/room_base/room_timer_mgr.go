@@ -52,7 +52,7 @@ func (room *RoomTimerMgr) GetTimeOperateCard() int {
 }
 
 func (room *RoomTimerMgr) AddMaxPlayCnt(cnt int) {
-	room.PlayCount += cnt
+	room.MaxPlayCnt += cnt
 }
 
 func (room *RoomTimerMgr) GetTimeOutCard() int {
@@ -73,6 +73,10 @@ func (room *RoomTimerMgr) GetPlayCount() int {
 
 func (room *RoomTimerMgr) AddPlayCount() {
 	room.PlayCount++
+}
+
+func (room *RoomTimerMgr) ResetPlayCount() {
+	room.PlayCount = 0
 }
 
 func (room *RoomTimerMgr) GetTimeLimit() int {

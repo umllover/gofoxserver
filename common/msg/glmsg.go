@@ -131,10 +131,10 @@ type S2S_OfflineHandler struct {
 
 //通知游戏服续费
 type S2S_RenewalFee struct {
-	RoomID   int
-	AddCnt   int
-	HallName string
-	UserId   int64
+	RoomID     int
+	AddCnt     int
+	HallNodeID int
+	UserId     int64
 }
 
 //type L2L_NewRoomInfo struct {
@@ -144,7 +144,7 @@ type S2S_RenewalFee struct {
 //回复大厅续费失败
 type S2S_RenewalFeeFaild struct {
 	RoomId   int
-	RecodeID int
+	ResultId int
 }
 
 //通知创建房间

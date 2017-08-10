@@ -19,7 +19,7 @@ import (
 
 var (
 	GamelistRpc       *chanrpc.Server
-	AddOfflineHandler func(htype int, uid int64, data interface{}, Notify bool) bool
+	AddOfflineHandler func(htype string, uid int64, data interface{}, Notify bool) bool
 )
 
 func init() {
@@ -36,8 +36,6 @@ func init() {
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodeLogin{}, NotifyOtherNodeLogin)
 	reg.RegisterS2S(&msg.S2S_NotifyOtherNodelogout{}, NotifyOtherNodelogout)
 	reg.RegisterS2S(&msg.S2S_HanldeFromUserMsg{}, HanldeFromGameMsg)
-
-	reg.RegisterS2S(&msg.RoomReturnMoney{}, RoomReturnMoney)
 
 	consul.SetHookRpc(ChanRPC)
 }
@@ -84,9 +82,9 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 		ch.Go(FuncName, args[2:]...)
 		return
 	} else {
-		//AddOfflineHandler(FuncName, uid, args[2], true)
+		AddOfflineHandler(FuncName, uid, args[2], true)
+		log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	}
-	log.Debug("at SendMsgToSelfNotdeUser player not in node")
 	return
 }
 

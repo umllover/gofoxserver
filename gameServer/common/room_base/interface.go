@@ -31,6 +31,7 @@ type TimerManager interface {
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
+	ResetPlayCount()
 	GetMaxPlayCnt() int
 	AddMaxPlayCnt(int)
 	GetCreatrTime() int64
@@ -59,6 +60,7 @@ type UserManager interface {
 	AddLeavePly(uid int64)
 	GetBeginPlayer() int
 	ResetBeginPlayer()
+	CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId int, creatorId int64)
 
 	GetCurPlayerCnt() int
 	GetPayType() int
