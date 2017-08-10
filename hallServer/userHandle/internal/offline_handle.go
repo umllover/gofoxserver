@@ -74,12 +74,12 @@ func AddOfflineHandler(htype string, uid int64, data interface{}, Notify bool) b
 	return true
 }
 
-func handlerDianZhan(player *user.User, msg *model.UserOfflineHandler) bool {
+func handlerDianZhan(player *user.User, data *model.UserOfflineHandler) bool {
 	player.Star++
 	model.UserattrOp.UpdateWithMap(player.UserId, map[string]interface{}{
 		"star": player.Star,
 	})
-	//player.WriteMsg(msg.L2C_BeStar{Star:player.Star})
+	player.WriteMsg(&msg.L2C_BeStar{Star: player.Star})
 	return true
 }
 

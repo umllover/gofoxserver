@@ -193,6 +193,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
+
 }
 
 //重连
@@ -958,6 +959,7 @@ func (m *UserModule) Recharge(args []interface{}) {
 
 //离线通知事件
 func (m *UserModule) HandlerOffilneEvent(args []interface{}) {
+	log.Debug("at HandlerOffilneEvent .................. === %v", args)
 	recvMsg := args[0].(*msg.S2S_OfflineHandler)
 	player := m.a.UserData().(*user.User)
 	h, ok := model.UserOfflineHandlerOp.Get(recvMsg.EventID)
