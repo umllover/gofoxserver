@@ -239,6 +239,11 @@ var userUpdateSql = [][]string{
 		PRIMARY KEY (RecordID)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 	},
+
+	5: []string{
+		"ALTER TABLE record_outcard_ddz MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
+		"ALTER TABLE record_outcard_ddz_king MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////
