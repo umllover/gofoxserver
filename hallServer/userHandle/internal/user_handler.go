@@ -37,6 +37,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("JoinRoom", m.joinRoom)
 	reg.RegisterRpc("GameStart", m.GameStart)
 	reg.RegisterRpc("RoomEndInfo", m.RoomEndInfo)
+	reg.RegisterRpc("RoomReturnMoney", m.RoomReturnMoney)
 	reg.RegisterRpc("JoinRoomFaild", m.JoinRoomFaild)
 
 	reg.RegisterRpc("Recharge", m.Recharge)
@@ -45,6 +46,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 	reg.RegisterRpc("DeleteVaildIds", m.DeleteVaildIds)
+
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
 	reg.RegisterC2S(&msg.C2L_ReConnect{}, m.handleReconnect)
@@ -183,13 +185,14 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	game_list.ChanRPC.Call0("sendGameList", agent)
 
 	m.Recharge(nil)
+
+	//加载离线处理
+	loadHandles(player)
+
 	ids := player.GetRoomIds()
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
-
-	//加载离线处理 放最后面
-	loadHandles(player)
 }
 
 //重连
@@ -424,7 +427,9 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	//检测是否有限时免费
 	if !player.CheckFree() {
 		//AA在加入的时候扣钱
+		log.Debug(" kou qian ............ ")
 		if recvMsg.PayType == SELF_PAY_TYPE {
+			log.Debug(" kou qian ............ 111111111111  ")
 			money := feeTemp.TableFee
 			if !player.SubCurrency(money, recvMsg.PayType) {
 				retCode = NotEnoughFee

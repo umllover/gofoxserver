@@ -62,7 +62,7 @@ type RoomData struct {
 	LastCatchCardUser int    //最后一个摸牌的用户
 	MinusHeadCount    int    //头部空缺
 	MinusLastCount    int    //尾部空缺
-	TingCnt           [4]int //听牌个数
+	TingCnt           []int  //听牌个数
 
 	SiceCount       int                //色子大小
 	UserActionDone  bool               //操作完成
@@ -622,27 +622,9 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 		gcr := &TagGangCardResult{}
 		room.UserAction[wTargetUser] |= room.MjBase.LogicMgr.AnalyseGangCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], 0, gcr)
 
-		if room.Ting[wTargetUser] == false {
-			HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-			cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wTargetUser], room.WeaveItemArray[wTargetUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
-			HuData.OutCardCount = cbCount
-			if cbCount > 0 {
-				room.UserAction[wTargetUser] |= WIK_LISTEN
-				log.Debug("user %d WIK_LISTEN, UserAction=%d", wTargetUser, room.UserAction[wTargetUser])
-				for i := 0; i < room.GetCfg().MaxCount; i++ {
-					if HuData.HuCardCount[i] > 0 {
-						for j := 0; j < HuData.HuCardCount[i]; j++ {
-							HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wTargetUser, HuData.HuCardData[i][j]))
-						}
-					} else {
-						break
-					}
-				}
-				u := room.MjBase.UserMgr.GetUserByChairId(wTargetUser)
-				u.WriteMsg(HuData)
-			}
+		if room.CheckTingCard(wTargetUser) {
+			wrave.ActionMask |= room.UserAction[wTargetUser]
 		}
-		wrave.ActionMask |= room.UserAction[wTargetUser]
 	}
 
 	//发送消息
@@ -850,25 +832,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//听牌判断
-	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-	if room.Ting[wCurrentUser] == false {
-		cbCount := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[wCurrentUser], room.WeaveItemArray[wCurrentUser], HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
-		HuData.OutCardCount = int(cbCount)
-		if cbCount > 0 {
-			//room.Ting[wCurrentUser] = true //TODO 这边应该置为true吧
-			room.UserAction[wCurrentUser] |= WIK_LISTEN
-			for i := 0; i < room.GetCfg().MaxCount; i++ {
-				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
-						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(wCurrentUser, HuData.HuCardData[i][j]))
-					}
-				} else {
-					break
-				}
-			}
-			u.WriteMsg(HuData)
-		}
-	}
+	room.CheckTingCard(wCurrentUser)
 
 	room.MjBase.DataMgr.SendCardToCli(u, bTail)
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
@@ -927,7 +891,7 @@ func (room *RoomData) StartGameing() {
 
 func (room *RoomData) AfterStartGame() {
 	//检查自摸
-	room.CheckZiMo()
+	room.CheckTingCard(room.BankerUser)
 	//检测起手杠牌
 	room.CheckGameStartGang()
 	//通知客户端开始了
@@ -959,6 +923,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.OperateCard = make([][]int, UserCnt)
 	room.BanUser = make([]int, UserCnt)
 	room.BanCardCnt = make([][]int, UserCnt)
+	room.TingCnt = make([]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
 		room.HeapCardInfo[i] = make([]int, 2)
 		room.BanCardCnt[i] = make([]int, 9)
@@ -1342,28 +1307,35 @@ func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
 	return true
 }
 
-func (room *RoomData) CheckZiMo() {
+func (room *RoomData) CheckTingCard(chairID int) bool {
 	////听牌判断
-	//Count := 0
-	//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
-	//HuData := &mj_zp_msg.G2C_ZPMJ_HuData{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-	//if room.Ting[room.BankerUser] == false {
-	//	Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData, room.GetCfg().MaxCount)
-	//	HuData.OutCardCount = Count
-	//	if Count > 0 {
-	//		room.UserAction[room.BankerUser] |= WIK_LISTEN
-	//		for i := 0; i < room.GetCfg().MaxCount; i++ {
-	//			if HuData.HuCardCount[i] > 0 {
-	//				for j := 0; j < HuData.HuCardCount[i]; j++ {
-	//					HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j]))
-	//				}
-	//			} else {
-	//				break
-	//			}
-	//		}
-	//		OwnerUser.WriteMsg(HuData)
-	//	}
-	//}
+	Count := 0
+	CheckUser := room.MjBase.UserMgr.GetUserByChairId(chairID)
+	if CheckUser != nil {
+		log.Error("at CheckTingCard not found user %d", chairID)
+		return false
+	}
+	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+	if room.Ting[room.BankerUser] == false {
+		Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
+		HuData.OutCardCount = Count
+		if Count > 0 {
+			room.UserAction[room.BankerUser] |= WIK_LISTEN
+			for i := 0; i < room.GetCfg().MaxCount; i++ {
+				if HuData.HuCardCount[i] > 0 {
+					for j := 0; j < HuData.HuCardCount[i]; j++ {
+						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(room.BankerUser, HuData.HuCardData[i][j]))
+					}
+				} else {
+					break
+				}
+			}
+			CheckUser.WriteMsg(HuData)
+			return true
+		}
+	}
+
+	return false
 }
 
 //检测游戏开始起手杠牌
@@ -2204,9 +2176,14 @@ func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //截头
-func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
-	cardValue := room.OutCardData & MASK_VALUE
+func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
+	if TingCnt[room.CurrentUser] != 1 {
+		return 0
+	}
+
 	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	cardValue := HuOfCard & MASK_VALUE
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
@@ -2226,7 +2203,12 @@ func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //空心
-func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
+	if TingCnt[room.CurrentUser] != 1 {
+		return 0
+	}
+
 	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
@@ -2241,7 +2223,11 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem) int {
 }
 
 //单吊
-func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem) int {
+func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
+	if TingCnt[room.CurrentUser] != 1 {
+		return 0
+	}
 
 	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
 	if pAnalyseItem.CardEye == HuOfCard {

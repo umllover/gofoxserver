@@ -8,6 +8,7 @@ import (
 
 	"mj/common/cost"
 	"mj/common/msg/nn_tb_msg"
+	"mj/common/msg/pk_common_msg"
 	"mj/gameServer/user"
 	"time"
 
@@ -81,7 +82,7 @@ func (room *nntb_data_mgr) SetUserCallScoreTimes(chairId int, callScoreTimes int
 }
 
 func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
-	StatusFree := &nn_tb_msg.G2C_TBNN_StatusFree{}
+	StatusFree := &pk_common_msg.G2C_PKCOMMON_StatusFree{}
 
 	StatusFree.CellScore = room.PkBase.Temp.Source                         //基础积分
 	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()         //出牌时间
@@ -106,7 +107,7 @@ func (room *nntb_data_mgr) SendStatusReady(u *user.User) {
 }
 
 func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
-	StatusPlay := &nn_tb_msg.G2C_TBNN_StatusPlay{}
+	StatusPlay := &pk_common_msg.G2C_PKCOMMON_StatusPlay{}
 
 	log.Debug("at send status play, player count%d", room.PlayerCount)
 	//游戏变量
@@ -122,7 +123,7 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 
 	userMgr := room.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
-		userReLoginInfo := new(nn_tb_msg.UserReLoginInfo)
+		userReLoginInfo := new(pk_common_msg.UserReLoginInfo)
 		userReLoginInfo.ChairID = u.ChairId
 		userReLoginInfo.UserGameStatus = room.UserGameStatusMap[u.ChairId]
 		userReLoginInfo.CallScoreTimes = room.CallScoreTimesMap[u.ChairId]
@@ -173,7 +174,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 000002 player count %d", UserCnt)
+	log.Debug("nn init room version 28001 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 

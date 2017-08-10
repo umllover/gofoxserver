@@ -788,140 +788,163 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 	if cbReason == 2 {
 		r.WinnerUser = cost.INVALID_CHAIR
 	}
-	r.GameStatus = GAME_STATUS_FREE
+
 	DataGameConclude := &pk_ddz_msg.G2C_DDZ_GameConclude{}
 	DataGameConclude.CellScore = r.PkBase.Temp.Source
 
-	// 算分数
-	nMultiple := r.ScoreTimes
+	DataGameConclude.Reason = cbReason
 
-	if r.BankerUser != cost.INVALID_CHAIR {
-		// 春天标识
-		if len(r.TurnCardData[r.BankerUser]) <= 1 {
-			DataGameConclude.SpringSign = 2 // 地主只出了一次牌
-		} else {
-			DataGameConclude.SpringSign = 1
-			for i := 1; i < r.PlayerCount; i++ {
-				if len(r.TurnCardData[(i+r.BankerUser)%r.PlayerCount]) > 0 {
-					DataGameConclude.SpringSign = 0
-					break
+	if r.GameStatus == GAME_STATUS_FREE {
+
+	} else if r.GameStatus == GAME_STATUS_CALL {
+		DataGameConclude.BankerScore = r.ScoreTimes
+		util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
+		DataGameConclude.GameScore = []int{0, 0, 0}
+		r.RecordInfo = append(r.RecordInfo, util.CopySlicInt(DataGameConclude.GameScore))
+	} else {
+		DataGameConclude.BankerScore = r.ScoreTimes
+
+		// 常规结束才需要算积分
+		if cbReason == 0 {
+			// 算分数
+			nMultiple := r.ScoreTimes
+
+			if r.BankerUser != cost.INVALID_CHAIR {
+				// 春天标识
+				if len(r.TurnCardData[r.BankerUser]) <= 1 {
+					DataGameConclude.SpringSign = 2 // 地主只出了一次牌
+				} else {
+					DataGameConclude.SpringSign = 1
+					for i := 1; i < r.PlayerCount; i++ {
+						if len(r.TurnCardData[(i+r.BankerUser)%r.PlayerCount]) > 0 {
+							DataGameConclude.SpringSign = 0
+							break
+						}
+					}
+				}
+
+				// 地主明牌翻倍
+				if r.ShowCardSign[r.BankerUser] == true {
+					nMultiple <<= 1
 				}
 			}
-		}
 
-		// 地主明牌翻倍
-		if r.ShowCardSign[r.BankerUser] == true {
-			nMultiple <<= 1
-		}
-	}
-
-	if DataGameConclude.SpringSign > 0 {
-		nMultiple <<= 1 // 春天反春天，倍数翻倍
-	}
-
-	// 炸弹翻倍
-	for _, v := range r.EachBombCount {
-		if v > 0 {
-			nMultiple <<= uint(v) // 炸弹个数翻倍
-		}
-	}
-
-	// 八王
-	util.DeepCopy(&DataGameConclude.KingCount, &r.KingCount)
-	for _, v := range r.KingCount {
-		if v == 8 {
-			nMultiple *= 8 * 2
-		} else if v >= 2 {
-			nMultiple *= v
-		}
-	}
-
-	// 炸弹
-	util.DeepCopy(&DataGameConclude.EachBombCount, &r.EachBombCount)
-
-	DataGameConclude.BankerScore = r.ScoreTimes
-	util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
-
-	// 计算积分
-	gameScore := r.PkBase.Temp.Source * nMultiple
-
-	if r.BankerUser != cost.INVALID_CHAIR {
-		if len(r.HandCardData[r.BankerUser]) <= 0 {
-			gameScore = 0 - gameScore
-		}
-	}
-
-	var score int
-	DataGameConclude.GameScore = make([]int, r.PlayerCount)
-	for i := 0; i < r.PlayerCount; i++ {
-		if i != r.BankerUser {
-			if r.ShowCardSign[i] {
-				DataGameConclude.GameScore[i] = gameScore * 2
-			} else {
-				DataGameConclude.GameScore[i] = gameScore
+			if DataGameConclude.SpringSign > 0 {
+				nMultiple <<= 1 // 春天反春天，倍数翻倍
 			}
-			score += DataGameConclude.GameScore[i]
+
+			// 炸弹翻倍
+			for _, v := range r.EachBombCount {
+				if v > 0 {
+					nMultiple <<= uint(v) // 炸弹个数翻倍
+				}
+			}
+
+			// 八王
+			for _, v := range r.KingCount {
+				if v == 8 {
+					nMultiple *= 8 * 2
+				} else if v >= 2 {
+					nMultiple *= v
+				}
+			}
+
+			// 计算积分
+			gameScore := r.PkBase.Temp.Source * nMultiple
+
+			if r.BankerUser != cost.INVALID_CHAIR {
+				if len(r.HandCardData[r.BankerUser]) <= 0 {
+					gameScore = 0 - gameScore
+				}
+			}
+
+			var score int
+			DataGameConclude.GameScore = make([]int, r.PlayerCount)
+			for i := 0; i < r.PlayerCount; i++ {
+				if i != r.BankerUser {
+					if r.ShowCardSign[i] {
+						DataGameConclude.GameScore[i] = gameScore * 2
+					} else {
+						DataGameConclude.GameScore[i] = gameScore
+					}
+					score += DataGameConclude.GameScore[i]
+				}
+			}
+			if r.BankerUser != cost.INVALID_CHAIR {
+				DataGameConclude.GameScore[r.BankerUser] = 0 - score
+			}
+
+			//设置玩家积分
+			r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+				u.Score = int64(DataGameConclude.GameScore[u.ChairId])
+			})
+			// 经典场把历史出牌存数据库
+			log.Debug("当前类型%d", r.GameType)
+			if r.GameType == GAME_TYPE_CLASSIC {
+				log.Debug("是经典场")
+				r.saveOutCardToDB()
+			}
+		} else {
+			DataGameConclude.GameScore = []int{0, 0, 0}
 		}
+
+		// 炸弹
+		util.DeepCopy(&DataGameConclude.KingCount, &r.KingCount)
+		util.DeepCopy(&DataGameConclude.EachBombCount, &r.EachBombCount)
+		util.DeepCopy(&DataGameConclude.HandCardData, &r.HandCardData)
+
+		// 服务端收集历史积分
+		r.RecordInfo = append(r.RecordInfo, util.CopySlicInt(DataGameConclude.GameScore))
 	}
+	r.GameStatus = GAME_STATUS_FREE
 
-	//设置玩家积分
-	r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-		u.Score = int64(DataGameConclude.GameScore[u.ChairId])
-	})
-
-	DataGameConclude.Reason = cbReason
-	if r.BankerUser != cost.INVALID_CHAIR {
-		DataGameConclude.GameScore[r.BankerUser] = 0 - score
-	}
-
-	// 服务端收集历史积分
-	r.RecordInfo = append(r.RecordInfo, util.CopySlicInt(DataGameConclude.GameScore))
 	log.Debug("历史积分%v", r.RecordInfo)
 	if r.PkBase.TimerMgr.GetPlayCount() >= r.PkBase.TimerMgr.GetMaxPlayCnt() || cbReason > 0 {
 		util.DeepCopy(&DataGameConclude.RecordInfo, &r.RecordInfo)
 	}
 
-	// 经典场把历史出牌存数据库
-	log.Debug("当前类型%d", r.GameType)
-	if r.GameType == GAME_TYPE_CLASSIC {
-		log.Debug("是经典场")
-		// 检查出牌是否完整
-		nMaxCardCount := r.GetCfg().MaxRepertory
+	r.sendGameEndMsg(DataGameConclude)
+}
+
+// 保存出牌记录到数据库里
+func (r *ddz_data_mgr) saveOutCardToDB() {
+	// 检查出牌是否完整
+	nMaxCardCount := r.GetCfg().MaxRepertory
+	if r.EightKing {
+		nMaxCardCount += 6
+	}
+	// 把未打完的牌插入
+	log.Debug("剩余牌%v", r.HandCardData)
+	for i := 0; i < r.PlayerCount; i++ {
+		log.Debug("剩余牌%d", i)
+		cardData := r.HandCardData[i]
+		for _, v := range cardData {
+			r.RecordOutCards = append(r.RecordOutCards, v)
+		}
+	}
+	log.Debug("当前最大牌数%d-------%d", nMaxCardCount, r.RecordOutCards)
+	if nMaxCardCount == len(r.RecordOutCards) {
+		// 数量相等才能存数据库
+		// ----存数据库----
 		if r.EightKing {
-			nMaxCardCount += 6
-		}
-		// 把未打完的牌插入
-		for i := 0; i < r.PlayerCount; i++ {
-			cardData := r.HandCardData[i]
-			for _, v := range cardData {
-				r.RecordOutCards = append(r.RecordOutCards, v)
+			var dbCardData model.RecordOutcardDdzKing
+			dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
+			cardData, err := json.Marshal(r.RecordOutCards)
+			if err == nil {
+				dbCardData.CardData = string(cardData)
+				model.RecordOutcardDdzKingOp.Insert(&dbCardData)
 			}
-		}
-		log.Debug("当前最大牌数%d-------%d", nMaxCardCount, r.RecordOutCards)
-		if nMaxCardCount == len(r.RecordOutCards) {
-			// 数量相等才能存数据库
-			// ----存数据库----
-			if r.EightKing {
-				var dbCardData model.RecordOutcardDdzKing
-				dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
-				cardData, err := json.Marshal(r.RecordOutCards)
-				if err == nil {
-					dbCardData.CardData = string(cardData)
-					model.RecordOutcardDdzKingOp.Insert(&dbCardData)
-				}
-			} else {
-				var dbCardData model.RecordOutcardDdz
-				dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
-				cardData, err := json.Marshal(r.RecordOutCards)
-				log.Debug("转换后的牌%s,%v", cardData, err)
-				if err == nil {
-					dbCardData.CardData = string(cardData)
-					model.RecordOutcardDdzOp.Insert(&dbCardData)
-				}
+		} else {
+			var dbCardData model.RecordOutcardDdz
+			dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
+			cardData, err := json.Marshal(r.RecordOutCards)
+			log.Debug("转换后的牌%s,%v", cardData, err)
+			if err == nil {
+				dbCardData.CardData = string(cardData)
+				model.RecordOutcardDdzOp.Insert(&dbCardData)
 			}
 		}
 	}
-	r.sendGameEndMsg(DataGameConclude)
 }
 
 //解散房间结束
