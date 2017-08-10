@@ -172,7 +172,7 @@ func (room *ZP_RoomData) StartGameing() {
 			//庄家开局动作
 			room.InitBankerAction()
 			//检查自摸
-			room.CheckZiMo()
+			room.CheckTingCard()
 			//定时
 			u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 			room.InitOutCardTimer(u)
@@ -186,7 +186,7 @@ func (room *ZP_RoomData) StartGameing() {
 		//庄家开局动作
 		room.InitBankerAction()
 		//检查自摸
-		room.CheckZiMo()
+		room.CheckTingCard()
 		//定时
 		u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 		room.InitOutCardTimer(u)
@@ -224,7 +224,7 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 		//庄家开局动作
 		room.InitBankerAction()
 		//检查自摸
-		room.CheckZiMo()
+		room.CheckTingCard()
 		//定时
 		u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 		room.InitOutCardTimer(u)
@@ -2093,7 +2093,7 @@ func (room *ZP_RoomData) GetTrusteeOutCard(wChairID int) int {
 	return cardindex
 }
 
-func (room *ZP_RoomData) CheckZiMo() {
+func (room *ZP_RoomData) CheckTingCard() {
 
 }
 
