@@ -44,6 +44,7 @@ type DataManager interface {
 	ResetUserOperateEx(u *user.User)                                          //清除状态
 	SendCardToCli(u *user.User, bTail bool)                                   //发送扑克消息
 	SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) //发送补花消息
+	SendOperateNotify(*user.User, int)                                        //发送吃碰杠胡通知
 
 	GetResumeUser() int
 	GetGangStatus() int

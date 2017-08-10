@@ -734,15 +734,7 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 		room.CurrentUser = INVALID_CHAIR
 
 		//发送提示
-		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-			if room.UserAction[u.ChairId] != WIK_NULL {
-				log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
-				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
-					ActionMask: room.UserAction[u.ChairId],
-					ActionCard: room.ProvideCard,
-				})
-			}
-		})
+		room.GetDataMgr().SendOperateNotify(nil, 0)
 		return true
 	}
 
@@ -755,6 +747,24 @@ func (room *RoomData) EstimateUserRespond(wCenterUser int, cbCenterCard int, Est
 	//}
 
 	return false
+}
+
+//发送提示
+func (room *RoomData) SendOperateNotify(u *user.User, card int) {
+	if u != nil {
+		u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+			ActionMask: room.UserAction[u.ChairId],
+			ActionCard: card,
+		})
+	} else {
+		if room.UserAction[u.ChairId] != WIK_NULL {
+			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
+			u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+				ActionMask: room.UserAction[u.ChairId],
+				ActionCard: room.ProvideCard,
+			})
+		}
+	}
 }
 
 //派发扑克
@@ -1107,6 +1117,8 @@ func (room *RoomData) StartDispatchCard() {
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
+		u := userMgr.GetUserByChairId(room.BankerUser)
+		room.SendOperateNotify(u, room.SendCardData)
 	}
 
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
@@ -1355,10 +1367,7 @@ func (room *RoomData) CheckGameStartGang() {
 			}
 			if gangCard != 0 {
 				room.UserAction[u.ChairId] |= WIK_GANG
-				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
-					ActionMask: room.UserAction[u.ChairId],
-					ActionCard: gangCard, //room.ProvideCard,
-				})
+				room.GetDataMgr().SendOperateNotify(u, gangCard)
 				log.Debug("####################################")
 			}
 		}
