@@ -194,14 +194,22 @@ func (r *sss_data_mgr) ComputeChOut() {
 			if ct1 == CT_FIVE_FOUR_ONE || ct2 == CT_FIVE_FOUR_ONE {
 				r.SpecialResults[i] = 10
 			}
-		case CT_THREE_STRAIGHT: //三顺子
-			log.Debug("三顺子")
-			r.SpecialResults[i] = 6
-			//todo 有同花顺
 		case CT_THREE_FLUSH: //三同花
 			log.Debug("三同花")
 			r.SpecialResults[i] = 6
-			//todo 有同花顺
+			//有同花顺
+			if lg.IsLine(r.PlayerSegmentCards[i][1], len(r.PlayerSegmentCards[i][1]), true) ||
+				lg.IsLine(r.PlayerSegmentCards[i][2], len(r.PlayerSegmentCards[i][2]), true) {
+				r.SpecialResults[i] = 10
+			}
+		case CT_THREE_STRAIGHT: //三顺子
+			log.Debug("三顺子")
+			r.SpecialResults[i] = 6
+			//有同花顺
+			if lg.IsLine(r.PlayerSegmentCards[i][1], len(r.PlayerSegmentCards[i][1]), true) ||
+				lg.IsLine(r.PlayerSegmentCards[i][2], len(r.PlayerSegmentCards[i][2]), true) {
+				r.SpecialResults[i] = 10
+			}
 		default: //普通牌型
 			//前敦
 			isLaiZi, tempData := r.checkLaiZi(r.PlayerSegmentCards[i][0])
