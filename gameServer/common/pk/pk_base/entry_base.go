@@ -70,7 +70,7 @@ func (r *Entry_base) RegisterBaseFunc() {
 	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
 	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
 	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
-	r.GetChanRPC().Register("AddPlayCnt", r.AddPlayCnt)
+	r.GetChanRPC().Register("RenewalFeesSetInfo", r.RenewalFeesSetInfo)
 }
 
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
@@ -112,17 +112,33 @@ func (r *Entry_base) Sitdown(args []interface{}) {
 	retcode = r.UserMgr.Sit(u, chairID, r.Status)
 
 }
-func (r *Entry_base) AddPlayCnt(args []interface{}) (interface{}, error) {
+func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error) {
+	//addCnt := args[0].(int)
+	rUserId := args[1].(int64)
 	if r.IsClose {
-		return nil, errors.New("room is close ")
+		return 1, errors.New("room is close ")
 	}
-	addCnt := args[0].(int)
-	r.TimerMgr.AddMaxPlayCnt(addCnt)
+
+	//不需要续费或者已经有人续过费了
+	if r.TimerMgr.GetPlayCount() < r.TimerMgr.GetMaxPlayCnt() {
+		return 2, errors.New("room playCnt >= maxPlayCnt")
+	}
+
+	//r.TimerMgr.AddMaxPlayCnt(addCnt)
+	r.TimerMgr.ResetPlayCount()
+
 	if r.DelayCloseTimer != nil {
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
-	return nil, nil
+
+	//r.DataMgr.ResetUserScore() //重置用户所有积分
+	r.UserMgr.ForEachUser(func(u *user.User) {
+		r.UserMgr.SetUsetStatus(u, US_SIT) //更新玩家状态
+		u.WriteMsg(&msg.G2C_RenewalFeesSuccess{UserID: rUserId})
+	})
+
+	return 0, nil
 }
 
 //起立

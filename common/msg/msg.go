@@ -48,6 +48,7 @@ func init() {
 
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
+	Processor.Register(&G2C_RenewalFeesSuccess{})
 	Processor.Register(&C2L_ChangeUserName{})
 	Processor.Register(&L2C_ChangeUserNameRsp{})
 	Processor.Register(&C2L_ChangeSign{})
