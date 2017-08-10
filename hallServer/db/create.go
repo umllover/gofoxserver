@@ -183,7 +183,7 @@ var userUpdateSql = [][]string{
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 
 		`CREATE TABLE user_offline_handler (
-		id int(11) NOT NULL,
+		id int(11) NOT NULL AUTO_INCREMENT,
 		user_id bigint(11) NOT NULL,
 		h_type varchar(255) NOT NULL,
 		context varchar(255) NOT NULL,
@@ -260,7 +260,7 @@ var statsUpdateSql = [][]string{
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 
 		`CREATE TABLE consum_log (
-		recode_id int(11) NOT NULL,
+		recode_id int(11) NOT NULL AUTO_INCREMENT,
 		user_id bigint(11) NOT NULL COMMENT '用户索引',
 		consum_type int(11) NOT NULL DEFAULT '0' COMMENT '消费类型 0钻石 1开房 3道具',
 		consum_num int(11) NOT NULL DEFAULT '0' COMMENT '消费数量',
