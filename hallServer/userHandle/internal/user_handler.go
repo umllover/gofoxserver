@@ -111,9 +111,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 			m.Close(KickOutUnlawfulMsg)
 			str := fmt.Sprintf("登录失败, 错误码: %d", retcode)
 			agent.WriteMsg(&msg.L2C_LogonFailure{ResultCode: retcode, DescribeString: str})
-		} else {
-			agent.WriteMsg(retMsg)
-			agent.WriteMsg(&msg.L2C_ServerListFinish{})
 		}
 	}()
 
@@ -181,8 +178,11 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	model.GamescorelockerOp.UpdateWithMap(player.Id, map[string]interface{}{
 		"HallNodeID": conf.Server.NodeId,
 	})
-	BuildClientMsg(retMsg, player, accountData)
+
 	game_list.ChanRPC.Call0("sendGameList", agent)
+	BuildClientMsg(retMsg, player, accountData)
+	agent.WriteMsg(retMsg)
+	agent.WriteMsg(&msg.L2C_ServerListFinish{})
 
 	m.Recharge(nil)
 
@@ -193,7 +193,7 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
-	m.SetElect([]interface{}{&msg.C2L_SetElect{ElectUid: player.Id}})
+
 }
 
 //重连
@@ -954,23 +954,58 @@ func (m *UserModule) RoomEndInfo(args []interface{}) {
 }
 
 func (m *UserModule) Recharge(args []interface{}) {
-	u := m.a.UserData().(*user.User)
-	orders := GetOrders(u.Id)
-	for _, v := range orders {
-		goods, ok := base.GoodsCache.Get(v.GoodsID)
-		if !ok {
-			log.Error("at Recharge error")
-			continue
-		}
-
-		if UpdateOrderStats(v.OnLineID) {
-			u.AddCurrency(goods.Diamond)
-		}
-		recharge := datalog.RechargeLog{}
-		recharge.AddRechargeLogInfo(v.OnLineID, v.PayAmount, v.UserID, v.PayType, v.GoodsID)
-
+	player := m.a.UserData().(*user.User)
+	orders, err := account.OnlineorderOp.QueryByMap(map[string]interface{}{
+		"user_id":      player.Id,
+		"order_status": 0,
+	})
+	if err != nil {
+		player.WriteMsg(&msg.L2C_RechangerOk{Code: 1, Gold: player.Currency})
+		log.Debug("at Recharge load orders error :%s", err.Error())
+		return
 	}
 
+	var qerr error
+	var code int
+	var goods *base.Goods
+	var ok bool
+	for _, v := range orders {
+		code = 0
+		for {
+			if v.OrderStatus != 0 {
+				log.Error("at rechang OrderStatus != 0")
+				code = 2
+				break
+			}
+			goods, ok = base.GoodsCache.Get(v.GoodsId)
+			if !ok {
+				log.Error("at Recharge error")
+				code = 3
+				break
+			}
+
+			qerr = account.OnlineorderOp.UpdateWithMap(v.OnLineId, map[string]interface{}{
+				"order_status": 2,
+			})
+
+			if qerr != nil {
+				log.Error("at Recharge error :%s", qerr.Error())
+				code = 4
+				break
+			}
+			break
+		}
+
+		if code != 0 {
+			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
+		} else {
+			log.Debug("11111111111111111111 ")
+			player.AddCurrency(goods.Diamond)
+			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
+			recharge := datalog.RechargeLog{}
+			recharge.AddRechargeLogInfo(v.OnLineId, v.PayAmount, v.UserId, v.PayType, v.GoodsId)
+		}
+	}
 }
 
 //离线通知事件

@@ -350,3 +350,9 @@ type L2C_UpdateUserAttr struct {
 type C2L_RechangerOk struct {
 	OrderId int
 }
+
+//客户端通知充值成功
+type L2C_RechangerOk struct {
+	Code int //非0位失败
+	Gold int //当前的钱
+}
