@@ -17,21 +17,20 @@ import (
 
 // +gen *
 type Onlineorder struct {
-	OnLineId      int        `db:"onLine_id" json:"onLine_id"`           // 订单标识
-	UserId        int64      `db:"user_id" json:"user_id"`               // 用户标识
-	OrderId       int64      `db:"order_id" json:"order_id"`             // 订单号码
-	PayAmount     int        `db:"pay_amount" json:"pay_amount"`         // 实付金额
-	OrderStatus   int8       `db:"order_status" json:"order_status"`     // 订单状态  0:未付款;1:已付款待处理;2:处理完成
-	IpAddress     string     `db:"ip_address" json:"ip_address"`         // 订单地址
-	ApplyDate     *time.Time `db:"apply_date" json:"apply_date"`         // 订单日期
-	GoodsId       int        `db:"goods_id" json:"goods_id"`             //
-	PayType       string     `db:"pay_type" json:"pay_type"`             // 支付类型
+	OnLineID      int        `db:"OnLineID" json:"OnLineID"`             // 订单标识
+	UserID        int64      `db:"UserID" json:"UserID"`                 // 用户标识
+	OrderID       int64      `db:"OrderID" json:"OrderID"`               // 订单号码
+	PayAmount     int        `db:"PayAmount" json:"PayAmount"`           // 实付金额
+	OrderStatus   int8       `db:"OrderStatus" json:"OrderStatus"`       // 订单状态  0:未付款;1:已付款待处理;2:处理完成
+	IPAddress     string     `db:"IPAddress" json:"IPAddress"`           // 订单地址
+	ApplyDate     *time.Time `db:"ApplyDate" json:"ApplyDate"`           // 订单日期
+	GoodsID       int        `db:"GoodsID" json:"GoodsID"`               //
+	PayType       string     `db:"PayType" json:"PayType"`               // 支付类型
 	AgentNum      string     `db:"agent_num" json:"agent_num"`           //
 	PrepayId      string     `db:"prepay_id" json:"prepay_id"`           //
 	AgentId       int        `db:"agent_id" json:"agent_id"`             //
 	TransactionId string     `db:"transaction_id" json:"transaction_id"` //
 	IsSettle      int8       `db:"is_settle" json:"is_settle"`           //
-	Quantity      int        `db:"quantity" json:"quantity"`             //
 }
 
 type onlineorderOp struct{}
@@ -40,11 +39,11 @@ var OnlineorderOp = &onlineorderOp{}
 var DefaultOnlineorder = &Onlineorder{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *onlineorderOp) Get(onLine_id int) (*Onlineorder, bool) {
+func (op *onlineorderOp) Get(OnLineID int) (*Onlineorder, bool) {
 	obj := &Onlineorder{}
-	sql := "select * from onlineorder where onLine_id=? "
+	sql := "select * from onlineorder where OnLineID=? "
 	err := db.AccountDB.Get(obj, sql,
-		onLine_id,
+		OnLineID,
 	)
 
 	if err != nil {
@@ -109,22 +108,21 @@ func (op *onlineorderOp) Insert(m *Onlineorder) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *onlineorderOp) InsertTx(ext sqlx.Ext, m *Onlineorder) (int64, error) {
-	sql := "insert into onlineorder(user_id,order_id,pay_amount,order_status,ip_address,apply_date,goods_id,pay_type,agent_num,prepay_id,agent_id,transaction_id,is_settle,quantity) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into onlineorder(UserID,OrderID,PayAmount,OrderStatus,IPAddress,ApplyDate,GoodsID,PayType,agent_num,prepay_id,agent_id,transaction_id,is_settle) values(?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
-		m.UserId,
-		m.OrderId,
+		m.UserID,
+		m.OrderID,
 		m.PayAmount,
 		m.OrderStatus,
-		m.IpAddress,
+		m.IPAddress,
 		m.ApplyDate,
-		m.GoodsId,
+		m.GoodsID,
 		m.PayType,
 		m.AgentNum,
 		m.PrepayId,
 		m.AgentId,
 		m.TransactionId,
 		m.IsSettle,
-		m.Quantity,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -136,21 +134,20 @@ func (op *onlineorderOp) InsertTx(ext sqlx.Ext, m *Onlineorder) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *onlineorderOp) InsertUpdate(obj *Onlineorder, m map[string]interface{}) error {
-	sql := "insert into onlineorder(user_id,order_id,pay_amount,order_status,ip_address,apply_date,goods_id,pay_type,agent_num,prepay_id,agent_id,transaction_id,is_settle,quantity) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.UserId,
-		obj.OrderId,
+	sql := "insert into onlineorder(UserID,OrderID,PayAmount,OrderStatus,IPAddress,ApplyDate,GoodsID,PayType,agent_num,prepay_id,agent_id,transaction_id,is_settle) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserID,
+		obj.OrderID,
 		obj.PayAmount,
 		obj.OrderStatus,
-		obj.IpAddress,
+		obj.IPAddress,
 		obj.ApplyDate,
-		obj.GoodsId,
+		obj.GoodsID,
 		obj.PayType,
 		obj.AgentNum,
 		obj.PrepayId,
 		obj.AgentId,
 		obj.TransactionId,
 		obj.IsSettle,
-		obj.Quantity,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -182,23 +179,22 @@ func (op *onlineorderOp) Update(m *Onlineorder) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *onlineorderOp) UpdateTx(ext sqlx.Ext, m *Onlineorder) error {
-	sql := `update onlineorder set user_id=?,order_id=?,pay_amount=?,order_status=?,ip_address=?,apply_date=?,goods_id=?,pay_type=?,agent_num=?,prepay_id=?,agent_id=?,transaction_id=?,is_settle=?,quantity=? where onLine_id=?`
+	sql := `update onlineorder set UserID=?,OrderID=?,PayAmount=?,OrderStatus=?,IPAddress=?,ApplyDate=?,GoodsID=?,PayType=?,agent_num=?,prepay_id=?,agent_id=?,transaction_id=?,is_settle=? where OnLineID=?`
 	_, err := ext.Exec(sql,
-		m.UserId,
-		m.OrderId,
+		m.UserID,
+		m.OrderID,
 		m.PayAmount,
 		m.OrderStatus,
-		m.IpAddress,
+		m.IPAddress,
 		m.ApplyDate,
-		m.GoodsId,
+		m.GoodsID,
 		m.PayType,
 		m.AgentNum,
 		m.PrepayId,
 		m.AgentId,
 		m.TransactionId,
 		m.IsSettle,
-		m.Quantity,
-		m.OnLineId,
+		m.OnLineID,
 	)
 
 	if err != nil {
@@ -210,14 +206,14 @@ func (op *onlineorderOp) UpdateTx(ext sqlx.Ext, m *Onlineorder) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *onlineorderOp) UpdateWithMap(onLine_id int, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.AccountDB, onLine_id, m)
+func (op *onlineorderOp) UpdateWithMap(OnLineID int, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.AccountDB, OnLineID, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *onlineorderOp) UpdateWithMapTx(ext sqlx.Ext, onLine_id int, m map[string]interface{}) error {
+func (op *onlineorderOp) UpdateWithMapTx(ext sqlx.Ext, OnLineID int, m map[string]interface{}) error {
 
-	sql := `update onlineorder set %s where 1=1 and onLine_id=? ;`
+	sql := `update onlineorder set %s where 1=1 and OnLineID=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -228,7 +224,7 @@ func (op *onlineorderOp) UpdateWithMapTx(ext sqlx.Ext, onLine_id int, m map[stri
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, onLine_id)
+	params = append(params, OnLineID)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
@@ -241,17 +237,17 @@ func (i *Onlineorder) Delete() error{
 }
 */
 // 根据主键删除相关记录
-func (op *onlineorderOp) Delete(onLine_id int) error {
-	return op.DeleteTx(db.AccountDB, onLine_id)
+func (op *onlineorderOp) Delete(OnLineID int) error {
+	return op.DeleteTx(db.AccountDB, OnLineID)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *onlineorderOp) DeleteTx(ext sqlx.Ext, onLine_id int) error {
+func (op *onlineorderOp) DeleteTx(ext sqlx.Ext, OnLineID int) error {
 	sql := `delete from onlineorder where 1=1
-        and onLine_id=?
+        and OnLineID=?
         `
 	_, err := ext.Exec(sql,
-		onLine_id,
+		OnLineID,
 	)
 	return err
 }
