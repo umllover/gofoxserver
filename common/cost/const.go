@@ -119,7 +119,6 @@ const (
 ///////////////游戏模式.
 const (
 	GAME_GENRE_ZhuanShi = 1 // 比赛类型
-
 )
 
 /// 通用状态

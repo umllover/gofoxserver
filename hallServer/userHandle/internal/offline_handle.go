@@ -14,11 +14,13 @@ import (
 //后期压力这个服务改为redis 做
 
 func loadHandles(player *user.User) {
+	log.Debug("at loadHandles .................... ")
 	handler, _ := model.UserOfflineHandlerOp.QueryByMap(map[string]interface{}{
 		"user_id": player.Id,
 	})
 	log.Debug("at loadHandles, handler=%v", handler)
 	for _, v := range handler {
+		log.Debug("at loadHandles .................... 1111111111111111111 ")
 		handlerEventFunc(player, v)
 	}
 }
@@ -29,7 +31,11 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 	case OfflineTypeDianZhan:
 		ret = handlerDianZhan(player, v)
 	case OfflineRoomEndInfo:
-		ret = handlerOfflineRoomEndInfo(player, v)
+		ReturnMoney := &msg.RoomReturnMoney{}
+		err := json.Unmarshal([]byte(v.Context), ReturnMoney)
+		if err == nil {
+			ret = handlerOfflineRoomEndInfo(player, ReturnMoney)
+		}
 	case OfflineReturnMoney:
 		ret = handlerOfflineRoomReturnMone(player, v)
 	}
@@ -78,13 +84,8 @@ func handlerDianZhan(player *user.User, msg *model.UserOfflineHandler) bool {
 }
 
 //返还钱给玩家
-func handlerOfflineRoomEndInfo(player *user.User, data *model.UserOfflineHandler) bool {
-	ReturnMoney := &msg.RoomReturnMoney{}
-	err := json.Unmarshal([]byte(data.Context), ReturnMoney)
-	if err != nil {
-		log.Error("at handlerReturnMoney Unmarshal error ")
-		return false
-	}
+func handlerOfflineRoomEndInfo(player *user.User, ReturnMoney *msg.RoomReturnMoney) bool {
+	log.Debug("at handlerOfflineRoomEndInfo ...............")
 	record := player.GetRecord(ReturnMoney.RoomId)
 	log.Debug("############## handlerReturnMoney RoomId=%d, record=%v", ReturnMoney.RoomId, record)
 	if record != nil {
@@ -92,7 +93,9 @@ func handlerOfflineRoomEndInfo(player *user.User, data *model.UserOfflineHandler
 		player.DelRecord(record.RoomId)
 		player.AddCurrency(record.Amount)
 	}
+	player.DelRooms(ReturnMoney.RoomId)
 	return true
+
 }
 
 //返还钱给玩家
