@@ -305,72 +305,25 @@ func (lg *ZP_Logic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 
 	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
 
-	if cbOutCardData == nil || cbHuCardCount == nil || cbHuCardData == nil {
-		if (cbCardCount+1)%3 == 0 {
-			for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
-				if cbCardIndexTemp[i] == 0 {
-					continue
-				}
-				cbCardIndexTemp[i]--
-				for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
-					cbCurrentCard := lg.SwitchToCardData(j)
-					hu, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard)
-					if hu {
-						return WIK_LISTEN
-					}
-				}
-			}
-		}
-		return cbCardCount
-	}
-
 	if (cbCardCount-2)%3 == 0 {
-		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
-			if cbCardIndexTemp[i] == 0 {
-				continue
-			}
-			cbCardIndexTemp[i]--
+		outCardIndex := lg.SwitchToCardIndex(cbOutCardData[0])
+		cbCardIndexTemp[outCardIndex]--
 
-			bAdd := false
-			nCount := 0
-			for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
-				cbCurrentCard := lg.SwitchToCard(j)
-				hu, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard)
-				if hu {
-					if bAdd == false {
-						bAdd = true
-						cbOutCardData[cbOutCount] = lg.SwitchToCard(i)
-						cbOutCount++
-					}
-					if len(cbHuCardData[cbOutCount-1]) < 1 {
-						cbHuCardData[cbOutCount-1] = make([]int, lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex)
-					}
-					cbHuCardData[cbOutCount-1][nCount] = lg.SwitchToCard(j)
-					nCount++
-				}
-			}
-			if bAdd {
-				cbHuCardCount[cbOutCount-1] = nCount
-			}
-
-			cbCardIndexTemp[i]++
-		}
-	} else {
-		cbCount := 0
-		for j := 0; j < lg.GetCfg().MaxIdx; j++ {
+		for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
 			cbCurrentCard := lg.SwitchToCard(j)
 			hu, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, cbCurrentCard)
 			if hu {
-				log.Debug("cbCount === %v", cbHuCardData)
-				if len(cbHuCardData[0]) < 1 {
-					cbHuCardData[0] = make([]int, lg.GetCfg().MaxIdx)
-				}
-
-				cbHuCardData[0][cbCount] = cbCurrentCard
-				cbCount++
+				cbOutCount++
 			}
 		}
-		cbHuCardCount[0] = cbCount
+	} else {
+		for j := 0; j < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; j++ {
+			currentCard := lg.SwitchToCard(j)
+			hu, _ := lg.AnalyseChiHuCard(cbCardIndexTemp, WeaveItem, currentCard)
+			if hu {
+				cbOutCount++
+			}
+		}
 	}
 
 	return cbOutCount
