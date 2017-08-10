@@ -1324,11 +1324,11 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				//补花得分
 				if room.FlowerCnt[i] < 8 {
 					playerScore[IDX_SUB_SCORE_HUA] = room.FlowerCnt[i] * score
-					room.SumScore[index] -= room.FlowerCnt[i] * score
 				} else { //八张花牌
 					playerScore[IDX_SUB_SCORE_HUA] = 16 * score
-					room.SumScore[index] -= 16 * score
 				}
+				room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
+				room.SumScore[index] -= playerScore[IDX_SUB_SCORE_HUA]
 
 				//插花分
 				room.ChaHuaScore[i] += (room.ChaHuaMap[i] + room.ChaHuaMap[index]) * score
@@ -1343,7 +1343,6 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 				room.SumScore[i] += room.ZhuaHuaScore[i] * score
 				log.Debug("抓花分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_ZH], room.SumScore[i])
 			}
-			room.SumScore[i] += playerScore[IDX_SUB_SCORE_HUA]
 
 			log.Debug("自摸i:%d ,庄家：%d", i, room.BankerUser)
 			log.Debug("补分：%d SumScore:%d", playerScore[IDX_SUB_SCORE_HUA], room.SumScore[i])
