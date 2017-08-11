@@ -874,10 +874,6 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 				DataGameConclude.GameScore[r.BankerUser] = 0 - score
 			}
 
-			//设置玩家积分
-			r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
-				u.Score = int64(DataGameConclude.GameScore[u.ChairId])
-			})
 			// 经典场把历史出牌存数据库
 			log.Debug("当前类型%d", r.GameType)
 			if r.GameType == GAME_TYPE_CLASSIC {
@@ -895,6 +891,20 @@ func (r *ddz_data_mgr) NormalEnd(cbReason int) {
 
 		// 服务端收集历史积分
 		r.RecordInfo = append(r.RecordInfo, util.CopySlicInt(DataGameConclude.GameScore))
+
+		if cbReason == 0 {
+			//设置玩家积分
+			r.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+				var nScore int
+				for _, arr := range r.RecordInfo {
+					if arr != nil && len(arr) > 0 {
+						nScore += arr[u.ChairId]
+					}
+				}
+				u.Score = int64(nScore)
+				log.Debug("当前玩家%d积分%d", u.ChairId, nScore)
+			})
+		}
 	}
 	r.GameStatus = GAME_STATUS_FREE
 
