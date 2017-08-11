@@ -103,7 +103,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	retMsg := &msg.L2C_LogonSuccess{}
 	agent := m.a
 	retcode := 0
-
 	log.Debug("enter mbLogin  user:%s", recvMsg.Accounts)
 
 	defer func() {
@@ -193,7 +192,6 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	if len(ids) > 0 {
 		game_list.ChanRPC.Go("CheckVaildIds", ids, m.ChanRPC)
 	}
-
 }
 
 //重连
@@ -1070,20 +1068,21 @@ func (m *UserModule) DeleteRoom(args []interface{}) {
 //绑定电话号码
 func (m *UserModule) SetPhoneNumber(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SetPhoneNumber)
+	retMsg := &msg.L2C_SetPhoneNumberRsp{}
 	player := m.a.UserData().(*user.User)
-	retCode := 0
+
 	defer func() {
-		player.WriteMsg(&msg.L2C_SetPhoneNumberRsp{Code: retCode})
+		player.WriteMsg(retMsg)
 	}()
 
 	info, ok := model.UserMaskCodeOp.Get(player.Id)
 	if !ok {
-		retCode = ErrMaskCodeNotFoud
+		retMsg.Code = ErrMaskCodeNotFoud
 		return
 	}
 
 	if info.MaskCode != recvMsg.MaskCode {
-		retCode = ErrMaskCodeError
+		retMsg.Code = ErrMaskCodeError
 		return
 	}
 
@@ -1092,6 +1091,7 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{
 		"phome_number": info.PhomeNumber,
 	})
+	retMsg.PhoneNumber = info.PhomeNumber
 }
 
 //点赞
@@ -1234,12 +1234,13 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		"mask_code":    code,
 		"phome_number": recvMsg.PhoneNumber,
 	})
-	if err == nil {
+	if err != nil {
+		log.Error("InsertUpdate error %s, ", err.Error())
 		retCode = ErrRandMaskCodeError
 		return
 	}
 
-	ReqGetMaskCode(recvMsg.PhoneNumber, code)
+	VerifyCode(recvMsg.PhoneNumber, code)
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {
