@@ -344,26 +344,53 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *ac
 
 //获取个人信息
 func (m *UserModule) GetUserIndividual(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_User_Individual)
 	agent := args[1].(gate.Agent)
 	player, ok := agent.UserData().(*user.User)
 	if !ok {
 		log.Debug("not foud user data")
 		return
 	}
-	retmsg := &msg.L2C_UserIndividual{
-		UserID:      player.Id,        //用户 I D
-		NickName:    player.NickName,  //昵称
-		WinCount:    player.WinCount,  //赢数
-		LostCount:   player.LostCount, //输数
-		DrawCount:   player.DrawCount, //平数
-		Medal:       player.UserMedal,
-		RoomCard:    player.Currency,    //房卡
-		MemberOrder: player.MemberOrder, //会员等级
-		Score:       player.Score,
-		HeadImgUrl:  player.HeadImgUrl,
-		Star:        player.Star,
-		Sign:        player.Sign,
-		PhomeNumber: player.PhomeNumber,
+
+	var retmsg *msg.L2C_UserIndividual
+	if recvMsg.UserId == player.Id {
+		retmsg = &msg.L2C_UserIndividual{
+			UserID:      player.Id,        //用户 I D
+			NickName:    player.NickName,  //昵称
+			WinCount:    player.WinCount,  //赢数
+			LostCount:   player.LostCount, //输数
+			DrawCount:   player.DrawCount, //平数
+			Medal:       player.UserMedal,
+			RoomCard:    player.Currency,    //房卡
+			MemberOrder: player.MemberOrder, //会员等级
+			Score:       player.Score,
+			HeadImgUrl:  player.HeadImgUrl,
+			Star:        player.Star,
+			Sign:        player.Sign,
+			PhomeNumber: player.PhomeNumber,
+		}
+	} else {
+		userAttr, ok := model.UserattrOp.Get(recvMsg.UserId)
+		source, ok1 := model.GamescoreinfoOp.Get(recvMsg.UserId)
+		if !ok || !ok1 {
+			log.Error("not found user info :%d", recvMsg.UserId)
+			return
+		}
+		retmsg = &msg.L2C_UserIndividual{
+			UserID:      userAttr.UserID,   //用户 I D
+			NickName:    userAttr.NickName, //昵称
+			WinCount:    source.WinCount,   //赢数
+			LostCount:   source.LostCount,  //输数
+			DrawCount:   source.DrawCount,  //平数
+			Medal:       userAttr.UserMedal,
+			RoomCard:    0, //房卡
+			MemberOrder: 0, //会员等级
+			Score:       source.Score,
+			HeadImgUrl:  userAttr.HeadImgUrl,
+			Star:        userAttr.Star,
+			Sign:        userAttr.Sign,
+			PhomeNumber: "",
+		}
 	}
 
 	player.WriteMsg(retmsg)

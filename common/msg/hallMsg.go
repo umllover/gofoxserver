@@ -89,26 +89,26 @@ type L2C_SearchResult struct {
 
 //获取玩家显示信息
 type C2L_User_Individual struct {
-	UserId int
+	UserId int64
 }
 
 //个人资料
 type L2C_UserIndividual struct {
 	//用户信息
-	UserID      int64  //用户 I D
-	NickName    string //昵称
-	Accounts    string //账号
-	WinCount    int    //赢数
-	LostCount   int    //输数
-	DrawCount   int    //平数
-	Medal       int
-	RoomCard    int  //房卡
-	MemberOrder int8 //会员等级
-	Score       int64
-	HeadImgUrl  string
-	PhomeNumber string //电话号码
-	Sign        string //个性签名
-	Star        int    //赞数
+	UserID      int64  `db:"UserID"` //用户 I D
+	NickName    string `db:"UserID"` //昵称
+	Accounts    string `db:"UserID"` //账号
+	WinCount    int    `db:"UserID"` //赢数
+	LostCount   int    `db:"UserID"` //输数
+	DrawCount   int    `db:"UserID"` //平数
+	Medal       int    `db:"UserID"` //奖牌
+	RoomCard    int    `db:"UserID"` //房卡
+	MemberOrder int8   `db:"UserID"` //会员等级
+	Score       int64  `db:"UserID"`
+	HeadImgUrl  string `db:"UserID"`
+	PhomeNumber string `db:"UserID"` //电话号码
+	Sign        string `db:"UserID"` //个性签名
+	Star        int    `db:"UserID"` //赞数
 }
 
 //请求房间列表
