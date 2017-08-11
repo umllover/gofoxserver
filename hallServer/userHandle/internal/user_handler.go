@@ -363,6 +363,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 		HeadImgUrl:  player.HeadImgUrl,
 		Star:        player.Star,
 		Sign:        player.Sign,
+		PhomeNumber: player.PhomeNumber,
 	}
 
 	player.WriteMsg(retmsg)
