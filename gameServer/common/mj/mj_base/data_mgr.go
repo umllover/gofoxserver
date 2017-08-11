@@ -757,13 +757,15 @@ func (room *RoomData) SendOperateNotify(u *user.User, card int) {
 			ActionCard: card,
 		})
 	} else {
-		if room.UserAction[u.ChairId] != WIK_NULL {
-			log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
-			u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
-				ActionMask: room.UserAction[u.ChairId],
-				ActionCard: room.ProvideCard,
-			})
-		}
+		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+			if room.UserAction[u.ChairId] != WIK_NULL {
+				log.Debug("########### EstimateUserRespond ActionMask %v ###########", room.UserAction[u.ChairId])
+				u.WriteMsg(&mj_hz_msg.G2C_HZMJ_OperateNotify{
+					ActionMask: room.UserAction[u.ChairId],
+					ActionCard: room.ProvideCard,
+				})
+			}
+		})
 	}
 }
 
@@ -799,8 +801,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if u == nil {
 		log.Error("at DispatchCardData not foud user ")
 	}
-
-	//room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetMaxPlayerCnt())
 
 	//清除禁止胡牌的牌
 	u.UserLimit &= ^LimitChiHu
@@ -1085,11 +1085,23 @@ func (room *RoomData) StartDispatchCard() {
 	room.ProvideCard = room.SendCardData
 	room.ProvideUser = room.BankerUser
 	room.CurrentUser = room.BankerUser
+
+	//TODO 测试用
 	log.Debug("begin reoakce test card ======= %v ", conf.Test)
 	if conf.Test {
 		log.Debug("begin reoakce test card ======= ")
 		room.RepalceCard()
 	}
+	//newCard := make([]int, room.GetCfg().MaxIdx)
+	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 4
+	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 2
+	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 2
+	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 1
+	//room.CardIndex[room.BankerUser] = newCard
+	//room.RepertoryCard[55] = 0x1
 
 	//堆立信息
 	SiceCount := LOBYTE(room.SiceCount) + HIBYTE(room.SiceCount)
@@ -1347,19 +1359,19 @@ func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
 	return true
 }
 
+//听牌判断
 func (room *RoomData) CheckTingCard(chairID int) bool {
-	////听牌判断
-	Count := 0
 	CheckUser := room.MjBase.UserMgr.GetUserByChairId(chairID)
-	if CheckUser != nil {
+	if CheckUser == nil {
 		log.Error("at CheckTingCard not found user %d", chairID)
 		return false
 	}
-	HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
 	if room.Ting[room.BankerUser] == false {
-		Count = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
-		HuData.OutCardCount = Count
+		HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+		Count := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
+		log.Debug("at CheckTingCard Count=%d", Count)
 		if Count > 0 {
+			HuData.OutCardCount = Count
 			room.UserAction[room.BankerUser] |= WIK_LISTEN
 			for i := 0; i < room.GetCfg().MaxCount; i++ {
 				if HuData.HuCardCount[i] > 0 {
@@ -1370,36 +1382,34 @@ func (room *RoomData) CheckTingCard(chairID int) bool {
 					break
 				}
 			}
+			log.Debug("at CheckTingCard HuData=%v", HuData)
 			CheckUser.WriteMsg(HuData)
 			return true
 		}
 	}
-
 	return false
 }
 
 //检测游戏开始起手杠牌
 func (room *RoomData) CheckGameStartGang() {
-	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-		//用户过滤
-		if u.ChairId != room.CurrentUser {
-			return
-		}
-		if room.IsEnoughCard() && u.UserLimit&LimitGang == 0 {
-			gangCard := 0
-			for i := 0; i < room.GetCfg().MaxIdx-room.GetCfg().HuaIndex; i++ {
-				if room.CardIndex[u.ChairId][i] == 4 {
-					gangCard = room.MjBase.LogicMgr.SwitchToCardData(i)
-					break
-				}
-			}
-			if gangCard != 0 {
-				room.UserAction[u.ChairId] |= WIK_GANG
-				room.GetDataMgr().SendOperateNotify(u, gangCard)
-				log.Debug("####################################")
+	if !room.IsEnoughCard() {
+		return
+	}
+	u := room.MjBase.UserMgr.GetUserByChairId(room.CurrentUser)
+	if u != nil && u.UserLimit&LimitGang == 0 {
+		gangCard := 0
+		for i := 0; i < room.GetCfg().MaxIdx-room.GetCfg().HuaIndex; i++ {
+			if room.CardIndex[u.ChairId][i] == 4 {
+				gangCard = room.MjBase.LogicMgr.SwitchToCardData(i)
+				break
 			}
 		}
-	})
+		if gangCard != 0 {
+			room.UserAction[u.ChairId] |= WIK_GANG
+			room.GetDataMgr().SendOperateNotify(u, gangCard)
+			log.Debug("####################################")
+		}
+	}
 }
 
 //向客户端发牌
