@@ -55,6 +55,8 @@ type sssCardType struct {
 
 type sss_data_mgr struct {
 	*pk_base.RoomData
+	// 定时器
+	ShowCardTimer *time.Timer
 
 	//游戏变量
 	wanFa        int
@@ -512,6 +514,9 @@ func (room *sss_data_mgr) StartDispatchCard() {
 		SendCard.PublicCards = room.PublicCards
 		u.WriteMsg(SendCard)
 	})
+
+	// 启动定时器
+	room.startShowCardTimer(60)
 }
 
 func getColorCards(num int) (cards []int) {
@@ -542,6 +547,17 @@ func (room *sss_data_mgr) AfterStartGame() {
 //玩家摊牌
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
+
+	//解除托管
+	trustees := userMgr.GetTrustees()
+	for i := range trustees {
+		if trustees[i] == true {
+			if u == userMgr.GetUserByChairId(i) {
+				room.Trustee(u, false)
+				break
+			}
+		}
+	}
 
 	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
 	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
@@ -761,9 +777,16 @@ func (room *sss_data_mgr) Trustee(u *user.User, t bool) {
 func (room *sss_data_mgr) trusteeOperate() {
 	trustees := room.PkBase.UserMgr.GetTrustees()
 	for i := range trustees {
+		u := room.PkBase.UserMgr.GetUserByChairId(i)
 		if trustees[i] == true {
 			segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
-			room.ShowSSSCard(room.PkBase.UserMgr.GetUserByChairId(i), false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
+			room.ShowSSSCard(u, false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
+		} else {
+			if !room.OpenCardMap[u] {
+				room.Trustee(u, true)
+				segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
+				room.ShowSSSCard(u, false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
+			}
 		}
 	}
 }
@@ -919,4 +942,32 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 
 	return
 
+}
+
+func (r *sss_data_mgr) startShowCardTimer(nTime int) {
+	if r.ShowCardTimer != nil {
+		r.ShowCardTimer.Stop()
+		r.ShowCardTimer = nil
+	}
+
+	f := func() {
+		r.trusteeOperate()
+	}
+
+	r.ShowCardTimer = time.AfterFunc(time.Duration(nTime+5)*time.Second, f)
+}
+
+func (r *sss_data_mgr) resetShowCardTimer(nTime int) {
+	log.Debug("重置定时器时间%d", nTime)
+	if r.ShowCardTimer != nil {
+		r.ShowCardTimer.Reset(time.Duration(nTime+5) * time.Second)
+	}
+}
+
+func (r *sss_data_mgr) stopShowCardTimer() {
+	if r.ShowCardTimer != nil {
+		log.Debug("停止定时器")
+		r.ShowCardTimer.Stop()
+		r.ShowCardTimer = nil
+	}
 }
