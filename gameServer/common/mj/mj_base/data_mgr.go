@@ -204,7 +204,8 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.CreateTime = room.MjBase.TimerMgr.GetCreatrTime()
 
 	//规则
-	StatusPlay.PlayerCount = room.MjBase.TimerMgr.GetPlayCount()
+	StatusPlay.PlayerCount = room.MjBase.UserMgr.GetBeginPlayer()
+	StatusPlay.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	//游戏变量
 	StatusPlay.BankerUser = room.BankerUser
@@ -900,10 +901,11 @@ func (room *RoomData) StartGameing() {
 }
 
 func (room *RoomData) AfterStartGame() {
+	log.Debug("============= AfterStartGame")
 	//检查自摸
 	room.CheckTingCard(room.BankerUser)
 	//检测起手杠牌
-	room.CheckGameStartGang()
+	//room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
 
@@ -1121,12 +1123,13 @@ func (room *RoomData) InitBankerAction() {
 
 	//杠牌判断
 	gangCardResult := &TagGangCardResult{}
-	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
 	room.UserAction[room.BankerUser] |= gameLogic.AnalyseGangCard(room.CardIndex[room.BankerUser], nil, 0, gangCardResult)
 	//胡牌判断
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
+	log.Debug("InitBankerAction hu=%v, UserAction=%v", hu, room.UserAction[room.BankerUser])
+	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
 		u := userMgr.GetUserByChairId(room.BankerUser)
