@@ -402,8 +402,7 @@ func (room *RoomData) BuildOpCard(ChairId, OperateCode, opcard int) {
 	}
 }
 
-func (room *RoomData) GetOpCard(ChairId int) int {
-	OperateCode := room.PerformAction[ChairId]
+func (room *RoomData) GetOpCard(ChairId, OperateCode int) int {
 	if OperateCode&WIK_LEFT != 0 {
 		return room.OperateCard[ChairId][0]
 	} else if OperateCode&WIK_CENTER != 0 {
@@ -443,7 +442,7 @@ func (room *RoomData) UserChiHu(wTargetUser, userCnt int) {
 //组合要操作的牌
 func (room *RoomData) WeaveCard(cbTargetAction, wTargetUser int) {
 	//变量定义
-	cbTargetCard := room.OperateCard[wTargetUser][0]
+	cbTargetCard := room.GetOpCard(wTargetUser, cbTargetAction)
 
 	//出牌变量
 	room.SendStatus = Gang_Send
@@ -533,7 +532,6 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 			return 0
 		}
 		cbGangKind = WIK_AN_GANG
-
 		cbWeave = &msg.WeaveItem{}
 		cbWeave.Param = WIK_AN_GANG
 		cbWeave.ProvideUser = u.ChairId
@@ -609,7 +607,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 
 	wrave.CardData = make([]int, 4)
 	wrave.CardData = util.CopySlicInt(room.OperateCard[wTargetUser])
-	wrave.CenterCard = room.GetOpCard(wTargetUser)
+	wrave.CenterCard = room.GetOpCard(wTargetUser, cbTargetAction)
 
 	//用户状态
 	room.ResetUserOperate()
@@ -1920,6 +1918,10 @@ func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 		if cardColor == 3 {
 			return 0
 		}
+	}
+
+	if pAnalyseItem.CardEye>>4 == 3 {
+		return 0
 	}
 	return CHR_WU_HUA_ZI
 }
