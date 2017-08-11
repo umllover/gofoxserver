@@ -24,6 +24,7 @@ type DataManager interface {
 	RemoveCardByOP(wTargetUser, ChoOp int) bool                               //根据操作码删除扑克
 	CallOperateResult(wTargetUser, cbTargetAction int)                        //计算吃碰杠胡的操作结果
 	ResetUserOperate()                                                        //重置用户状态
+	ResetUserScore()                                                          //重置用户积分
 	ZiMo(u *user.User)                                                        //自摸处理
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int          //暗杠处理
 	NormalEnd(Reason int)                                                     //正常结束
@@ -43,6 +44,7 @@ type DataManager interface {
 	ResetUserOperateEx(u *user.User)                                          //清除状态
 	SendCardToCli(u *user.User, bTail bool)                                   //发送扑克消息
 	SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) //发送补花消息
+	SendOperateNotify(*user.User, int)                                        //发送吃碰杠胡通知
 
 	GetResumeUser() int
 	GetGangStatus() int

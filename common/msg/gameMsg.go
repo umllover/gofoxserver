@@ -348,10 +348,15 @@ type C2G_ReplaceCard struct {
 
 //补花
 type G2C_ReplaceCard struct {
-	ReplaceUser  int //补牌用户
-	ReplaceCard  int //补牌扑克
-	NewCard      int //补完扑克
+	ReplaceUser  int  //补牌用户
+	ReplaceCard  int  //补牌扑克
+	NewCard      int  //补完扑克
 	IsInitFlower bool //是否开局补花，true开局补花
+}
+
+//续费成功
+type G2C_RenewalFeesSuccess struct {
+	UserID int64 //续费用户uid
 }
 
 ///////////////////////// game chart end ///////////////////////////////

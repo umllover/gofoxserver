@@ -48,6 +48,7 @@ func init() {
 
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
+	Processor.Register(&G2C_RenewalFeesSuccess{})
 	Processor.Register(&C2L_ChangeUserName{})
 	Processor.Register(&L2C_ChangeUserNameRsp{})
 	Processor.Register(&C2L_ChangeSign{})
@@ -55,6 +56,9 @@ func init() {
 	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&L2C_UpdateUserAttr{})
 	Processor.Register(&C2L_RechangerOk{})
+	Processor.Register(&L2C_BeStar{})
+	Processor.Register(&L2C_NotifyElectResult{})
+	Processor.Register(&L2C_RechangerOk{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})

@@ -151,6 +151,11 @@ type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
 }
 
+//有人设置了你为推荐人
+type L2C_NotifyElectResult struct {
+	TagUserID int64 //谁设置你为推荐人
+}
+
 //请求获取验证号码
 type C2L_ReqBindMaskCode struct {
 	PhoneNumber string
@@ -193,7 +198,8 @@ type C2L_RenewalFees struct {
 
 //续费 再来一局 结果
 type L2C_RenewalFeesRsp struct {
-	Code int //非0位失败
+	Code   int   //非0位失败
+	UserID int64 //续费用户id
 }
 
 //修改名字
@@ -343,4 +349,10 @@ type L2C_UpdateUserAttr struct {
 //客户端通知充值成功
 type C2L_RechangerOk struct {
 	OrderId int
+}
+
+//客户端通知充值成功
+type L2C_RechangerOk struct {
+	Code int //非0位失败
+	Gold int //当前的钱
 }

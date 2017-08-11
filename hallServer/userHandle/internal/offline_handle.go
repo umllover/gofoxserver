@@ -38,6 +38,12 @@ func handlerEventFunc(player *user.User, v *model.UserOfflineHandler) {
 		}
 	case OfflineReturnMoney:
 		ret = handlerOfflineRoomReturnMone(player, v)
+	case OfflineAddElectId:
+		AddElectId := &msg.OfflineAddElectId{}
+		err := json.Unmarshal([]byte(v.Context), AddElectId)
+		if err == nil {
+			ret = HandlerAddElectId(player, AddElectId)
+		}
 	}
 
 	if ret {
@@ -74,12 +80,12 @@ func AddOfflineHandler(htype string, uid int64, data interface{}, Notify bool) b
 	return true
 }
 
-func handlerDianZhan(player *user.User, msg *model.UserOfflineHandler) bool {
+func handlerDianZhan(player *user.User, data *model.UserOfflineHandler) bool {
 	player.Star++
 	model.UserattrOp.UpdateWithMap(player.UserId, map[string]interface{}{
 		"star": player.Star,
 	})
-	//player.WriteMsg(msg.L2C_BeStar{Star:player.Star})
+	player.WriteMsg(&msg.L2C_BeStar{Star: player.Star})
 	return true
 }
 
@@ -113,5 +119,14 @@ func handlerOfflineRoomReturnMone(player *user.User, data *model.UserOfflineHand
 		player.DelRecord(record.RoomId)
 		player.AddCurrency(record.Amount)
 	}
+	return true
+}
+
+func HandlerAddElectId(player *user.User, data *msg.OfflineAddElectId) bool {
+	model.UserSpreadOp.Insert(&model.UserSpread{
+		UserId:    player.Id,
+		SpreadUid: data.TagUserID,
+	})
+	player.WriteMsg(&msg.L2C_NotifyElectResult{TagUserID: data.TagUserID})
 	return true
 }

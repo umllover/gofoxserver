@@ -648,6 +648,9 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 		//历史积分
 		room.HistorySe.AllScore[u.ChairId] += GameConclude.GameScore[u.ChairId]
 		DetailScore[u.ChairId] = GameConclude.GameScore[u.ChairId]
+
+		//设置玩家积分
+		u.Score = int64(room.HistorySe.AllScore[u.ChairId])
 	})
 
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, DetailScore)
@@ -2176,4 +2179,24 @@ func (room *ZP_RoomData) ClearAllTimer() {
 		}
 	}
 	log.Debug("zpmj at ClearAllTimer")
+}
+
+func (room *ZP_RoomData) SendCardToCli(u *user.User, bTail bool) {
+	//构造数据
+	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCard.SendCardUser = room.CurrentUser
+	SendCard.CurrentUser = room.CurrentUser
+	SendCard.Tail = bTail
+	SendCard.ActionMask = room.UserAction[room.CurrentUser]
+	SendCard.CardData = room.ProvideCard
+	//发送数据
+	u.WriteMsg(SendCard)
+
+	SendCardOther := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCardOther.SendCardUser = room.CurrentUser
+	SendCardOther.CurrentUser = room.CurrentUser
+	SendCardOther.Tail = bTail
+	SendCardOther.ActionMask = room.UserAction[room.CurrentUser]
+	SendCardOther.CardData = 0
+	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCardOther)
 }

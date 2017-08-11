@@ -79,16 +79,20 @@ func SendMsgToSelfNotdeUser(args []interface{}) {
 	FuncName := args[1].(string)
 	ch, ok := Users[uid]
 	if ok {
+		log.Debug("at SendMsgToSelfNotdeUser 111 ... %s", FuncName)
 		ch.Go(FuncName, args[2:]...)
 		return
 	} else {
-		AddOfflineHandler(FuncName, uid, args[2], true)
-		log.Debug("at SendMsgToSelfNotdeUser player not in node")
+		if FuncName != "S2S_OfflineHandler" {
+			AddOfflineHandler(FuncName, uid, args[2], true)
+			log.Debug("at SendMsgToSelfNotdeUser player not in node")
+		}
 	}
 	return
 }
 
 func SendMsgToHallUser(args []interface{}) {
+	log.Debug("at SendMsgToHallUser msg:%v", args)
 	sendMsg := &msg.S2S_HanldeFromUserMsg{}
 	sendMsg.Uid = args[0].(int64)
 	data, err := cluster.Processor.Marshal(args[1])
@@ -115,14 +119,16 @@ func SendMsgToHallUser(args []interface{}) {
 //处理来自游戏服的消息
 func HanldeFromGameMsg(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_HanldeFromUserMsg)
-	log.Debug("at HanldeFromGameMsg == %v", msg.S2S_HanldeFromUserMsg{})
+	log.Debug("at HanldeFromGameMsg == %v", recvMsg)
 	data, err := cluster.Processor.Unmarshal(recvMsg.Data)
 	if err != nil {
 		log.Error("at HanldeFromGameMsg Unmarshal error:%s", err.Error())
+		return
 	}
 	msgId, err1 := cluster.Processor.GetMsgId(data)
 	if err1 != nil {
 		log.Error("at HanldeFromGameMsg error:%s", err1.Error())
+		return
 	}
 	SendMsgToSelfNotdeUser([]interface{}{recvMsg.Uid, msgId, data})
 }
