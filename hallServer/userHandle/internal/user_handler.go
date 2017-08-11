@@ -1005,7 +1005,7 @@ func (m *UserModule) Recharge(args []interface{}) {
 
 			goods, ok = base.GoodsCache.Get(v.GoodsId)
 			if !ok {
-				log.Error("at Recharge error")
+				log.Error("at Recharge error :GoodsId%d", v.GoodsId)
 				code = 3
 				break
 			}
@@ -1022,12 +1022,16 @@ func (m *UserModule) Recharge(args []interface{}) {
 			break
 		}
 
+		if code == 2 {
+			continue
+		}
+
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
-			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
+			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
 			recharge := datalog.RechargeLog{}
 			recharge.AddRechargeLogInfo(v.OnLineId, v.PayAmount, v.UserId, v.PayType, v.GoodsId)
 		}
