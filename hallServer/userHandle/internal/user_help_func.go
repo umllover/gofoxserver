@@ -23,21 +23,22 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 }
 func ReqGetMaskCode(phome string, maskCode int) {
 	http_service.PostJSON("https://sms.yunpian.com/v2/sms/single_send.json", map[string]interface{}{
-		"apikey": "fce482d259d86ca9b0490d400889a9b8",
+		"apikey": common.GetGlobalVar("YUN_PIAN_API_KEY"),
 		"mobile": phome,
 		"text":   fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), maskCode),
 	})
 }
 
 // bingone
-func VerifyCode(number string, codes string) {
+func VerifyCode(number string, codes int) {
 
 	// 修改为您的apikey(https://www.yunpian.com)登录官网后获取
 	apikey := common.GetGlobalVar("YUN_PIAN_API_KEY")
 	// 修改为您要发送的手机号码，多个号码用逗号隔开
 	mobile := number
 	// 发送内容
-	text := fmt.Sprintf("【噜噜棋牌游戏中心】您的验证码是%s", codes)
+	//text := fmt.Sprintf("【噜噜棋牌游戏中心】您的验证码是%d", codes)
+	text := fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), codes)
 
 	url_send_sms := "https://sms.yunpian.com/v2/sms/single_send.json"
 
@@ -49,14 +50,16 @@ func VerifyCode(number string, codes string) {
 
 func httpsPostForm(url string, data url.Values) {
 	resp, err := http.PostForm(url, data)
-
-	if err != nil {
-		// handle error
-	}
 	defer resp.Body.Close()
+	if err != nil {
+		log.Debug("error :%s", err.Error())
+		return
+	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// handle error
+		log.Debug("error read :%s", err.Error())
+		return
 	}
 
 	fmt.Println(string(body))

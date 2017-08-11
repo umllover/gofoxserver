@@ -178,7 +178,7 @@ var userUpdateSql = [][]string{
 		user_id bigint(11) NOT NULL,
 		phome_number varchar(11) NOT NULL COMMENT '电话号码',
 		mask_code int(11) NOT NULL COMMENT '验证按',
-		creator_time varchar(255) DEFAULT NULL,
+		creator_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '日期',
 		PRIMARY KEY (user_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 

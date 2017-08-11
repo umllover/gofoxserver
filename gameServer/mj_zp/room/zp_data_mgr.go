@@ -1439,13 +1439,13 @@ func (room *ZP_RoomData) SendStatusPlay(u *user.User) {
 	StatusPlay.TimeOutCard = room.MjBase.TimerMgr.GetTimeOutCard()
 	StatusPlay.TimeOperateCard = room.MjBase.TimerMgr.GetTimeOperateCard()
 	StatusPlay.CreateTime = room.MjBase.TimerMgr.GetCreatrTime()
-	StatusPlay.PlayerCount = room.MjBase.TimerMgr.GetPlayCount()
+	StatusPlay.PlayerCount = room.MjBase.UserMgr.GetBeginPlayer()
+	StatusPlay.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 
 	//重入取消托管
 	room.MjBase.OnUserTrustee(u.ChairId, false)
 
 	//规则
-	StatusPlay.PlayerCount = room.MjBase.TimerMgr.GetPlayCount()
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
 	//游戏变量
 	StatusPlay.BankerUser = room.BankerUser
