@@ -367,7 +367,6 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 	}
 
 	player.WriteMsg(retmsg)
-	player.SendActivityInfo()
 }
 
 func (m *UserModule) UserOffline() {
@@ -976,6 +975,7 @@ func (m *UserModule) Recharge(args []interface{}) {
 				code = 2
 				break
 			}
+
 			goods, ok = base.GoodsCache.Get(v.GoodsId)
 			if !ok {
 				log.Error("at Recharge error")

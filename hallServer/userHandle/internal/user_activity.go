@@ -44,5 +44,5 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 //玩家请求次数信息
 func (m *UserModule) ReqTimesInfo(args []interface{}) {
 	player := m.a.UserData().(*user.User)
-	player.WriteMsg(player.GetTimeInfo())
+	player.SendActivityInfo()
 }

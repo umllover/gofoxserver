@@ -100,13 +100,7 @@ func (u *User) GetDayTimes(k int) int64 {
 	return u.DayTimes[k]
 }
 
-func (u *User) GetTimeInfo() *msg.L2C_ActivityInfo {
-	msg := &msg.L2C_ActivityInfo{}
-	msg.DayTimes = u.DayTimes
-	msg.Times = u.Times
-	msg.WeekTimes = u.WeekTimes
-	return msg
-}
+
 
 func (u *User) SetDayTimes(k int, v int64) {
 	u.Lock()

@@ -349,7 +349,7 @@ type L2C_UpdateUserAttr struct {
 
 //客户端通知充值成功
 type C2L_RechangerOk struct {
-	OrderId int
+	TransactionId string
 }
 
 //客户端通知充值成功
