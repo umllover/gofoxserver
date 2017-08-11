@@ -846,7 +846,9 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//听牌判断
 	room.CheckTingCard(wCurrentUser)
 
-	room.MjBase.DataMgr.SendCardToCli(u, bTail)
+	if room.SendStatus != BuHua_Send {
+		room.MjBase.DataMgr.SendCardToCli(u, bTail)
+	}
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 
 	room.UserActionDone = false
