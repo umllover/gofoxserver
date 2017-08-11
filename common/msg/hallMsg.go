@@ -174,7 +174,8 @@ type C2L_SetPhoneNumber struct {
 
 //绑定手机结果
 type L2C_SetPhoneNumberRsp struct {
-	Code int //非0 位设置失败
+	Code        int //非0 位设置失败
+	PhoneNumber string
 }
 
 //点赞

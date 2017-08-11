@@ -83,7 +83,7 @@ func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name stri
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom version 000002")
+	log.Debug("zpmj at InitRoom version 000003")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -1269,7 +1269,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 		//暗杠
 		if room.UserGangScore[i] > 0 {
-			playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
+			playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i] / (UserCnt - 1)
 		}
 		room.SumScore[i] += room.UserGangScore[i]
 
@@ -2179,4 +2179,24 @@ func (room *ZP_RoomData) ClearAllTimer() {
 		}
 	}
 	log.Debug("zpmj at ClearAllTimer")
+}
+
+func (room *ZP_RoomData) SendCardToCli(u *user.User, bTail bool) {
+	//构造数据
+	SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCard.SendCardUser = room.CurrentUser
+	SendCard.CurrentUser = room.CurrentUser
+	SendCard.Tail = bTail
+	SendCard.ActionMask = room.UserAction[room.CurrentUser]
+	SendCard.CardData = room.ProvideCard
+	//发送数据
+	u.WriteMsg(SendCard)
+
+	SendCardOther := &mj_zp_msg.G2C_ZPMJ_SendCard{}
+	SendCardOther.SendCardUser = room.CurrentUser
+	SendCardOther.CurrentUser = room.CurrentUser
+	SendCardOther.Tail = bTail
+	SendCardOther.ActionMask = room.UserAction[room.CurrentUser]
+	SendCardOther.CardData = 0
+	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCardOther)
 }
