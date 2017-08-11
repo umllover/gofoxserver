@@ -92,6 +92,7 @@ type RoomData struct {
 	CurrentUser     int                //当前操作用户
 	Ting            []bool             //是否听牌
 	BankerUser      int                //庄家用户
+	HuOfCard        int                //胡的牌
 
 	FlowerCnt    []int                  //补花数
 	FlowerCard   [][]int                //记录花牌
@@ -957,6 +958,7 @@ func (room *RoomData) InitRoom(UserCnt int) {
 	room.MinusLastCount = 0
 	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
+	room.HuOfCard = 0
 }
 
 func (room *RoomData) GetSice() (int, int) {
@@ -2138,9 +2140,9 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) in
 		return 0
 	}
 
-	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	HuOfCard := room.HuOfCard
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v & (WIK_PENG | WIK_GANG)) > 0 {
+		if (v&(WIK_PENG|WIK_GANG)) > 0 && !pAnalyseItem.IsAnalyseGet[k] {
 			return 0
 		} else {
 			CenterColor := pAnalyseItem.CenterCard[k] >> 4
@@ -2155,10 +2157,12 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) in
 					(pAnalyseItem.CardData[k][1]&MASK_VALUE == 8 && pAnalyseItem.CardData[k][2]&MASK_VALUE == 9) {
 					continue
 				}
+
 				if pAnalyseItem.CardData[k][0] == HuOfCard && pAnalyseItem.CardData[k][2] == HuOfCard+2 {
 					return CHR_BAI_LIU
 				}
-				if pAnalyseItem.CardData[k][0] == HuOfCard+2 && pAnalyseItem.CardData[k][2] == HuOfCard {
+
+				if pAnalyseItem.CardData[k][0] == HuOfCard-2 && pAnalyseItem.CardData[k][2] == HuOfCard {
 					return CHR_BAI_LIU
 				}
 			}
@@ -2226,12 +2230,11 @@ func (room *RoomData) IsHuWeiZhang(pAnalyseItem *TagAnalyseItem) int {
 
 //截头
 func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
 	if TingCnt[room.CurrentUser] != 1 {
 		return 0
 	}
 
-	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	HuOfCard := room.HuOfCard
 	cardValue := HuOfCard & MASK_VALUE
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
@@ -2253,12 +2256,11 @@ func (room *RoomData) IsJieTou(pAnalyseItem *TagAnalyseItem, TingCnt []int) int 
 
 //空心
 func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
 	if TingCnt[room.CurrentUser] != 1 {
 		return 0
 	}
 
-	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	HuOfCard := room.HuOfCard
 	for k, v := range pAnalyseItem.WeaveKind {
 		if v&(WIK_LEFT|WIK_CENTER|WIK_RIGHT) == 0 {
 			continue
@@ -2273,12 +2275,11 @@ func (room *RoomData) IsKongXin(pAnalyseItem *TagAnalyseItem, TingCnt []int) int
 
 //单吊
 func (room *RoomData) IsDanDiao(pAnalyseItem *TagAnalyseItem, TingCnt []int) int {
-	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@听牌数TingCnt[room.CurrentUser]：%d", TingCnt[room.CurrentUser])
 	if TingCnt[room.CurrentUser] != 1 {
 		return 0
 	}
 
-	HuOfCard := room.MjBase.LogicMgr.GetHuOfCard()
+	HuOfCard := room.HuOfCard
 	if pAnalyseItem.CardEye == HuOfCard {
 		return CHR_DAN_DIAO
 	}

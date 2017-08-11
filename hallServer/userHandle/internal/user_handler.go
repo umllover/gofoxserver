@@ -363,6 +363,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 		HeadImgUrl:  player.HeadImgUrl,
 		Star:        player.Star,
 		Sign:        player.Sign,
+		PhomeNumber: player.PhomeNumber,
 	}
 
 	player.WriteMsg(retmsg)
@@ -1097,7 +1098,13 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 //点赞
 func (m *UserModule) DianZhan(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_DianZhan)
-	AddOfflineHandler(OfflineTypeDianZhan, recvMsg.UserID, nil, true)
+	player := m.a.UserData().(*user.User)
+	if AddOfflineHandler(OfflineTypeDianZhan, recvMsg.UserID, nil, true) {
+		player.WriteMsg(&msg.L2C_DianZhanRsp{})
+	} else {
+		player.WriteMsg(&msg.L2C_DianZhanRsp{Code: 1})
+	}
+
 }
 
 //续费
