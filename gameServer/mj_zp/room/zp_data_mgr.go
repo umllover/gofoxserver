@@ -83,7 +83,7 @@ func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name stri
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom version 000002")
+	log.Debug("zpmj at InitRoom version 000003")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -1266,7 +1266,7 @@ func (room *ZP_RoomData) SumGameScore(WinUser []int) {
 
 		//暗杠
 		if room.UserGangScore[i] > 0 {
-			playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i]
+			playerScore[IDX_SUB_SCORE_AG] = room.UserGangScore[i] / (UserCnt - 1)
 		}
 		room.SumScore[i] += room.UserGangScore[i]
 

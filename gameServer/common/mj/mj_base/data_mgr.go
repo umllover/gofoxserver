@@ -1879,6 +1879,10 @@ func (room *RoomData) IsWuHuaZi(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 			return 0
 		}
 	}
+
+	if pAnalyseItem.CardEye>>4 == 3 {
+		return 0
+	}
 	return CHR_WU_HUA_ZI
 }
 
