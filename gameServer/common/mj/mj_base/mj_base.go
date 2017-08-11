@@ -221,7 +221,7 @@ func (room *Mj_base) UserReady(args []interface{}) {
 		}
 	}
 
-	log.Debug("at UserReady ==== ")
+	log.Debug("at Mj_base UserReady ==== ")
 	if u.Status != US_PLAYING {
 		room.UserMgr.SetUsetStatus(u, US_READY)
 	}

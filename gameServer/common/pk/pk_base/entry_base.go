@@ -233,12 +233,32 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 //玩家准备
 func (room *Entry_base) UserReady(args []interface{}) {
 	u := args[1].(*user.User)
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			u.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
+
 	if u.Status == US_READY {
 		log.Debug("user status is ready at UserReady")
+		retCode = ErrPlayerIsReady
 		return
 	}
 
-	log.Debug("at UserReady")
+	if room.DelayCloseTimer != nil {
+		if room.TimerMgr.GetMaxPlayCnt() <= room.TimerMgr.GetPlayCount() {
+			log.Debug("Max Play count limit, curCount=%d, maxCount=%d", room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
+			retCode = ErrRenewalFee
+			return
+		} else {
+			log.Debug("ErrRoomIsClose")
+			retCode = ErrRoomIsClose
+			return
+		}
+	}
+
+	log.Debug("at Entry_base UserReady")
 	room.UserMgr.SetUsetStatus(u, US_READY)
 
 	if room.UserMgr.IsAllReady() {
