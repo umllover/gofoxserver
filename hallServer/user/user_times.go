@@ -16,8 +16,8 @@ import (
 
 //表名字
 const (
-	day_time_table  = "user_dat_times"
-	week_time_table = "week_times"
+	Day_time_table  = "user_dat_times"
+	Week_time_table = "week_times"
 	time_table      = "user_times"
 )
 
@@ -106,14 +106,14 @@ func (u *User) SetDayTimes(k int, v int64) {
 	u.Lock()
 	u.DayTimes[k] = v
 	u.Unlock()
-	updateTimes(day_time_table, u.Id, k, v)
+	updateTimes(Day_time_table, u.Id, k, v)
 }
 
 func (u *User) IncreaseDayTimes(k int, addv int64) {
 	u.Lock()
 	u.DayTimes[k] += addv
 	u.Unlock()
-	updateTimes(day_time_table, u.Id, k, u.DayTimes[k])
+	updateTimes(Day_time_table, u.Id, k, u.DayTimes[k])
 }
 
 func (u *User) GetDayTimrsAll() (data map[int]int64) {
@@ -135,14 +135,14 @@ func (u *User) SetWeekTimes(k int, v int64) {
 	u.Lock()
 	u.WeekTimes[k] = v
 	u.Unlock()
-	updateTimes(week_time_table, u.Id, k, v)
+	updateTimes(Week_time_table, u.Id, k, v)
 }
 
 func (u *User) IncreaseWeekTimes(k int, addv int64) {
 	u.Lock()
 	u.WeekTimes[k] += addv
 	u.Unlock()
-	updateTimes(week_time_table, u.Id, k, u.WeekTimes[k])
+	updateTimes(Week_time_table, u.Id, k, u.WeekTimes[k])
 }
 
 func (u *User) GetWeekTimesAll() (data map[int]int64) {
@@ -218,19 +218,20 @@ func (u *User) IncreaseTimesByType(id int, v int64, types int) {
 }
 
 //////////////////////////////////////
-
+//不清库， 调用请注意
 func (u *User) ClearDayTimes() {
 	u.Lock()
 	u.DayTimes = make(map[int]int64)
 	u.Unlock()
-	ClearTimes(day_time_table, u.Id)
+	//ClearTimes(Day_time_table, u.Id)
 }
 
+//不清库， 调用请注意
 func (u *User) ClearWeekTimes() {
 	u.Lock()
 	u.WeekTimes = make(map[int]int64)
 	u.Unlock()
-	ClearTimes(week_time_table, u.Id)
+	//ClearTimes(Week_time_table, u.Id)
 }
 
 //发送活动次数信息
@@ -253,17 +254,15 @@ func updateTimes(table_name string, uid int64, k int, v int64) bool {
 }
 
 func ClearTimes(table_name string, id int64) {
-	sql := fmt.Sprintf("delete from %s where user_id=%d;", id)
-	_, err := db.DB.Exec(sql)
+	_, err := db.DB.Exec("delete * from ? where user_id=?;", table_name, id)
 	if err != nil {
 		log.Error("at updateTimes error:%s", err.Error())
 		return
 	}
 }
 
-func ClearTimesByKeys(table_name string, Uid, key int) {
-	sql := fmt.Sprintf("delete from %s where user_id=%d and key_id=%d;", Uid, key)
-	_, err := db.DB.Exec(sql)
+func ClearTimesByKeys(table_name string) {
+	_, err := db.DB.Exec("delete * from ?", table_name)
 	if err != nil {
 		log.Error("at updateTimes error:%s", err.Error())
 		return
