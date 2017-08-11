@@ -278,9 +278,6 @@ func (lg *ZP_Logic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		return false, nil
 	}
 
-	//记录卡牌
-	lg.HuOfCard = cbCurrentCard
-
 	//插入扑克
 	if cbCurrentCard != 0 {
 		cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
@@ -340,10 +337,6 @@ func (lg *ZP_Logic) GetUserCards(cbCardIndex []int) (cbCardData []int) {
 		}
 	}
 	return cbCardData
-}
-
-func (lg *ZP_Logic) GetHuOfCard() int {
-	return lg.HuOfCard
 }
 
 func (lg *ZP_Logic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *mj_base.TagGangCardResult) int {

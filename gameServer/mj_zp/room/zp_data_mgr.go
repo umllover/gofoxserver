@@ -83,7 +83,7 @@ func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name stri
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom version 000003")
+	log.Debug("zpmj at InitRoom version 000004")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -119,6 +119,7 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.MinusLastCount = 0
 	room.MinusHeadCount = room.GetCfg().MaxRepertory
 	room.OutCardCount = 0
+	room.HuOfCard = 0
 
 	//设置漳浦麻将牌数据
 	room.EndLeftCount = 16
@@ -377,9 +378,9 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[0] = 3 //三张一同
 	//temp[1] = 3 //三张二同
 	//temp[2] = 3 //三张三同
-	//temp[3] = 3 //三张四同
+	//temp[3] = 4 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 2
+	//temp[5] = 1
 	//
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x04
@@ -876,6 +877,7 @@ func (room *ZP_RoomData) ZiMo(u *user.User) {
 	}
 	kind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[u.ChairId], pWeaveItem, room.SendCardData)
 	if kind {
+		room.HuOfCard = room.SendCardData
 		room.ChiHuKind[u.ChairId] = WIK_CHI_HU
 	}
 
@@ -910,6 +912,7 @@ func (room *ZP_RoomData) UserChiHu(wTargetUser, userCnt int) {
 		pWeaveItem := room.WeaveItemArray[wChiHuUser]
 		chihuKind, AnalyseItem := room.MjBase.LogicMgr.AnalyseChiHuCard(room.CardIndex[wChiHuUser], pWeaveItem, room.OperateCard[wTargetUser][0])
 		if chihuKind {
+			room.HuOfCard = room.OperateCard[wTargetUser][0]
 			room.ChiHuKind[wChiHuUser] = WIK_CHI_HU
 		}
 
@@ -1586,11 +1589,13 @@ func (room *ZP_RoomData) CalHuPaiScore(EndScore []int) {
 				}
 			}
 		}
+	}
 
-		//总分
-		room.SumGameScore(WinUser)
+	//总分
+	room.SumGameScore(WinUser)
 
-		//连庄
+	//连庄
+	if WinCount > 0 {
 		if WinCount > 1 {
 			//一炮多响,庄家当庄
 			var Zhuang bool
