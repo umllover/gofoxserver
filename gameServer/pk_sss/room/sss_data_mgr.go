@@ -755,141 +755,168 @@ func (room *sss_data_mgr) Trustee(u *user.User, t bool) {
 		log.Debug("托管状态%v", DataTrustee)
 		u.WriteMsg(DataTrustee)
 	})
-
-	//room.trusteeOperate()
-
 }
 
 // 托管操作
 func (room *sss_data_mgr) trusteeOperate() {
-
 	trustees := room.PkBase.UserMgr.GetTrustees()
-
 	for i := range trustees {
 		if trustees[i] == true {
-			//room.ShowSSSCard(u, bDragon, bSpecialType, btSpecialData, FrontCard, MidCard, BackCard)
+			segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
+			room.ShowSSSCard(room.PkBase.UserMgr.GetUserByChairId(i), false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
 		}
 	}
-
 }
 
-func (room *sss_data_mgr) getSegmentCard(chairId int) [][]int {
-	segmentCard := make([][]int, 3)
-	segmentCard[0] = make([]int, 0, 3)
-	segmentCard[1] = make([]int, 0, 5)
-	segmentCard[2] = make([]int, 0, 5)
+func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard2, segmentCard3 []int) {
 
-	lg := room.PkBase.LogicMgr.(*sss_logic)
 	cardData := room.PlayerCards[chairId]
-
+	newCardData := []int{}
 	//后墩
+	segmentCard1, newCardData = room.get5card(cardData)
+	//中墩
+	segmentCard2, newCardData = room.get5card(newCardData)
+	//前墩
+	segmentCard3 = newCardData
+
+	return
+}
+
+func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardData []int) {
+	lg := room.PkBase.LogicMgr.(*sss_logic)
+
+	segmentCard = make([]int, 0, 5)
+	index := 0
+
 	TagAnalyseItemArray := lg.AnalyseCard(cardData)
 	//五同
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bFiveCount > 0 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bFiveFirst[0]:6]...)
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bFiveCount > 0 {
+		index = TagAnalyseItemArray.bFiveFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+5]...)
 	}
-	//铁支
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bFourCount > 0 && TagAnalyseItemArray.bOneCount > 0 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bFourFirst[0]:5]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-	}
-	//葫芦
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bTwoCount > 0 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bThreeFirst[0]:4]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
-	}
-	//三条
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount == 2 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bThreeFirst[0]:4]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
-	}
-	//两对
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bTwoCount == 2 && TagAnalyseItemArray.bOneCount == 1 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[1]:3]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-	}
-	//对子
-	if len(segmentCard[2]) == 0 && TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 3 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[2]])
-	}
-	//散牌
-	if len(segmentCard[2]) == 0 {
-		segmentCard[2] = append(segmentCard[2], TagAnalyseItemArray.cardData[:6]...)
-	}
-
-	tempCardData := []int{}
-	for _, v := range cardData {
-		exist := false
-		for _, v1 := range segmentCard[2] {
-			if v == v1 {
-				exist = true
+	//同花顺
+	if len(segmentCard) == 0 {
+		for i := 3; i >= 0; i-- {
+			uniqueColorCard := lg.GetUniqueColorCard(TagAnalyseItemArray.cardData, i)
+			l := len(uniqueColorCard)
+			if l < 5 {
+				continue
+			}
+			for j := 0; j <= l-5; j++ {
+				if lg.IsLine(uniqueColorCard[j:j+5], 5, true) {
+					segmentCard = append(segmentCard, uniqueColorCard[j:j+5]...)
+					break
+				}
+			}
+			if len(segmentCard) == 0 {
+				logicCards := make([]int, 6)
+				for _, v := range uniqueColorCard {
+					for k := range logicCards {
+						if lg.GetCardValue(v) == k && logicCards[k] == 0 {
+							logicCards[k] = v
+						}
+					}
+				}
+				isSmallStraight := true
+				for _, v := range logicCards[1:6] {
+					if v == 0 {
+						isSmallStraight = false
+					}
+				}
+				if isSmallStraight {
+					segmentCard = append(segmentCard, logicCards[1:6]...)
+					break
+				}
 			}
 		}
-		if !exist {
-			tempCardData = append(tempCardData, v)
-		}
 	}
 
-	//中墩
-	TagAnalyseItemArray = lg.AnalyseCard(tempCardData)
-	//五同
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bFiveCount > 0 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bFiveFirst[0]:6]...)
-	}
 	//铁支
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bFourCount > 0 && TagAnalyseItemArray.bOneCount > 0 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bFourFirst[0]:5]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bFourCount > 0 && TagAnalyseItemArray.bOneCount > 0 {
+		index = TagAnalyseItemArray.bFourFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+4]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 	}
 	//葫芦
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bTwoCount > 0 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bThreeFirst[0]:4]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bTwoCount > 0 {
+		index = TagAnalyseItemArray.bThreeFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 	}
-	//三条
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount == 2 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bThreeFirst[0]:4]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
-	}
-	//两对
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bTwoCount == 2 && TagAnalyseItemArray.bOneCount == 1 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[1]:3]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-	}
-	//对子
-	if len(segmentCard[1]) == 0 && TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 3 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bTwoFirst[0]:3]...)
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
-	}
-	//散牌
-	if len(segmentCard[1]) == 0 {
-		segmentCard[1] = append(segmentCard[1], TagAnalyseItemArray.cardData[:6]...)
-	}
-
-	tempCardData = []int{}
-	for _, v := range cardData {
-		exist := false
-		for _, v1 := range segmentCard[1] {
-			if v == v1 {
-				exist = true
+	//同花
+	if len(segmentCard) == 0 {
+		for i := 3; i >= 0; i-- {
+			colorCard := lg.GetColorCard(TagAnalyseItemArray.cardData, i)
+			l := len(colorCard)
+			if l < 5 {
+				continue
+			}
+			if len(segmentCard) == 0 {
+				segmentCard = append(segmentCard, colorCard[:5]...)
+				break
 			}
 		}
-		if !exist {
-			tempCardData = append(tempCardData, v)
+	}
+	//顺子
+	if len(segmentCard) == 0 {
+		l := len(TagAnalyseItemArray.cardData)
+		for j := 0; j <= l-5; j++ {
+			if lg.IsLine(TagAnalyseItemArray.cardData[j:j+5], 5, false) {
+				segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j:j+5]...)
+				break
+			}
+		}
+		if len(segmentCard) == 0 {
+			logicCards := make([]int, 6)
+			for _, v := range TagAnalyseItemArray.cardData {
+				for k := range logicCards {
+					if lg.GetCardValue(v) == k && logicCards[k] == 0 {
+						logicCards[k] = v
+					}
+				}
+			}
+			isSmallStraight := true
+			for _, v := range logicCards[1:6] {
+				if v == 0 {
+					isSmallStraight = false
+				}
+			}
+			if isSmallStraight {
+				segmentCard = append(segmentCard, logicCards[1:6]...)
+			}
 		}
 	}
-	//前墩
-	segmentCard[0] = append(segmentCard[0], tempCardData...)
+	//三条
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount == 2 {
+		index = TagAnalyseItemArray.bThreeFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
+	}
+	//两对
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 2 && TagAnalyseItemArray.bOneCount == 1 {
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		index = TagAnalyseItemArray.bTwoFirst[1]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+	}
+	//对子
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 3 {
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[2]])
+	}
+	//散牌
+	if len(segmentCard) == 0 {
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:6]...)
+	}
 
-	return segmentCard
+	newCardData = lg.getUnUsedCard(TagAnalyseItemArray.cardData, segmentCard)
+
+	return
 
 }

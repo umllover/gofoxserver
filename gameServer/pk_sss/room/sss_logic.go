@@ -610,7 +610,7 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		//三同花
 		bThree_C := true
 		for i := 0; i < 4; i++ {
-			GetOutNum := lg.GetColorCard(cardData, i)
+			GetOutNum := lg.GetColorCardNum(cardData, i)
 			if GetOutNum != 0 && GetOutNum != 3 && GetOutNum != 5 && GetOutNum != 8 && GetOutNum != 10 && GetOutNum != 13 {
 				bThree_C = false
 			}
@@ -1236,7 +1236,7 @@ func (lg *sss_logic) IsAllLine(cbCard []int, cbCount int, bSameColor bool) bool 
 			for ; i > 0; i-- {
 				if (cbIndex[i-1] + 1) != cbIndex[i] {
 					cbNewIndex := cbIndex[i-1]
-					for j := (i - 1); j < 5; j++ {
+					for j := i - 1; j < 5; j++ {
 						cbIndex[j] = cbNewIndex + j - (i - 1) + 1
 					}
 					break
@@ -1367,7 +1367,7 @@ func (lg *sss_logic) GetCardWithValue(cbCard []int, cbCount int, cbValue int) in
 	return cbTemp
 }
 
-func (lg *sss_logic) GetColorCard(cbCard []int, cbColor int) int {
+func (lg *sss_logic) GetColorCardNum(cbCard []int, cbColor int) int {
 	GetOutNum := 0
 	for i := 0; i < len(cbCard); i++ {
 		if lg.GetCardColor(cbCard[i]) == cbColor {
@@ -1375,4 +1375,45 @@ func (lg *sss_logic) GetColorCard(cbCard []int, cbColor int) int {
 		}
 	}
 	return GetOutNum
+}
+
+func (lg *sss_logic) GetColorCard(cbCard []int, cbColor int) []int {
+	colorCard := []int{}
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			colorCard = append(colorCard, cbCard[i])
+		}
+	}
+	return colorCard
+}
+
+func (lg *sss_logic) GetUniqueColorCard(cbCard []int, cbColor int) []int {
+	allCards := make([]int, 16)
+	uniqueColorCard := []int{}
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			if allCards[lg.GetCardLogicValue(cbCard[i])] == 0 {
+				uniqueColorCard = append(uniqueColorCard, cbCard[i])
+				allCards[lg.GetCardLogicValue(cbCard[i])]++
+			}
+		}
+	}
+	return uniqueColorCard
+}
+
+func (lg *sss_logic) getUnUsedCard(cardData []int, usedCard []int) []int {
+	tempCardData := []int{}
+	for _, v := range cardData {
+		exist := false
+		for _, v1 := range usedCard {
+			if v == v1 {
+				exist = true
+			}
+		}
+		if !exist {
+			tempCardData = append(tempCardData, v)
+		}
+	}
+
+	return tempCardData
 }
