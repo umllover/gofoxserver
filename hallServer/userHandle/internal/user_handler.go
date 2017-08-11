@@ -1114,6 +1114,10 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 		return
 	}
 
+	if !player.HasTimes(common.ActivityBindPhome) {
+		player.SetTimes(common.ActivityBindPhome, 0)
+	}
+
 	model.UserMaskCodeOp.Delete(player.Id)
 	player.PhomeNumber = info.PhomeNumber
 	model.UserattrOp.UpdateWithMap(player.Id, map[string]interface{}{

@@ -9,6 +9,8 @@ import (
 	"mj/hallServer/db/model"
 	"time"
 
+	"mj/hallServer/db/model/base"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -65,13 +67,13 @@ func (u *User) LoadTimes() {
 }
 
 //永久次数
-func (u *User) GetTimes(k int) int64 {
+func (u *User) GetForeverTimes(k int) int64 {
 	u.RLock()
 	defer u.RUnlock()
 	return u.Times[k]
 }
 
-func (u *User) SetTimes(k int, v int64) {
+func (u *User) SetForeverTimes(k int, v int64) {
 	u.Lock()
 	u.Times[k] = v
 	u.Unlock()
@@ -99,8 +101,6 @@ func (u *User) GetDayTimes(k int) int64 {
 	defer u.RUnlock()
 	return u.DayTimes[k]
 }
-
-
 
 func (u *User) SetDayTimes(k int, v int64) {
 	u.Lock()
@@ -153,10 +153,15 @@ func (u *User) GetWeekTimesAll() (data map[int]int64) {
 	return
 }
 
-func (u *User) GetTimesByType(id int, types int) int64 {
-	switch types {
+func (u *User) GetTimes(id int) int64 {
+	t, ok := base.ActivityCache.Get(id)
+	if !ok {
+		log.Error("at GetTimes not foud type :%d", id)
+		return math.MaxInt64
+	}
+	switch t.DrawType {
 	case common.ActivityTypeForever:
-		return u.GetTimes(id)
+		return u.GetForeverTimes(id)
 	case common.ActivityTypeDay:
 		return u.GetDayTimes(id)
 	case common.ActivityTypeWeek:
@@ -165,10 +170,35 @@ func (u *User) GetTimesByType(id int, types int) int64 {
 	return math.MaxInt64
 }
 
-func (u *User) SetTimesByType(id int, v int64, types int) {
-	switch types {
+func (u *User) HasTimes(id int) bool {
+	t, ok := base.ActivityCache.Get(id)
+	if !ok {
+		log.Error("at GetTimes not foud type :%d", id)
+		return false
+	}
+	switch t.DrawType {
 	case common.ActivityTypeForever:
-		u.SetTimes(id, v)
+		_, ok := u.Times[id]
+		return ok
+	case common.ActivityTypeDay:
+		_, ok := u.DayTimes[id]
+		return ok
+	case common.ActivityTypeWeek:
+		_, ok := u.WeekTimes[id]
+		return ok
+	}
+	return false
+}
+
+func (u *User) SetTimes(id int, v int64) {
+	t, ok := base.ActivityCache.Get(id)
+	if !ok {
+		log.Error("at SetTimes not foud type :%d", id)
+		return
+	}
+	switch t.DrawType {
+	case common.ActivityTypeForever:
+		u.SetForeverTimes(id, v)
 	case common.ActivityTypeDay:
 		u.SetDayTimes(id, v)
 	case common.ActivityTypeWeek:
