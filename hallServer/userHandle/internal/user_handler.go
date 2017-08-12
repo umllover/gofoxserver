@@ -19,8 +19,6 @@ import (
 	"mj/hallServer/user"
 	"time"
 
-	"mj/hallServer/db"
-
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -355,7 +353,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 	}
 
 	var retmsg *msg.L2C_UserIndividual
-	if recvMsg.UserId == player.Id {
+	if recvMsg.UserId == player.Id || recvMsg.UserId == 0 {
 		retmsg = &msg.L2C_UserIndividual{
 			UserID:      player.Id,        //用户 I D
 			NickName:    player.NickName,  //昵称
@@ -853,11 +851,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *accou
 	retMsg.Experience = user.Experience
 	retMsg.LoveLiness = user.LoveLiness
 	retMsg.NickName = user.NickName
-
-	var name string
-	db.DB.Select(name, "SELECT CAST(NickName AS CHAR CHARACTER SET utf8) nickname FROM userattr WHERE UserID = ?", user.Id)
-	log.Debug("select name ============== %s", name)
-	retMsg.NickName = name
 	//用户成绩
 	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
