@@ -44,7 +44,7 @@ var DefaultUserattr = &Userattr{}
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
 func (op *userattrOp) Get(UserID int64) (*Userattr, bool) {
 	obj := &Userattr{}
-	sql := "select * from userattr where UserID=? "
+	sql := "select *  CAST(NickName AS CHAR CHARACTER SET utf8)  from userattr where UserID=? "
 	err := db.DB.Get(obj, sql,
 		UserID,
 	)

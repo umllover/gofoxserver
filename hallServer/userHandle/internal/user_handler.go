@@ -19,6 +19,8 @@ import (
 	"mj/hallServer/user"
 	"time"
 
+	"mj/hallServer/db"
+
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
@@ -852,6 +854,10 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *accou
 	retMsg.LoveLiness = user.LoveLiness
 	retMsg.NickName = user.NickName
 
+	var name string
+	db.DB.Select(name, "SELECT CAST(NickName AS CHAR CHARACTER SET utf8) nickname FROM userattr WHERE UserID = ?", user.Id)
+	log.Debug("select name ============== %s", name)
+	retMsg.NickName = name
 	//用户成绩
 	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
