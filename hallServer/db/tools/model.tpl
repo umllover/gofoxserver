@@ -93,7 +93,7 @@ func(op *{{op_struct_name}}) GetByMap(m map[string]interface{}) (*{{struct_name}
     if len(lst) > 0 {
         return lst[0], nil
     }
-    return nil, errors.New("no row in result")
+    return nil, nil
 }
 
 {% if not is_view -%}

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -82,7 +81,7 @@ func (op *mailOp) GetByMap(m map[string]interface{}) (*Mail, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

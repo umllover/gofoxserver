@@ -1,7 +1,6 @@
 package account
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 
@@ -78,7 +77,7 @@ func (op *serverversionOp) GetByMap(m map[string]interface{}) (*Serverversion, e
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

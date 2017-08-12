@@ -1,7 +1,6 @@
 package account
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -91,7 +90,7 @@ func (op *onlineorderOp) GetByMap(m map[string]interface{}) (*Onlineorder, error
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*
