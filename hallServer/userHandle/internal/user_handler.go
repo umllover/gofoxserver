@@ -1262,15 +1262,16 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		player.WriteMsg(&msg.L2C_ReqBindMaskCodeRsp{Code: retCode})
 	}()
 
-	if player.MacKCodeTime != nil {
-		if time.Now().After(*player.MacKCodeTime) {
+	now := time.Now().Unix()
+	if player.MacKCodeTime != 0 {
+		if player.MacKCodeTime > now {
 			retCode = ErrFrequentAccess
 			return
 		}
 	}
 	code, _ := utils.RandInt(100000, 1000000)
-	now := time.Now()
-	player.MacKCodeTime = &now
+
+	player.MacKCodeTime = now + 60
 
 	err := model.UserMaskCodeOp.InsertUpdate(&model.UserMaskCode{UserId: player.Id, PhomeNumber: recvMsg.PhoneNumber, MaskCode: code}, map[string]interface{}{
 		"mask_code":    code,
