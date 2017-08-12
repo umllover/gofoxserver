@@ -857,7 +857,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	if room.UserAction[wCurrentUser] != WIK_NULL {
-		room.SendOperateNotify(u, room.ProvideCard)
+		room.GetDataMgr().SendOperateNotify(u, room.ProvideCard)
 	}
 	return 0
 }
