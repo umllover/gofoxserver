@@ -1875,6 +1875,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
 		for {
 			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
+				room.SendStatus = BuHua_Send
 				oldCard := room.ProvideCard
 				room.ProvideCard = room.GetSendCard(true, room.MjBase.UserMgr.GetMaxPlayerCnt())
 				room.SendReplaceCard(wCurrentUser, oldCard, room.ProvideCard, false)
