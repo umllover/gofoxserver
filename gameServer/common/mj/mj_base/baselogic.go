@@ -292,7 +292,7 @@ func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 		}
 		if cbCardIndex[i] == 4 {
 			cbActionMask |= WIK_GANG
-			gangCardResult.CardData = append(gangCardResult.CardData, lg.SwitchToCard(i))
+			gangCardResult.CardData[gangCardResult.CardCount] = lg.SwitchToCard(i)
 			gangCardResult.CardCount++
 		}
 	}

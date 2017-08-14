@@ -911,11 +911,8 @@ func (room *RoomData) AfterStartGame() {
 	log.Debug("============= AfterStartGame")
 	//检查自摸
 	room.CheckTingCard(room.BankerUser)
-	//检测起手杠牌
-	//room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
-
 	//检测起手动作
 	room.InitBankerAction()
 }
@@ -1153,15 +1150,18 @@ func (room *RoomData) InitBankerAction() {
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-	log.Debug("InitBankerAction hu=%v, UserAction=%v", hu, room.UserAction[room.BankerUser])
+	log.Debug("InitBankerAction hu=%v, UserAction=%v, gangCardResult=%v", hu, room.UserAction[room.BankerUser], gangCardResult)
 	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
 	}
 	if room.UserAction[room.BankerUser] != WIK_NULL {
 		u := userMgr.GetUserByChairId(room.BankerUser)
-		log.Debug("$$$$$$$$$$$ room.SendCardData=%d", room.SendCardData)
-		room.SendOperateNotify(u, room.SendCardData)
+		actionCard := room.SendCardData
+		if room.UserAction[room.BankerUser]&WIK_GANG != 0 {
+			actionCard = gangCardResult.CardData[0]
+		}
+		room.SendOperateNotify(u, actionCard)
 	}
 }
 
