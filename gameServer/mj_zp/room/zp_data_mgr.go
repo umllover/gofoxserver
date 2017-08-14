@@ -83,7 +83,7 @@ func NewZPDataMgr(info *msg.L2G_CreatorRoom, uid int64, configIdx int, name stri
 
 func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	//初始化
-	log.Debug("zpmj at InitRoom version 000004")
+	log.Debug("zpmj at InitRoom version 000005")
 	room.RepertoryCard = make([]int, room.GetCfg().MaxRepertory)
 	room.CardIndex = make([][]int, UserCnt)
 	for i := 0; i < UserCnt; i++ {
@@ -308,7 +308,11 @@ func (room *ZP_RoomData) InitBankerAction() {
 
 	if room.UserAction[room.BankerUser] != 0 {
 		outData := &mj_zp_msg.G2C_MJZP_OperateNotify{}
-		outData.ActionCard = room.SendCardData
+		if room.UserAction[room.BankerUser]&WIK_GANG != 0 {
+			outData.ActionCard = gangCardResult.CardData[0]
+		} else {
+			outData.ActionCard = room.SendCardData
+		}
 		outData.ActionMask = room.UserAction[room.BankerUser]
 		u := userMgr.GetUserByChairId(room.BankerUser)
 		u.WriteMsg(outData)
@@ -372,22 +376,22 @@ func (room *ZP_RoomData) StartDispatchCard() {
 		room.RepalceCard()
 	}
 
-	////todo,测试手牌
-	//var temp []int
-	//temp = make([]int, 42)
-	//temp[0] = 3 //三张一同
-	//temp[1] = 3 //三张二同
-	//temp[2] = 3 //三张三同
-	//temp[3] = 4 //三张四同
-	//temp[4] = 3 //三张五同
-	//temp[5] = 1
-	//
-	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x04
-	//room.CardIndex[0] = temp
-	//GetCardWordArray(room.CardIndex[0])
-	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//todo,测试手牌
+	var temp []int
+	temp = make([]int, 42)
+	temp[0] = 3 //三张一同
+	temp[1] = 3 //三张二同
+	temp[2] = 3 //三张三同
+	temp[3] = 4 //三张四同
+	temp[4] = 3 //三张五同
+	temp[5] = 1
+
+	//room.FlowerCnt[0] = 1 //花牌
+	room.SendCardData = 0x04
+	room.CardIndex[0] = temp
+	GetCardWordArray(room.CardIndex[0])
+	log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+	log.Debug("room.CardIndex:%v", room.CardIndex[0])
 	//
 	//for k := range room.RepertoryCard {
 	//	room.RepertoryCard[k] = 0x01
