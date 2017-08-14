@@ -1875,25 +1875,10 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
-	if room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
-		for {
-			if room.ProvideCard >= 0x41 && room.ProvideCard <= 0x48 {
-				room.SendStatus = BuHua_Send
-				oldCard := room.ProvideCard
-				room.ProvideCard = room.GetSendCard(true, room.MjBase.UserMgr.GetMaxPlayerCnt())
-				room.SendReplaceCard(wCurrentUser, oldCard, room.ProvideCard, false)
-				room.FlowerCnt[wCurrentUser]++
-				newCardIndex := SwitchToCardIndex(room.ProvideCard)
-				oldCardIndex := SwitchToCardIndex(oldCard)
-				room.CardIndex[wCurrentUser][newCardIndex]++
-				room.CardIndex[wCurrentUser][oldCardIndex]--
-				room.FlowerCard[wCurrentUser] = append(room.FlowerCard[wCurrentUser], oldCard)
-				log.Debug("用户%d补花数：%d %d", wCurrentUser, room.FlowerCnt[wCurrentUser], oldCard)
-			} else {
-				break
-			}
-		}
+	if room.IsHua(room.ProvideCard) {
+		room.ProvideCard = room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
 	}
+
 	room.SendCardData = room.ProvideCard
 	room.LastCatchCardUser = wCurrentUser
 	//清除禁止胡牌的牌

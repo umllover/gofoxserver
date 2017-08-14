@@ -45,6 +45,8 @@ type DataManager interface {
 	SendCardToCli(u *user.User, bTail bool)                                   //发送扑克消息
 	SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) //发送补花消息
 	SendOperateNotify(*user.User, int)                                        //发送吃碰杠胡通知
+	CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) (lastCard int)
+	ResetGame() //续费重置游戏参数
 
 	GetResumeUser() int
 	GetGangStatus() int

@@ -126,6 +126,7 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 
 	//r.TimerMgr.AddMaxPlayCnt(addCnt)
 	r.TimerMgr.ResetPlayCount()
+	r.DataMgr.ResetGame()
 
 	if r.DelayCloseTimer != nil {
 		r.DelayCloseTimer.Stop()
@@ -418,7 +419,7 @@ func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 			room.UserMgr.CheckRoomReturnMoney(roomStatus, room.DataMgr.GetCreatorNodeId(), room.DataMgr.GetRoomId(), room.DataMgr.GetCreator())
 
 			room.Destroy(room.DataMgr.GetRoomId())
-			room.UserMgr.RoomDissume()
+			room.UserMgr.RoomDissume(cbReason)
 		}
 
 		if GER_NORMAL != cbReason {

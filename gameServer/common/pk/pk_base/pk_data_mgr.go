@@ -157,6 +157,9 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 func (room *RoomData) InitRoom(UserCnt int) {
 }
 
+func (room *RoomData) ResetGame() {
+}
+
 // 游戏开始
 func (room *RoomData) BeforeStartGame(UserCnt int) {
 
