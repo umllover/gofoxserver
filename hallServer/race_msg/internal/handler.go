@@ -6,11 +6,12 @@ import (
 	"mj/hallServer/userHandle"
 	"time"
 
+	"mj/common/msg"
+
 	"github.com/lovelly/leaf/log"
 )
 
 func init() {
-
 }
 
 // 接收到消息，存表
@@ -52,7 +53,9 @@ func GetGMMsgFromDB() {
 // 发数据
 func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 	f := func() {
-		SendMsgToAll(raceMsginfo1.Context)
+		gmNotice := &msg.L2C_GMNotice{}
+		gmNotice.Context = raceMsginfo1.Context
+		SendMsgToAll(gmNotice)
 		raceMsginfo1.SendTimes--
 		if raceMsginfo1.SendTimes > 0 {
 			SendMsgTimer(raceMsginfo1)
