@@ -1087,7 +1087,7 @@ func (room *RoomData) StartDispatchCard() {
 	log.Debug("begin reoakce test card ======= %v ", conf.Test)
 	if conf.Test {
 		log.Debug("begin reoakce test card ======= ")
-		room.RepalceCard()
+		room.ReplaceCard()
 	}
 	//newCard := make([]int, room.GetCfg().MaxIdx)
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
@@ -1165,7 +1165,7 @@ func (room *RoomData) InitBankerAction() {
 	}
 }
 
-func (room *RoomData) RepalceCard() {
+func (room *RoomData) ReplaceCard() {
 	base.GameTestpaiCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
 		log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)
