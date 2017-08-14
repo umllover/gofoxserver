@@ -9,6 +9,6 @@ func NewDefaultHttpHandler() *HttpHandler {
 type HttpHandler struct {
 }
 
-func (h *HttpHandler) GMNotice(beginTime, endTime, interval, context string) {
+func (h *HttpHandler) GMNotice(sendTimes int, interval int, context string) {
 
 }
