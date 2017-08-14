@@ -91,6 +91,7 @@ const (
 	ErrNotInRoom         = 607 //不在房间内
 	ErrFindRoomError     = 608 //查找房间失败
 	ErrConfigError       = 609 //配置错误
+	ErrRenewalFeeRepeat  = 610 //重复续费，已经有人续费过
 )
 
 ///////// 无效的数字

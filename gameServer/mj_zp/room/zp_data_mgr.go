@@ -197,6 +197,10 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 }
 
+func (room *ZP_RoomData) ResetGame() {
+	room.LianZhuang = 0
+}
+
 //获得插花
 func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	log.Debug("获得插花")
@@ -627,11 +631,10 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 	GameConclude.CellScore = room.Source
 	DetailScore := make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-		if u.Status != US_PLAYING {
-			return
-		}
+		//if u.Status != US_PLAYING {
+		//	return
+		//}
 		util.DeepCopy(&GameConclude.ScoreKind[u.ChairId], &room.HuKindScore[u.ChairId]) //游戏得分类型
-		GameConclude.GameScore[u.ChairId] = UserGameScore[u.ChairId]
 		//胡牌分
 		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
