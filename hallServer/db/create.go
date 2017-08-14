@@ -4,47 +4,6 @@ var userUpdateSql = [][]string{
 	0: []string{
 		`SET FOREIGN_KEY_CHECKS=0;`,
 
-		`CREATE TABLE accountsinfo (
-		UserID bigint(11) NOT NULL COMMENT '用户标识',
-		ProtectID int(11) NOT NULL COMMENT '密保标识',
-		SpreaderID int(11) NOT NULL DEFAULT '0' COMMENT '推广员标识',
-		Accounts varchar(31) COLLATE utf8_unicode_ci NOT NULL COMMENT '用户帐号',
-		NickName varchar(31) COLLATE utf8_unicode_ci NOT NULL COMMENT '用户昵称',
-		PassPortID varchar(18) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '身份证号',
-		Compellation varchar(16) COLLATE utf8_unicode_ci NOT NULL COMMENT '真实名字',
-		LogonPass char(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '登录密码',
-		IsAndroid tinyint(4) NOT NULL,
-		InsurePass char(35) COLLATE utf8_unicode_ci NOT NULL COMMENT '安全密码',
-		MasterOrder tinyint(4) NOT NULL COMMENT '管理等级',
-		Gender tinyint(4) NOT NULL COMMENT '用户性别',
-		Nullity tinyint(4) NOT NULL DEFAULT '0' COMMENT '禁止服务',
-		NullityOverDate timestamp NULL DEFAULT NULL COMMENT '禁止时间',
-		StunDown tinyint(4) NOT NULL DEFAULT '0' COMMENT '关闭标志',
-		MoorMachine tinyint(4) NOT NULL DEFAULT '0' COMMENT '固定机器',
-		WebLogonTimes int(11) NOT NULL DEFAULT '0' COMMENT '登录次数',
-		GameLogonTimes int(11) NOT NULL COMMENT '登录次数',
-		LastLogonIP varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '登录地址',
-		LastLogonDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '登录时间',
-		LastLogonMobile varchar(11) COLLATE utf8_unicode_ci NOT NULL COMMENT '登录手机',
-		LastLogonMachine varchar(32) COLLATE utf8_unicode_ci NOT NULL COMMENT '登录机器',
-		RegisterIP varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '注册地址',
-		RegisterDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '注册时间',
-		RegisterMobile varchar(11) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '注册手机',
-		RegisterMachine varchar(32) COLLATE utf8_unicode_ci NOT NULL COMMENT '注册机器',
-		QQID varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'QQ对应ID',
-		WXID varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '微信对应ID',
-		AgentID int(11) NOT NULL DEFAULT '0',
-		AgentNumber varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-		HeadImgUrl text COLLATE utf8_unicode_ci,
-		UnionID varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-		QQ varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'QQ 号码',
-		EMail varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-		DwellingPlace varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '详细住址',
-		PostalCode varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '邮政编码',
-		Birthday timestamp NULL DEFAULT NULL COMMENT '生日',
-		PRIMARY KEY (UserID)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;`,
-
 		`CREATE TABLE accountsmember (
 		UserID bigint(11) NOT NULL COMMENT '用户标识',
 		MemberOrder tinyint(4) NOT NULL DEFAULT '0' COMMENT '会员标识',
@@ -219,15 +178,15 @@ var userUpdateSql = [][]string{
 		user_id bigint(11) NOT NULL,
 		phome_number varchar(11) NOT NULL COMMENT '电话号码',
 		mask_code int(11) NOT NULL COMMENT '验证按',
-		creator_time varchar(255) DEFAULT NULL,
+		creator_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '日期',
 		PRIMARY KEY (user_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 
 		`CREATE TABLE user_offline_handler (
-		id int(11) NOT NULL,
+		id int(11) NOT NULL AUTO_INCREMENT,
 		user_id bigint(11) NOT NULL,
-		h_type int(11) NOT NULL,
-		context varchar(11) NOT NULL,
+		h_type varchar(255) NOT NULL,
+		context varchar(255) NOT NULL,
 		expiry_time timestamp NULL DEFAULT NULL,
 		PRIMARY KEY (id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
@@ -262,6 +221,29 @@ var userUpdateSql = [][]string{
 	2: []string{
 		"ALTER TABLE token_record add play_cnt int(11) NOT NULL DEFAULT 0  COMMENT '可玩的局数';",
 	},
+
+	3: []string{
+		`CREATE TABLE record_outcard_ddz (
+		RecordID bigint(11) NOT NULL COMMENT '记录ID',
+		CreateTime int(11) NOT NULL COMMENT '创建时间',
+		CardData text COMMENT '牌数据，数组转成字符串',
+		PRIMARY KEY (RecordID)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
+
+	4: []string{
+		`CREATE TABLE record_outcard_ddz_king (
+		RecordID bigint(11) NOT NULL COMMENT '记录ID八王表',
+		CreateTime int(11) NOT NULL COMMENT '创建时间',
+		CardData text COMMENT '牌数据，数组转成字符串',
+		PRIMARY KEY (RecordID)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
+
+	5: []string{
+		"ALTER TABLE record_outcard_ddz MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
+		"ALTER TABLE record_outcard_ddz_king MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////
@@ -278,7 +260,7 @@ var statsUpdateSql = [][]string{
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 
 		`CREATE TABLE consum_log (
-		recode_id int(11) NOT NULL,
+		recode_id int(11) NOT NULL AUTO_INCREMENT,
 		user_id bigint(11) NOT NULL COMMENT '用户索引',
 		consum_type int(11) NOT NULL DEFAULT '0' COMMENT '消费类型 0钻石 1开房 3道具',
 		consum_num int(11) NOT NULL DEFAULT '0' COMMENT '消费数量',
@@ -410,5 +392,16 @@ var statsUpdateSql = [][]string{
 		PRIMARY KEY (DateID),
 		KEY IX_SystemStreamInfo_CollectDate (CollectDate)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
+	1: []string{
+		`ALTER TABLE room_log
+		 MODIFY COLUMN create_time  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '录入日期' AFTER node_id,
+		 MODIFY COLUMN end_time  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '结束日期' AFTER create_time,
+		 CHANGE COLUMN timeout_nostart game_end_type  int(11) NOT NULL COMMENT '游戏结束类型 0是常规结束 1是游戏解散 2是玩家请求解散 3是没开始就解散' AFTER pay_type,
+		 CHANGE COLUMN start_endError room_end_type  int(11) NOT NULL COMMENT '解散房间类型 1出错解散房间 2正常解散房间' AFTER game_end_type;`,
+	},
+	2: []string{
+		`ALTER TABLE consum_log
+		MODIFY COLUMN recode_id  int(11) NOT NULL AUTO_INCREMENT FIRST ;`,
 	},
 }

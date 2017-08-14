@@ -5,6 +5,7 @@ import (
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
+	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -24,11 +25,14 @@ import (
 
 	"mj/common/msg"
 
+	"encoding/json"
+
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
+	"github.com/lovelly/leaf/util"
 )
 
 var (
@@ -43,6 +47,19 @@ var (
 var Wg sync.WaitGroup
 
 func TestGameStart_1(t *testing.T) {
+	a := []int{1, 2, 1, 3}
+	str, err := json.Marshal(a)
+
+	var str1 string
+	str1 = string(str)
+
+	log.Debug("%s", str1)
+	log.Debug("%d,%s", err, str)
+
+	var b []int
+	err = json.Unmarshal(str, &b)
+	log.Debug("%d", err)
+	log.Debug("%v", b)
 	//room.UserReady([]interface{}{nil, u1})
 	//f := func() {
 	//	log.Debug("出发了")
@@ -181,10 +198,10 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func TestRemoveCard(t *testing.T) {
-	info := &msg.L2G_CreatorRoom{}
-	lg := NewDDZLogic(pk_base.IDX_DDZ, info)
-	b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
-	log.Debug("怕怕%v", b)
+	//info := &msg.L2G_CreatorRoom{}
+	//lg := NewDDZLogic(pk_base.IDX_DDZ, info)
+	//b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
+	//log.Debug("怕怕%v", b)
 }
 
 //func TestCardType(t *testing.T) {
@@ -237,12 +254,15 @@ func TestRemoveCard(t *testing.T) {
 //}
 
 func TestCompareCard(t *testing.T) {
-	return
+	//return
 	lg := new(ddz_logic)
+	lg.SetParamToLogic(0xd)
+	ntype, b := lg.CompareCardWithParam([]int{3, 4, 5, 6, 7}, []int{7, 0xd, 0xd, 0xd}, []interface{}{CT_SINGLE_LINE | 0x57})
+	log.Debug("比牌结果%#x,%d", ntype, b)
 
-	c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
-	nMax, b := lg.recursionIsPlane(c0, 4)
-	log.Debug("测试飞机%d, %d", nMax, b)
+	//c0 := []int{0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07}
+	//nMax, b := lg.recursionIsPlane(c0, 4)
+	//log.Debug("测试飞机%d, %d", nMax, b)
 
 	//var card1 []int = []int{0x03, 0x13, 0x23, 0x33}
 	//var card2 []int = []int{0x0d, 0x1d, 0x2d, 0x3d}
@@ -300,7 +320,7 @@ func TestCompareCard(t *testing.T) {
 func init() {
 
 	Wg.Add(1)
-	return
+	//return
 	conf.Init("/Users/zhangyudong/Documents/GIT/src/mj/gameServer/gameApp/gameServer.json")
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -311,12 +331,32 @@ func init() {
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	//lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
 
+	allData, err := model.RecordOutcardDdzOp.SelectAll()
+	log.Debug("非八王场取到的记录%v,%v", err, allData)
+	if err == nil {
+		nCount := len(allData)
+		if nCount > 0 {
+			n := nCount - 10000
+			if n < 0 {
+				n = 0
+			}
+			nIndex := util.RandInterval(0, nCount-n-1)
+			data := allData[n:]
+			var data1 []int
+			json.Unmarshal([]byte(data[nIndex].CardData), &data1)
+
+			log.Debug("数据库取到的牌数据%v", data1)
+			log.Debug("长度%d", len(data1))
+		}
+	}
+
+	return
 	temp, ok := base.GameServiceOptionCache.Get(29, 1)
 	if !ok {
 		return

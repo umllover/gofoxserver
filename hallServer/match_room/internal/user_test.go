@@ -41,7 +41,6 @@ func init() {
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})

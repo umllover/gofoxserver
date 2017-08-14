@@ -67,27 +67,29 @@ func GetRooms(args []interface{}) (interface{}, error) {
 
 //大厅服服通知续费
 func RenewalFee(args []interface{}) {
-	log.Debug("at RenewalFee .... ")
+	log.Debug("at game RenewalFee start")
 	retCode := 0
+	var retErr error = nil
 	recvMsg := args[0].(*msg.S2S_RenewalFee)
 	defer func() {
 		if retCode != 0 { //通知大厅续费失败
-			cluster.SendDataToHallUser(recvMsg.HallName, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID})
+			cluster.SendMsgToHallUser(recvMsg.HallNodeID, recvMsg.UserId, &msg.S2S_RenewalFeeFaild{RoomId: recvMsg.RoomID, ResultId: retCode})
 		}
+		log.Debug("at game RenewalFee end, retCode=%d, retErr=%v", retCode, retErr)
 	}()
+
 	room := RoomMgr.GetRoom(recvMsg.RoomID)
 	if room == nil {
 		retCode = 1
 		return
 	}
 
-	log.Debug("at RenewalFee .... begin call  ")
-	_, err := room.GetChanRPC().Call1("AddPlayCnt", recvMsg.AddCnt)
+	_, err := room.GetChanRPC().Call1("RenewalFeesSetInfo", recvMsg.AddCnt, recvMsg.UserId)
 	if err != nil {
 		retCode = 2
+		retErr = err
 		return
 	}
 
-	log.Debug("at RenewalFee .... end call  ")
 	return
 }

@@ -46,11 +46,11 @@ func main() {
 
 	modules := []module.Module{}
 	modules = append(modules, userHandle.UserMgr)
-	modules = append(modules, gate.Module)
 	modules = append(modules, center.Module)
 	modules = append(modules, Chat.Module)
 	modules = append(modules, kindList.GetModules()...)
 	modules = append(modules, consul.Module)
+	modules = append(modules, gate.Module)
 	leaf.Run(modules...)
 }
 
@@ -65,8 +65,11 @@ func Init() {
 	lconf.ServerName = conf.ServerName()
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	conf.Test = *Test
 	leaf.InitLog()
-	leaf.OnDestroy = userHandle.KickOutUser
+	leaf.OnDestroy = func() {
+		conf.Shutdown = true
+		lconf.Shutdown = true
+		userHandle.KickOutUser()
+	}
 }

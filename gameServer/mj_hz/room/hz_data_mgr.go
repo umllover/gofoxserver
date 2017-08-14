@@ -7,12 +7,28 @@ import (
 	"mj/gameServer/common/mj/mj_base"
 	"mj/gameServer/db/model/base"
 
+	"mj/common/utils"
+
 	"github.com/lovelly/leaf/log"
 )
 
+type hz_data struct {
+	*mj_base.RoomData
+	ZhuaHuaCnt   int        //扎花个数
+	ZhuaHuaScore int        //扎花分数
+	ZhuaHuaMap   []*HuaUser //插花数据
+}
+
+//抓花结构体子项
+type HuaUser struct {
+	ChairID int  //椅子号
+	Card    int  //牌值
+	IsZhong bool //是否中花
+}
+
 func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.GameServiceOption, base *hz_entry, info *msg.L2G_CreatorRoom) *hz_data {
 	d := new(hz_data)
-	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info.OtherInfo)
+	d.RoomData = mj_base.NewDataMgr(id, uid, configIdx, name, temp, base.Mj_base, info)
 
 	getData, ok := d.OtherInfo["zhaMa"].(float64)
 	if !ok {
@@ -28,12 +44,6 @@ func NewHZDataMgr(id int, uid int64, configIdx int, name string, temp *base.Game
 	return d
 }
 
-type hz_data struct {
-	*mj_base.RoomData
-	ZhuaHuaCnt   int //扎花个数
-	ZhuaHuaScore int //扎花分数
-}
-
 func (room *hz_data) BeforeStartGame(UserCnt int) {
 	room.InitRoom(UserCnt)
 }
@@ -46,7 +56,7 @@ func (room *hz_data) InitRoom(UserCnt int) {
 	for i := 0; i < UserCnt; i++ {
 		room.CardIndex[i] = make([]int, room.GetCfg().MaxIdx)
 	}
-	room.FlowerCnt = [4]int{}
+	room.FlowerCnt = make([]int, UserCnt)
 	room.ChiHuKind = make([]int, UserCnt)
 	room.ChiPengCount = make([]int, UserCnt)
 	room.GangCard = make([]bool, UserCnt) //杠牌状态
@@ -75,8 +85,47 @@ func (room *hz_data) InitRoom(UserCnt int) {
 	room.EndLeftCount = room.ZhuaHuaCnt
 }
 
+//计算抓花
+func (room *hz_data) CalcZhuahua(winUser []int) {
+	if room.ZhuaHuaCnt == 0 {
+		return
+	}
+	ZhongCard, BuZhong := room.OnZhuaHua(winUser)
+	for k, v := range winUser {
+		for _, cardV := range ZhongCard[k] {
+			for {
+				randV, randOk := utils.RandInt(0, room.ZhuaHuaCnt-1)
+				if randOk == nil && room.ZhuaHuaMap[randV] == nil {
+					huaUser := &HuaUser{}
+					huaUser.Card = cardV
+					log.Debug("中花：%d", cardV)
+					huaUser.ChairID = v
+					huaUser.IsZhong = true
+					room.ZhuaHuaMap[randV] = huaUser
+					break
+				}
+			}
+		}
+	}
+	for _, cardV2 := range BuZhong {
+		for {
+			randV, randOk := utils.RandInt(0, room.ZhuaHuaCnt-1)
+			if randOk == nil && room.ZhuaHuaMap[randV] == nil {
+				huaUser := &HuaUser{}
+				huaUser.Card = cardV2
+				//huaUser.ChairID = v
+				log.Debug("不中花：%d", cardV2)
+				huaUser.IsZhong = false
+				room.ZhuaHuaMap[randV] = huaUser
+				break
+			}
+		}
+	}
+}
+
 //抓花
 func (room *hz_data) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) {
+	log.Debug("OnZhuaHua Start...")
 	count := room.ZhuaHuaCnt
 	if count == 0 {
 		return
@@ -89,6 +138,7 @@ func (room *hz_data) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) 
 		}
 	}
 
+	log.Debug("===========isWin=%v", isWin)
 	if !isWin {
 		return
 	}
@@ -113,8 +163,9 @@ func (room *hz_data) OnZhuaHua(winUser []int) (CardData [][]int, BuZhong []int) 
 				CardData[0] = append(CardData[0], cardData)
 				room.ZhuaHuaScore++
 			}
+		} else {
+			BuZhong = append(BuZhong, cardData)
 		}
-		BuZhong = append(BuZhong, cardData)
 	}
 	return
 }

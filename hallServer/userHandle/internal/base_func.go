@@ -24,7 +24,7 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 			return errors.New("json message pointer required 11")
 		}
 
-		if m.a == nil && msgType.Elem().Name() != "C2L_Login" {
+		if m.a.UserData() == nil && msgType.Elem().Name() != "C2L_Login" {
 			return errors.New("hall user not login")
 		}
 
@@ -32,8 +32,6 @@ func (m *UserModule) handleMsgData(args []interface{}) error {
 		if ok {
 			m.ChanRPC.Exec(chanrpc.BuildGoCallInfo(f, data, m.a))
 			return nil
-		} else {
-			log.Debug("2222222222222")
 		}
 
 		err = msg.Processor.RouteByType(msgType, data, m.a)

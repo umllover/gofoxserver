@@ -41,6 +41,11 @@ type RoomEndInfo struct {
 	CreateUid int64 //创建房间的人
 }
 
+type RoomReturnMoney struct {
+	RoomId     int //房间id
+	CreatorUid int64
+}
+
 type UpdateRoomInfo struct {
 	RoomId int
 	OpName string
@@ -126,10 +131,10 @@ type S2S_OfflineHandler struct {
 
 //通知游戏服续费
 type S2S_RenewalFee struct {
-	RoomID   int
-	AddCnt   int
-	HallName string
-	UserId   int64
+	RoomID     int
+	AddCnt     int
+	HallNodeID int
+	UserId     int64
 }
 
 //type L2L_NewRoomInfo struct {
@@ -139,20 +144,21 @@ type S2S_RenewalFee struct {
 //回复大厅续费失败
 type S2S_RenewalFeeFaild struct {
 	RoomId   int
-	RecodeID int
+	ResultId int
 }
 
 //通知创建房间
 type L2G_CreatorRoom struct {
-	CreatorUid   int64                  //创建房间的玩家id
-	RoomID       int                    //房间id
-	KindId       int                    //游戏类型
-	ServiceId    int                    //游戏第二类型
-	PlayCnt      int                    //局数
-	MaxPlayerCnt int                    //最大玩家数目
-	PayType      int                    //支付类型
-	Public       int                    //是否公开
-	OtherInfo    map[string]interface{} //其他配置
+	CreatorUid    int64                  //创建房间的玩家id
+	CreatorNodeId int                    //创建房间者的NodeId
+	RoomID        int                    //房间id
+	KindId        int                    //游戏类型
+	ServiceId     int                    //游戏第二类型
+	PlayCnt       int                    //局数
+	MaxPlayerCnt  int                    //最大玩家数目
+	PayType       int                    //支付类型
+	Public        int                    //是否公开
+	OtherInfo     map[string]interface{} //其他配置
 }
 
 //游戏服通知大厅服的玩家，  玩家进入房间
@@ -162,8 +168,9 @@ type JoinRoom struct {
 }
 
 type LeaveRoom struct {
-	RoomId int
-	Status int
+	RoomId  int
+	Status  int
+	PayType int
 }
 
 type StartRoom struct {
@@ -172,4 +179,8 @@ type StartRoom struct {
 
 type JoinRoomFaild struct {
 	RoomID int
+}
+
+type OfflineAddElectId struct {
+	TagUserID int64 //谁设置了你为推荐人
 }

@@ -48,6 +48,7 @@ func init() {
 
 	Processor.Register(&C2L_RenewalFees{})
 	Processor.Register(&L2C_RenewalFeesRsp{})
+	Processor.Register(&G2C_RenewalFeesSuccess{})
 	Processor.Register(&C2L_ChangeUserName{})
 	Processor.Register(&L2C_ChangeUserNameRsp{})
 	Processor.Register(&C2L_ChangeSign{})
@@ -55,6 +56,9 @@ func init() {
 	Processor.Register(&L2C_KickOut{})
 	Processor.Register(&L2C_UpdateUserAttr{})
 	Processor.Register(&C2L_RechangerOk{})
+	Processor.Register(&L2C_BeStar{})
+	Processor.Register(&L2C_NotifyElectResult{})
+	Processor.Register(&L2C_RechangerOk{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
@@ -81,7 +85,6 @@ func init() {
 	Processor.Register(&C2G_UserReady{})
 	Processor.Register(&G2C_Hu_Data{})
 	Processor.Register(&SysMsg{})
-	Processor.Register(&C2G_HostlDissumeRoom{})
 	Processor.Register(&G2C_CancelTable{})
 	Processor.Register(&G2C_PersonalTableEnd{})
 	Processor.Register(&G2C_GameConclude{})
@@ -93,6 +96,10 @@ func init() {
 	Processor.Register(&G2C_ReplyRsp{})
 	Processor.Register(&C2G_ReplyLeaveRoom{})
 	Processor.Register(&C2L_ReqTimesInfo{})
+	Processor.Register(&C2L_TimeSync{})
+	Processor.Register(&L2C_TimeSync{})
+	Processor.Register(&C2L_ReConnect{})
+	Processor.Register(&L2C_ReConnectRsp{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

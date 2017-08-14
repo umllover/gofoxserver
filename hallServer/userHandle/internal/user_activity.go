@@ -8,6 +8,7 @@ import (
 	"mj/hallServer/user"
 )
 
+
 //领取奖励
 func (m *UserModule) DrawSahreAward(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_DrawSahreAward)
@@ -23,7 +24,7 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 		return
 	}
 
-	times := player.GetTimesByType(template.Id, template.DrawType)
+	times := player.GetTimes(template.Id)
 	if times >= template.DrawTimes {
 		retMsg.RetCode = ErrMaxDrawTimes
 		return
@@ -44,5 +45,5 @@ func (m *UserModule) DrawSahreAward(args []interface{}) {
 //玩家请求次数信息
 func (m *UserModule) ReqTimesInfo(args []interface{}) {
 	player := m.a.UserData().(*user.User)
-	player.WriteMsg(player.GetTimeInfo())
+	player.SendActivityInfo()
 }

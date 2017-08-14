@@ -15,6 +15,17 @@ type C2L_Login struct {
 	SessionKey   string //暂时无效
 }
 
+//重连
+type C2L_ReConnect struct {
+	LogonPass string //密码
+	Accounts  string //账号
+}
+
+//重连结果
+type L2C_ReConnectRsp struct {
+	Code int // 非0 为失败
+}
+
 //注册消息
 type C2L_Regist struct {
 	ModuleID     int //模块标识
@@ -44,6 +55,7 @@ type L2C_RegistResult struct {
 type C2L_CreateTable struct {
 	DrawCountLimit int                    //局数限制
 	Password       string                 //密码设置
+	PlayerCnt      int                    //玩家人数
 	Kind           int                    //游戏类型
 	ServerId       int                    //子类型
 	PayType        int                    //1是自己付钱， 2是AA
@@ -71,31 +83,32 @@ type C2L_SearchServerTable struct {
 //查询房间的结果
 type L2C_SearchResult struct {
 	TableID  int    //桌子 I D 返回0 是没匹配到
+	KindID   int    //游戏id
 	ServerIP string // //要去链接的游戏服地址
 }
 
 //获取玩家显示信息
 type C2L_User_Individual struct {
-	UserId int
+	UserId int64
 }
 
 //个人资料
 type L2C_UserIndividual struct {
 	//用户信息
-	UserID      int64  //用户 I D
-	NickName    string //昵称
-	Accounts    string //账号
-	WinCount    int    //赢数
-	LostCount   int    //输数
-	DrawCount   int    //平数
-	Medal       int
-	RoomCard    int  //房卡
-	MemberOrder int8 //会员等级
-	Score       int64
-	HeadImgUrl  string
-	PhomeNumber string //电话号码
-	Sign        string //个性签名
-	Star        int    //赞数
+	UserID      int64  `db:"UserID"` //用户 I D
+	NickName    string `db:"UserID"` //昵称
+	Accounts    string `db:"UserID"` //账号
+	WinCount    int    `db:"UserID"` //赢数
+	LostCount   int    `db:"UserID"` //输数
+	DrawCount   int    `db:"UserID"` //平数
+	Medal       int    `db:"UserID"` //奖牌
+	RoomCard    int    `db:"UserID"` //房卡
+	MemberOrder int8   `db:"UserID"` //会员等级
+	Score       int64  `db:"UserID"`
+	HeadImgUrl  string `db:"UserID"`
+	PhomeNumber string `db:"UserID"` //电话号码
+	Sign        string `db:"UserID"` //个性签名
+	Star        int    `db:"UserID"` //赞数
 }
 
 //请求房间列表
@@ -138,6 +151,11 @@ type L2C_SetElectResult struct {
 	RetCode int // 0带表成功， 其他则是错误码
 }
 
+//有人设置了你为推荐人
+type L2C_NotifyElectResult struct {
+	TagUserID int64 //谁设置你为推荐人
+}
+
 //请求获取验证号码
 type C2L_ReqBindMaskCode struct {
 	PhoneNumber string
@@ -156,7 +174,8 @@ type C2L_SetPhoneNumber struct {
 
 //绑定手机结果
 type L2C_SetPhoneNumberRsp struct {
-	Code int //非0 位设置失败
+	Code        int //非0 位设置失败
+	PhoneNumber string
 }
 
 //点赞
@@ -166,7 +185,7 @@ type C2L_DianZhan struct {
 
 //点赞结果
 type L2C_DianZhanRsp struct {
-	Star int //当前赞数
+	Code int //非0 位失败
 }
 
 // 通知被别人点赞了
@@ -180,7 +199,8 @@ type C2L_RenewalFees struct {
 
 //续费 再来一局 结果
 type L2C_RenewalFeesRsp struct {
-	Code int //非0位失败
+	Code   int   //非0位失败
+	UserID int64 //续费用户id
 }
 
 //修改名字
@@ -207,6 +227,15 @@ type L2C_ChangeSignRsp struct {
 
 //玩家请求次数信息
 type C2L_ReqTimesInfo struct {
+}
+
+//客户单请求同步时间
+type C2L_TimeSync struct {
+}
+
+//服务器下发当前时间
+type L2C_TimeSync struct {
+	ServerTime int64 //时间戳
 }
 
 //登录时下发已领取过的奖励信息
@@ -320,5 +349,11 @@ type L2C_UpdateUserAttr struct {
 
 //客户端通知充值成功
 type C2L_RechangerOk struct {
-	OrderId int
+	TransactionId string
+}
+
+//客户端通知充值成功
+type L2C_RechangerOk struct {
+	Code int //非0位失败
+	Gold int //当前的钱
 }

@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -19,7 +18,7 @@ import (
 type ConsumLog struct {
 	RecodeId   int        `db:"recode_id" json:"recode_id"`     //
 	UserId     int64      `db:"user_id" json:"user_id"`         // 用户索引
-	ConsumType int        `db:"consum_type" json:"consum_type"` // 消费类型 0钻石 1自己付钱 2 AA付钱 3道具
+	ConsumType int        `db:"consum_type" json:"consum_type"` // 消费类型 0钻石 1开房 3道具
 	ConsumNum  int        `db:"consum_num" json:"consum_num"`   // 消费数量
 	ConsumTime *time.Time `db:"consum_time" json:"consum_time"` // 消费时间
 }
@@ -79,7 +78,7 @@ func (op *consumLogOp) GetByMap(m map[string]interface{}) (*ConsumLog, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

@@ -7,7 +7,7 @@ import (
 
 var (
 	// log conf
-	LogFlag = log.LstdFlags | log.Llongfile
+	LogFlag = log.LstdFlags | log.Llongfile | log.Lmicroseconds
 
 	// gate conf
 	PendingWriteNum        = 2000
@@ -28,11 +28,10 @@ var (
 	AgentAsynCallLen        = 50
 	AgentChanRPCLen         = 50
 
-	// cluster conf
-	HeartBeatInterval = 5
-
 	// room
 	MaxRoomMsgLen       = 50
 	DestroyRoomInterval = 3600
-	Test                = false
+
+	Shutdown = false
+	Test     = false
 )

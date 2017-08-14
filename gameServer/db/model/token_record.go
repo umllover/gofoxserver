@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -84,7 +83,7 @@ func (op *tokenRecordOp) GetByMap(m map[string]interface{}) (*TokenRecord, error
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

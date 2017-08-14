@@ -54,6 +54,7 @@ func (m *TimesModule) ClearDayTimes() {
 		u.ClearDayTimes()
 	})
 
+	user.ClearTimesByKeys(user.Day_time_table)
 }
 
 func (m *TimesModule) CliearWeekTimes() {
@@ -65,4 +66,6 @@ func (m *TimesModule) CliearWeekTimes() {
 	userHandle.ForEachUser(func(u *user.User) {
 		u.ClearWeekTimes()
 	})
+
+	user.ClearTimesByKeys(user.Week_time_table)
 }

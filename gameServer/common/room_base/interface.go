@@ -31,6 +31,7 @@ type TimerManager interface {
 	GetTimeLimit() int
 	GetPlayCount() int
 	AddPlayCount()
+	ResetPlayCount()
 	GetMaxPlayCnt() int
 	AddMaxPlayCnt(int)
 	GetCreatrTime() int64
@@ -55,7 +56,11 @@ type UserManager interface {
 	SendDataToHallUser(chiairID int, data interface{})
 	SendMsgToHallServerAll(data interface{})
 	ReplyLeave(*user.User, bool, int64, int) int
-	DeleteReply(uid int64)
+	DelLeavePly(uid int64)
+	AddLeavePly(uid int64)
+	GetBeginPlayer() int
+	ResetBeginPlayer()
+	CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId int, creatorId int64)
 
 	GetCurPlayerCnt() int
 	GetPayType() int

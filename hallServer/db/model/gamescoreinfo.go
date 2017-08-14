@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -90,7 +89,7 @@ func (op *gamescoreinfoOp) GetByMap(m map[string]interface{}) (*Gamescoreinfo, e
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

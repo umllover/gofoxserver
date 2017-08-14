@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 
@@ -16,7 +15,7 @@ import (
 
 // +gen *
 type RecordOutcardDdz struct {
-	RecordID   int64  `db:"RecordID" json:"RecordID"`     // 记录ID
+	RecordID   int64  `db:"RecordID" json:"RecordID"`     //
 	CreateTime int    `db:"CreateTime" json:"CreateTime"` // 创建时间
 	CardData   string `db:"CardData" json:"CardData"`     // 牌数据，数组转成字符串
 }
@@ -76,7 +75,7 @@ func (op *recordOutcardDdzOp) GetByMap(m map[string]interface{}) (*RecordOutcard
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*
@@ -96,9 +95,8 @@ func (op *recordOutcardDdzOp) Insert(m *RecordOutcardDdz) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *recordOutcardDdzOp) InsertTx(ext sqlx.Ext, m *RecordOutcardDdz) (int64, error) {
-	sql := "insert into record_outcard_ddz(RecordID,CreateTime,CardData) values(?,?,?)"
+	sql := "insert into record_outcard_ddz(CreateTime,CardData) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.RecordID,
 		m.CreateTime,
 		m.CardData,
 	)
@@ -112,9 +110,8 @@ func (op *recordOutcardDdzOp) InsertTx(ext sqlx.Ext, m *RecordOutcardDdz) (int64
 
 //存在就更新， 不存在就插入
 func (op *recordOutcardDdzOp) InsertUpdate(obj *RecordOutcardDdz, m map[string]interface{}) error {
-	sql := "insert into record_outcard_ddz(RecordID,CreateTime,CardData) values(?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.RecordID,
-		obj.CreateTime,
+	sql := "insert into record_outcard_ddz(CreateTime,CardData) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.CreateTime,
 		obj.CardData,
 	}
 	var set_sql string

@@ -18,7 +18,7 @@ import (
 func init() {
 	reg := register.NewRegister(ChanRPC)
 	reg.RegisterC2S(&msg.C2L_QuickMatch{}, QuickMatch)
-	reg.RegisterC2S(&msg.C2L_SearchServerTable{}, SrarchTable)
+	reg.RegisterC2S(&msg.C2L_SearchServerTable{}, SearchTable)
 
 	reg.RegisterRpc("delMatchPlayer", delMatchPlayer)
 }
@@ -35,7 +35,7 @@ func QuickMatch(args []interface{}) {
 }
 
 //玩家请求查找房间
-func SrarchTable(args []interface{}) {
+func SearchTable(args []interface{}) {
 	recvMsg := args[0].(*msg.C2L_SearchServerTable)
 	agent := args[1].(gate.Agent)
 	player := agent.UserData().(*user.User)
@@ -48,15 +48,14 @@ func SrarchTable(args []interface{}) {
 
 	roomInfo := DefaultMachModule.GetRoomByRoomId(recvMsg.TableID)
 	if roomInfo == nil {
-		log.Error("at SrarchTable not foud room, %v", recvMsg)
+		log.Error("at SearchTable not foud room, %v", recvMsg)
 		retcode = ErrNoFoudRoom
 		return
 	}
 	_, has := roomInfo.MachPlayer[player.Id]
 	if !has {
-		CheckTimeOut(roomInfo, time.Now().Unix())
 		if roomInfo.MachCnt >= roomInfo.MaxPlayerCnt {
-			log.Debug("at SrarchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt, %v", recvMsg)
+			log.Debug("at SearchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt, %v", recvMsg)
 			retcode = ErrRoomFull
 			return
 		}
@@ -68,16 +67,28 @@ func SrarchTable(args []interface{}) {
 			return
 		}
 
+		if cnt > roomInfo.MaxPlayerCnt {
+			log.Debug("at SearchTable roomInfo.MachCnt >= roomInfo.MaxPlayerCnt 222, %v", recvMsg)
+			retcode = ErrRoomFull
+			return
+		}
+
 		roomInfo.MachCnt = cnt
 		roomInfo.MachPlayer[player.Id] = time.Now().Unix() + ResetMatchTime
 	}
 
-	agent.ChanRPC().Go("SrarchTableResult", roomInfo)
+	agent.ChanRPC().Go("SearchTableResult", roomInfo)
 	return
 }
 
 func delMatchPlayer(args []interface{}) {
+	log.Debug("at del match player ")
 	uid := args[0].(int64)
 	roomInfo := args[1].(*msg.RoomInfo)
+	if roomInfo.MachCnt > roomInfo.MaxPlayerCnt {
+		roomInfo.MachCnt = roomInfo.MaxPlayerCnt
+	}
+	roomInfo.MachCnt -= 1
 	delete(roomInfo.MachPlayer, uid)
+	UpRoomCnt(roomInfo.RoomID, roomInfo.MachCnt)
 }

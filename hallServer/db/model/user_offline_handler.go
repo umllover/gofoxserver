@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -19,7 +18,7 @@ import (
 type UserOfflineHandler struct {
 	Id         int        `db:"id" json:"id"`                   //
 	UserId     int64      `db:"user_id" json:"user_id"`         //
-	HType      int        `db:"h_type" json:"h_type"`           //
+	HType      string     `db:"h_type" json:"h_type"`           //
 	Context    string     `db:"context" json:"context"`         //
 	ExpiryTime *time.Time `db:"expiry_time" json:"expiry_time"` //
 }
@@ -79,7 +78,7 @@ func (op *userOfflineHandlerOp) GetByMap(m map[string]interface{}) (*UserOffline
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*
@@ -99,9 +98,8 @@ func (op *userOfflineHandlerOp) Insert(m *UserOfflineHandler) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userOfflineHandlerOp) InsertTx(ext sqlx.Ext, m *UserOfflineHandler) (int64, error) {
-	sql := "insert into user_offline_handler(id,user_id,h_type,context,expiry_time) values(?,?,?,?,?)"
+	sql := "insert into user_offline_handler(user_id,h_type,context,expiry_time) values(?,?,?,?)"
 	result, err := ext.Exec(sql,
-		m.Id,
 		m.UserId,
 		m.HType,
 		m.Context,
@@ -117,9 +115,8 @@ func (op *userOfflineHandlerOp) InsertTx(ext sqlx.Ext, m *UserOfflineHandler) (i
 
 //存在就更新， 不存在就插入
 func (op *userOfflineHandlerOp) InsertUpdate(obj *UserOfflineHandler, m map[string]interface{}) error {
-	sql := "insert into user_offline_handler(id,user_id,h_type,context,expiry_time) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.Id,
-		obj.UserId,
+	sql := "insert into user_offline_handler(user_id,h_type,context,expiry_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.UserId,
 		obj.HType,
 		obj.Context,
 		obj.ExpiryTime,

@@ -30,27 +30,34 @@ var Server struct {
 	ProfilePath     string
 	RoomModuleCount int
 
-	BaseDbHost      string
-	BaseDbPort      int
-	BaseDbName      string
-	BaseDbUsername  string
-	BaseDbPassword  string
-	UserDbHost      string
-	UserDbPort      int
-	UserDbName      string
-	UserDbUsername  string
-	UserDbPassword  string
-	StatsDbHost     string
-	StatsDbPort     int
-	StatsDbName     string
-	StatsDbUsername string
-	StatsDbPassword string
+	AccountDbHost     string
+	AccountDbPort     int
+	AccountDbName     string
+	AccountDbUsername string
+	AccountDbPassword string
+	BaseDbHost        string
+	BaseDbPort        int
+	BaseDbName        string
+	BaseDbUsername    string
+	BaseDbPassword    string
+	UserDbHost        string
+	UserDbPort        int
+	UserDbName        string
+	UserDbUsername    string
+	UserDbPassword    string
+	StatsDbHost       string
+	StatsDbPort       int
+	StatsDbName       string
+	StatsDbUsername   string
+	StatsDbPassword   string
 
 	NsqdAddrs       []string
 	NsqLookupdAddrs []string
 	PdrNsqdAddr     string
 
 	ConsulAddr      string
+	RedisAddr       string
+	RedisPwd        string
 	ListenAddr      string
 	ConnAddrs       map[string]string
 	PendingWriteNum int
@@ -96,21 +103,35 @@ func Init(filePaths ...string) {
 
 type DBConfig struct{}
 
+func (c *DBConfig) GetAccoutDSN() string {
+	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
+		Server.AccountDbUsername, Server.AccountDbPassword, Server.AccountDbHost, Server.AccountDbPort, Server.AccountDbName, "parseTime=true&interpolateParams=true&charset=utf8mb4")
+	return s
+}
+
+func (c *DBConfig) GetRedisAddr() string {
+	return Server.RedisAddr
+}
+
+func (c *DBConfig) GetRedisPwd() string {
+	return Server.RedisPwd
+}
+
 func (c *DBConfig) GetBaseDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&charset=utf8mb4")
+		Server.BaseDbUsername, Server.BaseDbPassword, Server.BaseDbHost, Server.BaseDbPort, Server.BaseDbName, "parseTime=true&interpolateParams=true")
 	return s
 }
 
 func (c *DBConfig) GetUserDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.UserDbUsername, Server.UserDbPassword, Server.UserDbHost, Server.UserDbPort, Server.UserDbName, "parseTime=true&charset=utf8mb4")
+		Server.UserDbUsername, Server.UserDbPassword, Server.UserDbHost, Server.UserDbPort, Server.UserDbName, "parseTime=true&charset=utf8mb4&interpolateParams=true")
 	return s
 }
 
 func (c *DBConfig) GetStatsDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName, "parseTime=true&charset=utf8mb4")
+		Server.StatsDbUsername, Server.StatsDbPassword, Server.StatsDbHost, Server.StatsDbPort, Server.StatsDbName, "parseTime=true&interpolateParams=true")
 	return s
 }
 
@@ -140,6 +161,14 @@ func (c *DBConfig) GetStatsDBMaxIdle() int {
 
 func (c *DBConfig) GetStatsDBWorkers() int {
 	return default_stat_log_workers
+}
+
+func (c *DBConfig) GetAccountDBMaxIdle() int {
+	return default_db_max_idle
+}
+
+func (c *DBConfig) GetAccountDBMaxOpen() int {
+	return default_db_max_open
 }
 
 //consul config

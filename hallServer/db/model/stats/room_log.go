@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -28,8 +27,8 @@ type RoomLog struct {
 	EndTime      *time.Time `db:"end_time" json:"end_time"`           // 结束日期
 	CreateOthers int        `db:"create_others" json:"create_others"` // 是否为他人开房 0否，1是
 	PayType      int        `db:"pay_type" json:"pay_type"`           // 支付方式 1是全服 2是AA
-	GameEndType  int        `db:"game_end_type" json:"game_end_type"` // 游戏结束原因： 0常规结束 1游戏解散 2玩家请求解散 3超时未开启解散
-	RoomEndType  int        `db:"room_end_type" json:"room_end_type"` // 房间结束类型 1出错解散房间 2正常解散房间
+	GameEndType  int        `db:"game_end_type" json:"game_end_type"` // 游戏结束类型 0是常规结束 1是游戏解散 2是玩家请求解散 3是没开始就解散
+	RoomEndType  int        `db:"room_end_type" json:"room_end_type"` // 解散房间类型 1出错解散房间 2正常解散房间
 	NomalOpen    int        `db:"nomal_open" json:"nomal_open"`       // 是否正常开房 0否 1是
 }
 
@@ -88,7 +87,7 @@ func (op *roomLogOp) GetByMap(m map[string]interface{}) (*RoomLog, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

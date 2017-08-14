@@ -74,7 +74,7 @@ func (room *ZP_base) OutCard(args []interface{}) {
 	room.DataMgr.RecordOutCarCnt()
 
 	//记录跟牌
-	room.DataMgr.RecordFollowCard(CardData)
+	room.DataMgr.RecordFollowCard(u.ChairId, CardData)
 
 	u.UserLimit &= ^LimitChiHu
 	u.UserLimit &= ^LimitPeng
@@ -174,6 +174,10 @@ func (room *ZP_base) UserOperateCard(args []interface{}) {
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
 			cbGangKind := room.DataMgr.AnGang(u, OperateCode, OperateCard)
+			if cbGangKind == 0 {
+				return
+			}
+
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {

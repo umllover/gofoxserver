@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -30,7 +29,7 @@ type CreateRoomInfo struct {
 	MaxPlayerCnt int        `db:"max_player_cnt" json:"max_player_cnt"` // 最多几个玩家进入
 	PayType      int        `db:"pay_type" json:"pay_type"`             // 支付方式 1是全服 2是AA
 	OtherInfo    string     `db:"other_info" json:"other_info"`         // 其他配置 json格式
-	UserCnt      int        `db:"user_cnt" json:"user_cnt"`             //
+	UserCnt      int        `db:"user_cnt" json:"user_cnt"`             // 加入的玩家数
 }
 
 type createRoomInfoOp struct{}
@@ -88,7 +87,7 @@ func (op *createRoomInfoOp) GetByMap(m map[string]interface{}) (*CreateRoomInfo,
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

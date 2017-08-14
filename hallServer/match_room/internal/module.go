@@ -39,18 +39,11 @@ type MatchModule struct {
 func (m *MatchModule) OnInit() {
 	m.Skeleton = skeleton
 	m.Skeleton.AfterFunc(2*time.Second, m.Match)
+	game_list.SetMachRpc(ChanRPC)
 }
 
 func (m *MatchModule) OnDestroy() {
 
-}
-
-func (m *MatchModule) GetRooms() map[int][]*msg.RoomInfo {
-	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRooms", 5)
-	if err != nil {
-		return make(map[int][]*msg.RoomInfo)
-	}
-	return rooms.(map[int][]*msg.RoomInfo)
 }
 
 func (m *MatchModule) GetRoomsByKind(kind int) []*msg.RoomInfo {
@@ -106,7 +99,6 @@ func (m *MatchModule) Match() {
 				break
 			}
 
-			CheckTimeOut(r, now)
 			if r.MachCnt >= r.MaxPlayerCnt {
 				continue
 			}
@@ -125,6 +117,12 @@ func (m *MatchModule) Match() {
 					if err != nil {
 						break
 					}
+
+					if cnt > r.MaxPlayerCnt {
+						log.Debug("at MatchModule roomInfo.MachCnt >= roomInfo.MaxPlayerCnt 222, %v", cnt)
+						break
+					}
+
 					r.MachPlayer[player.Uid] = time.Now().Unix() + ResetMatchTime
 					r.MachCnt = cnt
 				}

@@ -42,7 +42,6 @@ type BaseLogic struct {
 	CardDataArray []int //扑克数据
 	MagicIndex    int   //钻牌索引
 	ReplaceCard   int   //替换金牌的牌
-	HuOfCard      int   //胡的牌
 	SwitchToIdx   func(int) int
 	CheckValid    func(int) bool
 	SwitchToCard  func(int) int
@@ -98,6 +97,8 @@ func (lg *BaseLogic) RandCardList(cbCardBuffer, OriDataArray []int) {
 		cbRandCount++
 		cbCardDataTemp[cbPosition] = cbCardDataTemp[cbBufferCount-cbRandCount]
 	}
+
+	log.Debug("rand card s ==: ", cbCardBuffer)
 	return
 }
 
@@ -261,9 +262,6 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 	if cbCurrentCard == 0 {
 		return false, nil
 	}
-
-	//记录胡的牌
-	lg.HuOfCard = cbCurrentCard
 
 	//插入扑克
 	cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
@@ -711,7 +709,7 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 	//吃牌判断
 	var i int
 	var cbEatKind int
-	CurrentIndex := SwitchToCardIndex(cbCurrentCard)
+	CurrentIndex := lg.SwitchToIdx(cbCurrentCard)
 	for i = 0; i < len(cbItemKind); i++ {
 		cbValueIndex := CurrentIndex % 9
 		if cbValueIndex >= cbExcursion[i] && (cbValueIndex-cbExcursion[i]) <= 6 {
@@ -732,10 +730,6 @@ func (lg *BaseLogic) EstimateEatCard(cbCardIndex []int, cbCurrentCard int) int {
 	}
 
 	return cbEatKind
-}
-
-func (lg *BaseLogic) GetHuOfCard() int {
-	return lg.HuOfCard
 }
 
 func (lg *BaseLogic) GetIteratorFunc(needCnt, allCnt int) func() []int {
@@ -769,4 +763,58 @@ func (lg *BaseLogic) GetIteratorFunc(needCnt, allCnt int) func() []int {
 		}
 		return cbIndex
 	}
+}
+
+func (lg *BaseLogic) IsZFB(card int) bool {
+	return card == 0x35 || card == 0x36 || card == 0x37
+}
+
+func (lg *BaseLogic) IsFeng(card, quanfeng int) bool {
+	return (card == 0x31 || card == 0x32 || card == 0x33 || card == 0x34) && ((card&MASK_VALUE)-1) == quanfeng
+}
+
+func (lg *BaseLogic) IsZhengHua(card, ProvideUser, playerCnt, BankerUser int) bool {
+	zHua1, zHua2 := lg.GetZhengHuaCard(ProvideUser, playerCnt, BankerUser)
+	return card == zHua1 || card == zHua2
+}
+
+func (lg *BaseLogic) GetZhengHuaCard(ProvideUser, PlayerCount, BankerUser int) (int, int) {
+	if ProvideUser == BankerUser { //东风位
+		return 0x38, 0x3C
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-1)%PlayerCount { //南风位
+		return 0x39, 0x3D
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //西风位
+		return 0x3A, 0x3E
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //北风位
+		return 0x3B, 0x3F
+	}
+
+	log.Error("at GetZhengHuaCard error ..... ")
+	return 0, 0
+}
+
+func (lg *BaseLogic) IsWeiFeng(card, ProvideUser, PlayerCount, BankerUser int) bool {
+	if ProvideUser == BankerUser { //东风位
+		return card == 0x31
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-1)%PlayerCount { //南风位
+		return card == 0x32
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //西风位
+		return card == 0x33
+	}
+
+	if ProvideUser == (BankerUser+PlayerCount-2)%PlayerCount { //北风位
+		return card == 0x34
+	}
+
+	return false
 }

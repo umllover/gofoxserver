@@ -18,6 +18,13 @@ const (
 	ActivityTypeWeek    = 3 //周类型
 )
 
+const (
+	ActivityShareDay    = 1 //每日分享
+	ActivityRechangeDay = 2 //每日充值
+	ActivityBindPhome   = 3 //绑定手机
+	ActivitySetSetElect = 4 //设置推荐人
+)
+
 //次数索引
 const (
 	dayShareTimes = 1

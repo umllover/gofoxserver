@@ -40,6 +40,9 @@ func init() {
 	cluster.Processor.Register(&msg.JoinRoomFaild{})
 	cluster.Processor.Register(&msg.RoomEndInfo{})
 	//cluster.Processor.Register(&msg.L2L_NewRoomInfo{})
+	cluster.Processor.Register(&msg.S2S_OfflineHandler{})
+	cluster.Processor.Register(&msg.RoomReturnMoney{})
+	cluster.Processor.Register(&msg.S2S_CloseRoom{})
+	cluster.Processor.Register(&msg.S2S_RenewalFeeFaild{})
+	cluster.Processor.Register(&msg.OfflineAddElectId{})
 }
-
-

@@ -8,11 +8,29 @@ import (
 	"reflect"
 	"time"
 
+	"regexp"
+
 	"github.com/lovelly/leaf/chanrpc"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
 	"github.com/lovelly/leaf/network"
 )
+
+var (
+	filter = []string{
+		"C2L_GetRoomList",
+		"L2C_GetRoomList",
+	}
+)
+
+func filterMsg(b []byte) bool {
+	for _, msg := range filter {
+		if ok, _ := regexp.Match(msg, b); ok {
+			return true
+		}
+	}
+	return false
+}
 
 type IdUser interface {
 	GetUid() int64
@@ -52,6 +70,7 @@ type Gate struct {
 }
 
 func (gate *Gate) Run(closeSig chan bool) {
+	time.Sleep(4 * time.Second)
 	newAgent := func(conn network.Conn) network.Agent {
 		a := &agent{conn: conn, gate: gate}
 		if gate.NewChanRPCFunc != nil {
@@ -185,7 +204,10 @@ func (a *agent) Run() {
 			userId = user.GetUid()
 		}
 
-		log.Debug("IN msg =: %s, userId:%v", string(data), userId)
+		if !filterMsg(data) {
+			log.Debug("IN msg =: %s, userId:%v", string(data), userId)
+		}
+
 		if a.chanRPC == nil {
 			err = handleMsgData([]interface{}{data})
 		} else {
@@ -220,7 +242,10 @@ func (a *agent) WriteMsg(msg interface{}) {
 		} else if user, ok1 := a.userData.(IdUser); ok1 {
 			userId = user.GetUid()
 		}
-		log.Debug("OUT msg =: %s, userId:%v", string(data[0]), userId)
+		if !filterMsg(data[0]) {
+			log.Debug("OUT msg =: %s, userId:%v", string(data[0]), userId)
+		}
+
 		err = a.conn.WriteMsg(data...)
 		if err != nil {
 			log.Error("write message %v error: %v", reflect.TypeOf(msg), err)

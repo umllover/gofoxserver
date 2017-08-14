@@ -30,6 +30,19 @@ type G2C_LogonFailure struct {
 	DescribeString string
 }
 
+//重连游戏服
+type C2G_Reconnect struct {
+	KindID   int
+	ServerID int
+	UserID   int64  //用户 I D
+	Password string //登录密码
+}
+
+//重连游戏服结果
+type G2C_ReconnectRsp struct {
+	Code int //非0位失败
+}
+
 // 请求更换椅子消息
 type C2G_GR_UserChairReq struct {
 }
@@ -66,9 +79,6 @@ type C2G_ReplyLeaveRoom struct {
 	UserID int64 //同意或者拒绝谁
 }
 
-//解散房间
-type C2G_HostlDissumeRoom struct{}
-
 type G2C_CancelTable struct{}
 type G2C_PersonalTableEnd struct{}
 
@@ -98,6 +108,7 @@ type C2G_GameOption struct {
 //房间信息
 type G2C_PersonalTableTip struct {
 	TableOwnerUserID  int64                  //桌主 I D
+	PlayerCnt         int                    //玩家数量
 	DrawCountLimit    int                    //局数限制
 	DrawTimeLimit     int                    //时间限制
 	PlayCount         int                    //已玩局数
@@ -165,6 +176,7 @@ type G2C_StatusPlay struct {
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //叫分时间
 	CreateTime      int64 //开始时间
+	PlayCount       int   //已玩局数
 
 	//游戏变量
 	CellScore   int   //单元积分
@@ -173,6 +185,7 @@ type G2C_StatusPlay struct {
 	MagicIndex  int   //财神索引
 	ChaHuaCnt   []int //插花数
 	BuHuaCnt    []int //补花数
+	BuHuaCard   []int //最新补花卡牌
 	ZhuaHuaCnt  int   //抓花数
 
 	//规则
@@ -191,6 +204,7 @@ type G2C_StatusPlay struct {
 	OutCardData  int     //出牌扑克
 	DiscardCount []int   //丢弃数目
 	DiscardCard  [][]int //丢弃记录
+	BanOutCard   []int   //禁出卡牌
 
 	//扑克数据
 	CardCount    []int //扑克数目
@@ -250,7 +264,7 @@ type G2C_ConfigFinish struct {
 
 //用户信息
 type G2C_UserEnter struct {
-	GameID int   //游戏 I D
+	KindID int   //游戏 I D
 	UserID int64 //用户 I D
 
 	//头像信息
@@ -308,13 +322,13 @@ type C2G_GameChart_ToAll struct {
 }
 
 type G2C_GameChart_ToAll struct {
-	ChatColor    int
-	SendUserID   int64
-	TargetUserID int
-	ClientID     int
-	ChatIndex    int
-	ChatString   string
-	ChatType     int //1是语音 0 是普通聊天
+	ChatColor    int    //颜色 无效
+	SendUserID   int64  //谁发的消息
+	TargetUserID int    //发给谁的消息  无效
+	ClientID     int    //无效
+	ChatIndex    int    //消息的下标， 如 1 我的等的花都谢了  2快点吗
+	ChatString   string //消息内容 ，
+	ChatType     int    //1是语音 0 是普通聊天
 }
 
 //结束消息， 各个游戏自己实现
@@ -325,6 +339,24 @@ type G2C_GameConclude struct {
 
 type G2C_KickOut struct {
 	Reason int //踢出原因 1是服务器主动踢出， 2是踢号
+}
+
+//补花
+type C2G_ReplaceCard struct {
+	CardData int //扑克数据
+}
+
+//补花
+type G2C_ReplaceCard struct {
+	ReplaceUser  int  //补牌用户
+	ReplaceCard  int  //补牌扑克
+	NewCard      int  //补完扑克
+	IsInitFlower bool //是否开局补花，true开局补花
+}
+
+//续费成功
+type G2C_RenewalFeesSuccess struct {
+	UserID int64 //续费用户uid
 }
 
 ///////////////////////// game chart end ///////////////////////////////
