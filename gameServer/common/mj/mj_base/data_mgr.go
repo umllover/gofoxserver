@@ -982,7 +982,7 @@ func (room *RoomData) InitBuHua() {
 	}
 }
 
-func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) (lastCard int) {
+func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) {
 	logic := room.MjBase.LogicMgr
 	for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
 		if room.CardIndex[playerIndex][j] == 1 {
@@ -998,8 +998,7 @@ func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool
 				if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
 					room.CardIndex[playerIndex][j]--
 					room.CardIndex[playerIndex][newCardIndex]++
-					lastCard = NewCard
-					if playerIndex == room.BankerUser {
+					if playerIndex == room.BankerUser || !IsInitFlower {
 						room.SendCardData = NewCard
 						room.ProvideCard = NewCard
 					}
