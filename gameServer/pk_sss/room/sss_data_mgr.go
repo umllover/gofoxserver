@@ -9,7 +9,7 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 
-	dbg "github.com/funny/debug"
+	//dbg "github.com/funny/debug"
 
 	"math/rand"
 
@@ -489,6 +489,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 
 	room.LeftCardCount = len(defaultCards)
+	room.bCardData = make([]int, room.LeftCardCount)
 	gameLogic.RandCardList(room.bCardData, defaultCards)
 
 	userMgr.ForEachUser(func(u *user.User) {
@@ -560,8 +561,6 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], FrontCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], MidCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], BackCard...)
-
-	dbg.Print(room.PlayerSegmentCards)
 
 	userMgr.ForEachUser(func(user *user.User) {
 		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
@@ -910,14 +909,14 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		}
 	}
 	//三条
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount == 2 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount >= 2 {
 		index = TagAnalyseItemArray.bThreeFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
 	}
 	//两对
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 2 && TagAnalyseItemArray.bOneCount == 1 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 2 && TagAnalyseItemArray.bOneCount >= 1 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 		index = TagAnalyseItemArray.bTwoFirst[1]
@@ -925,7 +924,7 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 	}
 	//对子
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 3 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 1 && TagAnalyseItemArray.bOneCount >= 3 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
