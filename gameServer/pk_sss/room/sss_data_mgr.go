@@ -418,9 +418,126 @@ func (r *sss_data_mgr) ComputeResult() {
 	})
 }
 
-//正常结束房间
+//正常结束
 func (room *sss_data_mgr) NormalEnd(a int) {
-	log.Debug("关闭房间")
+	userMgr := room.PkBase.UserMgr
+
+	room.ComputeChOut()
+	room.ComputeResult()
+
+	gameEnd := &pk_sss_msg.G2C_SSS_COMPARE{}
+
+	//LGameTax               int        //游戏税收
+	gameEnd.LGameTax = 0
+	//LGameEveryTax          []int      //每个玩家的税收
+	gameEnd.LGameEveryTax = make([]int, room.PlayerCount)
+	//LGameScore             []int      //游戏积分
+	gameEnd.LGameScore = make([]int, room.PlayerCount)
+	//BEndMode               int        //结束方式
+	gameEnd.BEndMode = GER_NORMAL
+	//CbCompareResult        [][]int    //每一道比较结果
+	gameEnd.CbCompareResult = make([][]int, room.PlayerCount)
+	//CbSpecialCompareResult []int      //特殊牌型比较结果
+	gameEnd.CbSpecialCompareResult = make([]int, room.PlayerCount)
+	//CbCompareDouble        []int      //翻倍的道数
+	gameEnd.CbCompareDouble = make([]int, room.PlayerCount)
+	//CbUserOverTime         []int      //玩家超时得到的道数
+	gameEnd.CbUserOverTime = make([]int, room.PlayerCount)
+	//CbCardData             [][]int    //扑克数据
+	gameEnd.CbCardData = make([][]int, room.PlayerCount)
+	//BUnderScoreDescribe    [][]int    //底分描述
+	gameEnd.BUnderScoreDescribe = make([]string, room.PlayerCount)
+	//BCompCardDescribe      [][][]int  //牌比描述
+	gameEnd.BCompCardDescribe = make([][]string, room.PlayerCount)
+	for i := 0; i < room.PlayerCount; i++ {
+		gameEnd.BCompCardDescribe[i] = make([]string, 3)
+	}
+	//BToltalWinDaoShu       []int      //总共道数
+	gameEnd.BToltalWinDaoShu = make([]int, room.PlayerCount)
+	//LUnderScore            int        //底注分数
+	gameEnd.LUnderScore = 0
+	//BAllDisperse           []bool     //所有散牌
+	gameEnd.BAllDisperse = make([]bool, room.PlayerCount)
+	//BOverTime              []bool     //超时状态
+	gameEnd.BOverTime = make([]bool, room.PlayerCount)
+	//copy(gameEnd.BOverTime, room.m_bOverTime)
+	//BUserLeft              []bool     //玩家逃跑
+	gameEnd.BUserLeft = make([]bool, room.PlayerCount)
+	//copy(gameEnd.BUserLeft, room.m_bUserLeft)
+	//BLeft                  bool       //
+	gameEnd.BLeft = false
+	//LeftszName             [][]string //
+	gameEnd.LeftszName = make([]string, room.PlayerCount)
+	//copy(gameEnd.LeftszName,room.)
+	//LeftChairID            []int      //
+	gameEnd.LeftChairID = make([]int, room.PlayerCount)
+	//BAllLeft               bool       //
+	gameEnd.BAllLeft = false
+	//LeftScore              []int      //
+	gameEnd.LeftScore = make([]int, room.PlayerCount)
+	//BSpecialCard           []bool     //是否为特殊牌
+	gameEnd.BSpecialCard = make([]bool, room.PlayerCount)
+	//BAllSpecialCard        bool       //全是特殊牌
+	gameEnd.BAllSpecialCard = false
+	//NTimer                 int        //结束后比牌、打枪时间
+	gameEnd.NTimer = 0
+	//ShootState             [][]int    //赢的玩家,输的玩家 2为赢的玩家，1为全输的玩家，0为没输没赢的玩家
+	gameEnd.ShootState = make([][]int, room.PlayerCount)
+	for i := range gameEnd.ShootState {
+		gameEnd.ShootState[i] = make([]int, 2)
+
+	}
+	//M_nXShoot              int        //几家打枪
+	gameEnd.M_nXShoot = 0
+	//CbThreeKillResult      []int      //全垒打加减分
+	gameEnd.CbThreeKillResult = make([]int, room.PlayerCount)
+	//BEnterExit             bool       //是否一进入就离开
+	gameEnd.BEnterExit = false
+	//WAllUser               int        //全垒打用户
+	gameEnd.WAllUser = 0
+	//copy(room.m_lGameScore,room.m_lLeftScore)
+
+	gameEnd.BAllSpecialCard = false
+
+	userMgr.ForEachUser(func(u *user.User) {
+		gameEnd.CbCardData[u.ChairId] = make([]int, 13)
+		copy(gameEnd.CbCardData[u.ChairId], room.PlayerCards[u.ChairId])
+		gameEnd.CbCompareResult[u.ChairId] = make([]int, 3)
+		copy(gameEnd.CbCompareResult[u.ChairId], room.CompareResults[u.ChairId])
+		gameEnd.CbCompareDouble[u.ChairId] = 0
+		gameEnd.BToltalWinDaoShu[u.ChairId] = room.ToltalResults[u.ChairId]
+		gameEnd.LGameScore[u.ChairId] = room.ToltalResults[u.ChairId]
+		gameEnd.CbSpecialCompareResult[u.ChairId] = room.SpecialCompareResults[u.ChairId]
+		gameEnd.BSpecialCard[u.ChairId] = false
+
+	})
+
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(gameEnd)
+	})
+	room.gameEndStatus = gameEnd
+
+	room.AllResult[room.PkBase.TimerMgr.GetPlayCount()-1] = gameEnd.LGameScore
+	//room.PkBase.TimerMgr.AddPlayCount()
+	//最后一局
+	if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
+		gameRecord := &pk_sss_msg.G2C_SSS_Record{}
+		util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
+		allScore := make([]int, room.PlayerCount)
+
+		for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
+			for j := range allScore {
+				allScore[j] += room.AllResult[i][j]
+			}
+		}
+		gameRecord.AllScore = allScore
+
+		gameRecord.Reason = GER_NORMAL
+		userMgr.ForEachUser(func(u *user.User) {
+			u.WriteMsg(gameRecord)
+		})
+		room.gameRecord = gameRecord
+	}
 
 }
 
@@ -489,6 +606,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 
 	room.LeftCardCount = len(defaultCards)
+	room.bCardData = make([]int, room.LeftCardCount)
 	gameLogic.RandCardList(room.bCardData, defaultCards)
 
 	userMgr.ForEachUser(func(u *user.User) {
@@ -512,7 +630,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	// 启动定时器
-	room.startShowCardTimer(60)
+	room.startShowCardTimer(40)
 }
 
 func getColorCards(num int) (cards []int) {
@@ -544,16 +662,16 @@ func (room *sss_data_mgr) AfterStartGame() {
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
 
-	//解除托管
-	trustees := userMgr.GetTrustees()
-	for i := range trustees {
-		if trustees[i] == true {
-			if u == userMgr.GetUserByChairId(i) {
-				room.Trustee(u, false)
-				break
-			}
-		}
-	}
+	// //解除托管
+	// trustees := userMgr.GetTrustees()
+	// for i := range trustees {
+	// 	if trustees[i] == true {
+	// 		if u == userMgr.GetUserByChairId(i) {
+	// 			room.Trustee(u, false)
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
 	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
@@ -568,127 +686,12 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	room.OpenCardMap[u] = true
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		room.stopShowCardTimer()
+
+		room.PkBase.OnEventGameConclude(0, nil, GER_NORMAL)
 		// 游戏结束
 		//userMgr.ForEachUser(func(u *user.User) {
 		//room.PkBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
 		//})
-
-		room.ComputeChOut()
-		room.ComputeResult()
-
-		gameEnd := &pk_sss_msg.G2C_SSS_COMPARE{}
-
-		//LGameTax               int        //游戏税收
-		gameEnd.LGameTax = 0
-		//LGameEveryTax          []int      //每个玩家的税收
-		gameEnd.LGameEveryTax = make([]int, room.PlayerCount)
-		//LGameScore             []int      //游戏积分
-		gameEnd.LGameScore = make([]int, room.PlayerCount)
-		//BEndMode               int        //结束方式
-		gameEnd.BEndMode = GER_NORMAL
-		//CbCompareResult        [][]int    //每一道比较结果
-		gameEnd.CbCompareResult = make([][]int, room.PlayerCount)
-		//CbSpecialCompareResult []int      //特殊牌型比较结果
-		gameEnd.CbSpecialCompareResult = make([]int, room.PlayerCount)
-		//CbCompareDouble        []int      //翻倍的道数
-		gameEnd.CbCompareDouble = make([]int, room.PlayerCount)
-		//CbUserOverTime         []int      //玩家超时得到的道数
-		gameEnd.CbUserOverTime = make([]int, room.PlayerCount)
-		//CbCardData             [][]int    //扑克数据
-		gameEnd.CbCardData = make([][]int, room.PlayerCount)
-		//BUnderScoreDescribe    [][]int    //底分描述
-		gameEnd.BUnderScoreDescribe = make([]string, room.PlayerCount)
-		//BCompCardDescribe      [][][]int  //牌比描述
-		gameEnd.BCompCardDescribe = make([][]string, room.PlayerCount)
-		for i := 0; i < room.PlayerCount; i++ {
-			gameEnd.BCompCardDescribe[i] = make([]string, 3)
-		}
-		//BToltalWinDaoShu       []int      //总共道数
-		gameEnd.BToltalWinDaoShu = make([]int, room.PlayerCount)
-		//LUnderScore            int        //底注分数
-		gameEnd.LUnderScore = 0
-		//BAllDisperse           []bool     //所有散牌
-		gameEnd.BAllDisperse = make([]bool, room.PlayerCount)
-		//BOverTime              []bool     //超时状态
-		gameEnd.BOverTime = make([]bool, room.PlayerCount)
-		//copy(gameEnd.BOverTime, room.m_bOverTime)
-		//BUserLeft              []bool     //玩家逃跑
-		gameEnd.BUserLeft = make([]bool, room.PlayerCount)
-		//copy(gameEnd.BUserLeft, room.m_bUserLeft)
-		//BLeft                  bool       //
-		gameEnd.BLeft = false
-		//LeftszName             [][]string //
-		gameEnd.LeftszName = make([]string, room.PlayerCount)
-		//copy(gameEnd.LeftszName,room.)
-		//LeftChairID            []int      //
-		gameEnd.LeftChairID = make([]int, room.PlayerCount)
-		//BAllLeft               bool       //
-		gameEnd.BAllLeft = false
-		//LeftScore              []int      //
-		gameEnd.LeftScore = make([]int, room.PlayerCount)
-		//BSpecialCard           []bool     //是否为特殊牌
-		gameEnd.BSpecialCard = make([]bool, room.PlayerCount)
-		//BAllSpecialCard        bool       //全是特殊牌
-		gameEnd.BAllSpecialCard = false
-		//NTimer                 int        //结束后比牌、打枪时间
-		gameEnd.NTimer = 0
-		//ShootState             [][]int    //赢的玩家,输的玩家 2为赢的玩家，1为全输的玩家，0为没输没赢的玩家
-		gameEnd.ShootState = make([][]int, room.PlayerCount)
-		for i := range gameEnd.ShootState {
-			gameEnd.ShootState[i] = make([]int, 2)
-
-		}
-		//M_nXShoot              int        //几家打枪
-		gameEnd.M_nXShoot = 0
-		//CbThreeKillResult      []int      //全垒打加减分
-		gameEnd.CbThreeKillResult = make([]int, room.PlayerCount)
-		//BEnterExit             bool       //是否一进入就离开
-		gameEnd.BEnterExit = false
-		//WAllUser               int        //全垒打用户
-		gameEnd.WAllUser = 0
-		//copy(room.m_lGameScore,room.m_lLeftScore)
-
-		gameEnd.BAllSpecialCard = false
-
-		userMgr.ForEachUser(func(u *user.User) {
-			gameEnd.CbCardData[u.ChairId] = make([]int, 13)
-			copy(gameEnd.CbCardData[u.ChairId], room.PlayerCards[u.ChairId])
-			gameEnd.CbCompareResult[u.ChairId] = make([]int, 3)
-			copy(gameEnd.CbCompareResult[u.ChairId], room.CompareResults[u.ChairId])
-			gameEnd.CbCompareDouble[u.ChairId] = 0
-			gameEnd.BToltalWinDaoShu[u.ChairId] = room.ToltalResults[u.ChairId]
-			gameEnd.LGameScore[u.ChairId] = room.ToltalResults[u.ChairId]
-			gameEnd.CbSpecialCompareResult[u.ChairId] = room.SpecialCompareResults[u.ChairId]
-			gameEnd.BSpecialCard[u.ChairId] = false
-
-		})
-
-		userMgr.ForEachUser(func(u *user.User) {
-			u.WriteMsg(gameEnd)
-		})
-		room.gameEndStatus = gameEnd
-
-		room.AllResult[room.PkBase.TimerMgr.GetPlayCount()-1] = gameEnd.LGameScore
-		//room.PkBase.TimerMgr.AddPlayCount()
-		//最后一局
-		if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
-			gameRecord := &pk_sss_msg.G2C_SSS_Record{}
-			util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
-			allScore := make([]int, room.PlayerCount)
-
-			for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
-				for j := range allScore {
-					allScore[j] += room.AllResult[i][j]
-				}
-			}
-			gameRecord.AllScore = allScore
-
-			gameRecord.Reason = GER_NORMAL
-			userMgr.ForEachUser(func(u *user.User) {
-				u.WriteMsg(gameRecord)
-			})
-			room.gameRecord = gameRecord
-		}
 
 	}
 
@@ -795,11 +798,11 @@ func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard
 	cardData := room.PlayerCards[chairId]
 	newCardData := []int{}
 	//后墩
-	segmentCard1, newCardData = room.get5card(cardData)
+	segmentCard3, newCardData = room.get5card(cardData)
 	//中墩
 	segmentCard2, newCardData = room.get5card(newCardData)
 	//前墩
-	segmentCard3 = newCardData
+	segmentCard1 = newCardData
 
 	return
 }
@@ -874,10 +877,8 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 			if l < 5 {
 				continue
 			}
-			if len(segmentCard) == 0 {
-				segmentCard = append(segmentCard, colorCard[:5]...)
-				break
-			}
+			segmentCard = append(segmentCard, colorCard[:5]...)
+			break
 		}
 	}
 	//顺子
@@ -910,14 +911,14 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		}
 	}
 	//三条
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount == 2 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount >= 2 {
 		index = TagAnalyseItemArray.bThreeFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
 	}
 	//两对
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 2 && TagAnalyseItemArray.bOneCount == 1 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 2 && TagAnalyseItemArray.bOneCount >= 1 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 		index = TagAnalyseItemArray.bTwoFirst[1]
@@ -925,7 +926,7 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 	}
 	//对子
-	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 3 {
+	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 1 && TagAnalyseItemArray.bOneCount >= 3 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
@@ -934,7 +935,7 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 	}
 	//散牌
 	if len(segmentCard) == 0 {
-		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:6]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:5]...)
 	}
 
 	newCardData = lg.getUnUsedCard(TagAnalyseItemArray.cardData, segmentCard)
