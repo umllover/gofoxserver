@@ -21,10 +21,8 @@ func handlerC2S(m interface{}, h interface{}) {
 }
 
 func init() {
-	// c 2 s
 	handlerC2S(&pk_sss_msg.C2G_SSS_Open_Card{}, SSSShowCard)
-	//handlerC2S(&mj_hz_msg.C2G_HZMJ_OperateCard{}, OperateCard)
-
+	handlerC2S(&pk_sss_msg.C2G_SSS_TRUSTEE{}, TRUSTEE)
 }
 func SSSShowCard(args []interface{}) {
 	agent := args[1].(gate.Agent)
@@ -35,4 +33,16 @@ func SSSShowCard(args []interface{}) {
 		r.GetChanRPC().Go("ShowCard", args[0], user)
 	}
 
+}
+
+// 用户托管
+func TRUSTEE(args []interface{}) {
+	recvMsg := args[0].(*pk_sss_msg.C2G_SSS_TRUSTEE)
+	agent := args[1].(gate.Agent)
+	u := agent.UserData().(*user.User)
+
+	r := getRoom(u.RoomId)
+	if r != nil {
+		r.GetChanRPC().Go("Trustee", recvMsg, u)
+	}
 }

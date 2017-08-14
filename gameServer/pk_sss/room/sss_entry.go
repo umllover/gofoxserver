@@ -26,3 +26,11 @@ func (r *SSS_Entry) ShowSSSCard(args []interface{}) {
 	r.DataMgr.(*sss_data_mgr).ShowSSSCard(u, recvMsg.Dragon, recvMsg.SpecialType, recvMsg.SpecialData, recvMsg.FrontCard, recvMsg.MidCard, recvMsg.BackCard)
 	return
 }
+
+// 托管
+func (room *SSS_Entry) Trustee(args []interface{}) {
+	recvMsg := args[0].(*pk_sss_msg.C2G_SSS_TRUSTEE)
+	u := args[1].(*user.User)
+
+	room.DataMgr.(*sss_data_mgr).Trustee(u, recvMsg.Trustee)
+}
