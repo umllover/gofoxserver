@@ -22,7 +22,6 @@ func LoadBaseData() {
 	PersonalTableFeeCache.LoadAll()
 	PersonalTableFeeBak728Cache.LoadAll()
 	RefreshInTimeCache.LoadAll()
-	ServerListCache.LoadAll()
 	UpgradeCache.LoadAll()
 	UpgradeAdvisorCache.LoadAll()
 	db.BaseDataCaches["Activity"] = ActivityCache
@@ -35,8 +34,7 @@ func LoadBaseData() {
 	db.BaseDataCaches["PersonalTableFee"] = PersonalTableFeeCache
 	db.BaseDataCaches["PersonalTableFeeBak728"] = PersonalTableFeeBak728Cache
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
-	db.BaseDataCaches["ServerList"] = ServerListCache
 	db.BaseDataCaches["Upgrade"] = UpgradeCache
 	db.BaseDataCaches["UpgradeAdvisor"] = UpgradeAdvisorCache
-	log.Debug("loadBaseData %v, %v %v", 13, time.Now().UnixNano()-start, "ns")
+	log.Debug("loadBaseData %v, %v %v", 12, time.Now().UnixNano()-start, "ns")
 }

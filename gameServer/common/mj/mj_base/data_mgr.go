@@ -911,11 +911,8 @@ func (room *RoomData) AfterStartGame() {
 	log.Debug("============= AfterStartGame")
 	//检查自摸
 	room.CheckTingCard(room.BankerUser)
-	//检测起手杠牌
-	//room.CheckGameStartGang()
 	//通知客户端开始了
 	room.SendGameStart()
-
 	//检测起手动作
 	room.InitBankerAction()
 }
@@ -1090,16 +1087,16 @@ func (room *RoomData) StartDispatchCard() {
 	log.Debug("begin reoakce test card ======= %v ", conf.Test)
 	if conf.Test {
 		log.Debug("begin reoakce test card ======= ")
-		room.RepalceCard()
+		room.ReplaceCard()
 	}
 	//newCard := make([]int, room.GetCfg().MaxIdx)
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 4
-	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 2
-	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 2
-	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 2
+	//room.SendCardData = 0x21
+	//room.ProvideCard = 0x21
 	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x1
 
@@ -1153,19 +1150,22 @@ func (room *RoomData) InitBankerAction() {
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]--
 	hu, _ := gameLogic.AnalyseChiHuCard(room.CardIndex[room.BankerUser], []*msg.WeaveItem{}, room.SendCardData)
 	room.CardIndex[room.BankerUser][gameLogic.SwitchToCardIndex(room.SendCardData)]++
-	log.Debug("InitBankerAction hu=%v, UserAction=%v", hu, room.UserAction[room.BankerUser])
+	log.Debug("InitBankerAction hu=%v, UserAction=%v, gangCardResult=%v", hu, room.UserAction[room.BankerUser], gangCardResult)
 	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
 	}
 	if room.UserAction[room.BankerUser] != WIK_NULL {
 		u := userMgr.GetUserByChairId(room.BankerUser)
-		log.Debug("$$$$$$$$$$$ room.SendCardData=%d", room.SendCardData)
-		room.SendOperateNotify(u, room.SendCardData)
+		actionCard := room.SendCardData
+		if room.UserAction[room.BankerUser]&WIK_GANG != 0 {
+			actionCard = gangCardResult.CardData[0]
+		}
+		room.SendOperateNotify(u, actionCard)
 	}
 }
 
-func (room *RoomData) RepalceCard() {
+func (room *RoomData) ReplaceCard() {
 	base.GameTestpaiCache.LoadAll()
 	for _, v := range base.GameTestpaiCache.All() {
 		log.Debug("======%d======%d======%d======%d======%d======%d", v.KindID, room.MjBase.Temp.KindID, v.ServerID, room.MjBase.Temp.ServerID, v.IsAcivate, v.RoomID, room.ID)

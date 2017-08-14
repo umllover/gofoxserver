@@ -373,7 +373,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	room.CurrentUser = room.BankerUser
 
 	if conf.Test {
-		room.RepalceCard()
+		room.ReplaceCard()
 	}
 
 	////todo,测试手牌
