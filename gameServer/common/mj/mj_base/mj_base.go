@@ -137,12 +137,12 @@ func (r *Mj_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error) {
 	//addCnt := args[0].(int)
 	rUserId := args[1].(int64)
 	if r.IsClose {
-		return 1, errors.New("room is close ")
+		return 2, errors.New("room is close ")
 	}
 
 	//不需要续费或者已经有人续过费了
 	if r.TimerMgr.GetPlayCount() < r.TimerMgr.GetMaxPlayCnt() {
-		return 2, errors.New("room playCnt >= maxPlayCnt")
+		return 3, errors.New("room playCnt >= maxPlayCnt")
 	}
 
 	//r.TimerMgr.AddMaxPlayCnt(addCnt)

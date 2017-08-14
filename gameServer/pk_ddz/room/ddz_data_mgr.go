@@ -511,10 +511,10 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		}
 		// 如果都未叫，则随机选一个作为地主，并且倍数默认为1
 		if score == 0 {
-			r.BankerUser = util.RandInterval(0, 2)
+			r.BankerUser = r.CurrentUser
 			r.ScoreTimes = 1
 		}
-		r.CurrentUser = r.BankerUser
+
 		r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	}
 
