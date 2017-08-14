@@ -2327,6 +2327,7 @@ func (room *RoomData) GetHeadCard() int {
 		log.Error("at GetHeadCard room.MinusHeadCoun out index")
 		return -1
 	}
+	log.Debug("get card == :%d", room.RepertoryCard[room.MinusHeadCount])
 	return room.RepertoryCard[room.MinusHeadCount]
 }
 
@@ -2337,6 +2338,7 @@ func (room *RoomData) GetLastCard() (card int) {
 		return -1
 	}
 	card = room.RepertoryCard[room.MinusLastCount]
+	log.Debug("get card == :%d", card)
 	room.MinusLastCount++
 	return
 }

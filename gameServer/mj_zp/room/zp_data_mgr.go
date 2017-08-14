@@ -1879,7 +1879,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	if room.IsHua(room.ProvideCard) {
-		 room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
+		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
 	}
 
 	room.SendCardData = room.ProvideCard
@@ -1911,6 +1911,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	//加牌
+	log.Debug("CardIndex len ============== %d", len(room.CardIndex[wCurrentUser]))
 	room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.ProvideCard)]++
 	//room.UserCatchCardCount[wCurrentUser]++;
 
