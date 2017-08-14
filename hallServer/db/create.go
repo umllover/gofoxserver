@@ -244,6 +244,12 @@ var userUpdateSql = [][]string{
 		"ALTER TABLE record_outcard_ddz MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
 		"ALTER TABLE record_outcard_ddz_king MODIFY RecordID BIGINT(11) NOT NULL AUTO_INCREMENT;",
 	},
+
+	6: []string{
+		`alter table create_room_info convert to character set utf8mb4 collate utf8mb4_bin;`,
+		`DROP TABLE IF EXISTS room_record;`,
+		`alter table userattr convert to character set utf8mb4 collate utf8mb4_bin;`,
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////
