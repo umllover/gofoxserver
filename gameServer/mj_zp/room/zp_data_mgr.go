@@ -1012,17 +1012,19 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("尾单吊 %d", winScore[IDX_SUB_SCORE_WDD])
 		}
-		kind = room.IsJieTou(v, room.TingCnt) //截头
-		if kind > 0 {
-			winScore[IDX_SUB_SCORE_JT] = 1 * score
-			room.HuKindType = append(room.HuKindType, kind)
-			log.Debug("截头 %d", winScore[IDX_SUB_SCORE_JT])
-		}
 		kind = room.IsKongXin(v, room.TingCnt) //空心
 		if kind > 0 {
 			winScore[IDX_SUB_SCORE_KX] = 1 * score
 			room.HuKindType = append(room.HuKindType, kind)
 			log.Debug("空心 %d", winScore[IDX_SUB_SCORE_KX])
+		}
+		kind = room.IsJieTou(v, room.TingCnt) //截头
+		if kind > 0 {
+			if winScore[IDX_SUB_SCORE_KX] == 0 {
+				winScore[IDX_SUB_SCORE_JT] = 1 * score
+				room.HuKindType = append(room.HuKindType, kind)
+				log.Debug("截头 %d", winScore[IDX_SUB_SCORE_JT])
+			}
 		}
 		kind = room.IsDuiDuiHu(v) //对对胡
 		if kind > 0 {
@@ -1069,22 +1071,20 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		//自摸
 		kind = room.IsZiMo()
 		if kind > 0 {
-			if winScore[IDX_SUB_SCORE_HDLZ] > 0 || winScore[IDX_SUB_SCORE_GSKH] > 0 || winScore[IDX_SUB_SCORE_HSKH] > 0 ||
-				winScore[IDX_SUB_SCORE_TH] > 0 || winScore[IDX_SUB_SCORE_TH] > 0 {
-				continue
+			if !(winScore[IDX_SUB_SCORE_HDLZ] > 0 || winScore[IDX_SUB_SCORE_GSKH] > 0 || winScore[IDX_SUB_SCORE_HSKH] > 0 ||
+				winScore[IDX_SUB_SCORE_TH] > 0 || winScore[IDX_SUB_SCORE_TH] > 0) {
+				winScore[IDX_SUB_SCORE_ZM] = 1 * score
+				room.HuKindType = append(room.HuKindType, kind)
+				log.Debug("自摸,%d", winScore[IDX_SUB_SCORE_ZM])
 			}
-			winScore[IDX_SUB_SCORE_ZM] = 1 * score
-			room.HuKindType = append(room.HuKindType, kind)
-			log.Debug("自摸,%d", winScore[IDX_SUB_SCORE_ZM])
 		}
 		//无花字
 		kind = room.IsWuHuaZi(v, room.FlowerCnt)
 		if kind > 0 {
-			if winScore[IDX_SUB_SCORE_BL] > 0 || winScore[IDX_SUB_SCORE_MQBL] > 0 || winScore[IDX_SUB_SCORE_QYS] > 0 {
-				continue
+			if !(winScore[IDX_SUB_SCORE_BL] > 0 || winScore[IDX_SUB_SCORE_MQBL] > 0 || winScore[IDX_SUB_SCORE_QYS] > 0) {
+				winScore[IDX_SUB_SCORE_WHZ] = 3 * score
+				log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 			}
-			winScore[IDX_SUB_SCORE_WHZ] = 3 * score
-			log.Debug("无花字，%d", winScore[IDX_SUB_SCORE_WHZ])
 		}
 		//字一色
 		kind = room.IsZiYiSe(v, room.FlowerCnt)
@@ -1121,17 +1121,16 @@ func (room *ZP_RoomData) SpecialCardKind(TagAnalyseItem []*TagAnalyseItem, HuUse
 		}
 		kind = room.IsDanDiao(v, room.TingCnt) //单吊
 		if kind > 0 {
-			if winScore[IDX_SUB_SCORE_KX] > 0 || winScore[IDX_SUB_SCORE_JT] > 0 || winScore[IDX_SUB_SCORE_WDD] > 0 {
-				continue
-			}
-			if room.CurrentUser == room.ProvideUser {
-				winScore[IDX_SUB_SCORE_DDZM] = 1 * score
-				room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDZM)
-				log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
-			} else {
-				winScore[IDX_SUB_SCORE_DDPH] = 1 * score
-				room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDPH)
-				log.Debug("单吊平胡,%d", winScore[IDX_SUB_SCORE_DDPH])
+			if !(winScore[IDX_SUB_SCORE_KX] > 0 || winScore[IDX_SUB_SCORE_JT] > 0 || winScore[IDX_SUB_SCORE_WDD] > 0) {
+				if room.CurrentUser == room.ProvideUser {
+					winScore[IDX_SUB_SCORE_DDZM] = 1 * score
+					room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDZM)
+					log.Debug("单吊自摸,%d", winScore[IDX_SUB_SCORE_DDZM])
+				} else {
+					winScore[IDX_SUB_SCORE_DDPH] = 1 * score
+					room.HuKindType = append(room.HuKindType, IDX_SUB_SCORE_DDPH)
+					log.Debug("单吊平胡,%d", winScore[IDX_SUB_SCORE_DDPH])
+				}
 			}
 		}
 	}
