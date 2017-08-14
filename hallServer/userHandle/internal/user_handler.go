@@ -1211,6 +1211,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 		HallNodeID: conf.Server.NodeId, UserId: player.UserId})
 }
 
+//续费结果
 func (m *UserModule) RenewalFeeResult(args []interface{}) {
 	recvMsg := args[0].(*msg.S2S_RenewalFeeResult)
 	player := m.a.UserData().(*user.User)
@@ -1222,7 +1223,15 @@ func (m *UserModule) RenewalFeeResult(args []interface{}) {
 			player.AddCurrency(record.Amount)
 			player.DelRecord(record.RoomId)
 		}
-		//TODO 是否要通知客户端玩家续费失败呢?
+		//通知客户端玩家续费失败
+		retCode := 0
+		switch recvMsg.ResultId {
+		case 1, 2:
+			retCode = ErrFindRoomError
+		case 3:
+			retCode = ErrRenewalFeeRepeat
+		}
+		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode, UserID: player.Id})
 	} else {
 		//成功了
 		info, err := game_list.ChanRPC.TimeOutCall1("GetRoomByRoomId", 5*time.Second, recvMsg.RoomId)
