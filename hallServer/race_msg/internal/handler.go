@@ -8,6 +8,8 @@ import (
 
 	"mj/common/msg"
 
+	"mj/hallServer/http_service"
+
 	"github.com/lovelly/leaf/log"
 )
 
@@ -25,15 +27,34 @@ func ReciveGMMsg(sendTimes int, interval int, context string) {
 	SendMsgToAll(context)
 	raceMsginfo.SendTimes--
 	if raceMsginfo.SendTimes > 0 {
-		go SendMsgTimer(raceMsginfo)
 		log.Debug("GM消息准备插入数据库")
 		lastId, rerror := model.RaceMsgInfoOp.Insert(&raceMsginfo)
 		if rerror != nil {
 			log.Error("GM消息插入数据库失败")
-			return
+		} else {
+			raceMsginfo.MsgID = int(lastId)
 		}
+		go SendMsgTimer(raceMsginfo)
 		log.Debug("GM消息插入数据库结果:", lastId)
 	}
+}
+
+// 模块刚启动，初始化
+func InitRaceMsg() {
+	log.Debug("初始化Race模块")
+	GetGMMsgFromDB()
+	SetGMNoticeCallBack()
+}
+
+// 设置GM消息回调
+func SetGMNoticeCallBack() {
+	http_service.DefaultHttpHandler.SetGMNoticeCallBack(func(args []interface{}) {
+		sendTime := args[0].(int)
+		interval := args[1].(int)
+		context := args[2].(string)
+		log.Debug("Race模块接收到消息%d,%d,%s", sendTime, interval, context)
+		ReciveGMMsg(sendTime, interval, context)
+	})
 }
 
 // 服务端启动，从数据库读取GM未发送完成的消息数据
@@ -41,7 +62,7 @@ func GetGMMsgFromDB() {
 	// 先从数据库里取所有数据
 	allMsg, err := model.RaceMsgInfoOp.SelectAll()
 	if err != nil {
-		log.Error("从race_msg_info表读取所有数据失败,error=%i", err)
+		log.Error("从race_msg_info表读取所有数据失败,error=%v", err)
 		return
 	}
 
@@ -53,9 +74,7 @@ func GetGMMsgFromDB() {
 // 发数据
 func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 	f := func() {
-		gmNotice := &msg.L2C_GMNotice{}
-		gmNotice.Context = raceMsginfo1.Context
-		SendMsgToAll(gmNotice)
+		SendMsgToAll(raceMsginfo1.Context)
 		raceMsginfo1.SendTimes--
 		if raceMsginfo1.SendTimes > 0 {
 			SendMsgTimer(raceMsginfo1)
@@ -72,8 +91,12 @@ func SendMsgTimer(raceMsginfo1 model.RaceMsgInfo) {
 
 //发送消息给所有人
 func SendMsgToAll(data interface{}) {
-	log.Debug("即将发送消息给所有人：%v", data)
+	context := data.(string)
+	gmNotice := &msg.L2C_GMNotice{}
+	gmNotice.Context = context
+	log.Debug("即将发送消息给所有人：%v", gmNotice)
 	userHandle.ForEachUser(func(u *user.User) {
-		u.WriteMsg(data)
+		log.Debug("取到user了%d", u.UserId)
+		u.WriteMsg(gmNotice)
 	})
 }

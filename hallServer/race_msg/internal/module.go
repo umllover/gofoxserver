@@ -17,7 +17,7 @@ type Module struct {
 
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
-	GetGMMsgFromDB()
+	InitRaceMsg()
 }
 
 func (m *Module) OnDestroy() {

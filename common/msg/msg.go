@@ -59,6 +59,7 @@ func init() {
 	Processor.Register(&L2C_BeStar{})
 	Processor.Register(&L2C_NotifyElectResult{})
 	Processor.Register(&L2C_RechangerOk{})
+	Processor.Register(&L2C_GMNotice{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})

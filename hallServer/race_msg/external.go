@@ -5,5 +5,6 @@ import (
 )
 
 var (
-	Module = new(internal.Module)
+	ChanRPC = internal.ChanRPC
+	Module  = new(internal.Module)
 )

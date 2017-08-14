@@ -3,6 +3,7 @@ package internal
 import (
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
+	"mj/hallServer/http_service"
 	"testing"
 
 	"sync"
@@ -15,7 +16,9 @@ var Wg sync.WaitGroup
 
 func TestSendMsgToAll(t *testing.T) {
 	//startTimer(0)
-	ReciveGMMsg(5, 5, "dfsd")
+	//ReciveGMMsg(5, 5, "dfsd")
+	InitRaceMsg()
+	http_service.DefaultHttpHandler.GMNotice(5, 5, "我要测试GM公告")
 	Wg.Wait()
 }
 
