@@ -141,10 +141,11 @@ type S2S_RenewalFee struct {
 //	info *RoomInfo
 //}
 
-//回复大厅续费失败
-type S2S_RenewalFeeFaild struct {
+//回复大厅续费结果
+type S2S_RenewalFeeResult struct {
 	RoomId   int
 	ResultId int
+	AddCount int
 }
 
 //通知创建房间
