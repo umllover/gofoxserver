@@ -576,16 +576,16 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 
 	if room.jiaGongGong {
-		len := len(defaultCards)
-		tempCards := make([]int, len)
+		length := len(defaultCards)
+		tempCards := make([]int, length)
 		copy(tempCards, defaultCards)
 		for i := 0; i < 3; i++ {
-			randNum := rand.Intn(len)
+			randNum := rand.Intn(length)
 			room.PublicCards = append(room.PublicCards, tempCards[randNum])
-			if randNum != len-1 {
-				tempCards[randNum], tempCards[len-1] = tempCards[len-1], tempCards[randNum]
+			if randNum != length-1 {
+				tempCards[randNum], tempCards[length-1] = tempCards[length-1], tempCards[randNum]
 			}
-			len--
+			length--
 		}
 	}
 	addCardNum := 0
@@ -794,8 +794,9 @@ func (room *sss_data_mgr) trusteeOperate() {
 }
 
 func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard2, segmentCard3 []int) {
-
 	cardData := room.PlayerCards[chairId]
+	cardData = append(room.PublicCards)
+
 	newCardData := []int{}
 	//后墩
 	segmentCard3, newCardData = room.get5card(cardData)
