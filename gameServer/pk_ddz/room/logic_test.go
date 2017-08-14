@@ -5,7 +5,6 @@ import (
 	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -32,7 +31,6 @@ import (
 	"github.com/lovelly/leaf/gate"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/module"
-	"github.com/lovelly/leaf/util"
 )
 
 var (
@@ -198,10 +196,11 @@ func TestAnalyseCard(t *testing.T) {
 }
 
 func TestRemoveCard(t *testing.T) {
-	//info := &msg.L2G_CreatorRoom{}
-	//lg := NewDDZLogic(pk_base.IDX_DDZ, info)
-	//b, _ := lg.RemoveCardList([]int{1, 3, 5, 7, 10}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13})
-	//log.Debug("怕怕%v", b)
+	info := &msg.L2G_CreatorRoom{}
+	lg := NewDDZLogic(pk_base.IDX_DDZ, info)
+	lg.SetParamToLogic(2)
+	b, _ := lg.CompareCardWithParam([]int{}, []int{0xd, 0xd, 0xd, 2, 2}, []interface{}{0})
+	log.Debug("怕怕%v", b)
 }
 
 //func TestCardType(t *testing.T) {
@@ -336,25 +335,6 @@ func init() {
 
 	db.InitDB(&conf.DBConfig{})
 	base.LoadBaseData()
-
-	allData, err := model.RecordOutcardDdzOp.SelectAll()
-	log.Debug("非八王场取到的记录%v,%v", err, allData)
-	if err == nil {
-		nCount := len(allData)
-		if nCount > 0 {
-			n := nCount - 10000
-			if n < 0 {
-				n = 0
-			}
-			nIndex := util.RandInterval(0, nCount-n-1)
-			data := allData[n:]
-			var data1 []int
-			json.Unmarshal([]byte(data[nIndex].CardData), &data1)
-
-			log.Debug("数据库取到的牌数据%v", data1)
-			log.Debug("长度%d", len(data1))
-		}
-	}
 
 	return
 	temp, ok := base.GameServiceOptionCache.Get(29, 1)
