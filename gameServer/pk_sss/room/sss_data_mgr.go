@@ -9,7 +9,7 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 
-	//dbg "github.com/funny/debug"
+	dbg "github.com/funny/debug"
 
 	"math/rand"
 
@@ -512,7 +512,7 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	})
 
 	// 启动定时器
-	room.startShowCardTimer(60)
+	room.startShowCardTimer(40)
 }
 
 func getColorCards(num int) (cards []int) {
@@ -544,22 +544,24 @@ func (room *sss_data_mgr) AfterStartGame() {
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
 
-	//解除托管
-	trustees := userMgr.GetTrustees()
-	for i := range trustees {
-		if trustees[i] == true {
-			if u == userMgr.GetUserByChairId(i) {
-				room.Trustee(u, false)
-				break
-			}
-		}
-	}
+	// //解除托管
+	// trustees := userMgr.GetTrustees()
+	// for i := range trustees {
+	// 	if trustees[i] == true {
+	// 		if u == userMgr.GetUserByChairId(i) {
+	// 			room.Trustee(u, false)
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
 	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], FrontCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], MidCard...)
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], BackCard...)
+
+	dbg.Print(room.PlayerSegmentCards)
 
 	userMgr.ForEachUser(func(user *user.User) {
 		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
@@ -795,11 +797,11 @@ func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard
 	cardData := room.PlayerCards[chairId]
 	newCardData := []int{}
 	//后墩
-	segmentCard1, newCardData = room.get5card(cardData)
+	segmentCard3, newCardData = room.get5card(cardData)
 	//中墩
 	segmentCard2, newCardData = room.get5card(newCardData)
 	//前墩
-	segmentCard3 = newCardData
+	segmentCard1 = newCardData
 
 	return
 }
@@ -874,10 +876,8 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 			if l < 5 {
 				continue
 			}
-			if len(segmentCard) == 0 {
-				segmentCard = append(segmentCard, colorCard[:5]...)
-				break
-			}
+			segmentCard = append(segmentCard, colorCard[:5]...)
+			break
 		}
 	}
 	//顺子
@@ -934,7 +934,7 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 	}
 	//散牌
 	if len(segmentCard) == 0 {
-		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:6]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:5]...)
 	}
 
 	newCardData = lg.getUnUsedCard(TagAnalyseItemArray.cardData, segmentCard)
