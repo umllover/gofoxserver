@@ -30,7 +30,7 @@ func ReqGetMaskCode(phome string, maskCode int) {
 }
 
 // bingone
-func VerifyCode(number string, codes int) {
+func VerifyCode(number string, codes int) int {
 
 	// 修改为您的apikey(https://www.yunpian.com)登录官网后获取
 	apikey := common.GetGlobalVar("YUN_PIAN_API_KEY")
@@ -45,22 +45,23 @@ func VerifyCode(number string, codes int) {
 	data_send_sms := url.Values{"apikey": {apikey}, "mobile": {mobile}, "text": {text}}
 	log.Debug("data:", data_send_sms)
 
-	httpsPostForm(url_send_sms, data_send_sms)
+	return httpsPostForm(url_send_sms, data_send_sms)
 }
 
-func httpsPostForm(url string, data url.Values) {
+func httpsPostForm(url string, data url.Values) int {
 	resp, err := http.PostForm(url, data)
 	defer resp.Body.Close()
 	if err != nil {
 		log.Debug("error :%s", err.Error())
-		return
+		return 1
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Debug("error read :%s", err.Error())
-		return
+		return 2
 	}
 
 	fmt.Println(string(body))
+	return 0
 }
