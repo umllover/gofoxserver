@@ -310,7 +310,7 @@ func (dg *ddz_logic) isThreeLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 3)
 	if b {
-		return CT_THREE_LINE | nMax, b
+		return CT_THREE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -334,7 +334,7 @@ func (dg *ddz_logic) isDoubleLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 2)
 	if b {
-		return CT_DOUBLE_LINE | nMax, b
+		return CT_DOUBLE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -359,7 +359,7 @@ func (dg *ddz_logic) isSingleLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 1)
 	if b {
-		return CT_SINGLE_LINE | nMax, b
+		return CT_SINGLE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -467,6 +467,10 @@ func (dg *ddz_logic) isThreeTakeTwo(cardArr []int) (int, bool) {
 	if nLaiziCount == 2 && AnalyseResult.cbBlockCount[1] == 1 {
 		maxValue := dg.maxValue(dg.GetCardLogicValue(AnalyseResult.cbCardData[1][0]), dg.GetCardLogicValue(AnalyseResult.cbCardData[0][0]))
 		return CT_THREE_TAKE_TWO | maxValue, true
+	}
+	// 两张癞子+三张
+	if nLaiziCount == 2 && AnalyseResult.cbBlockCount[2] == 1 {
+		return CT_THREE_TAKE_TWO | dg.GetCardLogicValue(AnalyseResult.cbCardData[2][0]), true
 	}
 	// 一张癞子
 	if nLaiziCount == 1 {
