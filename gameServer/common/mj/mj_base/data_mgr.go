@@ -917,6 +917,9 @@ func (room *RoomData) AfterStartGame() {
 	room.InitBankerAction()
 }
 
+func (room *RoomData) ResetGame() {
+}
+
 func (room *RoomData) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")

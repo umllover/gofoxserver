@@ -14,6 +14,7 @@ type DataManager interface {
 	BeforeStartGame(UserCnt int)
 	StartGameing()
 	AfterStartGame()
+	ResetGame()
 
 	// 游戏结束
 	NormalEnd(Reason int)
