@@ -1060,7 +1060,7 @@ func (room *RoomData) SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsI
 
 //开始发牌
 func (room *RoomData) StartDispatchCard() {
-	log.Debug("begin sStartDispatchCard")
+	log.Debug("begin StartDispatchCard")
 	userMgr := room.MjBase.UserMgr
 	gameLogic := room.MjBase.LogicMgr
 
@@ -1157,10 +1157,12 @@ func (room *RoomData) InitBankerAction() {
 	log.Debug("InitBankerAction user card :=== %v", room.CardIndex[room.BankerUser])
 	if hu {
 		room.UserAction[room.BankerUser] |= WIK_CHI_HU
-		u := userMgr.GetUserByChairId(room.BankerUser)
-		room.GetDataMgr().SendOperateNotify(u, room.SendCardData)
 	}
-
+	if room.UserAction[room.BankerUser] != WIK_NULL {
+		u := userMgr.GetUserByChairId(room.BankerUser)
+		log.Debug("$$$$$$$$$$$ room.SendCardData=%d", room.SendCardData)
+		room.SendOperateNotify(u, room.SendCardData)
+	}
 }
 
 func (room *RoomData) RepalceCard() {
@@ -1388,28 +1390,6 @@ func (room *RoomData) CheckTingCard(chairID int) bool {
 		}
 	}
 	return false
-}
-
-//检测游戏开始起手杠牌
-func (room *RoomData) CheckGameStartGang() {
-	if !room.IsEnoughCard() {
-		return
-	}
-	u := room.MjBase.UserMgr.GetUserByChairId(room.CurrentUser)
-	if u != nil && u.UserLimit&LimitGang == 0 {
-		gangCard := 0
-		for i := 0; i < room.GetCfg().MaxIdx-room.GetCfg().HuaIndex; i++ {
-			if room.CardIndex[u.ChairId][i] == 4 {
-				gangCard = room.MjBase.LogicMgr.SwitchToCardData(i)
-				break
-			}
-		}
-		if gangCard != 0 {
-			room.UserAction[u.ChairId] |= WIK_GANG
-			room.GetDataMgr().SendOperateNotify(u, gangCard)
-			log.Debug("####################################")
-		}
-	}
 }
 
 //向客户端发牌
