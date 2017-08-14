@@ -126,6 +126,7 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 
 	//r.TimerMgr.AddMaxPlayCnt(addCnt)
 	r.TimerMgr.ResetPlayCount()
+	r.DataMgr.ResetGame()
 
 	if r.DelayCloseTimer != nil {
 		r.DelayCloseTimer.Stop()
