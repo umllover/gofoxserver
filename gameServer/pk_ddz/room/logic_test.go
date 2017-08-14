@@ -198,6 +198,7 @@ func TestAnalyseCard(t *testing.T) {
 func TestRemoveCard(t *testing.T) {
 	info := &msg.L2G_CreatorRoom{}
 	lg := NewDDZLogic(pk_base.IDX_DDZ, info)
+	log.Debug("获取的类型%#x", lg.GetCardType([]int{7, 8, 9, 0xa, 0xb}))
 	lg.SetParamToLogic(2)
 	b, _ := lg.CompareCardWithParam([]int{}, []int{0xd, 0xd, 0xd, 2, 2}, []interface{}{0})
 	log.Debug("怕怕%v", b)

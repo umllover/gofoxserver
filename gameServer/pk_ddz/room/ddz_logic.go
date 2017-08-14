@@ -310,7 +310,7 @@ func (dg *ddz_logic) isThreeLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 3)
 	if b {
-		return CT_THREE_LINE | nMax, b
+		return CT_THREE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -334,7 +334,7 @@ func (dg *ddz_logic) isDoubleLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 2)
 	if b {
-		return CT_DOUBLE_LINE | nMax, b
+		return CT_DOUBLE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
@@ -359,7 +359,7 @@ func (dg *ddz_logic) isSingleLine(cardArr []int) (int, bool) {
 
 	nMax, b := dg.recursionIsLine(tmpArr, nLaiziCount, 1)
 	if b {
-		return CT_SINGLE_LINE | nMax, b
+		return CT_SINGLE_LINE | (len(cardArr) << 4) | nMax, b
 	}
 
 	return CT_ERROR, false
