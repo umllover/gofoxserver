@@ -977,12 +977,12 @@ func (room *RoomData) InitBuHua() {
 		if playerIndex > 3 {
 			playerIndex = 0
 		}
-		room.CheckHuaCard(playerIndex, playerCNT)
+		room.GetDataMgr().CheckHuaCard(playerIndex, playerCNT, true)
 		playerIndex++
 	}
 }
 
-func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int) {
+func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) (lastCard int) {
 	logic := room.MjBase.LogicMgr
 	for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
 		if room.CardIndex[playerIndex][j] == 1 {
@@ -991,15 +991,17 @@ func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int) {
 				NewCard := room.GetSendCard(true, playerCNT)
 				newCardIndex := logic.SwitchToCardIndex(NewCard)
 				ReplaceCard := logic.SwitchToCardData(index)
-				room.GetDataMgr().SendReplaceCard(playerIndex, ReplaceCard, NewCard, true)
+				room.GetDataMgr().SendReplaceCard(playerIndex, ReplaceCard, NewCard, IsInitFlower)
 				log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, logic.SwitchToCardData(index), NewCard)
 				room.FlowerCnt[playerIndex]++
 				room.FlowerCard[playerIndex] = append(room.FlowerCard[playerIndex], ReplaceCard)
 				if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
 					room.CardIndex[playerIndex][j]--
 					room.CardIndex[playerIndex][newCardIndex]++
+					lastCard = NewCard
 					if playerIndex == room.BankerUser {
 						room.SendCardData = NewCard
+						room.ProvideCard = NewCard
 					}
 					break
 				} else {
@@ -1008,6 +1010,7 @@ func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int) {
 			}
 		}
 	}
+	return
 }
 
 //用户补花
@@ -2357,4 +2360,8 @@ func (room *RoomData) ElectionBankerUser() {
 		}
 		//room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
 	}
+}
+
+func (room *RoomData) IsHua(cardData int) bool {
+	return cardData <= 0x48 && cardData >= 0x41
 }
