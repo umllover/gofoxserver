@@ -468,6 +468,10 @@ func (dg *ddz_logic) isThreeTakeTwo(cardArr []int) (int, bool) {
 		maxValue := dg.maxValue(dg.GetCardLogicValue(AnalyseResult.cbCardData[1][0]), dg.GetCardLogicValue(AnalyseResult.cbCardData[0][0]))
 		return CT_THREE_TAKE_TWO | maxValue, true
 	}
+	// 两张癞子+三张
+	if nLaiziCount == 2 && AnalyseResult.cbBlockCount[2] == 1 {
+		return CT_THREE_TAKE_TWO | dg.GetCardLogicValue(AnalyseResult.cbCardData[2][0]), true
+	}
 	// 一张癞子
 	if nLaiziCount == 1 {
 		// 一对三张
