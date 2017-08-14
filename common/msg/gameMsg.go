@@ -81,6 +81,9 @@ type C2G_ReplyLeaveRoom struct {
 
 type G2C_CancelTable struct{}
 type G2C_PersonalTableEnd struct{}
+type G2C_RoomDissume struct {
+	Reason int
+}
 
 //请求坐下
 type C2G_UserSitdown struct {
