@@ -1091,12 +1091,12 @@ func (room *RoomData) StartDispatchCard() {
 	}
 	//newCard := make([]int, room.GetCfg().MaxIdx)
 	//newCard[gameLogic.SwitchToCardIndex(0x5)] = 3
-	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 4
-	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 2
-	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 2
-	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x23)] = 1
-	//newCard[gameLogic.SwitchToCardIndex(0x35)] = 1
+	//newCard[gameLogic.SwitchToCardIndex(0x8)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x11)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x13)] = 3
+	//newCard[gameLogic.SwitchToCardIndex(0x21)] = 2
+	//room.SendCardData = 0x21
+	//room.ProvideCard = 0x21
 	//room.CardIndex[room.BankerUser] = newCard
 	//room.RepertoryCard[55] = 0x1
 
