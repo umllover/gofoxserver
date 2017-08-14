@@ -424,7 +424,6 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 
 }
 
-
 //解散结束
 func (room *sss_data_mgr) DismissEnd(a int) {
 
@@ -568,6 +567,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 
 	room.OpenCardMap[u] = true
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
+		room.stopShowCardTimer()
 		// 游戏结束
 		//userMgr.ForEachUser(func(u *user.User) {
 		//room.PkBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
@@ -775,14 +775,16 @@ func (room *sss_data_mgr) trusteeOperate() {
 	trustees := room.PkBase.UserMgr.GetTrustees()
 	for i := range trustees {
 		u := room.PkBase.UserMgr.GetUserByChairId(i)
-		if trustees[i] == true {
-			segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
-			room.ShowSSSCard(u, false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
-		} else {
-			if !room.OpenCardMap[u] {
-				room.Trustee(u, true)
+		if u != nil {
+			if trustees[i] == true {
 				segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
 				room.ShowSSSCard(u, false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
+			} else {
+				if !room.OpenCardMap[u] {
+					room.Trustee(u, true)
+					segmentCard1, segmentCard2, segmentCard3 := room.getSegmentCard(i)
+					room.ShowSSSCard(u, false, false, []int{}, segmentCard1, segmentCard2, segmentCard3)
+				}
 			}
 		}
 	}
