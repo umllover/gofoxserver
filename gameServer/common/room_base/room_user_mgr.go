@@ -498,7 +498,7 @@ func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 	if Status == RoomStatusStarting {
 		room.SetUsetStatus(u, US_PLAYING)
 	} else {
-		room.SetUsetStatus(u, US_SIT)
+		//room.SetUsetStatus(u, US_SIT)
 	}
 }
 
@@ -535,6 +535,6 @@ func (room *RoomUserMgr) CheckRoomReturnMoney(roomStatus, CreatorNodeId, roomId 
 	})
 	log.Debug("################ CheckRoomReturnMoney isCreatorInRoom=%v", isCreatorInRoom)
 	if !isCreatorInRoom {
-		cluster.SendMsgToHallUser(CreatorNodeId,creatorId, &msg.RoomReturnMoney{RoomId: roomId, CreatorUid: creatorId})
+		cluster.SendMsgToHallUser(CreatorNodeId, creatorId, &msg.RoomReturnMoney{RoomId: roomId, CreatorUid: creatorId})
 	}
 }
