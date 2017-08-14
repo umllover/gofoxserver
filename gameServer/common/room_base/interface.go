@@ -48,7 +48,7 @@ type UserManager interface {
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
-	RoomDissume()
+	RoomDissume(cbReason int)
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int64, data interface{})
