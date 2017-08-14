@@ -344,30 +344,56 @@ func RegistUser(recvMsg *msg.C2L_Regist, agent gate.Agent) (int, *user.User, *ac
 
 //获取个人信息
 func (m *UserModule) GetUserIndividual(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_User_Individual)
 	agent := args[1].(gate.Agent)
 	player, ok := agent.UserData().(*user.User)
 	if !ok {
 		log.Debug("not foud user data")
 		return
 	}
-	retmsg := &msg.L2C_UserIndividual{
-		UserID:      player.Id,        //用户 I D
-		NickName:    player.NickName,  //昵称
-		WinCount:    player.WinCount,  //赢数
-		LostCount:   player.LostCount, //输数
-		DrawCount:   player.DrawCount, //平数
-		Medal:       player.UserMedal,
-		RoomCard:    player.Currency,    //房卡
-		MemberOrder: player.MemberOrder, //会员等级
-		Score:       player.Score,
-		HeadImgUrl:  player.HeadImgUrl,
-		Star:        player.Star,
-		Sign:        player.Sign,
-		PhomeNumber: player.PhomeNumber,
+
+	var retmsg *msg.L2C_UserIndividual
+	if recvMsg.UserId == player.Id || recvMsg.UserId == 0 {
+		retmsg = &msg.L2C_UserIndividual{
+			UserID:      player.Id,        //用户 I D
+			NickName:    player.NickName,  //昵称
+			WinCount:    player.WinCount,  //赢数
+			LostCount:   player.LostCount, //输数
+			DrawCount:   player.DrawCount, //平数
+			Medal:       player.UserMedal,
+			RoomCard:    player.Currency,    //房卡
+			MemberOrder: player.MemberOrder, //会员等级
+			Score:       player.Score,
+			HeadImgUrl:  player.HeadImgUrl,
+			Star:        player.Star,
+			Sign:        player.Sign,
+			PhomeNumber: player.PhomeNumber,
+		}
+	} else {
+		userAttr, ok := model.UserattrOp.Get(recvMsg.UserId)
+		source, ok1 := model.GamescoreinfoOp.Get(recvMsg.UserId)
+		if !ok || !ok1 {
+			log.Error("not found user info :%d", recvMsg.UserId)
+			return
+		}
+		retmsg = &msg.L2C_UserIndividual{
+			UserID:      userAttr.UserID,   //用户 I D
+			NickName:    userAttr.NickName, //昵称
+			WinCount:    source.WinCount,   //赢数
+			LostCount:   source.LostCount,  //输数
+			DrawCount:   source.DrawCount,  //平数
+			Medal:       userAttr.UserMedal,
+			RoomCard:    0, //房卡
+			MemberOrder: 0, //会员等级
+			Score:       source.Score,
+			HeadImgUrl:  userAttr.HeadImgUrl,
+			Star:        userAttr.Star,
+			Sign:        userAttr.Sign,
+			PhomeNumber: "",
+		}
 	}
 
 	player.WriteMsg(retmsg)
-	player.SendActivityInfo()
 }
 
 func (m *UserModule) UserOffline() {
@@ -825,7 +851,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *accou
 	retMsg.Experience = user.Experience
 	retMsg.LoveLiness = user.LoveLiness
 	retMsg.NickName = user.NickName
-
 	//用户成绩
 	//retMsg.UserScore = user.Score
 	retMsg.UserInsure = user.InsureScore
@@ -976,9 +1001,10 @@ func (m *UserModule) Recharge(args []interface{}) {
 				code = 2
 				break
 			}
+
 			goods, ok = base.GoodsCache.Get(v.GoodsId)
 			if !ok {
-				log.Error("at Recharge error")
+				log.Error("at Recharge error :GoodsId%d", v.GoodsId)
 				code = 3
 				break
 			}
@@ -995,12 +1021,16 @@ func (m *UserModule) Recharge(args []interface{}) {
 			break
 		}
 
+		if code == 2 {
+			continue
+		}
+
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
-			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
+			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
 			recharge := datalog.RechargeLog{}
 			recharge.AddRechargeLogInfo(v.OnLineId, v.PayAmount, v.UserId, v.PayType, v.GoodsId)
 		}
@@ -1085,6 +1115,10 @@ func (m *UserModule) SetPhoneNumber(args []interface{}) {
 	if info.MaskCode != recvMsg.MaskCode {
 		retMsg.Code = ErrMaskCodeError
 		return
+	}
+
+	if !player.HasTimes(common.ActivityBindPhome) {
+		player.SetTimes(common.ActivityBindPhome, 0)
 	}
 
 	model.UserMaskCodeOp.Delete(player.Id)
@@ -1227,15 +1261,16 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		player.WriteMsg(&msg.L2C_ReqBindMaskCodeRsp{Code: retCode})
 	}()
 
-	if player.MacKCodeTime != nil {
-		if time.Now().After(*player.MacKCodeTime) {
+	now := time.Now().Unix()
+	if player.MacKCodeTime != 0 {
+		if player.MacKCodeTime > now {
 			retCode = ErrFrequentAccess
 			return
 		}
 	}
 	code, _ := utils.RandInt(100000, 1000000)
-	now := time.Now()
-	player.MacKCodeTime = &now
+
+	player.MacKCodeTime = now + 60
 
 	err := model.UserMaskCodeOp.InsertUpdate(&model.UserMaskCode{UserId: player.Id, PhomeNumber: recvMsg.PhoneNumber, MaskCode: code}, map[string]interface{}{
 		"mask_code":    code,

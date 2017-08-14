@@ -857,7 +857,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	}
 
 	if room.UserAction[wCurrentUser] != WIK_NULL {
-		room.SendOperateNotify(u, room.ProvideCard)
+		room.GetDataMgr().SendOperateNotify(u, room.ProvideCard)
 	}
 	return 0
 }
@@ -1042,7 +1042,7 @@ func (room *RoomData) OnUserReplaceCard(u *user.User, CardData int) bool {
 	room.ProvideGangUser = INVALID_CHAIR
 
 	//派发扑克
-	room.DispatchCardData(u.ChairId, true)
+	room.GetDataMgr().DispatchCardData(u.ChairId, true)
 	room.GetDataMgr().SendReplaceCard(u.ChairId, CardData, room.SendCardData, false)
 
 	log.Debug("[用户补花结束] 用户：%d,花牌：%x 新牌：%x", u.ChairId, CardData, room.SendCardData)

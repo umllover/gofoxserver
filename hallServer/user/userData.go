@@ -34,7 +34,7 @@ type User struct {
 	WeekTimes map[int]int64 //周次数
 
 	//非入库字段
-	MacKCodeTime *time.Time
+	MacKCodeTime int64
 	Id           int64
 	sync.RWMutex
 }

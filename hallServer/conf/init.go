@@ -87,7 +87,7 @@ type DBConfig struct{}
 
 func (c *DBConfig) GetAccoutDSN() string {
 	s := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		Server.AccountDbUsername, Server.AccountDbPassword, Server.AccountDbHost, Server.AccountDbPort, Server.AccountDbName, "parseTime=true&interpolateParams=true")
+		Server.AccountDbUsername, Server.AccountDbPassword, Server.AccountDbHost, Server.AccountDbPort, Server.AccountDbName, "parseTime=true&interpolateParams=true&charset=utf8mb4")
 	return s
 }
 

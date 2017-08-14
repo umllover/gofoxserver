@@ -1,7 +1,6 @@
 package account
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -86,7 +85,7 @@ func (op *agentinfoOp) GetByMap(m map[string]interface{}) (*Agentinfo, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

@@ -27,6 +27,10 @@ func (m *UserModule) SetElect(args []interface{}) {
 		"elect_uid": player.ElectUid,
 	})
 
+	if !player.HasTimes(common.ActivitySetSetElect) {
+		player.SetTimes(common.ActivitySetSetElect, 0)
+	}
+
 	AddOfflineHandler(OfflineAddElectId, player.ElectUid, &msg.OfflineAddElectId{TagUserID: player.Id}, true)
 	recommen := recommenLog.RecommendLog{}
 	recommen.AddRecommendLog(player.Id, recvMsg.ElectUid)

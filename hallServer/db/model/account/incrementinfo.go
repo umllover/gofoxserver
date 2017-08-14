@@ -3,7 +3,6 @@ package account
 import (
 	"fmt"
 	"mj/hallServer/db"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -11,28 +10,26 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//accountsmember
+//incrementinfo
 //
 
 // +gen *
-type Accountsmember struct {
-	UserID         int64      `db:"UserID" json:"UserID"`                 // 用户标识
-	MemberOrder    int8       `db:"MemberOrder" json:"MemberOrder"`       // 会员标识
-	UserRight      int        `db:"UserRight" json:"UserRight"`           // 用户权限
-	MemberOverDate *time.Time `db:"MemberOverDate" json:"MemberOverDate"` // 会员期限
+type Incrementinfo struct {
+	IncrementName  string `db:"increment_name" json:"increment_name"`   //
+	IncrementValue int64  `db:"increment_value" json:"increment_value"` //
 }
 
-type accountsmemberOp struct{}
+type incrementinfoOp struct{}
 
-var AccountsmemberOp = &accountsmemberOp{}
-var DefaultAccountsmember = &Accountsmember{}
+var IncrementinfoOp = &incrementinfoOp{}
+var DefaultIncrementinfo = &Incrementinfo{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *accountsmemberOp) Get(UserID int64) (*Accountsmember, bool) {
-	obj := &Accountsmember{}
-	sql := "select * from accountsmember where UserID=? "
+func (op *incrementinfoOp) Get(increment_name string) (*Incrementinfo, bool) {
+	obj := &Incrementinfo{}
+	sql := "select * from incrementinfo where increment_name=? "
 	err := db.AccountDB.Get(obj, sql,
-		UserID,
+		increment_name,
 	)
 
 	if err != nil {
@@ -41,9 +38,9 @@ func (op *accountsmemberOp) Get(UserID int64) (*Accountsmember, bool) {
 	}
 	return obj, true
 }
-func (op *accountsmemberOp) SelectAll() ([]*Accountsmember, error) {
-	objList := []*Accountsmember{}
-	sql := "select * from accountsmember "
+func (op *incrementinfoOp) SelectAll() ([]*Incrementinfo, error) {
+	objList := []*Incrementinfo{}
+	sql := "select * from incrementinfo "
 	err := db.AccountDB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -52,11 +49,11 @@ func (op *accountsmemberOp) SelectAll() ([]*Accountsmember, error) {
 	return objList, nil
 }
 
-func (op *accountsmemberOp) QueryByMap(m map[string]interface{}) ([]*Accountsmember, error) {
-	result := []*Accountsmember{}
+func (op *incrementinfoOp) QueryByMap(m map[string]interface{}) ([]*Incrementinfo, error) {
+	result := []*Incrementinfo{}
 	var params []interface{}
 
-	sql := "select * from accountsmember where 1=1 "
+	sql := "select * from incrementinfo where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -69,7 +66,7 @@ func (op *accountsmemberOp) QueryByMap(m map[string]interface{}) ([]*Accountsmem
 	return result, nil
 }
 
-func (op *accountsmemberOp) GetByMap(m map[string]interface{}) (*Accountsmember, error) {
+func (op *incrementinfoOp) GetByMap(m map[string]interface{}) (*Incrementinfo, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -81,7 +78,7 @@ func (op *accountsmemberOp) GetByMap(m map[string]interface{}) (*Accountsmember,
 }
 
 /*
-func (i *Accountsmember) Insert() error {
+func (i *Incrementinfo) Insert() error {
     err := db.AccountDBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -91,18 +88,16 @@ func (i *Accountsmember) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *accountsmemberOp) Insert(m *Accountsmember) (int64, error) {
+func (op *incrementinfoOp) Insert(m *Incrementinfo) (int64, error) {
 	return op.InsertTx(db.AccountDB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *accountsmemberOp) InsertTx(ext sqlx.Ext, m *Accountsmember) (int64, error) {
-	sql := "insert into accountsmember(UserID,MemberOrder,UserRight,MemberOverDate) values(?,?,?,?)"
+func (op *incrementinfoOp) InsertTx(ext sqlx.Ext, m *Incrementinfo) (int64, error) {
+	sql := "insert into incrementinfo(increment_name,increment_value) values(?,?)"
 	result, err := ext.Exec(sql,
-		m.UserID,
-		m.MemberOrder,
-		m.UserRight,
-		m.MemberOverDate,
+		m.IncrementName,
+		m.IncrementValue,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -113,12 +108,10 @@ func (op *accountsmemberOp) InsertTx(ext sqlx.Ext, m *Accountsmember) (int64, er
 }
 
 //存在就更新， 不存在就插入
-func (op *accountsmemberOp) InsertUpdate(obj *Accountsmember, m map[string]interface{}) error {
-	sql := "insert into accountsmember(UserID,MemberOrder,UserRight,MemberOverDate) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.UserID,
-		obj.MemberOrder,
-		obj.UserRight,
-		obj.MemberOverDate,
+func (op *incrementinfoOp) InsertUpdate(obj *Incrementinfo, m map[string]interface{}) error {
+	sql := "insert into incrementinfo(increment_name,increment_value) values(?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.IncrementName,
+		obj.IncrementValue,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -134,7 +127,7 @@ func (op *accountsmemberOp) InsertUpdate(obj *Accountsmember, m map[string]inter
 }
 
 /*
-func (i *Accountsmember) Update()  error {
+func (i *Incrementinfo) Update()  error {
     _,err := db.AccountDBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -144,18 +137,16 @@ func (i *Accountsmember) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *accountsmemberOp) Update(m *Accountsmember) error {
+func (op *incrementinfoOp) Update(m *Incrementinfo) error {
 	return op.UpdateTx(db.AccountDB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *accountsmemberOp) UpdateTx(ext sqlx.Ext, m *Accountsmember) error {
-	sql := `update accountsmember set MemberOrder=?,UserRight=?,MemberOverDate=? where UserID=?`
+func (op *incrementinfoOp) UpdateTx(ext sqlx.Ext, m *Incrementinfo) error {
+	sql := `update incrementinfo set increment_value=? where increment_name=?`
 	_, err := ext.Exec(sql,
-		m.MemberOrder,
-		m.UserRight,
-		m.MemberOverDate,
-		m.UserID,
+		m.IncrementValue,
+		m.IncrementName,
 	)
 
 	if err != nil {
@@ -167,14 +158,14 @@ func (op *accountsmemberOp) UpdateTx(ext sqlx.Ext, m *Accountsmember) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMap(UserID int64, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.AccountDB, UserID, m)
+func (op *incrementinfoOp) UpdateWithMap(increment_name string, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.AccountDB, increment_name, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[string]interface{}) error {
+func (op *incrementinfoOp) UpdateWithMapTx(ext sqlx.Ext, increment_name string, m map[string]interface{}) error {
 
-	sql := `update accountsmember set %s where 1=1 and UserID=? ;`
+	sql := `update incrementinfo set %s where 1=1 and increment_name=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -185,39 +176,39 @@ func (op *accountsmemberOp) UpdateWithMapTx(ext sqlx.Ext, UserID int64, m map[st
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, UserID)
+	params = append(params, increment_name)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *Accountsmember) Delete() error{
+func (i *Incrementinfo) Delete() error{
     _,err := db.AccountDBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *accountsmemberOp) Delete(UserID int64) error {
-	return op.DeleteTx(db.AccountDB, UserID)
+func (op *incrementinfoOp) Delete(increment_name string) error {
+	return op.DeleteTx(db.AccountDB, increment_name)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *accountsmemberOp) DeleteTx(ext sqlx.Ext, UserID int64) error {
-	sql := `delete from accountsmember where 1=1
-        and UserID=?
+func (op *incrementinfoOp) DeleteTx(ext sqlx.Ext, increment_name string) error {
+	sql := `delete from incrementinfo where 1=1
+        and increment_name=?
         `
 	_, err := ext.Exec(sql,
-		UserID,
+		increment_name,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *accountsmemberOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *incrementinfoOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from accountsmember where 1=1 `
+	sql := `select count(*) from incrementinfo where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -231,13 +222,13 @@ func (op *accountsmemberOp) CountByMap(m map[string]interface{}) (int64, error) 
 	return count, nil
 }
 
-func (op *accountsmemberOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *incrementinfoOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.AccountDB, m)
 }
 
-func (op *accountsmemberOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *incrementinfoOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from accountsmember where 1=1 "
+	sql := "delete from incrementinfo where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)

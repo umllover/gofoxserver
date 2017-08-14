@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"errors"
 	"fmt"
 	"mj/hallServer/db"
 	"time"
@@ -77,7 +76,7 @@ func (op *recommendLogOp) GetByMap(m map[string]interface{}) (*RecommendLog, err
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

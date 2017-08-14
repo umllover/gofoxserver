@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 	"time"
@@ -78,7 +77,7 @@ func (op *activityOp) GetByMap(m map[string]interface{}) (*Activity, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*

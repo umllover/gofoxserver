@@ -1,7 +1,6 @@
 package model
 
 import (
-	"errors"
 	"fmt"
 	"mj/gameServer/db"
 
@@ -92,7 +91,7 @@ func (op *userattrOp) GetByMap(m map[string]interface{}) (*Userattr, error) {
 	if len(lst) > 0 {
 		return lst[0], nil
 	}
-	return nil, errors.New("no row in result")
+	return nil, nil
 }
 
 /*
