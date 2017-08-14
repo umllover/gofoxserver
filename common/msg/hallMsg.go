@@ -357,3 +357,8 @@ type L2C_RechangerOk struct {
 	Code int //非0位失败
 	Gold int //当前的钱
 }
+
+// GM发的实时公告
+type L2C_GMNotice struct {
+	Context string // 公告内容
+}

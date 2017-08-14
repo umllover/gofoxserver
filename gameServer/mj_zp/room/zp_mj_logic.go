@@ -346,10 +346,10 @@ func (lg *ZP_Logic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveIte
 	cbWeaveCount := len(WeaveItem)
 	gangCardResult.CardData = make([]int, lg.GetCfg().MaxWeave)
 	//手上杠牌
-	for i := 0; i < lg.GetCfg().MaxIdx; i++ {
+	for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
 		if cbCardIndex[i] == 4 {
 			cbActionMask |= WIK_GANG
-			gangCardResult.CardData = append(gangCardResult.CardData, lg.SwitchToCard(i))
+			gangCardResult.CardData[gangCardResult.CardCount] = lg.SwitchToCard(i)
 			gangCardResult.CardCount++
 		}
 	}

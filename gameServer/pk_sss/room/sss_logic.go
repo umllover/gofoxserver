@@ -9,46 +9,43 @@ import (
 
 // 十三水逻辑
 const (
-	CT_INVALID                     = iota //错误类型
-	CT_SINGLE                             //单牌类型
-	CT_ONE_DOUBLE                         //只有一对
-	CT_FIVE_TWO_DOUBLE                    //两对牌型
-	CT_THREE                              //三张牌型
-	CT_FIVE_MIXED_FLUSH_NO_A              //没A杂顺
-	CT_FIVE_MIXED_FLUSH_FIRST_A           //A在前顺子
-	CT_FIVE_MIXED_FLUSH_BACK_A            //A在后顺子
-	CT_FIVE_FLUSH                         //同花五牌
-	CT_FIVE_THREE_DEOUBLE                 //三条一对
-	CT_FIVE_FOUR_ONE                      //四带一张
-	CT_FIVE_STRAIGHT_FLUSH_NO_A           //没A同花顺
-	CT_FIVE_STRAIGHT_FLUSH_FIRST_A        //A在前同花顺
-	CT_FIVE_STRAIGHT_FLUSH_BACK_A         //A在后同花顺
+	CT_INVALID             = iota //错误类型
+	CT_SINGLE                     //散牌
+	CT_ONE_DOUBLE                 //对子
+	CT_FIVE_TWO_DOUBLE            //两对
+	CT_THREE                      //三条
+	CT_FIVE_STRAIGHT              //顺子
+	CT_FIVE_FLUSH                 //同花
+	CT_FIVE_THREE_DEOUBLE         //葫芦
+	CT_FIVE_FOUR_ONE              //铁支
+	CT_FIVE_STRAIGHT_FLUSH        //同花顺
+	CT_FIVE_SAME                  //五同
 )
 
 //特殊牌型
 const (
-	CT_THIRTEEN_FLUSH      = 26 //同花十三水
-	CT_THIRTEEN            = 25 //十三水
+	CT_THIRTEEN_FLUSH      = 26 //至尊清龙
+	CT_THIRTEEN            = 25 //一条龙
 	CT_TWELVE_KING         = 24 //十二皇族
 	CT_THREE_STRAIGHTFLUSH = 23 //三同花顺
-	CT_THREE_BOMB          = 22 //三炸弹
+	CT_THREE_BOMB          = 22 //三分天下
 	CT_ALL_BIG             = 21 //全大
 	CT_ALL_SMALL           = 20 //全小
 	CT_SAME_COLOR          = 19 //凑一色
-	CT_FOUR_THREESAME      = 18 //四套冲三
+	CT_FOUR_THREESAME      = 18 //四套三条
 	CT_FIVEPAIR_THREE      = 17 //五对冲三
 	CT_SIXPAIR             = 16 //六对半
 	CT_THREE_FLUSH         = 15 //三同花
 	CT_THREE_STRAIGHT      = 14 //三顺子
 
-	LX_ONEPARE       = 13 //一对
-	LX_TWOPARE       = 14 //两对
-	LX_THREESAME     = 15 //三条
-	LX_STRAIGHT      = 16 //顺子
-	LX_FLUSH         = 17 //同花
-	LX_GOURD         = 18 //葫芦
-	LX_FOURSAME      = 19 //铁支
-	LX_STRAIGHTFLUSH = 20 //同花顺
+	// LX_ONEPARE       = 13 //一对
+	// LX_TWOPARE       = 14 //两对
+	// LX_THREESAME     = 15 //三条
+	// LX_STRAIGHT      = 16 //顺子
+	// LX_FLUSH         = 17 //同花
+	// LX_GOURD         = 18 //葫芦
+	// LX_FOURSAME      = 19 //铁支
+	// LX_STRAIGHTFLUSH = 20 //同花顺
 )
 
 //数值掩码
@@ -58,6 +55,8 @@ const (
 )
 
 type TagAnalyseItem struct {
+	cardData    []int //排序后的牌数据
+	laiZi       []int //癞子
 	bOneCount   int   //单张数目
 	bTwoCount   int   //两张数目
 	bThreeCount int   //三张数目
@@ -67,42 +66,47 @@ type TagAnalyseItem struct {
 	bTwoFirst   []int //对牌位置
 	bThreeFirst []int //三条位置
 	bFourFirst  []int //四张位置
-	bStraight   bool  //是否顺子
+	bFiveFirst  []int //五张位置
+	bstraight   bool  //是否顺子
+	bflush      bool  //是否同花
 }
 
-type tagAnalyseType struct {
-}
+// type tagAnalyseType struct {
+// }
 
-//分析结构
-type tagAnalyseData struct {
-	bOneCount   int   //单张数目
-	bTwoCount   int   //两张数目
-	bThreeCount int   //三张数目
-	bFourCount  int   //四张数目
-	bFiveCount  int   //五张数目
-	bOneFirst   []int //单牌位置
-	bTwoFirst   []int //对牌位置
-	bThreeFirst []int //三条位置
-	bFourFirst  []int //四张位置
-	bStraight   bool  //是否顺子
-}
+// //分析结构
+// type tagAnalyseData struct {
+// 	bOneCount   int   //单张数目
+// 	bTwoCount   int   //两张数目
+// 	bThreeCount int   //三张数目
+// 	bFourCount  int   //四张数目
+// 	bFiveCount  int   //五张数目
+// 	bOneFirst   []int //单牌位置
+// 	bTwoFirst   []int //对牌位置
+// 	bThreeFirst []int //三条位置
+// 	bFourFirst  []int //四张位置
+// 	bflush   bool  //是否顺子
+// }
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
-	l.BtCardSpecialData = make([]int, 13)
+	//l.BtCardSpecialData = make([]int, 13)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
+	l.LaiZhiSubstitute = 0xFF
 	return l
 }
 
 type sss_logic struct {
 	*pk_base.BaseLogic
-	BtCardSpecialData []int
+	//BtCardSpecialData []int
+	//UniversalCards []int //万能牌
+	LaiZhiSubstitute int
 }
 
 func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
 
 	//混乱准备
-	cbBufferCount := int(len(cbCardBuffer))
+	cbBufferCount := len(cbCardBuffer)
 	cbCardDataTemp := make([]int, cbBufferCount)
 	util.DeepCopy(&cbCardDataTemp, &OriDataArray)
 
@@ -188,6 +192,9 @@ func (lg *sss_logic) SSSSortCardList(cardData []int) {
 func (lg *sss_logic) GetCardLogicValue(cardData int) int {
 	//扑克属性
 	cardValue := lg.GetCardValue(cardData)
+	if cardValue == 14 || cardValue == 15 {
+		return 15
+	}
 	//转换数值
 	if cardValue == 1 {
 		cardValue += 13
@@ -202,9 +209,22 @@ func (lg *sss_logic) GetCardColor(bCardData int) int { return (bCardData & LOGIC
 
 //分析牌
 func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
-	cardCount := len(metaCardData)
-	cardData := make([]int, cardCount)
-	copy(cardData, metaCardData)
+
+	//cardData := make([]int, cardCount)
+	//copy(cardData, metaCardData)
+
+	cardData := []int{}
+	laiZi := []int{}
+
+	for _, v := range metaCardData {
+		if v != lg.LaiZhiSubstitute {
+			cardData = append(cardData, v)
+		} else {
+			laiZi = append(laiZi, v)
+		}
+	}
+
+	cardCount := len(cardData)
 
 	lg.SSSSortCardList(cardData)
 
@@ -218,6 +238,8 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 	bCardColor := lg.GetCardColor(cardData[0])
 
 	analyseItem := &TagAnalyseItem{bOneFirst: make([]int, 13), bTwoFirst: make([]int, 13), bThreeFirst: make([]int, 13), bFourFirst: make([]int, 13)}
+	analyseItem.cardData = cardData
+	analyseItem.laiZi = laiZi
 	//扑克分析
 	for i := 1; i < cardCount; i++ {
 		//获取扑克
@@ -238,6 +260,9 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 			case 4:
 				analyseItem.bFourFirst[analyseItem.bFourCount] = bFirstCardIndex
 				analyseItem.bFourCount++
+			case 5:
+				analyseItem.bFiveFirst[analyseItem.bFiveCount] = bFirstCardIndex
+				analyseItem.bFiveCount++
 			}
 		}
 
@@ -270,837 +295,344 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 	}
 
 	if cardCount == bSameColorCount {
-		analyseItem.bStraight = true
+		analyseItem.bflush = true
 	} else {
-		analyseItem.bStraight = false
+		analyseItem.bflush = false
 	}
 	return analyseItem
 
 }
 
 func (lg *sss_logic) GetCardType(metaCardData []int) int {
+	return 0
+}
 
-	cardCount := len(metaCardData)
-
-	if cardCount != 3 && cardCount != 5 && cardCount != 13 {
-		return CT_INVALID
+func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
+	metaCount := len(metaCardData)
+	if metaCount != 3 && metaCount != 5 && metaCount != 13 {
+		return CT_INVALID, new(TagAnalyseItem)
 	}
 
-	cardData := make([]int, cardCount)
+	cardData := make([]int, metaCount)
 	copy(cardData, metaCardData)
+
 	lg.SSSSortCardList(cardData)
 
 	TagAnalyseItemArray := new(TagAnalyseItem)
 	TagAnalyseItemArray = lg.AnalyseCard(cardData)
 
 	//开始分析
-	switch cardCount {
+	switch metaCount {
 	case 3: //三条类型
-		//单牌类型
-		if TagAnalyseItemArray.bOneCount == 3 {
-			return CT_SINGLE
-		}
-		//对带一张
-		if TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 1 {
-			return CT_ONE_DOUBLE
-		}
-		//三张牌型
-		if TagAnalyseItemArray.bThreeCount == 1 {
-			return CT_THREE
-		}
-		//错误类型
-		return CT_INVALID
-	case 5: //五张牌型
-		bFlushNoA := false
-		bFlushFirstA := false
-		bFlushBackA := false
-		//A连在后
-		if lg.GetCardLogicValue(cardData[0]) == 14 && lg.GetCardLogicValue(cardData[4]) == 10 {
-			bFlushBackA = true
-		} else {
-			bFlushNoA = true
-		}
-		for i := 0; i < 4; i++ {
-			if lg.GetCardLogicValue(cardData[i])-lg.GetCardLogicValue(cardData[i+1]) != 1 {
-				bFlushBackA = false
-				bFlushNoA = false
+		switch len(TagAnalyseItemArray.laiZi) {
+		// case 3:
+		// 	cardData = []int{0x31, 0x31, 0x31}
+		// 	return lg.SSSGetCardType(cardData)
+		case 2:
+			cardData = []int{cardData[0], cardData[0], cardData[0]}
+			return lg.SSSGetCardType(cardData)
+		case 1:
+			if TagAnalyseItemArray.bTwoCount == 1 {
+				cardData = []int{cardData[0], cardData[0], cardData[0]}
+				return lg.SSSGetCardType(cardData)
+			}
+			if TagAnalyseItemArray.bOneCount == 2 {
+				cardData = []int{cardData[0], cardData[0], cardData[1]}
+				return lg.SSSGetCardType(cardData)
 			}
 		}
-		//A连在前
-		if false == bFlushBackA && false == bFlushNoA && 14 == lg.GetCardLogicValue(cardData[0]) {
-			bFlushFirstA = true
-			for i := 1; i < 4; i++ {
-				if 1 != lg.GetCardLogicValue(cardData[i])-lg.GetCardLogicValue(cardData[i+1]) {
-					bFlushFirstA = false
+
+		//散牌
+		if TagAnalyseItemArray.bOneCount == 3 {
+			return CT_SINGLE, TagAnalyseItemArray
+		}
+		//对子
+		if TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 1 {
+			return CT_ONE_DOUBLE, TagAnalyseItemArray
+		}
+		//三条
+		if TagAnalyseItemArray.bThreeCount == 1 {
+			return CT_THREE, TagAnalyseItemArray
+		}
+		//错误类型
+		return CT_INVALID, TagAnalyseItemArray
+	case 5: //五张牌型
+		switch len(TagAnalyseItemArray.laiZi) {
+		// case 5: //最大五同
+		// 	cardData = []int{0x31, 0x31, 0x31, 0x31, 0x31}
+		// 	return lg.SSSGetCardType(cardData)
+		case 4: //五同
+			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
+			return lg.SSSGetCardType(cardData)
+		case 3:
+			//五同
+			if TagAnalyseItemArray.bTwoCount == 1 {
+				cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
+				return lg.SSSGetCardType(cardData)
+			}
+			//同花顺
+			if TagAnalyseItemArray.bflush {
+				a := lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[0]]) - lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[1]])
+				if a > 0 && a < 5 {
+					if lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[1]]) > 9 {
+						color := lg.GetCardColor(cardData[TagAnalyseItemArray.bOneFirst[1]])
+						tempCardData := color<<4 + 10
+						cardData = []int{tempCardData - 9, tempCardData, tempCardData + 1, tempCardData + 2, tempCardData + 3}
+					} else {
+						cardData = []int{cardData[1], cardData[1] + 1, cardData[1] + 2, cardData[1] + 3, cardData[1] + 4}
+					}
+					return lg.SSSGetCardType(cardData)
+				}
+				a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[1]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
+				if a > 0 && a < 5 {
+					cardData = []int{cardData[1], cardData[1] - 1, cardData[1] - 2, cardData[1] - 3, cardData[1] - 4}
+					return lg.SSSGetCardType(cardData)
 				}
 			}
-			if lg.GetCardLogicValue(cardData[4]) != 2 {
-				bFlushFirstA = false
+			//铁支
+			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[1]}
+			return lg.SSSGetCardType(cardData)
+		case 2:
+			//五同
+			if TagAnalyseItemArray.bThreeCount == 1 {
+				cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
+				return lg.SSSGetCardType(cardData)
 			}
+			if TagAnalyseItemArray.bOneCount == 3 {
+				if TagAnalyseItemArray.bflush {
+					//同花顺
+					a := lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[0]]) - lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[2]])
+					if a > 0 && a < 5 {
+						if lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[2]]) > 9 {
+							color := lg.GetCardColor(cardData[TagAnalyseItemArray.bOneFirst[2]])
+							tempCardData := color<<4 + 10
+							cardData = []int{tempCardData - 9, tempCardData, tempCardData + 1, tempCardData + 2, tempCardData + 3}
+						} else {
+							cardData = []int{cardData[2], cardData[2] + 1, cardData[2] + 2, cardData[2] + 3, cardData[2] + 4}
+						}
+						return lg.SSSGetCardType(cardData)
+					}
+					a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[2]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
+					if a > 0 && a < 5 {
+						cardData = []int{cardData[2], cardData[2] - 1, cardData[2] - 2, cardData[2] - 3, cardData[2] - 4}
+						return lg.SSSGetCardType(cardData)
+					}
+					//同花
+					cardData = []int{cardData[0], cardData[0], cardData[0], cardData[1], cardData[2]}
+					return lg.SSSGetCardType(cardData)
+				}
+
+				//顺子
+				a := lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[0]]) - lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[2]])
+				if a > 0 && a < 5 {
+					if lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[2]]) > 9 {
+						cardData = []int{0<<4 + 1, 1<<4 + 10, 2<<4 + 11, 3<<4 + 12, 0<<4 + 13}
+					} else {
+						tv := lg.GetCardLogicValue(cardData[2])
+						cardData = []int{cardData[2], 0<<4 + tv + 1, 1<<4 + tv + 2, 2<<4 + tv + 3, 3<<4 + tv + 4}
+					}
+					return lg.SSSGetCardType(cardData)
+				}
+				a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[2]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
+				if a > 0 && a < 5 {
+					tv := lg.GetCardLogicValue(cardData[2])
+					cardData = []int{cardData[2], 0<<4 + tv - 1, 1<<4 + tv - 2, 2<<4 + tv - 3, 3<<4 + tv - 4}
+					return lg.SSSGetCardType(cardData)
+				}
+
+				//三条
+				cardData = []int{cardData[0], cardData[0], cardData[0], cardData[1], cardData[2]}
+				return lg.SSSGetCardType(cardData)
+			}
+			//铁支
+			if TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 1 {
+				tempCardData := cardData[TagAnalyseItemArray.bTwoFirst[0]]
+				cardData = []int{tempCardData, tempCardData, tempCardData, tempCardData, cardData[TagAnalyseItemArray.bOneFirst[0]]}
+				return lg.SSSGetCardType(cardData)
+			}
+
+		case 1:
+			//五同
+			if TagAnalyseItemArray.bFourCount == 1 {
+				cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
+				return lg.SSSGetCardType(cardData)
+			}
+			//铁支
+			if TagAnalyseItemArray.bThreeCount == 1 {
+				tempCardData := cardData[TagAnalyseItemArray.bThreeFirst[0]]
+				cardData = []int{tempCardData, tempCardData, tempCardData, tempCardData, cardData[TagAnalyseItemArray.bOneFirst[0]]}
+				return lg.SSSGetCardType(cardData)
+			}
+			//葫芦
+			if TagAnalyseItemArray.bTwoCount == 2 {
+				tempCardData := cardData[TagAnalyseItemArray.bTwoFirst[0]]
+				cardData = []int{tempCardData, tempCardData, tempCardData, cardData[TagAnalyseItemArray.bTwoFirst[1]], cardData[TagAnalyseItemArray.bTwoFirst[1]]}
+				return lg.SSSGetCardType(cardData)
+			}
+
+			if TagAnalyseItemArray.bOneCount == 4 {
+				//同花顺
+				if TagAnalyseItemArray.bflush {
+					a := lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[0]]) - lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[3]])
+					if a > 0 && a < 5 {
+						if lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[3]]) > 9 {
+							color := lg.GetCardColor(cardData[TagAnalyseItemArray.bOneFirst[3]])
+							tempCardData := color<<4 + 10
+							cardData = []int{tempCardData - 9, tempCardData, tempCardData + 1, tempCardData + 2, tempCardData + 3}
+						} else {
+							cardData = []int{cardData[3], cardData[3] + 1, cardData[3] + 2, cardData[3] + 3, cardData[3] + 4}
+						}
+						return lg.SSSGetCardType(cardData)
+					}
+					a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[3]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
+					if a > 0 && a < 5 {
+						cardData = []int{cardData[3], cardData[3] - 1, cardData[3] - 2, cardData[3] - 3, cardData[3] - 4}
+						return lg.SSSGetCardType(cardData)
+					}
+					//同花
+					cardData = []int{cardData[0], cardData[0], cardData[1], cardData[2], cardData[3]}
+					return lg.SSSGetCardType(cardData)
+				}
+
+				//顺子
+				a := lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[0]]) - lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[3]])
+				if a > 0 && a < 5 {
+					if lg.GetCardLogicValue(cardData[TagAnalyseItemArray.bOneFirst[3]]) > 9 {
+						cardData = []int{0<<4 + 1, 1<<4 + 10, 2<<4 + 11, 3<<4 + 12, 0<<4 + 13}
+					} else {
+						tv := lg.GetCardLogicValue(cardData[3])
+						cardData = []int{cardData[2], 0<<4 + tv + 1, 1<<4 + tv + 2, 2<<4 + tv + 3, 3<<4 + tv + 4}
+					}
+					return lg.SSSGetCardType(cardData)
+				}
+				a = lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[3]]) - lg.GetCardValue(cardData[TagAnalyseItemArray.bOneFirst[0]])
+				if a > 0 && a < 5 {
+					tv := lg.GetCardLogicValue(cardData[3])
+					cardData = []int{cardData[2], 0<<4 + tv - 1, 1<<4 + tv - 2, 2<<4 + tv - 3, 3<<4 + tv - 4}
+					return lg.SSSGetCardType(cardData)
+				}
+
+				//对子
+				cardData = []int{cardData[TagAnalyseItemArray.bOneFirst[0]], cardData[TagAnalyseItemArray.bOneFirst[0]], cardData[TagAnalyseItemArray.bOneFirst[1]], cardData[TagAnalyseItemArray.bOneFirst[2]], cardData[TagAnalyseItemArray.bOneFirst[3]]}
+				return lg.SSSGetCardType(cardData)
+			}
+
+			//三条
+			if TagAnalyseItemArray.bTwoCount == 1 {
+				tempCardData := cardData[TagAnalyseItemArray.bTwoFirst[0]]
+				cardData = []int{tempCardData, tempCardData, tempCardData, cardData[TagAnalyseItemArray.bOneFirst[0]], cardData[TagAnalyseItemArray.bOneFirst[1]]}
+				return lg.SSSGetCardType(cardData)
+			}
+
 		}
-		//同花五牌
-		if false == bFlushBackA && false == bFlushNoA && false == bFlushFirstA {
-			if true == TagAnalyseItemArray.bStraight {
-				return CT_FIVE_FLUSH
-			}
-		} else if true == bFlushNoA {
-			//杂顺类型
-			if false == TagAnalyseItemArray.bStraight {
-				return CT_FIVE_MIXED_FLUSH_NO_A
-			} else { //同花顺牌
-				return CT_FIVE_STRAIGHT_FLUSH_NO_A
-			}
-		} else if true == bFlushFirstA {
-			//杂顺类型
-			if false == TagAnalyseItemArray.bStraight {
-				return CT_FIVE_MIXED_FLUSH_FIRST_A
-			} else { //同花顺牌
-				return CT_FIVE_STRAIGHT_FLUSH_FIRST_A
-			}
-		} else if true == bFlushBackA {
-			//杂顺类型
-			if false == TagAnalyseItemArray.bStraight {
-				return CT_FIVE_MIXED_FLUSH_BACK_A
-			} else { //同花顺牌
-				return CT_FIVE_STRAIGHT_FLUSH_BACK_A
-			}
+
+		//五同
+		if TagAnalyseItemArray.bFiveCount == 1 {
+			return CT_FIVE_SAME, TagAnalyseItemArray
 		}
-		//四带单张
+
+		//同花顺
+		tempCardData := make([]int, metaCount)
+		copy(tempCardData, cardData)
+		if lg.IsLine(tempCardData, metaCount, true) {
+			return CT_FIVE_STRAIGHT_FLUSH, TagAnalyseItemArray
+		}
+		//铁支
 		if 1 == TagAnalyseItemArray.bFourCount && 1 == TagAnalyseItemArray.bOneCount {
-			return CT_FIVE_FOUR_ONE
+			return CT_FIVE_FOUR_ONE, TagAnalyseItemArray
 		}
-		//三条一对
+		//葫芦
 		if 1 == TagAnalyseItemArray.bThreeCount && 1 == TagAnalyseItemArray.bTwoCount {
-			return CT_FIVE_THREE_DEOUBLE
+			return CT_FIVE_THREE_DEOUBLE, TagAnalyseItemArray
 		}
-		//三条带单
+		//同花
+		if TagAnalyseItemArray.bflush {
+			return CT_FIVE_FLUSH, TagAnalyseItemArray
+		}
+		//顺子
+		tempCardData = make([]int, metaCount)
+		copy(tempCardData, cardData)
+		if lg.IsLine(tempCardData, metaCount, false) {
+			return CT_FIVE_STRAIGHT, TagAnalyseItemArray
+		}
+		//三条
 		if 1 == TagAnalyseItemArray.bThreeCount && 2 == TagAnalyseItemArray.bOneCount {
-			return CT_THREE
+			return CT_THREE, TagAnalyseItemArray
 		}
-		//两对牌型
+		//两对
 		if 2 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bOneCount {
-			return CT_FIVE_TWO_DOUBLE
+			return CT_FIVE_TWO_DOUBLE, TagAnalyseItemArray
 		}
-		//只有一对
+		//对子
 		if 1 == TagAnalyseItemArray.bTwoCount && 3 == TagAnalyseItemArray.bOneCount {
-			return CT_ONE_DOUBLE
+			return CT_ONE_DOUBLE, TagAnalyseItemArray
 		}
-		//单牌类型
-		if 5 == TagAnalyseItemArray.bOneCount && false == TagAnalyseItemArray.bStraight {
-			return CT_SINGLE
+		//散牌
+		if 5 == TagAnalyseItemArray.bOneCount && false == TagAnalyseItemArray.bflush {
+			return CT_SINGLE, TagAnalyseItemArray
 		}
 		//错误类型
-		return CT_INVALID
+		return CT_INVALID, TagAnalyseItemArray
 
 	case 13: //13张特殊牌型
 		//至尊清龙
-		if 13 == TagAnalyseItemArray.bOneCount && true == TagAnalyseItemArray.bStraight {
-			return CT_THIRTEEN_FLUSH
+		if 13 == TagAnalyseItemArray.bOneCount && true == TagAnalyseItemArray.bflush {
+			return CT_THIRTEEN_FLUSH, TagAnalyseItemArray
 		}
 		//一条龙
 		if 13 == TagAnalyseItemArray.bOneCount {
-			return CT_THIRTEEN
+			return CT_THIRTEEN, TagAnalyseItemArray
 		}
 
 		//三同花顺
-		btCardData := make([]int, 13)
+		btCardData := make([]int, metaCount)
 		copy(btCardData, cardData)
-		lg.SSSSortCardList(btCardData)
-		RbtCardData := make([]int, 13)
-		StraightFlush1 := false
-		StraightFlush2 := false
-		StraightFlush3 := false
-		StraightFlush := 1
-		Number := 0
-		Count1 := 0
-		Count2 := 0
-		Count3 := 0
-		FCardData := lg.GetCardLogicValue(btCardData[0])
-		SColor := lg.GetCardColor(btCardData[0])
-		RbtCardData[Number] = btCardData[0]
-		Number++
-
-		for i := 1; i < 13; i++ {
-			if FCardData == lg.GetCardLogicValue(btCardData[i])+1 && SColor == lg.GetCardColor(btCardData[i]) {
-				StraightFlush++
-				FCardData = lg.GetCardLogicValue(btCardData[i])
-				RbtCardData[Number] = btCardData[i]
-				Number++
-			}
-
-			if FCardData != lg.GetCardLogicValue(btCardData[i])+1 && FCardData != lg.GetCardLogicValue(btCardData[i]) {
-				if 3 == StraightFlush {
-					StraightFlush1 = true
-					Count1 = 3
-					lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-					//ZeroMemory(RbtCardData, sizeof(RbtCardData))
-					RbtCardData = make([]int, 13)
-					break
-				}
-
-			}
-
-			if 5 == StraightFlush {
-				StraightFlush1 = true
-				Count1 = 5
-				lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-				//ZeroMemory(RbtCardData, sizeof(RbtCardData))
-				RbtCardData = make([]int, 13)
-				break
-			}
-
-		}
-		if StraightFlush1 {
-			StraightFlush = 1
-			Number = 0
-			FCardData = lg.GetCardLogicValue(btCardData[0])
-			SColor = lg.GetCardColor(btCardData[0])
-			RbtCardData[Number] = btCardData[0]
-			Number++
-			for i := 1; i < 13-Count1; i++ {
-				if FCardData == lg.GetCardLogicValue(btCardData[i])+1 && SColor == lg.GetCardColor(btCardData[i]) {
-					StraightFlush++
-					FCardData = lg.GetCardLogicValue(btCardData[i])
-					RbtCardData[Number] = btCardData[i]
-					Number++
-				}
-				if FCardData != lg.GetCardLogicValue(btCardData[i])+1 && FCardData != lg.GetCardLogicValue(btCardData[i]) {
-					if 3 == StraightFlush {
-						StraightFlush2 = true
-						Count2 = 3
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-						//ZeroMemory(RbtCardData,sizeof(RbtCardData))
-						RbtCardData = make([]int, 13)
-					}
-					break
-				}
-				if 5 == StraightFlush {
-					StraightFlush2 = true
-					Count2 = 5
-					lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1)
-					//ZeroMemory(RbtCardData,sizeof(RbtCardData));
-					RbtCardData = make([]int, 13)
-					break
-				}
-			}
-		}
-		if StraightFlush2 {
-			StraightFlush = 1
-			Number = 0
-			//btCardData = btCardData[Count2:]
-			FCardData = lg.GetCardLogicValue(btCardData[0])
-			SColor = lg.GetCardColor(btCardData[0])
-			RbtCardData[Number] = btCardData[0]
-			Number++
-			for i := 1; i < 13-Count1-Count2; i++ {
-				if FCardData == lg.GetCardLogicValue(btCardData[i])+1 && SColor == lg.GetCardColor(btCardData[i]) {
-					StraightFlush++
-					FCardData = lg.GetCardLogicValue(btCardData[i])
-					RbtCardData[Number] = btCardData[i]
-					Number++
-				}
-				if FCardData != lg.GetCardLogicValue(btCardData[i])+1 && FCardData != lg.GetCardLogicValue(btCardData[i]) {
-					if 3 == StraightFlush {
-						StraightFlush3 = true
-						Count3 = 3
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-						//ZeroMemory(RbtCardData,sizeof(RbtCardData))
-						RbtCardData = make([]int, 13)
-					}
-					break
-				}
-				if 5 == StraightFlush {
-					StraightFlush3 = true
-					Count3 = 5
-					lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1-Count2)
-					//ZeroMemory(RbtCardData,sizeof(RbtCardData));
-					RbtCardData = make([]int, 13)
-					break
-				}
-			}
-		}
-
-		if StraightFlush1 && StraightFlush2 && StraightFlush3 && Count1+Count2+Count3 == 13 {
-			return CT_THREE_STRAIGHTFLUSH
+		if lg.IsAllLine(btCardData, len(btCardData), true) {
+			return CT_THREE_STRAIGHTFLUSH, TagAnalyseItemArray
 		}
 
 		//三分天下
 		if 3 == TagAnalyseItemArray.bFourCount {
-			return CT_THREE_BOMB
+			return CT_THREE_BOMB, TagAnalyseItemArray
 		}
 
 		//四套三条
 		if 4 == TagAnalyseItemArray.bThreeCount {
-			return CT_FOUR_THREESAME
+			return CT_FOUR_THREESAME, TagAnalyseItemArray
 		}
 
 		//六对半
 		if (6 == TagAnalyseItemArray.bTwoCount) || (4 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bFourCount) ||
 			(2 == TagAnalyseItemArray.bTwoCount && 2 == TagAnalyseItemArray.bFourCount) || (3 == TagAnalyseItemArray.bFourCount) {
-			return CT_SIXPAIR
-		}
-
-		//三顺子
-		nCount := 0
-		for nCount < 4 {
-			nCount++
-			Straight1 := false
-			Straight2 := false
-			Straight3 := false
-			Straight := 1
-			Count1 = 0
-			Count2 = 0
-			Count3 = 0
-			Number = 0
-			//RbtCardData = RbtCardData[:0]
-			RbtCardData = make([]int, 13)
-			//util.DeepCopy(&btCardData, &cardData)
-			copy(btCardData, cardData)
-			lg.SSSSortCardList(btCardData)
-			RbtCardData[Number] = btCardData[0]
-			Number++
-			FCardData = lg.GetCardLogicValue(btCardData[0])
-			for i := 1; i < 13; i++ {
-				if FCardData == lg.GetCardLogicValue(btCardData[i])+1 ||
-					(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) ||
-					(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) {
-					Straight++
-					RbtCardData[Number] = btCardData[i]
-					Number++
-					FCardData = lg.GetCardLogicValue(btCardData[i])
-
-				} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-					if 3 == Straight {
-						Straight1 = true
-						Count1 = 3
-						//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-						//copy(btSpecialCard[10:], RbtCardData[:Count1])
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-						RbtCardData[Number] = btCardData[0]
-						break
-					}
-					Straight = 1
-					Number = 0
-					FCardData = lg.GetCardLogicValue(btCardData[i])
-					RbtCardData[Number] = btCardData[i]
-					Number++
-
-				}
-				if nCount == 0 || nCount == 1 {
-					if i == 12 && 3 == Straight {
-						Straight1 = true
-						Count1 = 3
-						//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-						//copy(btSpecialCard[10:], RbtCardData[:Count1])
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-
-					}
-				} else if nCount == 2 || nCount == 3 {
-					if 3 == Straight {
-
-						Straight1 = true
-						Count1 = 3
-						//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-						//copy(btSpecialCard[10:], RbtCardData[:Count1])
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-					}
-				}
-				if 5 == Straight {
-					Straight1 = true
-					Count1 = 5
-					//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-					//copy(btSpecialCard[5:], RbtCardData[:Count1])
-					lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-					//RbtCardData = RbtCardData[:0]
-					RbtCardData = make([]int, 13)
-					break
-
-				}
-			}
-			if Straight1 {
-				Straight = 1
-				Number = 0
-				lg.SSSSortCardList(btCardData)
-				RbtCardData[Number] = btCardData[0]
-				Number++
-				FCardData = lg.GetCardLogicValue(btCardData[0])
-				for i := 1; i < 13-Count1; i++ {
-					if FCardData == lg.GetCardLogicValue(btCardData[i])+1 || (FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) || (FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) {
-						Straight++
-						RbtCardData[Number] = btCardData[i]
-						Number++
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-
-					} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-						if 3 == Straight && Count1 != 3 {
-							Straight2 = true
-							Count2 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count2])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-						Straight = 1
-						Number = 0
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-						RbtCardData[Number] = btCardData[i]
-						Number++
-					}
-					if nCount == 0 || nCount == 2 {
-						if i == 13-Count1-1 && 3 == Straight && Count1 != 3 {
-							Straight2 = true
-							Count2 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count2])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-
-						}
-					} else if nCount == 1 || nCount == 3 {
-						if 3 == Straight && Count1 != 3 {
-							Straight2 = true
-							Count2 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count2])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-
-						}
-					}
-					if 5 == Straight {
-						Straight2 = true
-						Count2 = 5
-						if Count1 == 5 {
-							//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-							//copy(btSpecialCard, RbtCardData[:Count2])
-						} else {
-							//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-							//copy(btSpecialCard[5:], RbtCardData[:Count2])
-						}
-
-						lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-					}
-				}
-			}
-			if Straight2 {
-				Straight = 1
-				Number = 0
-				lg.SSSSortCardList(btCardData)
-				RbtCardData[Number] = btCardData[0]
-				Number++
-				FCardData = lg.GetCardLogicValue(btCardData[0])
-				for i := 1; i < 13-Count1-Count2; i++ {
-					if FCardData == lg.GetCardLogicValue(btCardData[i])+1 || (FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) || (FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) {
-						Straight++
-						RbtCardData[Number] = btCardData[i]
-						Number++
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-					} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-						if 3 == Straight && Count1 != 3 && Count2 != 3 {
-							Straight3 = true
-							Count3 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count3])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-						Straight = 1
-						Number = 0
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-						RbtCardData[Number] = btCardData[i]
-						Number++
-					}
-					if i == 13-Count1-Count2-1 && 3 == Straight && Count1 != 3 && Count2 != 3 {
-						Straight3 = true
-						Count3 = 3
-						//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-						//copy(btSpecialCard[10:], RbtCardData[:Count3])
-						lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-					}
-					if 5 == Straight {
-						Straight3 = true
-						Count3 = 5
-						//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-						//copy(btSpecialCard[:], RbtCardData[:Count3])
-						lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1-Count2)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-					}
-				}
-			}
-			if Straight1 && Straight2 && Straight3 && Count1+Count2+Count3 == 13 {
-				return CT_THREE_STRAIGHT
-			}
-
+			return CT_SIXPAIR, TagAnalyseItemArray
 		}
 
 		//三同花
-		Flush1 := false
-		Flush2 := false
-		Flush3 := false
-		Flush := 1
-		Count1 = 0
-		Count2 = 0
-		Count3 = 0
-		Number = 0
-		RbtCardData = make([]int, 13)
-		//util.DeepCopy(&btCardData, &cardData)
-		btCardData = make([]int, 13)
+		bThree_C := true
+		for i := 0; i < 4; i++ {
+			GetOutNum := lg.GetColorCardNum(cardData, i)
+			if GetOutNum != 0 && GetOutNum != 3 && GetOutNum != 5 && GetOutNum != 8 && GetOutNum != 10 && GetOutNum != 13 {
+				bThree_C = false
+			}
+		}
+		if bThree_C {
+			return CT_THREE_FLUSH, TagAnalyseItemArray
+		}
+
+		//三顺子
 		copy(btCardData, cardData)
-		RbtCardData[Number] = btCardData[0]
-		Number++
-		SColor = lg.GetCardColor(btCardData[0])
-		for i := 1; i < 13; i++ {
-			if SColor == lg.GetCardColor(btCardData[i]) {
-				Flush++
-				RbtCardData[Number] = btCardData[i]
-				Number++
-			}
-			if 3 == Flush && i == 12 {
-				Flush1 = true
-				Count1 = 3
-				//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-				//copy(btSpecialCard[10:], RbtCardData[:Count1])
-				lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-				//RbtCardData = RbtCardData[:0]
-				RbtCardData = make([]int, 13)
-				break
-			}
-			if 5 == Flush {
-				Flush1 = true
-				Count1 = 5
-				//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-				//copy(btSpecialCard[5:], RbtCardData[:Count1])
-				lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-				//RbtCardData = RbtCardData[:0]
-				RbtCardData = make([]int, 13)
-				break
-			}
-		}
-		if Flush1 {
-			Flush = 1
-			Number = 0
-
-			RbtCardData[Number] = btCardData[0]
-			Number++
-			SColor = lg.GetCardColor(btCardData[0])
-			for i := 1; i < 13-Count1; i++ {
-				if SColor == lg.GetCardColor(btCardData[i]) {
-					Flush++
-					RbtCardData[Number] = btCardData[i]
-					Number++
-				}
-				if 3 == Flush && i == 13-Count1-1 && Count1 != 3 {
-					Flush2 = true
-					Count2 = 3
-					//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-					//copy(btSpecialCard[10:], RbtCardData[:Count2])
-					lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-					//RbtCardData = RbtCardData[:0]
-					RbtCardData = make([]int, 13)
-					break
-				}
-				if 5 == Flush {
-					Flush2 = true
-					Count2 = 5
-					if Count1 == 5 {
-						//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-						//copy(btSpecialCard, RbtCardData[:Count1])
-					} else if Count1 == 3 {
-						//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-						//copy(btSpecialCard, RbtCardData[:Count1])
-					}
-
-					lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1)
-					//RbtCardData = RbtCardData[:0]
-					RbtCardData = make([]int, 13)
-					break
-				}
-			}
-		}
-		if Flush2 {
-			Flush = 1
-			Number = 0
-			RbtCardData[Number] = btCardData[0]
-			Number++
-			SColor = lg.GetCardColor(btCardData[0])
-			for i := 1; i < 13-Count1-Count2; i++ {
-				if SColor == lg.GetCardColor(btCardData[i]) {
-					Flush++
-					RbtCardData[Number] = btCardData[i]
-					Number++
-				}
-				if 3 == Flush && i == 13-Count1-Count2-1 && Count1 != 3 && Count2 != 3 {
-					Flush3 = true
-					Count3 = 3
-					//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-					//copy(btSpecialCard[10:], RbtCardData[:Count3])
-					lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-					//RbtCardData = RbtCardData[:0]
-					RbtCardData = make([]int, 13)
-					break
-				}
-				if 5 == Flush {
-					Flush3 = true
-					Count3 = 5
-					//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-					//copy(btSpecialCard, RbtCardData[:Count3])
-					lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1-Count2)
-					//RbtCardData = RbtCardData[:0]
-					RbtCardData = make([]int, 13)
-					break
-				}
-			}
-		}
-		if Flush1 && Flush2 && Flush3 && Count1+Count2+Count3 == 13 {
-			nCount := 0
-			for nCount < 4 {
-				nCount++
-				Straight1 := false
-				Straight2 := false
-				Straight3 := false
-				Straight := 1
-				Count1 = 0
-				Count2 = 0
-				Count3 = 0
-				Number = 0
-				//RbtCardData = RbtCardData[:0]
-				RbtCardData = make([]int, 13)
-				//util.DeepCopy(btCardData, cardData)
-				copy(btCardData, cardData)
-				lg.SSSSortCardList(btCardData)
-				RbtCardData[Number] = btCardData[0]
-				Number++
-				FCardData = lg.GetCardLogicValue(btCardData[0])
-				for i := 1; i < 13; i++ {
-					if FCardData == lg.GetCardLogicValue(btCardData[i])+1 ||
-						(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) ||
-						(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) {
-						Straight++
-						RbtCardData[Number] = btCardData[i]
-						Number++
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-
-					} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-						if 3 == Straight {
-							Straight1 = true
-							Count1 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count1])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-							RbtCardData[Number] = btCardData[0]
-							break
-						}
-						Straight = 1
-						Number = 0
-						FCardData = lg.GetCardLogicValue(btCardData[i])
-						RbtCardData[Number] = btCardData[i]
-						Number++
-
-					}
-					if nCount == 0 || nCount == 1 {
-						if i == 12 && 3 == Straight {
-							Straight1 = true
-							Count1 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count1])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-
-						}
-					} else if nCount == 2 || nCount == 3 {
-						if 3 == Straight {
-
-							Straight1 = true
-							Count1 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count1])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-					}
-					if 5 == Straight {
-						Straight1 = true
-						Count1 = 5
-						//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-						//copy(btSpecialCard[5:], RbtCardData[:Count1])
-						lg.RemoveCard(RbtCardData, 5, btCardData, 13)
-						//RbtCardData = RbtCardData[:0]
-						RbtCardData = make([]int, 13)
-						break
-
-					}
-				}
-				if Straight1 {
-					Straight = 1
-					Number = 0
-					lg.SSSSortCardList(btCardData)
-					RbtCardData[Number] = btCardData[0]
-					Number++
-					FCardData = lg.GetCardLogicValue(btCardData[0])
-					for i := 1; i < 13-Count1; i++ {
-						if FCardData == lg.GetCardLogicValue(btCardData[i])+1 ||
-							(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) ||
-							(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) {
-							Straight++
-							RbtCardData[Number] = btCardData[i]
-							Number++
-							FCardData = lg.GetCardLogicValue(btCardData[i])
-
-						} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-							if 3 == Straight && Count1 != 3 {
-								Straight2 = true
-								Count2 = 3
-								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-								//copy(btSpecialCard[10:], RbtCardData[:Count2])
-								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								//RbtCardData = RbtCardData[:0]
-								RbtCardData = make([]int, 13)
-								break
-							}
-							Straight = 1
-							Number = 0
-							FCardData = lg.GetCardLogicValue(btCardData[i])
-							RbtCardData[Number] = btCardData[i]
-							Number++
-						}
-						if nCount == 0 || nCount == 2 {
-							if i == 13-Count1-1 && 3 == Straight && Count1 != 3 {
-								Straight2 = true
-								Count2 = 3
-								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-								//copy(btSpecialCard[10:], RbtCardData[:Count2])
-								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								//RbtCardData = RbtCardData[:0]
-								RbtCardData = make([]int, 13)
-								break
-
-							}
-						} else if nCount == 1 || nCount == 3 {
-							if 3 == Straight && Count1 != 3 {
-								Straight2 = true
-								Count2 = 3
-								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-								//copy(btSpecialCard[10:], RbtCardData[:Count2])
-								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1)
-								//RbtCardData = RbtCardData[:0]
-								RbtCardData = make([]int, 13)
-								break
-
-							}
-						}
-						if 5 == Straight {
-							Straight2 = true
-							Count2 = 5
-							if Count1 == 5 {
-								//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-								//copy(btSpecialCard, RbtCardData[:Count1])
-							} else {
-								//util.DeepCopy(&btSpecialCard[5], RbtCardData)
-								//copy(btSpecialCard, RbtCardData[:Count1])
-							}
-
-							lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-					}
-				}
-				if Straight2 {
-					Straight = 1
-					Number = 0
-					lg.SSSSortCardList(btCardData)
-					RbtCardData[Number] = btCardData[0]
-					Number++
-					FCardData = lg.GetCardLogicValue(btCardData[0])
-					for i := 1; i < 13-Count1-Count2; i++ {
-						if FCardData == lg.GetCardLogicValue(btCardData[i])+1 ||
-							(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 3) ||
-							(FCardData == 14 && lg.GetCardLogicValue(btCardData[i]) == 5) {
-							Straight++
-							RbtCardData[Number] = btCardData[i]
-							Number++
-							FCardData = lg.GetCardLogicValue(btCardData[i])
-						} else if FCardData != lg.GetCardLogicValue(btCardData[i]) {
-							if 3 == Straight && Count1 != 3 && Count2 != 3 {
-								Straight3 = true
-								Count3 = 3
-								//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-								//copy(btSpecialCard[10:], RbtCardData[:Count3])
-								lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-								//RbtCardData = RbtCardData[:0]
-								RbtCardData = make([]int, 13)
-								break
-							}
-							Straight = 1
-							Number = 0
-							FCardData = lg.GetCardLogicValue(btCardData[i])
-							RbtCardData[Number] = btCardData[i]
-							Number++
-						}
-						if i == 13-Count1-Count2-1 && 3 == Straight && Count1 != 3 && Count2 != 3 {
-							Straight3 = true
-							Count3 = 3
-							//util.DeepCopy(&btSpecialCard[10], RbtCardData)
-							//copy(btSpecialCard[10:], RbtCardData[:Count3])
-							lg.RemoveCard(RbtCardData, 3, btCardData, 13-Count1-Count2)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-						if 5 == Straight {
-							Straight3 = true
-							Count3 = 5
-							//util.DeepCopy(&btSpecialCard[0], RbtCardData)
-							//copy(btSpecialCard, RbtCardData[:Count3])
-							lg.RemoveCard(RbtCardData, 5, btCardData, 13-Count1-Count2)
-							//RbtCardData = RbtCardData[:0]
-							RbtCardData = make([]int, 13)
-							break
-						}
-					}
-				}
-				if Straight1 && Straight2 && Straight3 && Count1+Count2+Count3 == 13 {
-					return CT_THREE_STRAIGHTFLUSH
-				}
-			}
-			return CT_THREE_FLUSH
+		if lg.IsAllLine(btCardData, len(btCardData), false) {
+			return CT_THREE_STRAIGHT, TagAnalyseItemArray
 		}
 
 	}
 
-	return CT_INVALID
+	return CT_INVALID, TagAnalyseItemArray
 }
 
-func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
-	bFirstCount := len(bInFirstList)
-	bNextCount := len(bInNextList)
+func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCardType) int {
+	bFirstCount := len(bInFirstList.Item.cardData)
+	bNextCount := len(bInNextList.Item.cardData)
 
 	if bFirstCount != bNextCount {
 		//todo验证
@@ -1113,17 +645,25 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 	bFirstList := make([]int, bFirstCount)
 	bNextList := make([]int, bNextCount)
 
-	copy(bFirstList, bInFirstList)
-	copy(bNextList, bInNextList)
+	copy(bFirstList, bInFirstList.Item.cardData)
+	copy(bNextList, bInNextList.Item.cardData)
 
 	// lg.SSSSortCardList(bFirstList)
 	// lg.SSSSortCardList(bNextList)
 
-	FirstAnalyseData = lg.AnalyseCard(bFirstList)
-	NextAnalyseData = lg.AnalyseCard(bNextList)
+	// FirstAnalyseData = lg.AnalyseCard(bFirstList)
+	// NextAnalyseData = lg.AnalyseCard(bNextList)
 
-	bNextType := lg.GetCardType(bNextList)
-	bFirstType := lg.GetCardType(bFirstList)
+	FirstAnalyseData = bInFirstList.Item
+	NextAnalyseData = bInNextList.Item
+
+	// bNextType := lg.GetCardType(bNextList)
+	// bFirstType := lg.GetCardType(bFirstList)
+
+	bNextType := bInNextList.CT
+	bFirstType := bInFirstList.CT
+	nextIsLaiZi := bInNextList.isLaiZi
+	firstIsLaiZi := bInFirstList.isLaiZi
 
 	if CT_INVALID == bFirstType || CT_INVALID == bNextType {
 		return -1
@@ -1143,6 +683,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 						}
 					}
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
 			case CT_ONE_DOUBLE: //对带一张
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
@@ -1157,12 +703,24 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
 					return -1
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
 			case CT_THREE: //三张牌型
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
 					return 1
 				}
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
 					return -1
 				}
 				return 0
@@ -1189,6 +747,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 						}
 					}
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
 			case CT_ONE_DOUBLE: //对带三张
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
@@ -1205,6 +769,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 							return -1
 						}
 					}
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
 				}
 				return 0
 			case CT_FIVE_TWO_DOUBLE: //两对牌型
@@ -1224,6 +794,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return 1
 				}
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
 					return -1
 				}
 				return 0
@@ -1246,12 +822,24 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[1]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[1]]) {
 					return -1
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
-			case CT_FIVE_MIXED_FLUSH_NO_A, CT_FIVE_MIXED_FLUSH_FIRST_A, CT_FIVE_MIXED_FLUSH_BACK_A: //没A杂顺 A在前顺子 A在后顺子
+			case CT_FIVE_STRAIGHT: //顺子
 				if lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) {
 					return 1
 				}
 				if lg.GetCardLogicValue(bNextList[0]) < lg.GetCardLogicValue(bFirstList[0]) {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
 					return -1
 				}
 				return 0
@@ -1271,6 +859,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 				if lg.GetCardColor(bNextList[0]) < lg.GetCardColor(bFirstList[0]) {
 					return -1
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
 			case CT_FIVE_THREE_DEOUBLE: //三条一对
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
@@ -1283,6 +877,12 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return 1
 				}
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
 					return -1
 				}
 				return 0
@@ -1300,8 +900,14 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bOneFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bOneFirst[0]]) {
 					return -1
 				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
 				return 0
-			case CT_FIVE_STRAIGHT_FLUSH_NO_A, CT_FIVE_STRAIGHT_FLUSH_FIRST_A, CT_FIVE_STRAIGHT_FLUSH_BACK_A: //没A同花顺 A在前同花顺 A在后同花顺
+			case CT_FIVE_STRAIGHT_FLUSH: //同花顺
 				for i := 0; i < 5; i++ {
 					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
 						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
@@ -1315,6 +921,25 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return 1
 				}
 				if lg.GetCardColor(bNextList[0]) < lg.GetCardColor(bFirstList[0]) {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
+					return -1
+				}
+				return 0
+			case CT_FIVE_SAME: // 五同
+				if lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) {
+					return 1
+				} else {
+					return -1
+				}
+				if nextIsLaiZi == false && firstIsLaiZi == true {
+					return 1
+				}
+				if nextIsLaiZi == true && firstIsLaiZi == false {
 					return -1
 				}
 				return 0
@@ -1334,25 +959,25 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 	if 13 == bFirstCount {
 		if bNextType == bFirstType {
 			switch bFirstType {
-			case CT_THIRTEEN_FLUSH:
-				if lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) {
-					return 1
-				}
-				if lg.GetCardColor(bNextList[0]) < lg.GetCardColor(bFirstList[0]) {
-					return -1
-				}
-				return 0
-			case CT_TWELVE_KING:
-				for i := 0; i < 13; i++ {
-					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
-						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
-							return 1
-						} else {
-							return -1
-						}
-					}
-				}
-				return 0
+			// case CT_THIRTEEN_FLUSH:
+			// 	if lg.GetCardColor(bNextList[0]) > lg.GetCardColor(bFirstList[0]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardColor(bNextList[0]) < lg.GetCardColor(bFirstList[0]) {
+			// 		return -1
+			// 	}
+			// 	return 0
+			// case CT_TWELVE_KING:
+			// 	for i := 0; i < 13; i++ {
+			// 		if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+			// 			if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
+			// 				return 1
+			// 			} else {
+			// 				return -1
+			// 			}
+			// 		}
+			// 	}
+			// 	return 0
 			case CT_THREE_STRAIGHTFLUSH:
 				for i := 0; i < 13; i++ {
 					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
@@ -1362,9 +987,15 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 							return -1
 						}
 					}
+					if lg.GetCardColor(bNextList[i]) != lg.GetCardColor(bFirstList[i]) {
+						if lg.GetCardColor(bNextList[i]) > lg.GetCardColor(bFirstList[i]) {
+							return 1
+						} else {
+							return -1
+						}
+					}
 				}
 				return 0
-				//todo 比花色？
 			case CT_THREE_BOMB:
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) {
 					return 1
@@ -1391,17 +1022,17 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return -1
 				}
 				return 0
-			case CT_ALL_BIG, CT_ALL_SMALL, CT_SAME_COLOR:
-				for i := 0; i < 13; i++ {
-					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
-						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
-							return 1
-						} else {
-							return -1
-						}
-					}
-				}
-				return 0
+			// case CT_ALL_BIG, CT_ALL_SMALL, CT_SAME_COLOR:
+			// 	for i := 0; i < 13; i++ {
+			// 		if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
+			// 			if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
+			// 				return 1
+			// 			} else {
+			// 				return -1
+			// 			}
+			// 		}
+			// 	}
+			// 	return 0
 			case CT_FOUR_THREESAME:
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
 					return 1
@@ -1434,44 +1065,44 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 					return -1
 				}
 				return 0
-			case CT_FIVEPAIR_THREE:
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
-					return -1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
-					return -1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
-					return -1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
-					return -1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
-					return -1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
-					return 1
-				}
-				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
-					return -1
-				}
-				return 0
+			// case CT_FIVEPAIR_THREE:
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
+			// 		return -1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[1]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[1]]) {
+			// 		return -1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[2]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[2]]) {
+			// 		return -1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[3]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[3]]) {
+			// 		return -1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[4]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[4]]) {
+			// 		return -1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+			// 		return 1
+			// 	}
+			// 	if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) < lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
+			// 		return -1
+			// 	}
+			// 	return 0
 			case CT_SIXPAIR:
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
 					return 1
@@ -1552,3 +1183,237 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList []int, bInNextList []int) int {
 }
 
 func (*sss_logic) SortCardList(cardData []int, cardCount int) {}
+
+func (lg *sss_logic) IsAllLine(cbCard []int, cbCount int, bSameColor bool) bool {
+	if cbCount == 0 {
+		return true
+	}
+
+	if cbCount != 3 && cbCount != 5 && cbCount != 8 && cbCount != 10 && cbCount != 13 {
+		return false
+	}
+
+	if cbCount == 3 || cbCount == 5 {
+		return lg.IsLine(cbCard, cbCount, bSameColor)
+	}
+
+	cbTemp := make([]int, 13)
+
+	for i := 0; i < cbCount; i++ {
+		cbTemp[i] = cbCard[i]
+	}
+
+	cbIndex := []int{0, 1, 2, 3, 4}
+
+	for {
+
+		cbCarResult := make([]int, 5)
+		for i := 0; i < 5; i++ {
+			cbCarResult[i] = cbTemp[cbIndex[i]]
+			cbTemp[cbIndex[i]] = 0
+		}
+		lg.SortCardByValue(cbTemp, cbCount)
+
+		if lg.IsLine(cbCarResult, 5, bSameColor) && lg.IsAllLine(cbTemp, cbCount-5, bSameColor) {
+			cbSortCount := 0
+			for i := 0; i < 5; i++ {
+				cbCard[cbSortCount] = cbCarResult[i]
+				cbSortCount++
+			}
+			for i := 0; i < cbCount-5; i++ {
+				cbCard[cbSortCount] = cbTemp[i]
+				cbSortCount++
+			}
+			return true
+		} else {
+			for i := 0; i < cbCount; i++ {
+				cbTemp[i] = cbCard[i]
+			}
+		}
+
+		if cbIndex[4] == (cbCount - 1) {
+			i := 4
+			for ; i > 0; i-- {
+				if (cbIndex[i-1] + 1) != cbIndex[i] {
+					cbNewIndex := cbIndex[i-1]
+					for j := i - 1; j < 5; j++ {
+						cbIndex[j] = cbNewIndex + j - (i - 1) + 1
+					}
+					break
+				}
+			}
+			if i == 0 {
+				break
+			}
+		} else {
+			cbIndex[4]++
+		}
+
+	}
+
+	return false
+}
+
+func (lg *sss_logic) IsLine(cbCard []int, cbCount int, bSameColor bool) bool {
+
+	lg.SortCardByValue(cbCard, cbCount)
+
+	cbBossCount := 0
+	cbFirst := 0xFF
+	cbSecond := 0xFF
+	cbLast := lg.GetCardLogicValue(cbCard[cbCount-1])
+	cbSortCard := make([]int, len(cbCard))
+
+	for i := 0; i < cbCount-1; i++ {
+		if cbCard[i] >= 0x4E {
+			cbBossCount++
+			continue
+		}
+
+		if cbFirst == 0xFF {
+			cbFirst = lg.GetCardLogicValue(cbCard[i])
+		} else if cbSecond == 0xFF {
+			cbSecond = lg.GetCardLogicValue(cbCard[i])
+		}
+
+		if bSameColor && lg.GetCardColor(cbCard[i]) != lg.GetCardColor(cbCard[i+1]) {
+			return false
+		}
+
+		if lg.GetCardLogicValue(cbCard[i]) == lg.GetCardLogicValue(cbCard[i+1]) {
+			return false
+		}
+
+	}
+
+	if cbFirst == 14 && cbSecond < (2+cbCount-1) {
+		cbSortCard[0] = lg.GetCardWithValue(cbCard, cbCount, 14)
+		for i := 2; i < (2 + cbCount - 1); i++ {
+			cbSortCard[i-1] = lg.GetCardWithValue(cbCard, cbCount, i)
+		}
+		for i := 0; i < cbCount; i++ {
+			cbCard[i] = cbSortCard[i]
+		}
+
+		return true
+	}
+
+	if cbFirst-cbLast+1 <= cbCount {
+		if cbFirst < (2 + cbCount - 1) {
+			cbSortCard[0] = lg.GetCardWithValue(cbCard, cbCount, 14)
+			for i := 2; i < (2 + cbCount - 1); i++ {
+				cbSortCard[i-1] = lg.GetCardWithValue(cbCard, cbCount, i)
+			}
+
+		} else if cbLast > 14-cbCount {
+			for i := 0; i < cbCount; i++ {
+				cbSortCard[i] = lg.GetCardWithValue(cbCard, cbCount, 14-i)
+			}
+
+		} else {
+			for i := 0; i < cbCount; i++ {
+				cbSortCard[i] = lg.GetCardWithValue(cbCard, cbCount, cbLast+cbCount-1-i)
+			}
+
+		}
+
+		for i := 0; i < cbCount; i++ {
+			cbCard[i] = cbSortCard[i]
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func (lg *sss_logic) SortCardByValue(cbCard []int, cbCount int) {
+	for i := 0; i < cbCount-1; i++ {
+		for j := i; j < cbCount; j++ {
+			if lg.GetSortValue(cbCard[i]) < lg.GetSortValue(cbCard[j]) {
+				cbTemp := cbCard[i]
+				cbCard[i] = cbCard[j]
+				cbCard[j] = cbTemp
+			}
+		}
+	}
+}
+
+func (lg *sss_logic) GetSortValue(cbCard int) int {
+	if cbCard >= 0x4E {
+		return cbCard
+	}
+	return lg.GetCardLogicValue(cbCard)*4 + lg.GetCardColor(cbCard)
+}
+
+func (lg *sss_logic) GetCardWithValue(cbCard []int, cbCount int, cbValue int) int {
+	cbTemp := 0
+	for i := 0; i < cbCount; i++ {
+		if lg.GetCardLogicValue(cbCard[i]) == cbValue {
+			cbTemp = cbCard[i]
+			cbCard[i] = 0
+			return cbTemp
+		}
+	}
+
+	for i := 0; i < cbCount; i++ {
+		if lg.GetCardLogicValue(cbCard[i]) >= 15 {
+			cbTemp = cbCard[i]
+			cbCard[i] = 0
+			return cbTemp
+		}
+	}
+
+	return cbTemp
+}
+
+func (lg *sss_logic) GetColorCardNum(cbCard []int, cbColor int) int {
+	GetOutNum := 0
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			GetOutNum++
+		}
+	}
+	return GetOutNum
+}
+
+func (lg *sss_logic) GetColorCard(cbCard []int, cbColor int) []int {
+	colorCard := []int{}
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			colorCard = append(colorCard, cbCard[i])
+		}
+	}
+	return colorCard
+}
+
+func (lg *sss_logic) GetUniqueColorCard(cbCard []int, cbColor int) []int {
+	allCards := make([]int, 16)
+	uniqueColorCard := []int{}
+	for i := 0; i < len(cbCard); i++ {
+		if lg.GetCardColor(cbCard[i]) == cbColor {
+			if allCards[lg.GetCardLogicValue(cbCard[i])] == 0 {
+				uniqueColorCard = append(uniqueColorCard, cbCard[i])
+				allCards[lg.GetCardLogicValue(cbCard[i])]++
+			}
+		}
+	}
+	return uniqueColorCard
+}
+
+func (lg *sss_logic) getUnUsedCard(cardData []int, usedCard []int) []int {
+	tempCardData := []int{}
+	for _, v := range cardData {
+		exist := false
+		for _, v1 := range usedCard {
+			if v == v1 {
+				exist = true
+			}
+		}
+		if !exist {
+			tempCardData = append(tempCardData, v)
+		}
+	}
+
+	return tempCardData
+}
