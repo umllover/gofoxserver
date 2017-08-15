@@ -32,9 +32,9 @@ const (
 
 // 定时器 -- for test
 const (
-	TIME_CALL_SCORE = 3000
-	TIME_ADD_SCORE  = 3000
-	TIME_OPEN_CARD  = 3000
+	TIME_CALL_SCORE = 30
+	TIME_ADD_SCORE  = 30
+	TIME_OPEN_CARD  = 30
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, info *msg.L2G_CreatorRoom) *nntb_data_mgr {
@@ -71,10 +71,6 @@ type nntb_data_mgr struct {
 	CallScoreTimer *timer.Timer
 	AddScoreTimer  *timer.Timer
 	OpenCardTimer  *timer.Timer
-}
-
-func (room *nntb_data_mgr) InitRoomOne() {
-
 }
 
 func (room *nntb_data_mgr) SetUserAddScoreTimes(chairId int, addScoreTimes int) {
@@ -132,6 +128,8 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 		userReLoginInfo.UserGameStatus = room.UserGameStatusMap[u.ChairId]
 		userReLoginInfo.CallScoreTimes = room.CallScoreTimesMap[u.ChairId]
 		userReLoginInfo.AddScoreTimes = room.AddScoreTimesMap[u.ChairId]
+		userReLoginInfo.OpenCardData = append(userReLoginInfo.OpenCardData, room.OpenCardMap[u.ChairId].CardData...)
+		userReLoginInfo.OpenCardType = room.OpenCardMap[u.ChairId].CardType
 		StatusPlay.UserReLoginInfos = append(StatusPlay.UserReLoginInfos, userReLoginInfo)
 	})
 
@@ -150,7 +148,7 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 }
 
 func (room *nntb_data_mgr) BeforeStartGame(UserCnt int) {
-	log.Debug("init room")
+	log.Debug("nn init room")
 	room.InitRoom(UserCnt)
 	room.GameStatus = GAME_STATUS_START
 	room.SetAllUserGameStatus(GAME_STATUS_START)
@@ -178,7 +176,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28001 player count %d", UserCnt)
+	log.Debug("nn init room version 28002 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
@@ -382,7 +380,6 @@ func (r *nntb_data_mgr) CallScore(u *user.User, scoreTimes int) {
 }
 
 // 判定是否有人叫分
-
 func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 	for _, s := range r.CallScoreTimesMap {
 		if s > 0 {
@@ -393,7 +390,6 @@ func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 }
 
 // 叫分结束
-
 func (r *nntb_data_mgr) CallScoreEnd() {
 	r.CallScoreTimer.Stop()
 	r.SetAllUserGameStatus(GAME_STATUS_CALL_SCORE)
