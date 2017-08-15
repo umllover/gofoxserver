@@ -168,6 +168,7 @@ type G2C_StatusFree struct {
 	TurnScore       []int   //总积分信息 index 是chairId
 	CollectScore    [][]int //积分信息 index1 是局数 2是chairID
 	PlayerCount     int     //玩家人数
+	PlayCount       int     //已玩局数
 	MaCount         int     //码数
 	CountLimit      int     //局数限制
 	ZhuaHuaCnt      int     //抓花数
