@@ -35,26 +35,13 @@ func NewMJBase(KindId, ServiceId int) *Mj_base {
 
 	mj := new(Mj_base)
 	mj.Entry_base = room_base.NewEntryBase(KindId, ServiceId)
+	mj.OnUserTrusteeCb = mj.OnUserTrustee
 	mj.Temp = Temp
 	return mj
 }
 
 func (r *Mj_base) GetDataMgr() DataManager {
 	return r.DataMgr.(DataManager)
-}
-
-func (r *Mj_base) RegisterBaseFunc() {
-	r.GetChanRPC().Register("Sitdown", r.Sitdown)
-	r.GetChanRPC().Register("UserStandup", r.UserStandup)
-	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
-	r.GetChanRPC().Register("DissumeRoom", r.DissumeRoom)
-	r.GetChanRPC().Register("UserReady", r.UserReady)
-	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
-	r.GetChanRPC().Register("userOffline", r.UserOffline)
-	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
-	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
-	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
-	r.GetChanRPC().Register("RenewalFeesSetInfo", r.RenewalFeesSetInfo)
 }
 
 func (r *Mj_base) Init(cfg *NewMjCtlConfig) {

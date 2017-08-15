@@ -1878,10 +1878,6 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
-	log.Debug("ProvideCard ========= %d , %v", room.ProvideCard, room.IsHua(room.ProvideCard))
-	if room.IsHua(room.ProvideCard) {
-		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
-	}
 
 	room.SendCardData = room.ProvideCard
 	room.LastCatchCardUser = wCurrentUser
@@ -1914,6 +1910,11 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//加牌
 	log.Debug("CardIndex len ============== %d", len(room.CardIndex[wCurrentUser]))
 	room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.ProvideCard)]++
+	log.Debug("ProvideCard ========= %d , %v", room.ProvideCard, room.IsHua(room.ProvideCard))
+	if room.IsHua(room.ProvideCard) {
+		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
+	}
+
 	//room.UserCatchCardCount[wCurrentUser]++;
 
 	if !room.MjBase.UserMgr.IsTrustee(wCurrentUser) {
@@ -1952,22 +1953,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	//}
 
 	if room.SendStatus != BuHua_Send {
-		//构造数据
-		SendCardToMe := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-		SendCardToMe.SendCardUser = wCurrentUser
-		SendCardToMe.CurrentUser = wCurrentUser
-		SendCardToMe.Tail = bTail
-		SendCardToMe.ActionMask = room.UserAction[wCurrentUser]
-		SendCardToMe.CardData = room.ProvideCard
-		u.WriteMsg(SendCardToMe)
-
-		SendCard := &mj_zp_msg.G2C_ZPMJ_SendCard{}
-		SendCard.SendCardUser = wCurrentUser
-		SendCard.CurrentUser = wCurrentUser
-		SendCard.Tail = bTail
-		SendCard.ActionMask = room.UserAction[wCurrentUser]
-		SendCard.CardData = 0
-		room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCard)
+		room.SendCardToCli(u, bTail)
 	}
 
 	//超时定时
@@ -2204,4 +2190,5 @@ func (room *ZP_RoomData) SendCardToCli(u *user.User, bTail bool) {
 	SendCardOther.ActionMask = room.UserAction[room.CurrentUser]
 	SendCardOther.CardData = 0
 	room.MjBase.UserMgr.SendMsgAllNoSelf(u.Id, SendCardOther)
+
 }

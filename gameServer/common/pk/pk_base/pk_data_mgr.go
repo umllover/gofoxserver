@@ -171,6 +171,11 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 func (room *RoomData) InitRoom(UserCnt int) {
 }
 
+func (room *RoomData) InitRoomOne() {
+
+}
+
+
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
 
