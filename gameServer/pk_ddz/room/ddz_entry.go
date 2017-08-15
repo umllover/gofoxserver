@@ -20,12 +20,16 @@ type DDZ_Entry struct {
 	*pk_base.Entry_base
 }
 
+func (room *DDZ_Entry) GetDataMgr() *ddz_data_mgr {
+	return room.DataMgr.(*ddz_data_mgr)
+}
+
 // 叫分(倍数)
 func (room *DDZ_Entry) CallScore(args []interface{}) {
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_CallScore)
 	u := args[1].(*user.User)
 
-	room.DataMgr.CallScore(u, recvMsg.CallScore)
+	room.GetDataMgr().CallScore(u, recvMsg.CallScore)
 	return
 }
 
@@ -36,7 +40,7 @@ func (room *DDZ_Entry) OutCard(args []interface{}) {
 	u := args[1].(*user.User)
 
 	log.Debug("用户%d出牌%v", u.ChairId, recvMsg)
-	room.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
+	room.GetDataMgr().OpenCard(u, recvMsg.CardType, recvMsg.CardData)
 }
 
 // 托管
@@ -44,17 +48,17 @@ func (room *DDZ_Entry) CTrustee(args []interface{}) {
 	recvMsg := args[0].(*pk_ddz_msg.C2G_DDZ_TRUSTEE)
 	u := args[1].(*user.User)
 
-	room.DataMgr.OtherOperation([]interface{}{"Trustee", u, recvMsg})
+	room.GetDataMgr().OtherOperation([]interface{}{"Trustee", u, recvMsg})
 }
 
 // 明牌
 func (r *DDZ_Entry) ShowCard(args []interface{}) {
 	u := args[0].(*user.User)
-	r.DataMgr.OtherOperation([]interface{}{"ShowCard", u})
+	r.GetDataMgr().OtherOperation([]interface{}{"ShowCard", u})
 }
 
 // 放弃出牌
 func (room *DDZ_Entry) PassCard(args []interface{}) {
 	u := args[1].(*user.User)
-	room.DataMgr.OtherOperation([]interface{}{"PassCard", u})
+	room.GetDataMgr().OtherOperation([]interface{}{"PassCard", u})
 }

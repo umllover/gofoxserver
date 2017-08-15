@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"math"
 	"mj/common/msg"
 	"mj/hallServer/common"
@@ -10,6 +9,8 @@ import (
 	"time"
 
 	"mj/hallServer/db/model/base"
+
+	"fmt"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -244,7 +245,8 @@ func (u *User) SendActivityInfo() {
 }
 
 func updateTimes(table_name string, uid int64, k int, v int64) bool {
-	sql := fmt.Sprintf("insert into %s values(%d,%s,%d) on duplicate key update v=%d;", table_name, uid, k, v, v)
+	sql := fmt.Sprintf("insert into %s(user_id,key_id,v) values(%d,%d,%d) on duplicate key update v=%d;", table_name, uid, k, v, v)
+	//_, err := db.DB.Exec("insert into ?(user_id,key_id,v) values(?,?,?) on duplicate key update v=?;", "user_times", uid, k, v, v)
 	_, err := db.DB.Exec(sql)
 	if err != nil {
 		log.Error("at updateTimes error:%s", err.Error())

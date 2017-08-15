@@ -18,6 +18,10 @@ func NewSSSEntry(info *msg.L2G_CreatorRoom) *SSS_Entry {
 	return e
 }
 
+func (r *SSS_Entry) GetDataMgr() *sss_data_mgr {
+	return r.DataMgr.(*sss_data_mgr)
+}
+
 // 十三水摊牌
 func (r *SSS_Entry) ShowSSSCard(args []interface{}) {
 	recvMsg := args[0].(*pk_sss_msg.C2G_SSS_Open_Card)

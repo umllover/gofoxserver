@@ -12,6 +12,7 @@ type DataManager interface {
 	InitRoomOne()                                                             //
 	AfterStartGame()                                                          //开始游戏的善后处理
 	SendPersonalTableTip(*user.User)                                          //发送没开始前的场景信息
+	SendStatusReady(u *user.User)                                             //发送准备
 	SendStatusPlay(u *user.User)                                              //发送开始后的处理
 	NotifySendCard(u *user.User, cbCardData int, bSysOut bool)                //通知发牌
 	EstimateUserRespond(int, int, int) bool                                   //检测能否吃碰杠胡
@@ -31,7 +32,6 @@ type DataManager interface {
 	DismissEnd(Reason int)                                                    //解散结束
 	GetTrusteeOutCard(wChairID int) int                                       //获取托管的牌
 	CanOperatorRoom(uid int64) bool                                           //能否操作房间
-	SendStatusReady(u *user.User)                                             //发送准备
 	GetChaHua(u *user.User, setCount int)                                     //获取插花
 	OnUserReplaceCard(u *user.User, CardData int) bool                        //替换牌
 	OnUserListenCard(u *user.User, bListenCard bool) bool                     //听牌
@@ -45,6 +45,8 @@ type DataManager interface {
 	SendCardToCli(u *user.User, bTail bool)                                   //发送扑克消息
 	SendReplaceCard(ReplaceUser, ReplaceCard, NewCard int, IsInitFlower bool) //发送补花消息
 	SendOperateNotify(*user.User, int)                                        //发送吃碰杠胡通知
+	CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool)
+	ResetGameAfterRenewal() //续费重置游戏参数
 
 	GetResumeUser() int
 	GetGangStatus() int

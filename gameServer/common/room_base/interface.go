@@ -48,7 +48,7 @@ type UserManager interface {
 	SetUsetStatus(*user.User, int)
 	ReLogin(*user.User, int)
 	IsAllReady() bool
-	RoomDissume()
+	RoomDissume(cbReason int)
 	SendUserInfoToSelf(*user.User)
 	SendMsgAll(data interface{})
 	SendMsgAllNoSelf(selfid int64, data interface{})
@@ -80,4 +80,21 @@ type BaseManager interface {
 	GetSkeleton() *module.Skeleton
 	AfterFunc(d time.Duration, cb func()) *timer.Timer
 	GetChanRPC() *chanrpc.Server
+}
+
+type BData interface {
+	GetRoomId() int
+	InitRoomOne()
+	ResetGameAfterRenewal()
+	BeforeStartGame(UserCnt int) //开始前的处理
+	StartGameing()               //游戏开始种的处理
+	AfterStartGame()             //开始游戏的善后处理
+	GetUserScore(chairid int) int
+	SendPersonalTableTip(*user.User) //发送没开始前的场景信息
+	SendStatusReady(u *user.User)    //发送准备
+	SendStatusPlay(u *user.User)     //发送开始后的处理
+	GetCreator() int64
+	GetCreatorNodeId() int
+	NormalEnd(Reason int)  //正常结束
+	DismissEnd(Reason int) //解散结束
 }

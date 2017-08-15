@@ -1,29 +1,24 @@
 package internal
 
 import (
+	"mj/hallServer/common"
 	"mj/hallServer/conf"
 	"mj/hallServer/db"
-	"mj/hallServer/http_service"
+	"mj/hallServer/db/model/base"
+	"mj/hallServer/user"
 	"testing"
 
-	"sync"
-
 	lconf "github.com/lovelly/leaf/conf"
+
 	"github.com/lovelly/leaf/log"
 )
 
-var Wg sync.WaitGroup
-
-func TestSendMsgToAll(t *testing.T) {
-	//startTimer(0)
-	//ReciveGMMsg(5, 5, "dfsd")
-	InitRaceMsg()
-	http_service.DefaultHttpHandler.GMNotice(5, 5, "我要测试GM公告")
-	Wg.Wait()
+func TestUserTime(t *testing.T) {
+	player := user.NewUser(110)
+	player.SetTimes(common.ActivityBindPhome, 0)
 }
 
 func init() {
-	Wg.Add(1)
 	conf.Init()
 	lconf.LogLevel = conf.Server.LogLevel
 	lconf.LogPath = conf.Server.LogPath
@@ -37,7 +32,7 @@ func init() {
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
-	log.Debug("数据库初始化完毕")
+	base.LoadBaseData()
 }
 
 func InitLog() {

@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"mj/hallServer/db"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -15,10 +16,10 @@ import (
 
 // +gen *
 type UserMaskCode struct {
-	UserId      int64  `db:"user_id" json:"user_id"`           //
-	PhomeNumber string `db:"phome_number" json:"phome_number"` // 电话号码
-	MaskCode    int    `db:"mask_code" json:"mask_code"`       // 验证按
-	CreatorTime string `db:"creator_time" json:"creator_time"` //
+	UserId      int64      `db:"user_id" json:"user_id"`           //
+	PhomeNumber string     `db:"phome_number" json:"phome_number"` // 电话号码
+	MaskCode    int        `db:"mask_code" json:"mask_code"`       // 验证按
+	CreatorTime *time.Time `db:"creator_time" json:"creator_time"` // 日期
 }
 
 type userMaskCodeOp struct{}

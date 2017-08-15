@@ -95,6 +95,10 @@ func (room *ddz_data_mgr) resetData() {
 	room.ScoreTimes = 0
 }
 
+func (room *ddz_data_mgr) InitRoomOne() {
+
+}
+
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间参数%d", UserCnt)
 	room.RoomData.InitRoom(UserCnt)
@@ -511,10 +515,10 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		}
 		// 如果都未叫，则随机选一个作为地主，并且倍数默认为1
 		if score == 0 {
-			r.BankerUser = util.RandInterval(0, 2)
+			r.BankerUser = r.CurrentUser
 			r.ScoreTimes = 1
 		}
-		r.CurrentUser = r.BankerUser
+
 		r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	}
 
@@ -1041,14 +1045,14 @@ func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
 		r.resetOperateCardTimer(nTime)
 	}
 
-	r.CardTimer = time.AfterFunc(time.Duration(nTime+5)*time.Second, f)
+	r.CardTimer = time.AfterFunc(time.Duration(nTime)*time.Second, f)
 }
 
 // 重置定时器
 func (r *ddz_data_mgr) resetOperateCardTimer(nTime int) {
 	log.Debug("重置定时器时间%d", nTime)
 	if r.CardTimer != nil {
-		r.CardTimer.Reset(time.Duration(nTime+5) * time.Second)
+		r.CardTimer.Reset(time.Duration(nTime) * time.Second)
 	}
 }
 

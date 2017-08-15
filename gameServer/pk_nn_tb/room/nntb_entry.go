@@ -2,8 +2,8 @@ package room
 
 import (
 	"mj/common/msg"
-	"mj/gameServer/common/pk/pk_base"
 	"mj/common/msg/nn_tb_msg"
+	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/user"
 )
 
@@ -18,15 +18,16 @@ type NNTB_Entry struct {
 	*pk_base.Entry_base
 }
 
-
-
+func (room *NNTB_Entry) GetDataMgr() *nntb_data_mgr {
+	return room.DataMgr.(*nntb_data_mgr)
+}
 
 //叫分(倍数)
 func (room *NNTB_Entry) CallScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_CallScore)
 	u := args[1].(*user.User)
 
-	room.DataMgr.CallScore(u, recvMsg.CallScore)
+	room.GetDataMgr().CallScore(u, recvMsg.CallScore)
 	return
 }
 
@@ -35,7 +36,7 @@ func (r *NNTB_Entry) AddScore(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_AddScore)
 	u := args[1].(*user.User)
 
-	r.DataMgr.AddScore(u, recvMsg.Score)
+	r.GetDataMgr().AddScore(u, recvMsg.Score)
 	return
 }
 
@@ -44,7 +45,6 @@ func (r *NNTB_Entry) OpenCard(args []interface{}) {
 	recvMsg := args[0].(*nn_tb_msg.C2G_TBNN_OpenCard)
 	u := args[1].(*user.User)
 
-	r.DataMgr.OpenCard(u, recvMsg.CardType, recvMsg.CardData)
+	r.GetDataMgr().OpenCard(u, recvMsg.CardType, recvMsg.CardData)
 	return
 }
-

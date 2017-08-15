@@ -41,7 +41,7 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("JoinRoomFaild", m.JoinRoomFaild)
 
 	reg.RegisterRpc("Recharge", m.Recharge)
-	reg.RegisterRpc("S2S_RenewalFeeFaild", m.RenewalFeeFaild)
+	reg.RegisterRpc("S2S_RenewalFeeResult", m.RenewalFeeResult)
 	reg.RegisterRpc("S2S_OfflineHandler", m.HandlerOffilneEvent)
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
@@ -1206,24 +1206,43 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 			return
 		}
 	}
-	room.PayCnt += feeTemp.DrawCountLimit
-	room.RenewalCnt++
 
 	cluster.SendMsgToGame(room.NodeID, &msg.S2S_RenewalFee{RoomID: room.RoomID, AddCnt: feeTemp.DrawCountLimit,
 		HallNodeID: conf.Server.NodeId, UserId: player.UserId})
 }
 
-func (m *UserModule) RenewalFeeFaild(args []interface{}) {
-	recvMsg := args[0].(*msg.S2S_RenewalFeeFaild)
+//续费结果
+func (m *UserModule) RenewalFeeResult(args []interface{}) {
+	recvMsg := args[0].(*msg.S2S_RenewalFeeResult)
 	player := m.a.UserData().(*user.User)
+
+	//续费失败返还钱
+	if recvMsg.ResultId != 0 {
 	record := player.GetRecord(recvMsg.RoomId)
 	if record != nil {
 		player.AddCurrency(record.Amount)
 		player.DelRecord(record.RoomId)
 	}
-
-	//TODO 通知玩家续费失败
-	//recvMsg.ResultId
+		//通知客户端玩家续费失败
+		retCode := 0
+		switch recvMsg.ResultId {
+		case 1, 2:
+			retCode = ErrFindRoomError
+		case 3:
+			retCode = ErrRenewalFeeRepeat
+}
+		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode, UserID: player.Id})
+	} else {
+		//成功了
+		info, err := game_list.ChanRPC.TimeOutCall1("GetRoomByRoomId", 5*time.Second, recvMsg.RoomId)
+		if err != nil {
+			log.Error("RenewalFeeResult GetRoomByRoomId fail, RoomId=%d", recvMsg.RoomId)
+			return
+		}
+		room := info.(*msg.RoomInfo)
+		room.PayCnt += recvMsg.AddCount
+		room.RenewalCnt++
+	}
 }
 
 //改名字

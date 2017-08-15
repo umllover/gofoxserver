@@ -63,6 +63,7 @@ type S2S_NsqMsg struct {
 	DstServerName string
 	Args          []byte
 	Err           string
+	PushCnt       int
 }
 
 func handleRequestMsg(recvMsg *S2S_NsqMsg) {

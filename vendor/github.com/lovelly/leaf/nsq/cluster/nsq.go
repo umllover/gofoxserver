@@ -213,7 +213,11 @@ func safePulishg(msg *S2S_NsqMsg) {
 	log.Debug("Cluster OUT ==== err:%v, data:%s, DstServerName:%s", msg.Err, string(msg.Args), msg.DstServerName)
 	err = producer.Publish(msg.DstServerName, data[0])
 	if err != nil {
-		log.Error("Publish msg error : %v ", msg)
+		msg.PushCnt++
+		if msg.PushCnt < 2 {
+			safePulishg(msg)
+		}
+		log.Error("Publish msg error : %v ", string(data[0]))
 	}
 }
 

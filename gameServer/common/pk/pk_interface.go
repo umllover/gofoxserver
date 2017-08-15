@@ -14,6 +14,7 @@ type DataManager interface {
 	BeforeStartGame(UserCnt int)
 	StartGameing()
 	AfterStartGame()
+	ResetGameAfterRenewal()
 
 	// 游戏结束
 	NormalEnd(Reason int)
@@ -32,7 +33,8 @@ type DataManager interface {
 	ShowCard(u *user.User)
 	// 托管
 	OtherOperation(args []interface{})
-
+	GetUserScore(int) int
+	InitRoomOne()
 	//
 	GetCreatorNodeId() int
 	GetCreator() int64

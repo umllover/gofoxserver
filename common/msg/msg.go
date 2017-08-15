@@ -59,6 +59,7 @@ func init() {
 	Processor.Register(&L2C_BeStar{})
 	Processor.Register(&L2C_NotifyElectResult{})
 	Processor.Register(&L2C_RechangerOk{})
+	Processor.Register(&L2C_GMNotice{})
 	//game
 	Processor.Register(&G2C_LogonFinish{})
 	Processor.Register(&G2C_ConfigServer{})
@@ -100,6 +101,7 @@ func init() {
 	Processor.Register(&L2C_TimeSync{})
 	Processor.Register(&C2L_ReConnect{})
 	Processor.Register(&L2C_ReConnectRsp{})
+	Processor.Register(&G2C_RoomDissume{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})

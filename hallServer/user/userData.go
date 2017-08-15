@@ -43,6 +43,9 @@ func NewUser(UserId int64) *User {
 	u := &User{Id: UserId}
 	u.Rooms = make(map[int]*model.CreateRoomInfo)
 	u.Records = make(map[int]*model.TokenRecord)
+	u.Times = make(map[int]int64)     //永久次数
+	u.DayTimes = make(map[int]int64)  //每日次数
+	u.WeekTimes = make(map[int]int64) //周次数
 	return u
 }
 
