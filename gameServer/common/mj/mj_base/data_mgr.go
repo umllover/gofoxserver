@@ -165,7 +165,7 @@ func (room *RoomData) GetRoomId() int {
 	return room.ID
 }
 func (room *RoomData) SendPersonalTableTip(u *user.User) {
-	u.WriteMsg(&msg.G2C_PersonalTableTip{
+	TableTip := &msg.G2C_PersonalTableTip{
 		TableOwnerUserID:  room.CreatorUid,                                               //桌主 I D
 		PlayerCnt:         room.MjBase.UserMgr.GetMaxPlayerCnt(),                         //玩家数量
 		DrawCountLimit:    room.MjBase.TimerMgr.GetMaxPlayCnt(),                          //局数限制
@@ -180,7 +180,8 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
 		LeaveInfo:         room.MjBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
-	})
+	}
+	u.WriteMsg(TableTip)
 }
 
 func (room *RoomData) SendStatusReady(u *user.User) {
