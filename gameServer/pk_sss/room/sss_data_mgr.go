@@ -35,14 +35,13 @@ func init() {
 func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
-	//var setInfo sssOtherInfo
-	//if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+
 	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
 	d.jiaYiSe = info.OtherInfo["jiaYiSe"].(bool)
 	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
 	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
-	//}
-	d.CreateRoom(temp.PlayTurnCount)
+
+	d.InitRoom(temp.PlayTurnCount)
 
 	return d
 }
@@ -101,18 +100,10 @@ func (room *sss_data_mgr) InitRoomOne() {
 
 }
 
-func (room *sss_data_mgr) InitRoom(UserCnt int) {
-	// //初始化
-	// log.Debug("初始化房间")
-	// room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
-	// room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
-	// //room.reSetRoom(UserCnt)
-}
-
-func (room *sss_data_mgr) CreateRoom(maxPlayCount int) {
+func (room *sss_data_mgr) InitRoom(maxPlayCount int) {
 	//初始化
 	log.Debug("初始化房间")
-	room.AllResult = make([][]int, maxPlayCount)
+	room.AllResult = make([][]int, 0, maxPlayCount)
 	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
 	//room.reSetRoom(UserCnt)
 }
@@ -534,7 +525,7 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 	})
 	room.gameEndStatus = gameEnd
 
-	room.AllResult[room.PkBase.TimerMgr.GetPlayCount()-1] = gameEnd.LGameScore
+	room.AllResult = append(room.AllResult, gameEnd.LGameScore)
 	//room.PkBase.TimerMgr.AddPlayCount()
 	//最后一局
 	if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {

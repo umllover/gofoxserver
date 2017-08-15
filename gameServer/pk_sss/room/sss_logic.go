@@ -602,8 +602,10 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		}
 
 		//六对半
-		if (6 == TagAnalyseItemArray.bTwoCount) || (4 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bFourCount) ||
-			(2 == TagAnalyseItemArray.bTwoCount && 2 == TagAnalyseItemArray.bFourCount) || (3 == TagAnalyseItemArray.bFourCount) {
+		if (6 == TagAnalyseItemArray.bTwoCount) ||
+			(4 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bFourCount) ||
+			(2 == TagAnalyseItemArray.bTwoCount && 2 == TagAnalyseItemArray.bFourCount) ||
+			(3 == TagAnalyseItemArray.bFourCount) {
 			return CT_SIXPAIR, TagAnalyseItemArray
 		}
 
