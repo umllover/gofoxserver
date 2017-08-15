@@ -62,6 +62,8 @@ func init() {
 	Processor.Register(&L2C_GMNotice{})
 	Processor.Register(&C2L_GetRoomRecord{})
 	Processor.Register(&L2C_RoomRecord{})
+	Processor.Register(&C2L_GetUserRecords{})
+	Processor.Register(&L2C_GetUserRecords{})
 
 	//game
 	Processor.Register(&G2C_LogonFinish{})

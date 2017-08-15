@@ -28,54 +28,49 @@ type record struct {
 	Start   *StartRecord
 	Playing *PlayingRecord
 	End     *EndRecord
+	KindID  int
 }
 
-type room_record struct {
-	records map[int]*record //key is room id
-}
+var (
+	records = make(map[int]*record) //key is room id
+)
 
-func NewRoomRecord() *room_record {
-	r := new(room_record)
-	return r
-}
-
-var DefaultRoomRecord = NewRoomRecord()
-
-func (r *room_record) HasRoomRecord(roomId int) bool {
-	_, ok := r.records[roomId]
+func HasRoomRecord(roomId int) bool {
+	_, ok := records[roomId]
 	return ok
 }
 
-func (r *room_record) AddRoomRecordInfo(roomId int, info *msg.G2C_PersonalTableTip) {
-	roominfo, ok := r.records[roomId]
+func AddRoomRecordInfo(roomId int, info *msg.G2C_PersonalTableTip) {
+	roominfo, ok := records[roomId]
 	if !ok {
 		roominfo = new(record)
-		r.records[roomId] = roominfo
+		records[roomId] = roominfo
 		roominfo.Start = new(StartRecord)
 		roominfo.Playing = new(PlayingRecord)
 		roominfo.End = new(EndRecord)
 		roominfo.Start.Info = make(map[string]interface{})
+		roominfo.KindID = info.KindID
 	}
 
 	roominfo.Start.Info["G2C_PersonalTableTip"] = info
 }
 
-func (r *room_record) AddStartInfo(roomId int, Users []*msg.G2C_UserEnter) {
-	roominfo, ok := r.records[roomId]
-	if !ok {
+func AddStartInfo(roomId int, Users []*msg.G2C_UserEnter) {
+	roominfo, ok := records[roomId]
+	if ok {
 		roominfo.Start.BeginTime = time.Now().Unix()
 		roominfo.Start.Users = Users
 	}
 }
-func (r *room_record) AddPlayCmd(roomId int, data map[string]interface{}) {
-	roominfo, ok := r.records[roomId]
-	if !ok {
+func AddPlayCmd(roomId int, data map[string]interface{}) {
+	roominfo, ok := records[roomId]
+	if ok {
 		roominfo.Playing.Cmd = append(roominfo.Playing.Cmd, data)
 	}
 }
 
-func (r *room_record) AddEndInfo(roomId int) {
-	roominfo, ok := r.records[roomId]
+func AddEndInfo(roomId int) {
+	roominfo, ok := records[roomId]
 	if ok {
 		roominfo.End.TotalTimes = time.Now().Unix() - roominfo.Start.BeginTime
 		saveRecor := &model.RoomRecord{}
@@ -104,7 +99,8 @@ func (r *room_record) AddEndInfo(roomId int) {
 			userRecord := &model.UserRoomRecord{}
 			for _, v := range roominfo.Start.Users {
 				userRecord.UserId = v.UserID
-				userRecord.RecordId = id
+				userRecord.RecordId = int(id)
+				userRecord.KindId = roominfo.KindID
 				_, err := model.UserRoomRecordOp.Insert(userRecord)
 				if err != nil {
 					log.Error("at AddEndInfo inser error:%s", err.Error())
@@ -114,6 +110,6 @@ func (r *room_record) AddEndInfo(roomId int) {
 			log.Error("at AddEndInfo inser 11 error:%s", err.Error())
 		}
 
-		delete(r.records, roomId)
+		delete(records, roomId)
 	}
 }

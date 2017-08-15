@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"mj/gameServer/db"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -15,8 +16,10 @@ import (
 
 // +gen *
 type UserRoomRecord struct {
-	UserId   int64 `db:"user_id" json:"user_id"`     // 视频id
-	RecordId int   `db:"record_id" json:"record_id"` // 记录id
+	UserId     int64      `db:"user_id" json:"user_id"`         // 视频id
+	RecordId   int        `db:"record_id" json:"record_id"`     // 记录id
+	KindId     int        `db:"kind_id" json:"kind_id"`         // 游戏类型
+	CreateTime *time.Time `db:"create_time" json:"create_time"` //
 }
 
 type userRoomRecordOp struct{}
@@ -95,10 +98,12 @@ func (op *userRoomRecordOp) Insert(m *UserRoomRecord) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *userRoomRecordOp) InsertTx(ext sqlx.Ext, m *UserRoomRecord) (int64, error) {
-	sql := "insert into user_room_record(user_id,record_id) values(?,?)"
+	sql := "insert into user_room_record(user_id,record_id,kind_id,create_time) values(?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
 		m.RecordId,
+		m.KindId,
+		m.CreateTime,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -110,9 +115,11 @@ func (op *userRoomRecordOp) InsertTx(ext sqlx.Ext, m *UserRoomRecord) (int64, er
 
 //存在就更新， 不存在就插入
 func (op *userRoomRecordOp) InsertUpdate(obj *UserRoomRecord, m map[string]interface{}) error {
-	sql := "insert into user_room_record(user_id,record_id) values(?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into user_room_record(user_id,record_id,kind_id,create_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.UserId,
 		obj.RecordId,
+		obj.KindId,
+		obj.CreateTime,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -144,8 +151,10 @@ func (op *userRoomRecordOp) Update(m *UserRoomRecord) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *userRoomRecordOp) UpdateTx(ext sqlx.Ext, m *UserRoomRecord) error {
-	sql := `update user_room_record set  where user_id=? and record_id=?`
+	sql := `update user_room_record set kind_id=?,create_time=? where user_id=? and record_id=?`
 	_, err := ext.Exec(sql,
+		m.KindId,
+		m.CreateTime,
 		m.UserId,
 		m.RecordId,
 	)

@@ -180,6 +180,7 @@ func (room *RoomData) SendPersonalTableTip(u *user.User) {
 		IsGoldOrGameScore: room.IsGoldOrGameScore,                                        //金币场还是积分场 0 标识 金币场 1 标识 积分场
 		OtherInfo:         room.OtherInfo,
 		LeaveInfo:         room.MjBase.UserMgr.GetLeaveInfo(u.Id), //请求离家的玩家的信息
+		KindID:            room.MjBase.Temp.KindID,
 	}
 	u.WriteMsg(TableTip)
 }

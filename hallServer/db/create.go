@@ -266,6 +266,11 @@ var userUpdateSql = [][]string{
 		PRIMARY KEY (user_id, record_id)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
 	},
+
+	8: []string{
+		"ALTER TABLE user_room_record add kind_id int(11) NOT NULL DEFAULT 0  COMMENT '游戏类型';",
+		"ALTER TABLE user_room_record add create_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;",
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////
