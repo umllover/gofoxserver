@@ -129,6 +129,7 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 		userReLoginInfo.CallScoreTimes = room.CallScoreTimesMap[u.ChairId]
 		userReLoginInfo.AddScoreTimes = room.AddScoreTimesMap[u.ChairId]
 		userReLoginInfo.OpenCardData = append(userReLoginInfo.OpenCardData, room.OpenCardMap[u.ChairId].CardData...)
+		userReLoginInfo.OpenCardType = room.OpenCardMap[u.ChairId].CardType
 		StatusPlay.UserReLoginInfos = append(StatusPlay.UserReLoginInfos, userReLoginInfo)
 	})
 
