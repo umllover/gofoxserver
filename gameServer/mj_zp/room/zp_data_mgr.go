@@ -197,8 +197,9 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 }
 
-func (room *ZP_RoomData) ResetGame() {
+func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
+	room.ResetUserScore() //重置用户所有积分
 }
 
 //获得插花
@@ -1878,6 +1879,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 
 	//发送扑克
 	room.ProvideCard = room.GetSendCard(bTail, room.MjBase.UserMgr.GetMaxPlayerCnt())
+	log.Debug("ProvideCard ========= %d , %v", room.ProvideCard, room.IsHua(room.ProvideCard))
 	if room.IsHua(room.ProvideCard) {
 		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
 	}

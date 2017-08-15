@@ -121,6 +121,10 @@ func notifyNewRoom(args []interface{}) {
 	}
 
 	roomInfo := args[0].(*msg.RoomInfo)
+	if !HasNode(roomInfo.NodeID) {
+		log.Error("at notifyNewRoom not foud node id:%d, info:%v", roomInfo.NodeID, roomInfo)
+		return
+	}
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MachPlayer = make(map[int64]int64)
 	addRoom(roomInfo)
@@ -473,4 +477,9 @@ func CheckTimeOut(r *msg.RoomInfo, now int64) {
 			}
 		}
 	}
+}
+
+func HasNode(nodeId int) bool {
+	_, ok := gameLists[nodeId]
+	return ok
 }

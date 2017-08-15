@@ -107,7 +107,7 @@ type RoomData struct {
 }
 
 func (room *RoomData) GetDataMgr() DataManager {
-	return room.MjBase.DataMgr
+	return room.MjBase.GetDataMgr()
 }
 
 func (room *RoomData) InitRoomOne() {
@@ -554,7 +554,7 @@ func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []in
 	room.GangCount[u.ChairId]++
 
 	//发送消息
-	room.MjBase.DataMgr.SendOperateResult(u, cbWeave)
+	room.GetDataMgr().SendOperateResult(u, cbWeave)
 	return cbGangKind
 }
 
@@ -628,7 +628,7 @@ func (room *RoomData) CallOperateResult(wTargetUser, cbTargetAction int) {
 	}
 
 	//发送消息
-	room.MjBase.DataMgr.SendOperateResult(nil, wrave)
+	room.GetDataMgr().SendOperateResult(nil, wrave)
 
 	//设置用户
 	room.CurrentUser = wTargetUser
@@ -847,7 +847,7 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	room.CheckTingCard(wCurrentUser)
 
 	if room.SendStatus != BuHua_Send {
-		room.MjBase.DataMgr.SendCardToCli(u, bTail)
+		room.GetDataMgr().SendCardToCli(u, bTail)
 	}
 	log.Debug("User Action === %v , %d", room.UserAction, room.UserAction[wCurrentUser])
 
@@ -917,7 +917,8 @@ func (room *RoomData) AfterStartGame() {
 	room.InitBankerAction()
 }
 
-func (room *RoomData) ResetGame() {
+func (room *RoomData) ResetGameAfterRenewal() {
+	room.ResetUserScore() //重置用户所有积分
 }
 
 func (room *RoomData) InitRoom(UserCnt int) {
@@ -986,8 +987,10 @@ func (room *RoomData) InitBuHua() {
 }
 
 func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) {
+	log.Debug("at CheckHuaCard .................. ")
 	logic := room.MjBase.LogicMgr
 	for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
+		log.Debug("at CheckHuaCard ..................  cnt %d", room.CardIndex[playerIndex][j])
 		if room.CardIndex[playerIndex][j] == 1 {
 			index := j
 			for {

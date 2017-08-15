@@ -95,6 +95,10 @@ func (room *ddz_data_mgr) resetData() {
 	room.ScoreTimes = 0
 }
 
+func (room *ddz_data_mgr) InitRoomOne() {
+
+}
+
 func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间参数%d", UserCnt)
 	room.RoomData.InitRoom(UserCnt)

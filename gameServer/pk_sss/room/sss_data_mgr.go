@@ -97,6 +97,10 @@ type sss_data_mgr struct {
 
 }
 
+func (room *sss_data_mgr) InitRoomOne() {
+
+}
+
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	//初始化
 	log.Debug("初始化房间")

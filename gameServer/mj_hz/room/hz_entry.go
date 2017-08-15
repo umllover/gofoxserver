@@ -18,6 +18,10 @@ type hz_entry struct {
 	*mj_base.Mj_base
 }
 
+func (e *hz_entry) GetDataMgr() *hz_data{
+	return e.DataMgr.(*hz_data)
+}
+
 func (e *hz_entry) ZhaMa(args []interface{}) {
 	//recvMsg := args[0].(*mj_hz_msg.C2G_HZMJ_ZhaMa)
 	retMsg := &mj_hz_msg.G2C_HZMJ_ZhuaHua{}
@@ -25,7 +29,7 @@ func (e *hz_entry) ZhaMa(args []interface{}) {
 	u := agent.UserData().(*user.User)
 
 	winUser := []int{u.ChairId}
-	ZhongHua, BuZhong := e.DataMgr.OnZhuaHua(winUser)
+	ZhongHua, BuZhong := e.GetDataMgr().OnZhuaHua(winUser)
 	for card := range ZhongHua[0] {
 		retMsg.ZhongHua = append(retMsg.ZhongHua, card)
 	}

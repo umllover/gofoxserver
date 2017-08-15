@@ -73,6 +73,20 @@ type RoomData struct {
 	OtherInfo map[string]interface{} //其他配置信息
 }
 
+func (room *RoomData) GetUserScore(chairid int) int {
+	if chairid > room.PkBase.UserMgr.GetMaxPlayerCnt() {
+		return 0
+	}
+	source := 0
+	for _, v := range room.EachRoundScoreMap {
+		if len(v) < chairid {
+			continue
+		}
+		source += v[chairid]
+	}
+	return source
+}
+
 func (r *RoomData) GetCreatorNodeId() int {
 	return r.CreatorNodeId
 }
@@ -157,7 +171,9 @@ func (room *RoomData) SetScoreTimes(scoreTimes int) {
 func (room *RoomData) InitRoom(UserCnt int) {
 }
 
-func (room *RoomData) ResetGame() {
+//续费后的处理
+func (room *RoomData) ResetGameAfterRenewal() {
+
 }
 
 // 游戏开始
