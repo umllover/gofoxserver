@@ -216,7 +216,7 @@ func (room *Entry_base) UserReady(args []interface{}) {
 			},
 		})
 		room.TimerMgr.AddPlayCount()
-		room.DataMgr.BeforeStartGame(room.UserMgr.GetMaxPlayerCnt())
+		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
 		//派发初始扑克
