@@ -106,6 +106,7 @@ func (room *sss_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间")
 	room.PlayerCount = UserCnt
 	room.Players = make([]int, UserCnt)
+	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
 	room.cleanRoom(UserCnt)
 }
 
@@ -139,7 +140,9 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 
 	room.AddCards = make([]int, 0)
 	room.PublicCards = make([]int, 0, 3)
-	room.UniversalCards = make([]int, 0, 3)
+	room.UniversalCards = make([]int, 0, 6)
+
+	room.gameEndStatus = &pk_sss_msg.G2C_SSS_COMPARE{}
 
 }
 
@@ -580,16 +583,16 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 
 	if room.jiaGongGong {
-		len := len(defaultCards)
-		tempCards := make([]int, len)
+		length := len(defaultCards)
+		tempCards := make([]int, length)
 		copy(tempCards, defaultCards)
 		for i := 0; i < 3; i++ {
-			randNum := rand.Intn(len)
+			randNum := rand.Intn(length)
 			room.PublicCards = append(room.PublicCards, tempCards[randNum])
-			if randNum != len-1 {
-				tempCards[randNum], tempCards[len-1] = tempCards[len-1], tempCards[randNum]
+			if randNum != length-1 {
+				tempCards[randNum], tempCards[length-1] = tempCards[length-1], tempCards[randNum]
 			}
-			len--
+			length--
 		}
 	}
 	addCardNum := 0
@@ -607,6 +610,8 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	}
 	if room.jiaDaXiaoWan {
 		defaultCards = append(defaultCards, 0x4E, 0x4F)
+		room.UniversalCards = append(room.UniversalCards, 0x4E)
+		room.UniversalCards = append(room.UniversalCards, 0x4F)
 	}
 
 	room.LeftCardCount = len(defaultCards)
@@ -628,7 +633,11 @@ func (room *sss_data_mgr) StartDispatchCard() {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
 		SendCard.CardData = room.PlayerCards[u.ChairId]
 		SendCard.CellScore = room.CellScore
-		SendCard.Laizi = room.UniversalCards
+		if len(room.UniversalCards) >= 4 {
+			SendCard.Laizi = room.UniversalCards[:4]
+		} else {
+			SendCard.Laizi = []int{}
+		}
 		SendCard.PublicCards = room.PublicCards
 		u.WriteMsg(SendCard)
 	})
@@ -758,7 +767,11 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	statusPlay.PlayerCount = room.PkBase.UserMgr.GetCurPlayerCnt()
 	statusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	statusPlay.MaxPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
-	statusPlay.Laizi = room.UniversalCards
+	if len(room.UniversalCards) >= 4 {
+		statusPlay.Laizi = room.UniversalCards[:4]
+	} else {
+		statusPlay.Laizi = []int{}
+	}
 	statusPlay.PublicCards = room.PublicCards
 
 	u.WriteMsg(statusPlay)
@@ -798,20 +811,26 @@ func (room *sss_data_mgr) trusteeOperate() {
 }
 
 func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard2, segmentCard3 []int) {
-
+	leftLaiZiCard := []int{}
 	cardData := room.PlayerCards[chairId]
-	newCardData := []int{}
+	cardData = append(cardData, room.PublicCards...)
+
+	cardData, leftLaiZiCard = room.separateCard(cardData)
+
 	//后墩
-	segmentCard3, newCardData = room.get5card(cardData)
+	segmentCard3, cardData, leftLaiZiCard = room.get5card(cardData, leftLaiZiCard)
+
 	//中墩
-	segmentCard2, newCardData = room.get5card(newCardData)
+	segmentCard2, cardData, leftLaiZiCard = room.get5card(cardData, leftLaiZiCard)
+
 	//前墩
-	segmentCard1 = newCardData
+	segmentCard1 = append(segmentCard1, cardData...)
+	segmentCard1 = append(segmentCard1, leftLaiZiCard...)
 
 	return
 }
 
-func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardData []int) {
+func (room *sss_data_mgr) get5card(cardData []int, leftLaiZiCard []int) (segmentCard []int, newCardData []int, newLaiZiCard []int) {
 	lg := room.PkBase.LogicMgr.(*sss_logic)
 
 	segmentCard = make([]int, 0, 5)
@@ -819,11 +838,90 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 
 	TagAnalyseItemArray := lg.AnalyseCard(cardData)
 	//五同
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 4 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:4]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[0])
+		leftLaiZiCard = leftLaiZiCard[4:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 3 && TagAnalyseItemArray.bTwoCount > 0 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:3]...)
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		leftLaiZiCard = leftLaiZiCard[3:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 2 && TagAnalyseItemArray.bThreeCount > 0 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+		index = TagAnalyseItemArray.bThreeFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
+		leftLaiZiCard = leftLaiZiCard[2:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 1 && TagAnalyseItemArray.bFourCount > 0 {
+		segmentCard = append(segmentCard, leftLaiZiCard[0])
+		index = TagAnalyseItemArray.bFourFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+4]...)
+		leftLaiZiCard = leftLaiZiCard[1:]
+	}
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bFiveCount > 0 {
 		index = TagAnalyseItemArray.bFiveFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+5]...)
 	}
 	//同花顺
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) > 0 {
+		for i := 3; i >= 0; i-- {
+			uniqueColorCard := lg.GetUniqueColorCard(TagAnalyseItemArray.cardData, i)
+			l := len(uniqueColorCard)
+			if l < 2 {
+				continue
+			}
+			if len(leftLaiZiCard) == 3 {
+				for j := 0; j < l-1; j++ {
+					if lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+1]) > 0 &&
+						lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+1]) < 5 {
+						segmentCard = append(segmentCard, leftLaiZiCard[:3]...)
+						segmentCard = append(segmentCard, uniqueColorCard[j])
+						segmentCard = append(segmentCard, uniqueColorCard[j+1])
+						leftLaiZiCard = leftLaiZiCard[3:]
+						break
+					}
+				}
+			}
+			if len(leftLaiZiCard) == 2 && l >= 3 {
+				for j := 0; j < l-2; j++ {
+					if lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+2]) > 0 &&
+						lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+2]) < 5 {
+						segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+						segmentCard = append(segmentCard, uniqueColorCard[j])
+						segmentCard = append(segmentCard, uniqueColorCard[j+1])
+						segmentCard = append(segmentCard, uniqueColorCard[j+2])
+						leftLaiZiCard = leftLaiZiCard[2:]
+						break
+					}
+				}
+			}
+			if len(leftLaiZiCard) == 1 && l >= 4 {
+				for j := 0; j < l-3; j++ {
+					if lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+3]) > 0 &&
+						lg.GetCardLogicValue(uniqueColorCard[j])-lg.GetCardLogicValue(uniqueColorCard[j+3]) < 5 {
+						segmentCard = append(segmentCard, leftLaiZiCard[0])
+						segmentCard = append(segmentCard, uniqueColorCard[j])
+						segmentCard = append(segmentCard, uniqueColorCard[j+1])
+						segmentCard = append(segmentCard, uniqueColorCard[j+2])
+						segmentCard = append(segmentCard, uniqueColorCard[j+3])
+						leftLaiZiCard = leftLaiZiCard[1:]
+						break
+					}
+				}
+			}
+
+			if len(segmentCard) > 0 {
+				break
+			}
+		}
+	}
+	//无癞子
 	if len(segmentCard) == 0 {
 		for i := 3; i >= 0; i-- {
 			uniqueColorCard := lg.GetUniqueColorCard(TagAnalyseItemArray.cardData, i)
@@ -859,14 +957,45 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 			}
 		}
 	}
-
 	//铁支
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 3 && TagAnalyseItemArray.bOneCount >= 2 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:3]...)
+		index = TagAnalyseItemArray.bOneFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		leftLaiZiCard = leftLaiZiCard[3:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 2 && TagAnalyseItemArray.bTwoCount > 0 && TagAnalyseItemArray.bOneCount >= 1 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.bOneFirst[0])
+		leftLaiZiCard = leftLaiZiCard[2:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 1 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount >= 1 {
+		segmentCard = append(segmentCard, leftLaiZiCard[0])
+		index = TagAnalyseItemArray.bThreeFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.bOneFirst[0])
+		leftLaiZiCard = leftLaiZiCard[1:]
+	}
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bFourCount > 0 && TagAnalyseItemArray.bOneCount > 0 {
 		index = TagAnalyseItemArray.bFourFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+4]...)
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 	}
 	//葫芦
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 1 && TagAnalyseItemArray.bTwoCount >= 2 {
+		segmentCard = append(segmentCard, leftLaiZiCard[0])
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		index = TagAnalyseItemArray.bTwoFirst[1]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		leftLaiZiCard = leftLaiZiCard[1:]
+	}
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bTwoCount > 0 {
 		index = TagAnalyseItemArray.bThreeFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
@@ -874,6 +1003,35 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
 	}
 	//同花
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) > 0 {
+		for i := 3; i >= 0; i-- {
+			colorCard := lg.GetColorCard(TagAnalyseItemArray.cardData, i)
+			l := len(colorCard)
+			if l < 2 {
+				continue
+			}
+			if len(leftLaiZiCard) == 3 {
+				segmentCard = append(segmentCard, leftLaiZiCard[:3]...)
+				segmentCard = append(segmentCard, colorCard[:2]...)
+				leftLaiZiCard = leftLaiZiCard[3:]
+			}
+			if len(leftLaiZiCard) == 2 && l >= 3 {
+				segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+				segmentCard = append(segmentCard, colorCard[:3]...)
+				leftLaiZiCard = leftLaiZiCard[2:]
+			}
+			if len(leftLaiZiCard) == 1 && l >= 4 {
+				segmentCard = append(segmentCard, leftLaiZiCard[0])
+				segmentCard = append(segmentCard, colorCard[:4]...)
+				leftLaiZiCard = leftLaiZiCard[1:]
+			}
+			if len(segmentCard) > 0 {
+				break
+			}
+		}
+	}
+	//无癞子
 	if len(segmentCard) == 0 {
 		for i := 3; i >= 0; i-- {
 			colorCard := lg.GetColorCard(TagAnalyseItemArray.cardData, i)
@@ -886,6 +1044,50 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		}
 	}
 	//顺子
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) > 0 {
+		l := len(TagAnalyseItemArray.cardData)
+		if len(leftLaiZiCard) == 3 && l >= 2 {
+			for j := 0; j < l-1; j++ {
+				if lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+1]) > 0 &&
+					lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+1]) < 5 {
+					segmentCard = append(segmentCard, leftLaiZiCard[:3]...)
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+1])
+					leftLaiZiCard = leftLaiZiCard[3:]
+					break
+				}
+			}
+		}
+		if len(leftLaiZiCard) == 2 && l >= 3 {
+			for j := 0; j < l-2; j++ {
+				if lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+2]) > 0 &&
+					lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+2]) < 5 {
+					segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+1])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+2])
+					leftLaiZiCard = leftLaiZiCard[2:]
+					break
+				}
+			}
+		}
+		if len(leftLaiZiCard) == 1 && l >= 4 {
+			for j := 0; j < l-3; j++ {
+				if lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+3]) > 0 &&
+					lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j])-lg.GetCardLogicValue(TagAnalyseItemArray.cardData[j+3]) < 5 {
+					segmentCard = append(segmentCard, leftLaiZiCard[0])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+1])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+2])
+					segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[j+3])
+					leftLaiZiCard = leftLaiZiCard[1:]
+					break
+				}
+			}
+		}
+	}
+	//无癞子
 	if len(segmentCard) == 0 {
 		l := len(TagAnalyseItemArray.cardData)
 		for j := 0; j <= l-5; j++ {
@@ -915,6 +1117,19 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		}
 	}
 	//三条
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 2 && TagAnalyseItemArray.bOneCount > 0 {
+		segmentCard = append(segmentCard, leftLaiZiCard[:2]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+		leftLaiZiCard = leftLaiZiCard[2:]
+	}
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 1 && TagAnalyseItemArray.bTwoCount >= 1 {
+		segmentCard = append(segmentCard, leftLaiZiCard[0])
+		index = TagAnalyseItemArray.bTwoFirst[0]
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
+		leftLaiZiCard = leftLaiZiCard[1:]
+	}
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bThreeCount > 0 && TagAnalyseItemArray.bOneCount >= 2 {
 		index = TagAnalyseItemArray.bThreeFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+3]...)
@@ -922,6 +1137,7 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[1]])
 	}
 	//两对
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 2 && TagAnalyseItemArray.bOneCount >= 1 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
@@ -930,6 +1146,13 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
 	}
 	//对子
+	//有癞子
+	if len(segmentCard) == 0 && len(leftLaiZiCard) >= 1 && TagAnalyseItemArray.bOneCount > 0 {
+		segmentCard = append(segmentCard, leftLaiZiCard[0])
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[0]])
+		leftLaiZiCard = leftLaiZiCard[1:]
+	}
+	//无癞子
 	if len(segmentCard) == 0 && TagAnalyseItemArray.bTwoCount >= 1 && TagAnalyseItemArray.bOneCount >= 3 {
 		index = TagAnalyseItemArray.bTwoFirst[0]
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[index:index+2]...)
@@ -938,14 +1161,44 @@ func (room *sss_data_mgr) get5card(cardData []int) (segmentCard []int, newCardDa
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[TagAnalyseItemArray.bOneFirst[2]])
 	}
 	//散牌
-	if len(segmentCard) == 0 {
+	if len(segmentCard) == 0 && len(TagAnalyseItemArray.cardData) >= 5 {
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:5]...)
+	}
+	if len(segmentCard) == 0 && len(TagAnalyseItemArray.cardData) < 5 {
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:]...)
+		segmentCard = append(segmentCard, leftLaiZiCard[:5-len(TagAnalyseItemArray.cardData)]...)
+		leftLaiZiCard = leftLaiZiCard[5-len(TagAnalyseItemArray.cardData):]
 	}
 
 	newCardData = lg.getUnUsedCard(TagAnalyseItemArray.cardData, segmentCard)
+	newLaiZiCard = leftLaiZiCard
 
 	return
 
+}
+
+func (r *sss_data_mgr) separateCard(carData []int) (newCard []int, laiZiCard []int) {
+	newCard = []int{}
+	laiZiCard = []int{}
+	if len(r.UniversalCards) > 0 {
+		for i := range carData {
+			exist := false
+			for j := range r.UniversalCards {
+				if carData[i] == r.UniversalCards[j] {
+					laiZiCard = append(laiZiCard, carData[i])
+					exist = true
+					break
+				}
+			}
+			if !exist {
+				newCard = append(newCard, carData[i])
+			}
+		}
+	} else {
+		newCard = carData
+	}
+
+	return newCard, laiZiCard
 }
 
 func (r *sss_data_mgr) startShowCardTimer(nTime int) {
