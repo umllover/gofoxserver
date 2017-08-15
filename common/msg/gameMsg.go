@@ -366,6 +366,7 @@ type G2C_RenewalFeesSuccess struct {
 
 //
 type C2G_StartRecord struct {
+	OpCode bool
 }
 
 type G2C_StartRecord struct {
