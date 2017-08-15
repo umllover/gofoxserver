@@ -250,6 +250,22 @@ var userUpdateSql = [][]string{
 		`DROP TABLE IF EXISTS room_record;`,
 		`alter table userattr convert to character set utf8mb4 collate utf8mb4_bin;`,
 	},
+
+	7: []string{
+		`CREATE TABLE room_record (
+		record_id bigint(11) NOT NULL AUTO_INCREMENT COMMENT '视频id',
+		start_info text NOT NULL COMMENT '开始信息',
+		play_info text NOT NULL COMMENT '玩的数据',
+		end_info text NOT NULL COMMENT '结束数据',
+		PRIMARY KEY (record_id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+
+		`CREATE TABLE user_room_record (
+		user_id bigint(11) NOT NULL COMMENT '视频id',
+		record_id int(11) NOT NULL COMMENT '记录id',
+		PRIMARY KEY (user_id, record_id)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8;`,
+	},
 }
 
 ///////////////////////////////////////////////////// log db /////////////////////////////////////////////////

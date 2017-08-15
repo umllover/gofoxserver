@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"mj/hallServer/db"
+	"mj/gameServer/db"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lovelly/leaf/log"
@@ -10,28 +10,28 @@ import (
 
 //This file is generate by scripts,don't edit it
 
-//user_mask_code
+//room_record
 //
 
 // +gen *
-type UserMaskCode struct {
-	UserId      int64  `db:"user_id" json:"user_id"`           //
-	PhomeNumber string `db:"phome_number" json:"phome_number"` // 电话号码
-	MaskCode    int    `db:"mask_code" json:"mask_code"`       // 验证按
-	CreatorTime string `db:"creator_time" json:"creator_time"` //
+type RoomRecord struct {
+	RecordId  int64  `db:"record_id" json:"record_id"`   // 视频id
+	StartInfo string `db:"start_info" json:"start_info"` // 开始信息
+	PlayInfo  string `db:"play_info" json:"play_info"`   // 玩的数据
+	EndInfo   string `db:"end_info" json:"end_info"`     // 结束数据
 }
 
-type userMaskCodeOp struct{}
+type roomRecordOp struct{}
 
-var UserMaskCodeOp = &userMaskCodeOp{}
-var DefaultUserMaskCode = &UserMaskCode{}
+var RoomRecordOp = &roomRecordOp{}
+var DefaultRoomRecord = &RoomRecord{}
 
 // 按主键查询. 注:未找到记录的话将触发sql.ErrNoRows错误，返回nil, false
-func (op *userMaskCodeOp) Get(user_id int64) (*UserMaskCode, bool) {
-	obj := &UserMaskCode{}
-	sql := "select * from user_mask_code where user_id=? "
+func (op *roomRecordOp) Get(record_id int64) (*RoomRecord, bool) {
+	obj := &RoomRecord{}
+	sql := "select * from room_record where record_id=? "
 	err := db.DB.Get(obj, sql,
-		user_id,
+		record_id,
 	)
 
 	if err != nil {
@@ -40,9 +40,9 @@ func (op *userMaskCodeOp) Get(user_id int64) (*UserMaskCode, bool) {
 	}
 	return obj, true
 }
-func (op *userMaskCodeOp) SelectAll() ([]*UserMaskCode, error) {
-	objList := []*UserMaskCode{}
-	sql := "select * from user_mask_code "
+func (op *roomRecordOp) SelectAll() ([]*RoomRecord, error) {
+	objList := []*RoomRecord{}
+	sql := "select * from room_record "
 	err := db.DB.Select(&objList, sql)
 	if err != nil {
 		log.Error(err.Error())
@@ -51,11 +51,11 @@ func (op *userMaskCodeOp) SelectAll() ([]*UserMaskCode, error) {
 	return objList, nil
 }
 
-func (op *userMaskCodeOp) QueryByMap(m map[string]interface{}) ([]*UserMaskCode, error) {
-	result := []*UserMaskCode{}
+func (op *roomRecordOp) QueryByMap(m map[string]interface{}) ([]*RoomRecord, error) {
+	result := []*RoomRecord{}
 	var params []interface{}
 
-	sql := "select * from user_mask_code where 1=1 "
+	sql := "select * from room_record where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)
@@ -68,7 +68,7 @@ func (op *userMaskCodeOp) QueryByMap(m map[string]interface{}) ([]*UserMaskCode,
 	return result, nil
 }
 
-func (op *userMaskCodeOp) GetByMap(m map[string]interface{}) (*UserMaskCode, error) {
+func (op *roomRecordOp) GetByMap(m map[string]interface{}) (*RoomRecord, error) {
 	lst, err := op.QueryByMap(m)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (op *userMaskCodeOp) GetByMap(m map[string]interface{}) (*UserMaskCode, err
 }
 
 /*
-func (i *UserMaskCode) Insert() error {
+func (i *RoomRecord) Insert() error {
     err := db.DBMap.Insert(i)
     if err != nil{
 		log.Error("Insert sql error:%v, data:%v", err.Error(),i)
@@ -90,18 +90,17 @@ func (i *UserMaskCode) Insert() error {
 */
 
 // 插入数据，自增长字段将被忽略
-func (op *userMaskCodeOp) Insert(m *UserMaskCode) (int64, error) {
+func (op *roomRecordOp) Insert(m *RoomRecord) (int64, error) {
 	return op.InsertTx(db.DB, m)
 }
 
 // 插入数据，自增长字段将被忽略
-func (op *userMaskCodeOp) InsertTx(ext sqlx.Ext, m *UserMaskCode) (int64, error) {
-	sql := "insert into user_mask_code(user_id,phome_number,mask_code,creator_time) values(?,?,?,?)"
+func (op *roomRecordOp) InsertTx(ext sqlx.Ext, m *RoomRecord) (int64, error) {
+	sql := "insert into room_record(start_info,play_info,end_info) values(?,?,?)"
 	result, err := ext.Exec(sql,
-		m.UserId,
-		m.PhomeNumber,
-		m.MaskCode,
-		m.CreatorTime,
+		m.StartInfo,
+		m.PlayInfo,
+		m.EndInfo,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -112,12 +111,11 @@ func (op *userMaskCodeOp) InsertTx(ext sqlx.Ext, m *UserMaskCode) (int64, error)
 }
 
 //存在就更新， 不存在就插入
-func (op *userMaskCodeOp) InsertUpdate(obj *UserMaskCode, m map[string]interface{}) error {
-	sql := "insert into user_mask_code(user_id,phome_number,mask_code,creator_time) values(?,?,?,?) ON DUPLICATE KEY UPDATE "
-	var params = []interface{}{obj.UserId,
-		obj.PhomeNumber,
-		obj.MaskCode,
-		obj.CreatorTime,
+func (op *roomRecordOp) InsertUpdate(obj *RoomRecord, m map[string]interface{}) error {
+	sql := "insert into room_record(start_info,play_info,end_info) values(?,?,?) ON DUPLICATE KEY UPDATE "
+	var params = []interface{}{obj.StartInfo,
+		obj.PlayInfo,
+		obj.EndInfo,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -133,7 +131,7 @@ func (op *userMaskCodeOp) InsertUpdate(obj *UserMaskCode, m map[string]interface
 }
 
 /*
-func (i *UserMaskCode) Update()  error {
+func (i *RoomRecord) Update()  error {
     _,err := db.DBMap.Update(i)
     if err != nil{
 		log.Error("update sql error:%v, data:%v", err.Error(),i)
@@ -143,18 +141,18 @@ func (i *UserMaskCode) Update()  error {
 */
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *userMaskCodeOp) Update(m *UserMaskCode) error {
+func (op *roomRecordOp) Update(m *RoomRecord) error {
 	return op.UpdateTx(db.DB, m)
 }
 
 // 用主键(属性)做条件，更新除主键外的所有字段
-func (op *userMaskCodeOp) UpdateTx(ext sqlx.Ext, m *UserMaskCode) error {
-	sql := `update user_mask_code set phome_number=?,mask_code=?,creator_time=? where user_id=?`
+func (op *roomRecordOp) UpdateTx(ext sqlx.Ext, m *RoomRecord) error {
+	sql := `update room_record set start_info=?,play_info=?,end_info=? where record_id=?`
 	_, err := ext.Exec(sql,
-		m.PhomeNumber,
-		m.MaskCode,
-		m.CreatorTime,
-		m.UserId,
+		m.StartInfo,
+		m.PlayInfo,
+		m.EndInfo,
+		m.RecordId,
 	)
 
 	if err != nil {
@@ -166,14 +164,14 @@ func (op *userMaskCodeOp) UpdateTx(ext sqlx.Ext, m *UserMaskCode) error {
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userMaskCodeOp) UpdateWithMap(user_id int64, m map[string]interface{}) error {
-	return op.UpdateWithMapTx(db.DB, user_id, m)
+func (op *roomRecordOp) UpdateWithMap(record_id int64, m map[string]interface{}) error {
+	return op.UpdateWithMapTx(db.DB, record_id, m)
 }
 
 // 用主键做条件，更新map里包含的字段名
-func (op *userMaskCodeOp) UpdateWithMapTx(ext sqlx.Ext, user_id int64, m map[string]interface{}) error {
+func (op *roomRecordOp) UpdateWithMapTx(ext sqlx.Ext, record_id int64, m map[string]interface{}) error {
 
-	sql := `update user_mask_code set %s where 1=1 and user_id=? ;`
+	sql := `update room_record set %s where 1=1 and record_id=? ;`
 
 	var params []interface{}
 	var set_sql string
@@ -184,39 +182,39 @@ func (op *userMaskCodeOp) UpdateWithMapTx(ext sqlx.Ext, user_id int64, m map[str
 		set_sql += fmt.Sprintf(" %s=? ", k)
 		params = append(params, v)
 	}
-	params = append(params, user_id)
+	params = append(params, record_id)
 	_, err := ext.Exec(fmt.Sprintf(sql, set_sql), params...)
 	return err
 }
 
 /*
-func (i *UserMaskCode) Delete() error{
+func (i *RoomRecord) Delete() error{
     _,err := db.DBMap.Delete(i)
 	log.Error("Delete sql error:%v", err.Error())
     return err
 }
 */
 // 根据主键删除相关记录
-func (op *userMaskCodeOp) Delete(user_id int64) error {
-	return op.DeleteTx(db.DB, user_id)
+func (op *roomRecordOp) Delete(record_id int64) error {
+	return op.DeleteTx(db.DB, record_id)
 }
 
 // 根据主键删除相关记录,Tx
-func (op *userMaskCodeOp) DeleteTx(ext sqlx.Ext, user_id int64) error {
-	sql := `delete from user_mask_code where 1=1
-        and user_id=?
+func (op *roomRecordOp) DeleteTx(ext sqlx.Ext, record_id int64) error {
+	sql := `delete from room_record where 1=1
+        and record_id=?
         `
 	_, err := ext.Exec(sql,
-		user_id,
+		record_id,
 	)
 	return err
 }
 
 // 返回符合查询条件的记录数
-func (op *userMaskCodeOp) CountByMap(m map[string]interface{}) (int64, error) {
+func (op *roomRecordOp) CountByMap(m map[string]interface{}) (int64, error) {
 
 	var params []interface{}
-	sql := `select count(*) from user_mask_code where 1=1 `
+	sql := `select count(*) from room_record where 1=1 `
 	for k, v := range m {
 		sql += fmt.Sprintf(" and  %s=? ", k)
 		params = append(params, v)
@@ -230,13 +228,13 @@ func (op *userMaskCodeOp) CountByMap(m map[string]interface{}) (int64, error) {
 	return count, nil
 }
 
-func (op *userMaskCodeOp) DeleteByMap(m map[string]interface{}) (int64, error) {
+func (op *roomRecordOp) DeleteByMap(m map[string]interface{}) (int64, error) {
 	return op.DeleteByMapTx(db.DB, m)
 }
 
-func (op *userMaskCodeOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
+func (op *roomRecordOp) DeleteByMapTx(ext sqlx.Ext, m map[string]interface{}) (int64, error) {
 	var params []interface{}
-	sql := "delete from user_mask_code where 1=1 "
+	sql := "delete from room_record where 1=1 "
 	for k, v := range m {
 		sql += fmt.Sprintf(" and %s=? ", k)
 		params = append(params, v)

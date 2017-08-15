@@ -53,15 +53,15 @@ func updateDB() (err error, up bool) {
 	//var insetSatas bool
 	defer func() {
 		if insetDBok {
-			_, err := DB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
-			if err != nil {
+			_, derr := DB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
+			if derr != nil {
 				log.Debug("%s", err.Error())
 			}
 		}
 
 		//if insetSatas {
-		_, err = StatsDB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
-		if err != nil {
+		_, derr := StatsDB.Exec("DELETE  FROM version_locker WHERE  id = ?", LOCK_ID)
+		if derr != nil {
 			log.Debug("%s", err.Error())
 			return
 		}
@@ -121,6 +121,7 @@ func updateDB() (err error, up bool) {
 	var sup bool
 	err, sup = UpdateSingle(StatsDB, statsUpdateSql)
 	if err != nil {
+		log.Debug("111111111111111111 %s", err.Error())
 		return err, up
 	}
 
@@ -183,9 +184,19 @@ func UpdateSingle(inst *sqlx.DB, sqls [][]string) (error, bool) {
 				}
 				return err, false
 			}
-			halder.Exec()
+			_, err = halder.Exec()
+			if err != nil {
+				log.Error("halder.Exec tx encounter a error.Error: %s Sql:%s", err.Error(), updateSql_)
+				err1 := tx.Rollback()
+				if err1 != nil {
+					log.Error("Rollback encounter a error.Error: %s", err.Error())
+				}
+				log.Debug("err : ===  %s", err.Error())
+				return err, false
+			}
 		}
 
+		log.Debug("aaaaaaaaaaaaaaaaaaaaaa ")
 		err = tx.Commit()
 
 		// 刷新version表
