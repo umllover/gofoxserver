@@ -35,6 +35,7 @@ func NewMJBase(KindId, ServiceId int) *Mj_base {
 
 	mj := new(Mj_base)
 	mj.Entry_base = room_base.NewEntryBase(KindId, ServiceId)
+	mj.OnUserTrusteeCb = mj.OnUserTrustee
 	mj.Temp = Temp
 	return mj
 }
