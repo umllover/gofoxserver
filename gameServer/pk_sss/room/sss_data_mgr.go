@@ -9,8 +9,6 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 
-	//dbg "github.com/funny/debug"
-
 	"math/rand"
 
 	"time"
@@ -44,6 +42,8 @@ func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string
 	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
 	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
 	//}
+	d.CreateRoom(temp.PlayTurnCount)
+
 	return d
 }
 
@@ -102,23 +102,33 @@ func (room *sss_data_mgr) InitRoomOne() {
 }
 
 func (room *sss_data_mgr) InitRoom(UserCnt int) {
-	//初始化
-	log.Debug("初始化房间")
-	room.PlayerCount = UserCnt
-	room.Players = make([]int, UserCnt)
-	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
-	room.cleanRoom(UserCnt)
+	// //初始化
+	// log.Debug("初始化房间")
+	// room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
+	// room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
+	// //room.reSetRoom(UserCnt)
 }
 
-func (room *sss_data_mgr) cleanRoom(UserCnt int) {
+func (room *sss_data_mgr) CreateRoom(maxPlayCount int) {
+	//初始化
+	log.Debug("初始化房间")
+	room.AllResult = make([][]int, maxPlayCount)
+	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
+	//room.reSetRoom(UserCnt)
+}
+
+func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	log.Debug("清理房间")
+
+	room.PlayerCount = UserCnt
+	room.Players = make([]int, UserCnt)
 
 	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
 	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
-	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
+	//room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	room.PlayerCards = make([][]int, UserCnt)
 	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
@@ -555,7 +565,9 @@ func (room *sss_data_mgr) DismissEnd(a int) {
 
 func (room *sss_data_mgr) BeforeStartGame(UserCnt int) {
 	room.GameStatus = GAME_FREE
-	room.InitRoom(UserCnt)
+	//room.InitRoom(UserCnt)
+	//清理上一局数据
+	room.reSetRoom(UserCnt)
 }
 
 func (room *sss_data_mgr) StartGameing() {
@@ -568,9 +580,6 @@ func (room *sss_data_mgr) GetOneCard() int { // 从牌堆取出一张
 }
 
 func (room *sss_data_mgr) StartDispatchCard() {
-	//清理上一局数据
-	room.cleanRoom(room.PlayerCount)
-
 	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
 	defaultCards := pk_base.GetCardByIdx(room.ConfigIdx)

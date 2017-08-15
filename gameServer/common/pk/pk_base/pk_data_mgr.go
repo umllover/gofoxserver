@@ -175,7 +175,6 @@ func (room *RoomData) InitRoomOne() {
 
 }
 
-
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
 
@@ -220,9 +219,6 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 
 // 其它操作，各个游戏自己有自己的游戏指令
 func (room *RoomData) OtherOperation(args []interface{}) {
-
-}
-func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
 
 }
 
