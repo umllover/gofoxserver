@@ -44,20 +44,6 @@ func NewPKBase(info *msg.L2G_CreatorRoom) *Entry_base {
 	return pk
 }
 
-func (r *Entry_base) RegisterBaseFunc() {
-	r.GetChanRPC().Register("Sitdown", r.Sitdown)
-	r.GetChanRPC().Register("UserStandup", r.UserStandup)
-	r.GetChanRPC().Register("GetUserChairInfo", r.GetUserChairInfo)
-	r.GetChanRPC().Register("DissumeRoom", r.DissumeRoom)
-	r.GetChanRPC().Register("UserReady", r.UserReady)
-	r.GetChanRPC().Register("userRelogin", r.UserReLogin)
-	r.GetChanRPC().Register("userOffline", r.UserOffline)
-	r.GetChanRPC().Register("SetGameOption", r.SetGameOption)
-	r.GetChanRPC().Register("ReqLeaveRoom", r.ReqLeaveRoom)
-	r.GetChanRPC().Register("ReplyLeaveRoom", r.ReplyLeaveRoom)
-	r.GetChanRPC().Register("RenewalFeesSetInfo", r.RenewalFeesSetInfo)
-}
-
 func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 	r.UserMgr = cfg.UserMgr
 	r.DataMgr = cfg.DataMgr

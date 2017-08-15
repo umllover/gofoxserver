@@ -772,6 +772,7 @@ func (room *RoomData) SendOperateNotify(u *user.User, card int) {
 
 //派发扑克
 func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
+	log.Error("at  base DispatchCardData ...................... ")
 	//状态效验
 	if room.SendStatus == Not_Send {
 		log.Error("at DispatchCardData f room.SendStatus == Not_Send")
@@ -988,10 +989,8 @@ func (room *RoomData) InitBuHua() {
 }
 
 func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool) {
-	log.Debug("at CheckHuaCard .................. ")
 	logic := room.MjBase.LogicMgr
 	for j := room.GetCfg().MaxIdx - room.GetCfg().HuaIndex; j < room.GetCfg().MaxIdx; j++ {
-		log.Debug("at CheckHuaCard ..................  cnt %d", room.CardIndex[playerIndex][j])
 		if room.CardIndex[playerIndex][j] == 1 {
 			index := j
 			for {
