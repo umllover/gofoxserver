@@ -577,6 +577,7 @@ func (room *ZP_RoomData) SendGameStart() {
 
 //正常结束房间
 func (room *ZP_RoomData) NormalEnd(cbReason int) {
+	log.Debug("========== at NormalEnd, %d/%d", room.MjBase.TimerMgr.GetPlayCount(), room.MjBase.TimerMgr.GetMaxPlayCnt())
 	//清理变量
 	room.ClearAllTimer()
 
@@ -1985,8 +1986,9 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	return 0
 }
 
-//解散接触
+//解散结束
 func (room *ZP_RoomData) DismissEnd(cbReason int) {
+	log.Debug("========== at DismissEnd, %d/%d", room.MjBase.TimerMgr.GetPlayCount(), room.MjBase.TimerMgr.GetMaxPlayCnt())
 	//清理变量
 	room.ClearAllTimer()
 
@@ -2023,6 +2025,9 @@ func (room *ZP_RoomData) DismissEnd(cbReason int) {
 		}
 	}
 	GameConclude.Reason = cbReason
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
+
 	//发送信息
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }
