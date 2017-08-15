@@ -772,6 +772,7 @@ func (room *RoomData) SendOperateNotify(u *user.User, card int) {
 
 //派发扑克
 func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
+	log.Error("at  base DispatchCardData ...................... ")
 	//状态效验
 	if room.SendStatus == Not_Send {
 		log.Error("at DispatchCardData f room.SendStatus == Not_Send")
