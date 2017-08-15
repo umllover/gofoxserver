@@ -24,6 +24,7 @@ type Entry_base struct {
 	TimerMgr TimerManager
 	DataMgr  BData
 
+	OnUserTrusteeCb  func(wChairID int, bTrustee bool) bool
 	Temp             *base.GameServiceOption //模板
 	Status           int
 	IsClose          bool
@@ -244,7 +245,7 @@ func (room *Entry_base) UserReLogin(args []interface{}) error {
 	room.TimerMgr.StopOfflineTimer(u.Id)
 	//重入取消托管
 	if room.Temp.OffLineTrustee == 1 {
-		room.OnUserTrustee(u.ChairId, false)
+		room.OnUserTrusteeCb(u.ChairId, false)
 	}
 	return nil
 }
@@ -341,7 +342,7 @@ func (room *Entry_base) SetGameOption(args []interface{}) {
 func (room *Entry_base) OnRecUserTrustee(args []interface{}) {
 	u := args[1].(*user.User)
 	getData := args[0].(*mj_zp_msg.C2G_MJZP_Trustee)
-	ok := room.OnUserTrustee(u.ChairId, getData.Trustee)
+	ok := room.OnUserTrusteeCb(u.ChairId, getData.Trustee)
 	if !ok {
 		log.Error("at OnRecUserTrustee user.chairid:", u.ChairId)
 	}
@@ -473,43 +474,6 @@ func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 //		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
 //	}
 //}
-
-//托管 // todo 重构托管 todo,房间托管
-func (room *Entry_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
-	log.Error("at base OnUserTrustee")
-	//
-	////效验状态
-	//if wChairID >= room.UserMgr.GetMaxPlayerCnt() {
-	//	return false
-	//}
-	//
-	//room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
-	//
-	//room.UserMgr.SendMsgAll(&mj_zp_msg.G2C_ZPMJ_Trustee{
-	//	Trustee: bTrustee,
-	//	ChairID: wChairID,
-	//})
-	//
-	//if bTrustee {
-	//	if wChairID == room.DataMgr.GetCurrentUser() && !room.DataMgr.IsActionDone() {
-	//		cardindex := room.DataMgr.GetTrusteeOutCard(wChairID)
-	//		if cardindex == INVALID_BYTE {
-	//			return false
-	//		}
-	//		u := room.UserMgr.GetUserByChairId(wChairID)
-	//		card := room.LogicMgr.SwitchToCardData(cardindex)
-	//		room.OutCard([]interface{}{u, card, true})
-	//	} else if room.DataMgr.GetCurrentUser() == INVALID_CHAIR && !room.DataMgr.IsActionDone() {
-	//		u := room.UserMgr.GetUserByChairId(wChairID)
-	//		if u == nil {
-	//			return false
-	//		}
-	//		operateCard := []int{0, 0, 0}
-	//		room.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
-	//	}
-	//}
-	return true
-}
 
 func (room *Entry_base) getRoomUser(uid int64) *user.User {
 	u, _ := room.UserMgr.GetUserByUid(uid)
