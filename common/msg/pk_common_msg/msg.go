@@ -85,6 +85,7 @@ type UserReLoginInfo struct {
 	CallScoreTimes int
 	AddScoreTimes  int
 	OpenCardData []int
+	OpenCardType int
 }
 type G2C_PKCOMMON_StatusPlay struct {
 	CellScore int //基础积分
