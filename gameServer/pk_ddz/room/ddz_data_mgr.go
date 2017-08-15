@@ -1045,14 +1045,14 @@ func (r *ddz_data_mgr) startOperateCardTimer(nTime int) {
 		r.resetOperateCardTimer(nTime)
 	}
 
-	r.CardTimer = time.AfterFunc(time.Duration(nTime+5)*time.Second, f)
+	r.CardTimer = time.AfterFunc(time.Duration(nTime)*time.Second, f)
 }
 
 // 重置定时器
 func (r *ddz_data_mgr) resetOperateCardTimer(nTime int) {
 	log.Debug("重置定时器时间%d", nTime)
 	if r.CardTimer != nil {
-		r.CardTimer.Reset(time.Duration(nTime+5) * time.Second)
+		r.CardTimer.Reset(time.Duration(nTime) * time.Second)
 	}
 }
 

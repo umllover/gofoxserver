@@ -191,9 +191,10 @@ func (room *RoomData) SendStatusReady(u *user.User) {
 	StatusFree.CreateTime = room.MjBase.TimerMgr.GetCreatrTime()           //开始时间
 	StatusFree.TurnScore = room.HistorySe.AllScore
 	StatusFree.CollectScore = room.HistorySe.DetailScore
-	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
-	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt() //局数限制
+	StatusFree.PlayerCount = room.MjBase.UserMgr.GetBeginPlayer() //玩家人数
+	StatusFree.MaCount = 0                                        //码数
+	StatusFree.PlayCount = room.MjBase.TimerMgr.GetPlayCount()    //已玩局数
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt()  //局数限制
 	u.WriteMsg(StatusFree)
 }
 

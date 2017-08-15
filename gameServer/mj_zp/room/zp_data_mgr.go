@@ -578,6 +578,7 @@ func (room *ZP_RoomData) SendGameStart() {
 
 //正常结束房间
 func (room *ZP_RoomData) NormalEnd(cbReason int) {
+	log.Debug("========== at NormalEnd, %d/%d", room.MjBase.TimerMgr.GetPlayCount(), room.MjBase.TimerMgr.GetMaxPlayCnt())
 	//清理变量
 	room.ClearAllTimer()
 
@@ -1987,8 +1988,9 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	return 0
 }
 
-//解散接触
+//解散结束
 func (room *ZP_RoomData) DismissEnd(cbReason int) {
+	log.Debug("========== at DismissEnd, %d/%d", room.MjBase.TimerMgr.GetPlayCount(), room.MjBase.TimerMgr.GetMaxPlayCnt())
 	//清理变量
 	room.ClearAllTimer()
 
@@ -2025,6 +2027,9 @@ func (room *ZP_RoomData) DismissEnd(cbReason int) {
 		}
 	}
 	GameConclude.Reason = cbReason
+	GameConclude.AllScore = room.HistorySe.AllScore
+	GameConclude.DetailScore = room.HistorySe.DetailScore
+
 	//发送信息
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
 }
@@ -2040,9 +2045,10 @@ func (room *ZP_RoomData) SendStatusReady(u *user.User) {
 	StatusFree.TurnScore = room.HistorySe.AllScore
 	StatusFree.CollectScore = room.HistorySe.DetailScore
 
-	StatusFree.PlayerCount = room.MjBase.TimerMgr.GetPlayCount() //玩家人数
-	StatusFree.MaCount = 0                                       //码数
-	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt() //局数限制
+	StatusFree.MaCount = 0                                        //码数
+	StatusFree.PlayerCount = room.MjBase.UserMgr.GetBeginPlayer() //玩家人数
+	StatusFree.PlayCount = room.MjBase.TimerMgr.GetPlayCount()    //已玩局数
+	StatusFree.CountLimit = room.MjBase.TimerMgr.GetMaxPlayCnt()  //局数限制
 	StatusFree.ZhuaHuaCnt = room.ZhuaHuaCnt
 	u.WriteMsg(StatusFree)
 }
