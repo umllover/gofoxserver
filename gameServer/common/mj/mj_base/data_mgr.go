@@ -227,8 +227,7 @@ func (room *RoomData) SendStatusPlay(u *user.User) {
 
 	StatusPlay.Ting = room.Ting
 	//当前能胡的牌
-	StatusPlay.OutCardCount = room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId],
-		StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData)
+	StatusPlay.OutCardCount = 0 //room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[u.ChairId], room.WeaveItemArray[u.ChairId], StatusPlay.OutCardDataEx, StatusPlay.HuCardCount, StatusPlay.HuCardData)
 
 	//历史记录
 	StatusPlay.OutCardUser = room.OutCardUser
@@ -1370,33 +1369,36 @@ func (room *RoomData) CheckUserCard(KindID int, testCards []int) bool {
 }
 
 //听牌判断
+//func (room *RoomData) CheckTingCard(chairID int) bool {
+//	CheckUser := room.MjBase.UserMgr.GetUserByChairId(chairID)
+//	if CheckUser == nil {
+//		log.Error("at CheckTingCard not found user %d", chairID)
+//		return false
+//	}
+//	if room.Ting[chairID] == false {
+//		HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
+//		Count := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[chairID], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
+//		log.Debug("at CheckTingCard Count=%d", Count)
+//		if Count > 0 {
+//			HuData.OutCardCount = Count
+//			room.UserAction[chairID] |= WIK_LISTEN
+//			for i := 0; i < room.GetCfg().MaxCount; i++ {
+//				if HuData.HuCardCount[i] > 0 {
+//					for j := 0; j < HuData.HuCardCount[i]; j++ {
+//						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(chairID, HuData.HuCardData[i][j]))
+//					}
+//				} else {
+//					break
+//				}
+//			}
+//			log.Debug("at CheckTingCard HuData=%v", HuData)
+//			CheckUser.WriteMsg(HuData)
+//			return true
+//		}
+//	}
+//	return false
+//}
 func (room *RoomData) CheckTingCard(chairID int) bool {
-	CheckUser := room.MjBase.UserMgr.GetUserByChairId(chairID)
-	if CheckUser == nil {
-		log.Error("at CheckTingCard not found user %d", chairID)
-		return false
-	}
-	if room.Ting[chairID] == false {
-		HuData := &msg.G2C_Hu_Data{OutCardData: make([]int, room.GetCfg().MaxCount), HuCardCount: make([]int, room.GetCfg().MaxCount), HuCardData: make([][]int, room.GetCfg().MaxCount), HuCardRemainingCount: make([][]int, room.GetCfg().MaxCount)}
-		Count := room.MjBase.LogicMgr.AnalyseTingCard(room.CardIndex[chairID], []*msg.WeaveItem{}, HuData.OutCardData, HuData.HuCardCount, HuData.HuCardData)
-		log.Debug("at CheckTingCard Count=%d", Count)
-		if Count > 0 {
-			HuData.OutCardCount = Count
-			room.UserAction[chairID] |= WIK_LISTEN
-			for i := 0; i < room.GetCfg().MaxCount; i++ {
-				if HuData.HuCardCount[i] > 0 {
-					for j := 0; j < HuData.HuCardCount[i]; j++ {
-						HuData.HuCardRemainingCount[i] = append(HuData.HuCardRemainingCount[i], room.GetRemainingCount(chairID, HuData.HuCardData[i][j]))
-					}
-				} else {
-					break
-				}
-			}
-			log.Debug("at CheckTingCard HuData=%v", HuData)
-			CheckUser.WriteMsg(HuData)
-			return true
-		}
-	}
 	return false
 }
 
