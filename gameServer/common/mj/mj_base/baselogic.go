@@ -372,7 +372,7 @@ func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cb
 	return 0
 }
 
-//TODO 这边这个听牌逻辑太暴力了，太好性能了
+//TODO 这边这个听牌逻辑太暴力了，太耗性能了
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
 	cbOutCount := 0
 	cbCardIndexTemp := util.CopySlicInt(cbCardIndex)
