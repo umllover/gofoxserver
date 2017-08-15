@@ -73,10 +73,6 @@ type nntb_data_mgr struct {
 	OpenCardTimer  *timer.Timer
 }
 
-//func (room *nntb_data_mgr) InitRoomOne() {
-//
-//}
-
 func (room *nntb_data_mgr) SetUserAddScoreTimes(chairId int, addScoreTimes int) {
 	room.AddScoreTimesMap[chairId] = addScoreTimes
 }
