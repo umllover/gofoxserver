@@ -367,19 +367,10 @@ type C2L_GetRoomRecord struct {
 	RecordID int //视频id
 }
 
-type GameStartRecord struct {
-}
-
-type GamePlayingRecord struct {
-}
-
-type GameEndRecord struct {
-}
-
 type L2C_RoomRecord struct {
-	Start   *GameStartRecord
-	Playing *GamePlayingRecord
-	End     *GameEndRecord
+	Start   string
+	Playing string
+	End     string
 }
 
 ///////////////////////// game chart end ///////////////////////////////
