@@ -1174,7 +1174,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	}
 
 	room := info.(*msg.RoomInfo)
-	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/(room.RenewalCnt+1))
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt)
 	if !ok {
 		retCode = ErrConfigError
 		return
@@ -1224,6 +1224,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 
 //续费结果
 func (m *UserModule) RenewalFeeResult(args []interface{}) {
+	log.Debug("=============at RenewalFeeResult")
 	recvMsg := args[0].(*msg.S2S_RenewalFeeResult)
 	player := m.a.UserData().(*user.User)
 
@@ -1251,7 +1252,8 @@ func (m *UserModule) RenewalFeeResult(args []interface{}) {
 			return
 		}
 		room := info.(*msg.RoomInfo)
-		room.PayCnt += recvMsg.AddCount
+		room.CurPayCnt = 0 //已玩局数重置
+		//room.PayCnt += recvMsg.AddCount
 		room.RenewalCnt++
 	}
 }
