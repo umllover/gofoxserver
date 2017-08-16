@@ -920,6 +920,7 @@ func (room *RoomData) AfterStartGame() {
 }
 
 func (room *RoomData) ResetGameAfterRenewal() {
+	room.MjBase.Status = RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
 

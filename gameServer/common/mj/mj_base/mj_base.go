@@ -55,7 +55,7 @@ func (r *Mj_base) Init(cfg *NewMjCtlConfig) {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
-		r.OnEventGameConclude(0, nil, NO_START_GER_DISMISS)
+		r.OnEventGameConclude(NO_START_GER_DISMISS)
 	})
 
 	r.DataMgr.InitRoomOne()
@@ -125,7 +125,7 @@ func (room *Mj_base) OutCard(args []interface{}) {
 	//派发扑克
 	if !bAroseAction {
 		if room.GetDataMgr().DispatchCardData(room.GetDataMgr().GetCurrentUser(), false) > 0 {
-			room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+			room.OnEventGameConclude(GER_NORMAL)
 		}
 	}
 
@@ -193,7 +193,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		if cbTargetAction == WIK_NULL {
 			//用户状态
 			if room.GetDataMgr().DispatchCardData(room.GetDataMgr().GetResumeUser(), room.GetDataMgr().GetGangStatus() != WIK_GANERAL) > 0 {
-				room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+				room.OnEventGameConclude(GER_NORMAL)
 			}
 			room.GetDataMgr().ResetUserOperate()
 			return
@@ -202,7 +202,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//胡牌操作
 		if cbTargetAction == WIK_CHI_HU {
 			room.GetDataMgr().UserChiHu(wTargetUser, room.UserMgr.GetMaxPlayerCnt())
-			room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+			room.OnEventGameConclude(GER_NORMAL)
 			return
 		}
 
@@ -219,7 +219,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		if cbTargetAction == WIK_GANG {
 			if room.GetDataMgr().DispatchCardData(wTargetUser, true) > 0 {
 				room.GetDataMgr().GetRoomId()
-				room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+				room.OnEventGameConclude(GER_NORMAL)
 			}
 		}
 	} else {
@@ -244,13 +244,13 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			//发送扑克
 			if !bAroseAction {
 				if room.GetDataMgr().DispatchCardData(u.ChairId, true) > 0 {
-					room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+					room.OnEventGameConclude(GER_NORMAL)
 				}
 			}
 		case WIK_CHI_HU: //自摸
 			//结束游戏
 			room.GetDataMgr().ZiMo(u)
-			room.OnEventGameConclude(room.GetDataMgr().GetProvideUser(), nil, GER_NORMAL)
+			room.OnEventGameConclude(GER_NORMAL)
 		}
 	}
 }
@@ -271,7 +271,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 //			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
 //			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
 //		} else {
-//			room.OnEventGameConclude(0, nil, GER_NORMAL)
+//			room.OnEventGameConclude(GER_NORMAL)
 //			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
 //		}
 //	}

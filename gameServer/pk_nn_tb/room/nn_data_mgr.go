@@ -650,7 +650,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 
 	// 游戏结束
 
-	r.PkBase.OnEventGameConclude(0, userMgr.GetUserByChairId(0), cost.GER_NORMAL)
+	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
 	/*r.PkBase.AfterFunc( 15 * time.Second, func() {
 		log.Debug("game end timer")
