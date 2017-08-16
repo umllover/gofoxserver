@@ -3,6 +3,7 @@ package room
 import (
 	"mj/gameServer/common/pk/pk_base"
 
+	//dbg "github.com/funny/debug"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -92,7 +93,7 @@ func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
 	//l.BtCardSpecialData = make([]int, 13)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
-	l.LaiZhiSubstitute = 0xFF
+	l.LaiZhiSubstitute = -1
 	return l
 }
 
@@ -190,6 +191,9 @@ func (lg *sss_logic) SSSSortCardList(cardData []int) {
 
 //逻辑数值
 func (lg *sss_logic) GetCardLogicValue(cardData int) int {
+	if cardData < 0 {
+		return cardData
+	}
 	//扑克属性
 	cardValue := lg.GetCardValue(cardData)
 	if cardValue == 14 || cardValue == 15 {
@@ -209,10 +213,6 @@ func (lg *sss_logic) GetCardColor(bCardData int) int { return (bCardData & LOGIC
 
 //分析牌
 func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
-
-	//cardData := make([]int, cardCount)
-	//copy(cardData, metaCardData)
-
 	cardData := []int{}
 	laiZi := []int{}
 
@@ -237,7 +237,7 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 	bLogicValue := lg.GetCardLogicValue(cardData[0])
 	bCardColor := lg.GetCardColor(cardData[0])
 
-	analyseItem := &TagAnalyseItem{bOneFirst: make([]int, 13), bTwoFirst: make([]int, 13), bThreeFirst: make([]int, 13), bFourFirst: make([]int, 13)}
+	analyseItem := &TagAnalyseItem{bOneFirst: make([]int, 13), bTwoFirst: make([]int, 13), bThreeFirst: make([]int, 13), bFourFirst: make([]int, 13), bFiveFirst: make([]int, 13)}
 	analyseItem.cardData = cardData
 	analyseItem.laiZi = laiZi
 	//扑克分析
@@ -615,6 +615,12 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 			GetOutNum := lg.GetColorCardNum(cardData, i)
 			if GetOutNum != 0 && GetOutNum != 3 && GetOutNum != 5 && GetOutNum != 8 && GetOutNum != 10 && GetOutNum != 13 {
 				bThree_C = false
+			}
+		}
+		for i := 0; i < len(cardData); i++ {
+			if cardData[i] == 0x4E || cardData[i] == 0x4F {
+				bThree_C = false
+				break
 			}
 		}
 		if bThree_C {

@@ -136,8 +136,8 @@ func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 		room.CompareResults[i] = make([]int, 3)
 	}
 	room.SpecialCompareResults = make([]int, UserCnt)
-	room.ShootState = make([][]int, 6)
-	room.ShootResults = make([]int, 6)
+	room.ShootState = make([][]int, UserCnt)
+	room.ShootResults = make([]int, UserCnt)
 
 	room.AddCards = make([]int, 0)
 	room.PublicCards = make([]int, 0, 3)
@@ -155,7 +155,7 @@ func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
 		for i := range carData {
 			for j := range r.UniversalCards {
 				if carData[i] == r.UniversalCards[j] {
-					tempData[i] = 0xFF
+					tempData[i] = -1
 					laiZiCount++
 				}
 			}
@@ -166,7 +166,7 @@ func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
 		bossCount := 0
 		for i := range carData {
 			if carData[i] == 0x4E || carData[i] == 0x4F {
-				tempData[i] = 0xFF
+				tempData[i] = -1
 				bossCount++
 			} else {
 				tempData[i] = carData[i]
@@ -189,11 +189,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
-		ct, item = lg.SSSGetCardType(tempData)
+		//isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
+		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
 		r.PlayerSpecialCardType[i].CT = ct
 		r.PlayerSpecialCardType[i].Item = item
-		r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
+		//r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
@@ -577,9 +577,12 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	if room.wanFa == 1 {
 		randNum := rand.Intn(13)
 		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
 	}
 
 	if room.jiaGongGong {
@@ -628,6 +631,13 @@ func (room *sss_data_mgr) StartDispatchCard() {
 			room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], room.GetOneCard())
 		}
 	})
+
+	// //替换测试数据start
+	// room.UniversalCards = []int{9, 25, 41, 57, 0x4E, 0x4F}
+	// room.PublicCards = []int{29, 2, 50}
+	// room.PlayerCards[0] = []int{25, 21, 42, 9, 5, 7, 18, 17, 33, 17, 54, 18, 3}
+	// room.PlayerCards[1] = []int{79, 45, 29, 60, 12, 59, 11, 58, 41, 25, 39, 7, 21}
+	// //替换测试数据end
 
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
