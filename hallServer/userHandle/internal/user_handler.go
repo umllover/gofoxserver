@@ -1036,6 +1036,9 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
+			if !player.HasTimes(common.ActivityRechangeDay) {
+				player.SetTimes(common.ActivityRechangeDay, 0)
+			}
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
