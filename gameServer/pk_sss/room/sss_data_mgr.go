@@ -120,6 +120,13 @@ func (room *sss_data_mgr) InitRoom(maxPlayCount int) {
 func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	log.Debug("清理房间")
 
+	room.GameStatus = 0
+
+	room.wanFa = 0
+	room.jiaYiSe = false
+	room.jiaGongGong = false
+	room.jiaDaXiaoWan = false
+
 	room.PlayerCount = UserCnt
 	room.Players = make([]int, UserCnt)
 
@@ -127,8 +134,6 @@ func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
-
-	//room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	room.PlayerCards = make([][]int, UserCnt)
 	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
@@ -147,6 +152,7 @@ func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	room.SpecialCompareResults = make([]int, UserCnt)
 	room.ShootState = make([][]int, UserCnt)
 	room.ShootResults = make([]int, UserCnt)
+	room.ShootNum = 0
 
 	room.AddCards = make([]int, 0)
 	room.PublicCards = make([]int, 0, 3)
