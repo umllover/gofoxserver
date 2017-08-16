@@ -196,7 +196,6 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
-	room.MjBase.Status = RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
 

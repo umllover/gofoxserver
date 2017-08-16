@@ -1,7 +1,6 @@
 package pk_base
 
 import (
-	. "mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -177,7 +176,7 @@ func (room *RoomData) InitRoomOne() {
 
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
-	room.PkBase.Status = RoomStatusReady
+
 }
 
 // 游戏开始

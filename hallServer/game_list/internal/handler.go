@@ -68,6 +68,9 @@ func GetRoomList(args []interface{}) {
 	agent := args[1].(gate.Agent)
 	defer func() {
 		agent.WriteMsg(retMsg)
+		//for _, r := range retMsg.Lists {
+		//	log.Debug("===========roomId=%d(%d/%d), RoomPlayCnt=%d, Status=%d", r.RoomID, r.CurPayCnt, r.PayCnt, r.RoomPlayCnt, r.Status)
+		//}
 	}()
 
 	if recvMsg.Num > common.GetGlobalVarInt(MAX_SHOW_ENTRY) {
@@ -230,6 +233,9 @@ func updateRoom(args []interface{}) {
 				MatchRpc.Go("delMatchPlayer", id, room)
 			}
 		}
+
+	case "SetRoomStatus":
+		room.Status = int(info.Data["RoomStatus"].(float64))
 	}
 
 }

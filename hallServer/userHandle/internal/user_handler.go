@@ -550,6 +550,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
+	roomInfo.RoomPlayCnt = info.Num
 	roomInfo.RoomName = info.RoomName
 	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
 
