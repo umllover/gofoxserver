@@ -10,9 +10,6 @@ import (
 
 	"time"
 
-	"encoding/json"
-	"mj/gameServer/db/model"
-
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 	"github.com/mitchellh/mapstructure"
@@ -103,14 +100,6 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	log.Debug("初始化房间参数%d", UserCnt)
 	room.RoomData.InitRoom(UserCnt)
 	room.PlayerCount = UserCnt
-
-	for i := 0; i < HappyCards.count; i++ {
-		log.Debug("非八王牌列表%v", HappyCards.Cards[i])
-	}
-
-	for i := 0; i < HappyCardsKing.count; i++ {
-		log.Debug("八王牌列表%v", HappyCardsKing.Cards[i])
-	}
 
 	room.resetData()
 }
@@ -692,7 +681,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 
 // 判断下一个玩家托管状态
 func (r *ddz_data_mgr) checkNextUserTrustee() {
-	log.Debug("当前玩家%d,上次出牌玩家%d,托管状态%v", r.CurrentUser, r.TurnWiner, r.PkBase.UserMgr.GetTrustees())
+	log.Debug("当前游戏状态%d,玩家%d,上次出牌玩家%d,托管状态%v", r.GameStatus, r.CurrentUser, r.TurnWiner, r.PkBase.UserMgr.GetTrustees())
 	if r.PkBase.UserMgr.IsTrustee(r.CurrentUser) {
 		// 出牌玩家为托管状态
 		if r.GameStatus == GAME_STATUS_CALL {
@@ -702,9 +691,17 @@ func (r *ddz_data_mgr) checkNextUserTrustee() {
 			// 出牌状态
 			if r.CurrentUser == r.TurnWiner || r.TurnWiner == cost.INVALID_CHAIR {
 				// 上一个出牌玩家是自己，则选最小牌
-				var cardData []int
-				cardData = append(cardData, r.HandCardData[r.CurrentUser][len(r.HandCardData[r.CurrentUser])-1])
-				r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 1, cardData)
+				nLen := len(r.HandCardData[r.CurrentUser])
+				if nLen > 0 {
+					var cardData []int
+					cardData = append(cardData, r.HandCardData[r.CurrentUser][nLen-1])
+					r.OpenCard(r.PkBase.UserMgr.GetUserByChairId(r.CurrentUser), 1, cardData)
+				} else {
+					// 作保护，如果手牌为0了，则游戏结束
+					r.WinnerUser = r.CurrentUser
+					r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
+				}
+
 			} else {
 				// 上一个出牌玩家不是自己，则不出
 				log.Debug("玩家不出%d,%d,%d", r, r.PkBase, r.PkBase.UserMgr)
@@ -916,22 +913,9 @@ func (r *ddz_data_mgr) saveOutCardToDB() {
 		// 数量相等才能存数据库
 		// ----存数据库----
 		if r.EightKing {
-			var dbCardData model.RecordOutcardDdzKing
-			dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
-			cardData, err := json.Marshal(r.RecordOutCards)
-			if err == nil {
-				dbCardData.CardData = string(cardData)
-				model.RecordOutcardDdzKingOp.Insert(&dbCardData)
-			}
+			UpdatehappyKingCardList(r.RecordOutCards)
 		} else {
-			var dbCardData model.RecordOutcardDdz
-			dbCardData.CreateTime = int(time.Now().UnixNano() / 1000000000)
-			cardData, err := json.Marshal(r.RecordOutCards)
-			log.Debug("转换后的牌%s,%v", cardData, err)
-			if err == nil {
-				dbCardData.CardData = string(cardData)
-				model.RecordOutcardDdzOp.Insert(&dbCardData)
-			}
+			UpdateHappyCardList(r.RecordOutCards)
 		}
 	}
 }
