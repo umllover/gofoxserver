@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"mj/gameServer/Chat"
 	"mj/gameServer/center"
 	"mj/gameServer/user"
 	"sync"
@@ -35,7 +34,6 @@ func getUser(uid int64) *user.User {
 func AddUser(uid int64, u *user.User) {
 	log.Debug("at AddUser  ============== :%d", uid)
 	center.ChanRPC.Go("SelfNodeAddPlayer", uid, u.ChanRPC())
-	Chat.ChanRPC.Go("addRoomMember", u.ChatRoomId, u.Agent)
 	UsersLock.Lock()
 	defer UsersLock.Unlock()
 	Users[uid] = u

@@ -288,6 +288,9 @@ func (room *RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bool)
 	room.ProvideUser = u.ChairId
 	room.ProvideCard = cbCardData
 
+	//丢弃扑克记录
+	room.DiscardCard[u.ChairId] = append(room.DiscardCard[u.ChairId], cbCardData)
+
 	//用户切换
 	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
 }
@@ -777,15 +780,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if room.SendStatus == Not_Send {
 		log.Error("at DispatchCardData f room.SendStatus == Not_Send")
 		return -1
-	}
-
-	//丢弃扑克
-	if (room.OutCardUser != INVALID_CHAIR) && (room.OutCardData != 0) {
-		if len(room.DiscardCard[room.OutCardUser]) < 1 {
-			room.DiscardCard[room.OutCardUser] = make([]int, 60)
-		}
-
-		room.DiscardCard[room.OutCardUser] = append(room.DiscardCard[room.OutCardUser], room.OutCardData)
 	}
 
 	//荒庄结束
@@ -1580,7 +1574,7 @@ func (room *RoomData) FiltrateRight(wWinner int, chr *int) {
 	} else if room.GangStatus == WIK_MING_GANG {
 		*chr |= CHR_QIANG_GANG_HU
 	} else {
-		log.Error("AT FiltrateRight")
+		log.Debug("AT FiltrateRight")
 	}
 	return
 }
