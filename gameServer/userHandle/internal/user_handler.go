@@ -365,7 +365,10 @@ func (m *UserModule) ReqLeaveRoom(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 	r := RoomMgr.GetRoom(player.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("ReqLeaveRoom", player)
+		_, err := r.GetChanRPC().Call1("ReqLeaveRoom", player)
+		if err != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrRoomDissolution})
+		}
 	} else {
 		player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrPlayerNotInRoom})
 	}

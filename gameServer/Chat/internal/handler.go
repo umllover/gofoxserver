@@ -13,6 +13,7 @@ func init() {
 	reg.RegisterRpc("createRoom", createRoom)
 	reg.RegisterRpc("addRoomMember", addRoomMember)
 	reg.RegisterRpc("delRoomMember", delRoomMember)
+	reg.RegisterRpc("closeChatRoom", closeChatRoom)
 
 	reg.RegisterC2S(&msg.C2G_GameChart_ToAll{}, SendChatMsgToAll)
 

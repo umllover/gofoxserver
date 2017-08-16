@@ -165,6 +165,8 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	u.RoomId = r.id
 	u.ChatRoomId = r.ChatRoomId
 
+	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
+
 	//log.Debug("=============================u.HallNodeName:", u.HallNodeName)
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -249,6 +251,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
 	u.ChatRoomId = 0
+
+	Chat.ChanRPC.Go("delRoomMember", r.ChatRoomId, u.Id)
 
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -367,7 +371,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
 
-	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
 
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
@@ -472,6 +475,10 @@ func (room *RoomUserMgr) RoomDissume(Reason int) {
 				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
 			}
 		}
+	}
+
+	if room.ChatRoomId != 0 {
+		Chat.ChanRPC.Go("closeChatRoom", room.ChatRoomId)
 	}
 }
 

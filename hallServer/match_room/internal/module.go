@@ -2,6 +2,7 @@ package internal
 
 import (
 	"container/list"
+	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/base"
 	"mj/hallServer/game_list"
@@ -100,6 +101,10 @@ func (m *MatchModule) Match() {
 			}
 
 			if r.MachCnt >= r.MaxPlayerCnt {
+				continue
+			}
+
+			if r.Status != RoomStatusReady {
 				continue
 			}
 

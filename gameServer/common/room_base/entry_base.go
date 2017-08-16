@@ -233,7 +233,8 @@ func (room *Entry_base) UserReLogin(args []interface{}) error {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
-		return errors.New(" UserReLogin not old user ")
+		log.Debug("UserReLogin not old user")
+		return nil
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
@@ -349,7 +350,7 @@ func (room *Entry_base) OnRecUserTrustee(args []interface{}) {
 }
 
 //玩家离开房间
-func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
+func (room *Entry_base) ReqLeaveRoom(args []interface{}) (interface{}, error) {
 	player := args[0].(*user.User)
 	if room.Status == RoomStatusReady {
 		if room.UserMgr.LeaveRoom(player, room.Status) {
@@ -365,6 +366,7 @@ func (room *Entry_base) ReqLeaveRoom(args []interface{}) {
 			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
 		})
 	}
+	return nil, nil
 }
 
 //其他玩家响应玩家离开房间的请求
@@ -392,6 +394,10 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 
 //游戏结束
 func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+	if room.Status == RoomStatusClose {
+		log.Debug("double close room")
+		return
+	}
 	switch cbReason {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
@@ -406,7 +412,6 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	}
-	room.Status = RoomStatusEnd
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
 	return
 }
@@ -414,11 +419,13 @@ func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReas
 // 如果这里不能满足 afertEnd 请重构这个到个个组件里面
 func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 	roomStatus := room.Status
+	room.Status = RoomStatusEnd //一局结束状态
 	//room.OnRoomTrustee()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
 		}
+		room.Status = RoomStatusClose
 		log.Debug("Forced :%v, room.Status:%d, PlayTurnCount:%d, temp PlayTurnCount:%d", Forced, roomStatus, room.TimerMgr.GetPlayCount(), room.TimerMgr.GetMaxPlayCnt())
 		closeFunc := func() {
 			room.IsClose = true
