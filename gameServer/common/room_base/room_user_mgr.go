@@ -200,7 +200,7 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		return 0
 	}
 
-	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, Agree: Agree})
+	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, ReplyUid: ReplyUid, Agree: Agree})
 	if Agree {
 		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]

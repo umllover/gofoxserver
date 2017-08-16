@@ -69,8 +69,9 @@ type G2C_LeaveRoomBradcast struct {
 
 //别人同意或拒绝的结果通知
 type G2C_ReplyRsp struct {
-	UserID int64 //谁同意或者拒绝你了
-	Agree  bool  //ture 是同意你了， false 是拒绝你了
+	UserID   int64 //谁同意或者拒绝你了
+	ReplyUid int64 //发起人id
+	Agree    bool  //ture 是同意你了， false 是拒绝你了
 }
 
 //同意还是拒绝解散房间
