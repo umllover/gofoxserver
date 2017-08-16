@@ -1573,7 +1573,7 @@ func (room *RoomData) FiltrateRight(wWinner int, chr *int) {
 	} else if room.GangStatus == WIK_MING_GANG {
 		*chr |= CHR_QIANG_GANG_HU
 	} else {
-		log.Error("AT FiltrateRight")
+		log.Debug("AT FiltrateRight")
 	}
 	return
 }

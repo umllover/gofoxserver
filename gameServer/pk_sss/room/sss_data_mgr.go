@@ -2,6 +2,7 @@ package room
 
 import (
 	"mj/gameServer/common/pk/pk_base"
+	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
@@ -11,8 +12,10 @@ import (
 
 	"math/rand"
 
+	"encoding/json"
 	"time"
 
+	//dbg "github.com/funny/debug"
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -50,6 +53,12 @@ type sssCardType struct {
 	CT      int
 	Item    *TagAnalyseItem
 	isLaiZi bool
+}
+
+type sssReplaceCard struct {
+	Laizi       []int
+	PublicCards []int
+	CardData    [][]int
 }
 
 type sss_data_mgr struct {
@@ -632,12 +641,10 @@ func (room *sss_data_mgr) StartDispatchCard() {
 		}
 	})
 
-	// //替换测试数据start
-	// room.UniversalCards = []int{9, 25, 41, 57, 0x4E, 0x4F}
-	// room.PublicCards = []int{29, 2, 50}
-	// room.PlayerCards[0] = []int{25, 21, 42, 9, 5, 7, 18, 17, 33, 17, 54, 18, 3}
-	// room.PlayerCards[1] = []int{79, 45, 29, 60, 12, 59, 11, 58, 41, 25, 39, 7, 21}
-	// //替换测试数据end
+	//替换测试数据
+	if conf.Test {
+		room.replaceCard()
+	}
 
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
@@ -1231,5 +1238,29 @@ func (r *sss_data_mgr) stopShowCardTimer() {
 		log.Debug("停止定时器")
 		r.ShowCardTimer.Stop()
 		r.ShowCardTimer = nil
+	}
+}
+
+func (r *sss_data_mgr) replaceCard() {
+	base.GameTestpaiCache.LoadAll()
+	var rc sssReplaceCard
+	if obj, ok := base.GameTestpaiCache.Get(14); ok {
+		if obj.IsAcivate > 0 && obj.RoomID == r.GetRoomId() {
+			err := json.Unmarshal([]byte(obj.Cards), &rc)
+			if err != nil {
+				log.Debug("SSS替换数据解析错误 error", err)
+			}
+			if len(r.UniversalCards) > 0 {
+				r.UniversalCards = rc.Laizi
+			}
+			if len(r.PublicCards) > 0 {
+				r.PublicCards = rc.PublicCards
+			}
+			for i, c := range rc.CardData {
+				r.PlayerCards[i] = c
+			}
+		}
+	} else {
+		log.Debug("SSS替换数据获取错误")
 	}
 }

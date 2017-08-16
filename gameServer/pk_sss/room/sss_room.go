@@ -13,6 +13,7 @@ import (
 )
 
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
+
 	info := args[0].(*msg.L2G_CreatorRoom)
 	if info.KindId != common.KIND_TYPE_SSS {
 		log.Debug("at CreateRoom info.KindId != common.KIND_TYPE_SSS uid:%d", info.CreatorUid)

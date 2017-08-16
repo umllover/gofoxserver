@@ -187,10 +187,12 @@ func updateRoom(args []interface{}) {
 		return
 	}
 	//log.Debug("=============================info.OpName=%v, info.Data[HallNodeName]=%v", info.OpName, info.Data["HallNodeName"])
-
+	log.Debug("at updateRoom ... ")
 	switch info.OpName {
 	case "AddPlayCnt":
+		log.Debug("at updateRoom ... 111 ")
 		if room.CurPayCnt == 0 {
+			log.Debug("at updateRoom ... 222 ")
 			room.Status = RoomStatusStarting
 		}
 		room.CurPayCnt += 1
@@ -465,9 +467,10 @@ func CheckVaildIds(args []interface{}) {
 func GetRoomsStatus(args []interface{}) (interface{}, error) {
 	retm := make(map[int]int)
 	ids := args[0].([]int)
-	for id, _ := range ids {
+	for _, id := range ids {
 		r, ok := roomList[id]
 		if ok {
+			log.Debug("33333333333333333333 %v", r.Status)
 			retm[id] = r.Status
 		}
 	}

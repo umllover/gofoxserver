@@ -12,6 +12,8 @@ import (
 	dataLog "mj/gameServer/log"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 )
@@ -165,6 +167,8 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	u.RoomId = r.id
 	u.ChatRoomId = r.ChatRoomId
 
+	Chat.ChanRPC.Go("addRoomMember", r.ChatRoomId, u.Agent)
+
 	//log.Debug("=============================u.HallNodeName:", u.HallNodeName)
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -198,7 +202,7 @@ func (r *RoomUserMgr) ReplyLeave(player *user.User, Agree bool, ReplyUid int64, 
 		return 0
 	}
 
-	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, Agree: Agree})
+	r.SendMsgAllNoSelf(player.Id, &msg.G2C_ReplyRsp{UserID: player.Id, ReplyUid: ReplyUid, Agree: Agree})
 	if Agree {
 		//reqPlayer.WriteMsg(&msg.G2C_ReplyRsp{UserID: player.Id, Agree: true})
 		req := r.ReqLeave[ReplyUid]
@@ -231,7 +235,7 @@ func (r *RoomUserMgr) AddLeavePly(uid int64) {
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	log.Debug("at LeaveRoom uid:%d", u.Id)
 	if len(r.Users) <= u.ChairId {
-		log.Error("at LeaveRoom u.chairId max .... ")
+		log.Error("at LeaveRoom u.chairId max .... chaird %d, stack:%s", u.ChairId, string(debug.Stack()))
 		return false
 	}
 	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
@@ -249,6 +253,8 @@ func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	u.ChairId = INVALID_CHAIR
 	u.RoomId = 0
 	u.ChatRoomId = 0
+
+	Chat.ChanRPC.Go("delRoomMember", r.ChatRoomId, u.Id)
 
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.id,
@@ -367,7 +373,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 	//把自己的信息推送给所有玩家
 	room.NotifyUserInfo(u)
 
-	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 	room.SetUsetStatus(u, US_SIT)
 
 	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
@@ -472,6 +477,10 @@ func (room *RoomUserMgr) RoomDissume(Reason int) {
 				log.Error("at RoomDissume  updaye .Gamescorelocker error:%s", err.Error())
 			}
 		}
+	}
+
+	if room.ChatRoomId != 0 {
+		Chat.ChanRPC.Go("closeChatRoom", room.ChatRoomId)
 	}
 }
 

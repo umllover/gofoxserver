@@ -84,6 +84,15 @@ func delRoomMember(args []interface{}) {
 	}
 }
 
+func closeChatRoom(args []interface{}) {
+	GetRoomID := args[0].(int)
+	_, ok := roomList[GetRoomID]
+	if ok {
+		log.Debug("close chat room:%d", GetRoomID)
+		delete(roomList, GetRoomID)
+	}
+}
+
 func SendMsgToUser(getRoomID int, userID int64, data interface{}) {
 	room, ok := roomList[getRoomID]
 	if !ok {
