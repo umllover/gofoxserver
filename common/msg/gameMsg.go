@@ -366,10 +366,20 @@ type G2C_RenewalFeesSuccess struct {
 
 //
 type C2G_StartRecord struct {
+	OpCode bool
 }
 
 type G2C_StartRecord struct {
 	Code int //非0为失败
+}
+
+//强制解散房间
+type C2G_DissolutionRoom struct {
+}
+
+//强制解散房间
+type G2C_DissolutionRoom struct {
+	Code int //非0位失败错误码
 }
 
 ///////////////////////// game chart end ///////////////////////////////

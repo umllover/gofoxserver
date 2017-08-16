@@ -120,11 +120,17 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := account.AccountsinfoOp.GetByMap(map[string]interface{}{
+	accountData, aerr := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 
-	if ok != nil || accountData == nil {
+	if aerr != nil {
+		log.Debug("error at AccountsinfoOp GetByMap %s", aerr.Error())
+		retcode = LoadUserInfoError
+		return
+	}
+
+	if accountData == nil {
 		if conf.Test {
 			retcode, _, accountData = RegistUser(&msg.C2L_Regist{
 				LogonPass:    recvMsg.LogonPass,
@@ -1030,6 +1036,9 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
+			if !player.HasTimes(common.ActivityRechangeDay) {
+				player.SetTimes(common.ActivityRechangeDay, 0)
+			}
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
@@ -1303,7 +1312,11 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		return
 	}
 
-	VerifyCode(recvMsg.PhoneNumber, code)
+	ret := VerifyCode(recvMsg.PhoneNumber, code)
+	if ret != 0 {
+		retCode = ErrFrequentAccess
+		return
+	}
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {
