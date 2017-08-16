@@ -165,7 +165,7 @@ func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
 	u.RoomId = r.id
 	u.ChatRoomId = r.ChatRoomId
 
-	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
+	Chat.ChanRPC.Go("addRoomMember", r.ChatRoomId, u.Agent)
 
 	//log.Debug("=============================u.HallNodeName:", u.HallNodeName)
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{

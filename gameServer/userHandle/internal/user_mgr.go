@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"mj/gameServer/Chat"
 	"mj/gameServer/center"
 	"mj/gameServer/user"
 	"sync"
