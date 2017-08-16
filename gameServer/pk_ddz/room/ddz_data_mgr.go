@@ -104,6 +104,14 @@ func (room *ddz_data_mgr) InitRoom(UserCnt int) {
 	room.RoomData.InitRoom(UserCnt)
 	room.PlayerCount = UserCnt
 
+	for i := 0; i < HappyCards.count; i++ {
+		log.Debug("非八王牌列表%v", HappyCards.Cards[i])
+	}
+
+	for i := 0; i < HappyCardsKing.count; i++ {
+		log.Debug("八王牌列表%v", HappyCardsKing.Cards[i])
+	}
+
 	room.resetData()
 }
 
@@ -346,56 +354,20 @@ func (r *ddz_data_mgr) sendCardRuleOfHappyType() bool {
 	var dataCard []int
 	hasCard := false
 	if r.EightKing {
-		allData, err := model.RecordOutcardDdzKingOp.SelectAll()
-		log.Debug("八王场取到的记录%v,%v", err, allData)
-		if err == nil {
-			nCount := len(allData)
-			if nCount > 0 {
-				n := nCount - 10000
-				if n < 0 {
-					n = 0
-				}
-				nIndex := util.RandInterval(0, nCount-n-1)
-				data := allData[n:]
-
-				json.Unmarshal([]byte(data[nIndex].CardData), &dataCard)
-				if len(dataCard) == r.MaxCardCount {
-					hasCard = true
-					log.Debug("八王取到的牌%v", dataCard)
-				}
-
-				// 删除旧数据
-				for i := 0; i < n; i++ {
-					model.RecordOutcardDdzKingOp.Delete(allData[i].RecordID)
-				}
-			}
+		if HappyCardsKing.count > 0 {
+			nIndex := util.RandInterval(0, HappyCardsKing.count-1)
+			dataCard = util.CopySlicInt(HappyCardsKing.Cards[nIndex][:])
+			hasCard = true
 		}
 	} else {
-		allData, err := model.RecordOutcardDdzOp.SelectAll()
-		log.Debug("非八王场取到的记录%v,%v", err, allData)
-		if err == nil {
-			nCount := len(allData)
-			if nCount > 0 {
-				n := nCount - 10000
-				if n < 0 {
-					n = 0
-				}
-				nIndex := util.RandInterval(0, nCount-n-1)
-				data := allData[n:]
-				json.Unmarshal([]byte(data[nIndex].CardData), &dataCard)
-				if len(dataCard) == r.MaxCardCount {
-					hasCard = true
-					log.Debug("非八王取到的牌%v", dataCard)
-				}
-
-				// 删除旧数据
-				for i := 0; i < n; i++ {
-					model.RecordOutcardDdzOp.Delete(allData[i].RecordID)
-				}
-			}
+		if HappyCards.count > 0 {
+			nIndex := util.RandInterval(0, HappyCards.count-1)
+			dataCard = util.CopySlicInt(HappyCards.Cards[nIndex][:])
+			hasCard = true
 		}
 	}
 	if hasCard {
+		log.Debug("当前牌%v", dataCard)
 		nIndex := 0                                          // 当前索引
 		var nCount int                                       // 每次随机取的条数
 		var nMaxCount = (r.MaxCardCount - 3) / r.PlayerCount // 每个人牌的最大数
@@ -485,6 +457,8 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		return
 	}
 
+	r.resetOperateCardTimer(r.GetCfg().CallScoreTime)
+
 	if scoreTimes == 0 {
 
 	} else {
@@ -494,14 +468,13 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 
 	r.ScoreInfo[u.ChairId] = scoreTimes
 
-	nextCallUser := (r.CurrentUser + 1) % r.PlayerCount // 下一个叫分玩家
-	r.CurrentUser = nextCallUser
+	nextCallUser := r.nextUser(r.CurrentUser) // 下一个叫分玩家
 
 	isEnd := (r.ScoreTimes == CALLSCORE_MAX) || (r.ScoreInfo[nextCallUser] != CALLSCORE_NOCALL)
 
 	if !isEnd {
 		r.ScoreInfo[nextCallUser] = CALLSCORE_CALLING
-		r.resetOperateCardTimer(r.GetCfg().CallScoreTime)
+		r.CurrentUser = nextCallUser
 	} else {
 		// 叫分结束，看谁叫的分数大就是地主
 		var score int
@@ -515,9 +488,11 @@ func (r *ddz_data_mgr) CallScore(u *user.User, scoreTimes int) {
 		}
 		// 如果都未叫，则随机选一个作为地主，并且倍数默认为1
 		if score == 0 {
-			r.BankerUser = r.CurrentUser
+			r.BankerUser = nextCallUser
 			r.ScoreTimes = 1
 		}
+
+		r.CurrentUser = r.BankerUser
 
 		r.resetOperateCardTimer(r.PkBase.Temp.OutCardTime)
 	}

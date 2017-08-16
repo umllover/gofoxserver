@@ -2135,7 +2135,7 @@ func (room *RoomData) IsBaiLiu(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) in
 
 	HuOfCard := room.HuOfCard
 	for k, v := range pAnalyseItem.WeaveKind {
-		if (v&(WIK_PENG|WIK_GANG)) > 0 && !pAnalyseItem.IsAnalyseGet[k] {
+		if (v & (WIK_PENG | WIK_GANG)) > 0 {
 			return 0
 		} else {
 			CenterColor := pAnalyseItem.CenterCard[k] >> 4
