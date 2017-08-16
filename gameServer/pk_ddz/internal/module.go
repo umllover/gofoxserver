@@ -24,7 +24,7 @@ func (m *Module) OnInit() {
 }
 
 func (m *Module) OnDestroy() {
-
+	room.SaveDataToDB()
 }
 
 func (m *Module) CreateRoom(args ...interface{}) bool {
