@@ -12,6 +12,8 @@ import (
 	dataLog "mj/gameServer/log"
 	"time"
 
+	"runtime/debug"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/nsq/cluster"
 )
@@ -233,7 +235,7 @@ func (r *RoomUserMgr) AddLeavePly(uid int64) {
 func (r *RoomUserMgr) LeaveRoom(u *user.User, status int) bool {
 	log.Debug("at LeaveRoom uid:%d", u.Id)
 	if len(r.Users) <= u.ChairId {
-		log.Error("at LeaveRoom u.chairId max .... ")
+		log.Error("at LeaveRoom u.chairId max .... chaird %d, stack:%s", u.ChairId, string(debug.Stack()))
 		return false
 	}
 	err := model.GamescorelockerOp.UpdateWithMap(u.Id, map[string]interface{}{
