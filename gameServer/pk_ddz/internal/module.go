@@ -20,6 +20,7 @@ type Module struct {
 
 func (m *Module) OnInit() {
 	m.Skeleton = skeleton
+	room.InitHappyCardListData()
 }
 
 func (m *Module) OnDestroy() {
