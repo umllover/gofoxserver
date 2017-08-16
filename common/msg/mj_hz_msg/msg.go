@@ -31,6 +31,7 @@ type G2C_HZMG_GameStart struct {
 	HeapCardInfo [][]int //堆立信息
 	UserAction   int     //用户动作
 	CardData     []int   //麻将列表
+	PlayCount    int     //当前局数
 }
 
 //游戏结束
@@ -55,7 +56,7 @@ type G2C_GameConclude struct {
 
 	MaCount []int //码数
 	MaData  []int //码数据
-	Reason int //结算原因
+	Reason  int   //结算原因
 
 	AllScore    []int   //总结算分
 	DetailScore [][]int //单局结算分

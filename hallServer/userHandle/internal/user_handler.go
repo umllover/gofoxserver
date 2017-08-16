@@ -67,6 +67,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterC2S(&msg.C2L_RechangerOk{}, m.RechangerOk)
 	reg.RegisterC2S(&msg.C2L_ReqTimesInfo{}, m.ReqTimesInfo)
 	reg.RegisterC2S(&msg.C2L_TimeSync{}, m.TimeSync)
+	reg.RegisterC2S(&msg.C2L_GetRoomRecord{}, m.GetRoomRecord)
+	reg.RegisterC2S(&msg.C2L_GetUserRecords{}, m.GetUserRecord)
 }
 
 //连接进来的通知
@@ -118,11 +120,17 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := account.AccountsinfoOp.GetByMap(map[string]interface{}{
+	accountData, aerr := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 
-	if ok != nil || accountData == nil {
+	if aerr != nil {
+		log.Debug("error at AccountsinfoOp GetByMap %s", aerr.Error())
+		retcode = LoadUserInfoError
+		return
+	}
+
+	if accountData == nil {
 		if conf.Test {
 			retcode, _, accountData = RegistUser(&msg.C2L_Regist{
 				LogonPass:    recvMsg.LogonPass,
@@ -1028,6 +1036,9 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
+			if !player.HasTimes(common.ActivityRechangeDay) {
+				player.SetTimes(common.ActivityRechangeDay, 0)
+			}
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
@@ -1218,11 +1229,11 @@ func (m *UserModule) RenewalFeeResult(args []interface{}) {
 
 	//续费失败返还钱
 	if recvMsg.ResultId != 0 {
-	record := player.GetRecord(recvMsg.RoomId)
-	if record != nil {
-		player.AddCurrency(record.Amount)
-		player.DelRecord(record.RoomId)
-	}
+		record := player.GetRecord(recvMsg.RoomId)
+		if record != nil {
+			player.AddCurrency(record.Amount)
+			player.DelRecord(record.RoomId)
+		}
 		//通知客户端玩家续费失败
 		retCode := 0
 		switch recvMsg.ResultId {
@@ -1230,7 +1241,7 @@ func (m *UserModule) RenewalFeeResult(args []interface{}) {
 			retCode = ErrFindRoomError
 		case 3:
 			retCode = ErrRenewalFeeRepeat
-}
+		}
 		player.WriteMsg(&msg.L2C_RenewalFeesRsp{Code: retCode, UserID: player.Id})
 	} else {
 		//成功了
@@ -1301,10 +1312,46 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		return
 	}
 
-	VerifyCode(recvMsg.PhoneNumber, code)
+	ret := VerifyCode(recvMsg.PhoneNumber, code)
+	if ret != 0 {
+		retCode = ErrFrequentAccess
+		return
+	}
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {
 	//recvMsg := args[0].(*msg.C2L_RechangerOk)
 	m.Recharge(nil)
+}
+
+func (m *UserModule) GetRoomRecord(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_GetRoomRecord)
+	retMsg := &msg.L2C_RoomRecord{}
+	player := m.a.UserData().(*user.User)
+	info, ok := model.RoomRecordOp.Get(recvMsg.RecordID)
+	if ok {
+		retMsg.Start = info.StartInfo
+		retMsg.Playing = info.PlayInfo
+		retMsg.End = info.EndInfo
+	}
+	player.WriteMsg(retMsg)
+}
+
+func (m *UserModule) GetUserRecord(args []interface{}) {
+	recvMsg := args[0].(*msg.C2L_GetUserRecords)
+	retMsg := &msg.L2C_GetUserRecords{}
+	player := m.a.UserData().(*user.User)
+	infos, _ := model.UserRoomRecordOp.QueryByMap(map[string]interface{}{
+		"user_id": recvMsg.UserID,
+	})
+
+	for _, v := range infos {
+		rcd := &msg.UserRoomRecord{}
+		rcd.KindId = v.KindId
+		rcd.RecordId = v.RecordId
+		rcd.StartTime = v.CreateTime.Unix()
+		retMsg.Data = append(retMsg.Data, rcd)
+	}
+
+	player.WriteMsg(retMsg)
 }

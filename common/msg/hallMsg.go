@@ -362,3 +362,27 @@ type L2C_RechangerOk struct {
 type L2C_GMNotice struct {
 	Context string // 公告内容
 }
+
+type C2L_GetRoomRecord struct {
+	RecordID int64 //视频id
+}
+
+type L2C_RoomRecord struct {
+	Start   string
+	Playing string
+	End     string
+}
+
+type C2L_GetUserRecords struct {
+	UserID int64
+}
+
+type UserRoomRecord struct {
+	RecordId  int // 记录id
+	KindId    int
+	StartTime int64
+}
+
+type L2C_GetUserRecords struct {
+	Data []*UserRoomRecord
+}

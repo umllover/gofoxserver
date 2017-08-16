@@ -128,6 +128,8 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 		userReLoginInfo.UserGameStatus = room.UserGameStatusMap[u.ChairId]
 		userReLoginInfo.CallScoreTimes = room.CallScoreTimesMap[u.ChairId]
 		userReLoginInfo.AddScoreTimes = room.AddScoreTimesMap[u.ChairId]
+		userReLoginInfo.OpenCardData = append(userReLoginInfo.OpenCardData, room.OpenCardMap[u.ChairId].CardData...)
+		userReLoginInfo.OpenCardType = room.OpenCardMap[u.ChairId].CardType
 		StatusPlay.UserReLoginInfos = append(StatusPlay.UserReLoginInfos, userReLoginInfo)
 	})
 
@@ -648,7 +650,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 
 	// 游戏结束
 
-	r.PkBase.OnEventGameConclude(0, userMgr.GetUserByChairId(0), cost.GER_NORMAL)
+	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
 	/*r.PkBase.AfterFunc( 15 * time.Second, func() {
 		log.Debug("game end timer")

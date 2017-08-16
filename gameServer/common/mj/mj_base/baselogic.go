@@ -251,25 +251,23 @@ func (lg *BaseLogic) EstimateGangCard(cbCardIndex []int, cbCurrentCard int) int 
 func (lg *BaseLogic) GetCardColor(cbCardData int) int { return cbCardData & MASK_COLOR }
 func (lg *BaseLogic) GetCardValue(cbCardData int) int { return cbCardData & MASK_VALUE }
 
-//吃胡分析)
+//吃胡分析
 func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int) (bool, []*TagAnalyseItem) {
+	defer func() {
+		cbCardIndex[lg.SwitchToIdx(cbCurrentCard)]--
+	}()
+	cbCardIndex[lg.SwitchToIdx(cbCurrentCard)]++
 
-	//构造扑克
-	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
-	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
-
-	//cbCurrentCard一定不为0			!!!!!!!!!
+	//cbCurrentCard一定不为0
 	if cbCurrentCard == 0 {
 		return false, nil
 	}
 
-	//插入扑克
-	cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
-	if lg.ConfigIdx == IDX_HZMJ && cbCardIndexTemp[31] == 4 { //四个红中直接胡牌
+	if lg.ConfigIdx == IDX_HZMJ && cbCardIndex[31] == 4 { //四个红中直接胡牌
 		return true, nil
 	}
 	//分析扑克
-	_, TagAnalyseItemArray := lg.AnalyseCard(cbCardIndexTemp, WeaveItem)
+	_, TagAnalyseItemArray := lg.AnalyseCard(cbCardIndex, WeaveItem)
 
 	//胡牌分析
 	if len(TagAnalyseItemArray) > 0 {
@@ -279,6 +277,34 @@ func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveI
 
 	return false, nil
 }
+
+//func (lg *BaseLogic) AnalyseChiHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbCurrentCard int) (bool, []*TagAnalyseItem) {
+//
+//	//构造扑克
+//	cbCardIndexTemp := make([]int, lg.GetCfg().MaxIdx)
+//	util.DeepCopy(&cbCardIndexTemp, &cbCardIndex)
+//
+//	//cbCurrentCard一定不为0			!!!!!!!!!
+//	if cbCurrentCard == 0 {
+//		return false, nil
+//	}
+//
+//	//插入扑克
+//	cbCardIndexTemp[lg.SwitchToIdx(cbCurrentCard)]++
+//	if lg.ConfigIdx == IDX_HZMJ && cbCardIndexTemp[31] == 4 { //四个红中直接胡牌
+//		return true, nil
+//	}
+//	//分析扑克
+//	_, TagAnalyseItemArray := lg.AnalyseCard(cbCardIndexTemp, WeaveItem)
+//
+//	//胡牌分析
+//	if len(TagAnalyseItemArray) > 0 {
+//		log.Debug("hu hu hu hu hu le ")
+//		return true, TagAnalyseItemArray
+//	}
+//
+//	return false, nil
+//}
 
 func (lg *BaseLogic) AnalyseGangCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbProvideCard int, gangCardResult *TagGangCardResult) int {
 	//设置变量
@@ -346,6 +372,7 @@ func (lg *BaseLogic) GetHuCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cb
 	return 0
 }
 
+//TODO 这边这个听牌逻辑太暴力了，太耗性能了
 func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveItem, cbOutCardData, cbHuCardCount []int, cbHuCardData [][]int) int {
 	cbOutCount := 0
 	cbCardIndexTemp := util.CopySlicInt(cbCardIndex)

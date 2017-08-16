@@ -15,6 +15,7 @@ const (
 	CreateUserError      = 6 // 创建玩家失败
 	ErrUserDoubleLogin   = 7 //重复登录
 	ErrPasswd            = 8 //密码错误
+	ErrNotFoundRoom      = 9 //没有找到房间
 )
 
 //房间错误码 100 ~ 200

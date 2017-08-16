@@ -140,9 +140,9 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 	user.Id = accountData.UserID
 	user.Status = US_FREE
 	user.HallNodeId = recvMsg.HallNodeID
-	lok := loadUser(user)
-	if !lok {
-		retcode = LoadUserInfoError
+	ret := loadUser(user)
+	if ret != 0 {
+		retcode = ret
 		return
 	}
 	user.ChairId = INVALID_CHAIR
@@ -384,7 +384,7 @@ func (m *UserModule) ReplyLeaveRoom(args []interface{}) {
 
 /////////////////////////////// help 函数
 ///////
-func loadUser(u *client.User) bool {
+func loadUser(u *client.User) int {
 	//data, err := cluster.TimeOutCall1(u.HallNodeName, 8, &msg.S2S_GetPlayerInfo{Uid: u.Id})
 	//if err != nil {
 	//	log.Error("get room data error :%v", err.Error())
@@ -401,25 +401,31 @@ func loadUser(u *client.User) bool {
 	attr, ok := model.UserattrOp.Get(u.Id)
 	if !ok {
 		log.Error("loadUser data is error 11")
-		return false
+		return LoadUserInfoError
 	}
 
 	source, sok := model.GamescoreinfoOp.Get(u.Id)
 	if !sok {
 		log.Error("loadUser data is error source")
-		return false
+		return LoadUserInfoError
 	}
 
 	locker, lok := model.GamescorelockerOp.Get(u.Id)
 	if !lok || locker.Roomid == 0 {
 		log.Error("loadUser data is error locker .roomID :%v", locker.Roomid)
-		return false
+		return LoadUserInfoError
 	}
 
-	//if locker.EnterIP == "" || locker.Roomid == 0 {
-	//	log.Error("loadUser data is error locker .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
-	//	return false
-	//}
+	if locker.EnterIP == "" || locker.Roomid == 0 {
+		log.Error("loadUser data is error locker .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
+		return ErrNotFoundRoom
+	}
+
+	r := RoomMgr.GetRoom(locker.Roomid)
+	if r == nil {
+		log.Error("at load user  not foud room .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
+		return ErrNotFoundRoom
+	}
 
 	u.NickName = attr.NickName
 	u.FaceID = attr.FaceID
@@ -439,5 +445,5 @@ func loadUser(u *client.User) bool {
 	u.RoomId = locker.Roomid
 	u.KindID = locker.KindID
 	u.ServerID = locker.ServerID
-	return true
+	return 0
 }

@@ -199,6 +199,7 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
+	room.MjBase.Status = RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
 
@@ -391,7 +392,7 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[4] = 3 //三张五同
 	//temp[5] = 1
 	////room.FlowerCnt[0] = 1 //花牌
-	//room.SendCardData = 0x04
+	//room.SendCardData = 0x06
 	//room.CardIndex[0] = temp
 	//GetCardWordArray(room.CardIndex[0])
 	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
@@ -566,6 +567,7 @@ func (room *ZP_RoomData) SendGameStart() {
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
 	GameStart.HeapCardInfo = room.HeapCardInfo
+	GameStart.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]

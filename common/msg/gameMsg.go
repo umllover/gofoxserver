@@ -124,6 +124,7 @@ type G2C_PersonalTableTip struct {
 	IsGoldOrGameScore int                    //金币场还是积分场 0 标识 金币场 1 标识 积分场
 	OtherInfo         map[string]interface{} //客户端的配置信息
 	LeaveInfo         *LeaveReq              //key 是谁申请退出了，value 是同意的玩家的数组
+	KindID            int                    //游戏类型
 }
 
 //请求用户信息
@@ -361,6 +362,24 @@ type G2C_ReplaceCard struct {
 //续费成功
 type G2C_RenewalFeesSuccess struct {
 	UserID int64 //续费用户uid
+}
+
+//
+type C2G_StartRecord struct {
+	OpCode bool
+}
+
+type G2C_StartRecord struct {
+	Code int //非0为失败
+}
+
+//强制解散房间
+type C2G_DissolutionRoom struct {
+}
+
+//强制解散房间
+type G2C_DissolutionRoom struct {
+	Code int //非0位失败错误码
 }
 
 ///////////////////////// game chart end ///////////////////////////////

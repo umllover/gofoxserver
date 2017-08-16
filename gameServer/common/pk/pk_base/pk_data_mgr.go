@@ -1,12 +1,12 @@
 package pk_base
 
 import (
-	"strconv"
-	"time"
-
+	. "mj/common/cost"
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
+	"strconv"
+	"time"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -177,7 +177,7 @@ func (room *RoomData) InitRoomOne() {
 
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
-
+	room.PkBase.Status = RoomStatusReady
 }
 
 // 游戏开始

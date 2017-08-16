@@ -710,12 +710,7 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		room.stopShowCardTimer()
 
-		room.PkBase.OnEventGameConclude(0, nil, GER_NORMAL)
-		// 游戏结束
-		//userMgr.ForEachUser(func(u *user.User) {
-		//room.PkBase.OnEventGameConclude(u.ChairId, u, GER_NORMAL)
-		//})
-
+		room.PkBase.OnEventGameConclude(GER_NORMAL)
 	}
 
 }
