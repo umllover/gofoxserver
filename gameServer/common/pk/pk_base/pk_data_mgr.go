@@ -221,9 +221,6 @@ func (room *RoomData) OpenCard(u *user.User, cardType int, cardData []int) {
 func (room *RoomData) OtherOperation(args []interface{}) {
 
 }
-func (room *RoomData) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, bFrontCard []int, bMidCard []int, bBackCard []int) {
-
-}
 
 func (r *RoomData) ShowCard(u *user.User) {
 }

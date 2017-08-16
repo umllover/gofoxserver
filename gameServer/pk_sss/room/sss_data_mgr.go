@@ -9,8 +9,6 @@ import (
 	"mj/common/msg"
 	"mj/common/msg/pk_sss_msg"
 
-	//dbg "github.com/funny/debug"
-
 	"math/rand"
 
 	"time"
@@ -37,13 +35,14 @@ func init() {
 func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
 	d := new(sss_data_mgr)
 	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
-	//var setInfo sssOtherInfo
-	//if err := json.Unmarshal([]byte(info.OtherInfo), &setInfo); err == nil {
+
 	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
 	d.jiaYiSe = info.OtherInfo["jiaYiSe"].(bool)
 	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
 	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
-	//}
+
+	d.InitRoom(temp.PlayTurnCount)
+
 	return d
 }
 
@@ -101,24 +100,26 @@ func (room *sss_data_mgr) InitRoomOne() {
 
 }
 
-func (room *sss_data_mgr) InitRoom(UserCnt int) {
+func (room *sss_data_mgr) InitRoom(maxPlayCount int) {
 	//初始化
 	log.Debug("初始化房间")
-	room.PlayerCount = UserCnt
-	room.Players = make([]int, UserCnt)
+	room.AllResult = make([][]int, 0, maxPlayCount)
 	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
-	room.cleanRoom(UserCnt)
+	//room.reSetRoom(UserCnt)
 }
 
-func (room *sss_data_mgr) cleanRoom(UserCnt int) {
+func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	log.Debug("清理房间")
+
+	room.PlayerCount = UserCnt
+	room.Players = make([]int, UserCnt)
 
 	room.bCardData = make([]int, room.GetCfg().MaxRepertory) //牌堆
 	room.OpenCardMap = make(map[*user.User]bool, UserCnt)
 
 	room.LeftCardCount = room.GetCfg().MaxRepertory
 
-	room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
+	//room.AllResult = make([][]int, room.PkBase.TimerMgr.GetMaxPlayCnt())
 
 	room.PlayerCards = make([][]int, UserCnt)
 	room.PlayerSpecialCardType = make([]sssCardType, UserCnt)
@@ -135,8 +136,8 @@ func (room *sss_data_mgr) cleanRoom(UserCnt int) {
 		room.CompareResults[i] = make([]int, 3)
 	}
 	room.SpecialCompareResults = make([]int, UserCnt)
-	room.ShootState = make([][]int, 6)
-	room.ShootResults = make([]int, 6)
+	room.ShootState = make([][]int, UserCnt)
+	room.ShootResults = make([]int, UserCnt)
 
 	room.AddCards = make([]int, 0)
 	room.PublicCards = make([]int, 0, 3)
@@ -154,7 +155,7 @@ func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
 		for i := range carData {
 			for j := range r.UniversalCards {
 				if carData[i] == r.UniversalCards[j] {
-					tempData[i] = 0xFF
+					tempData[i] = -1
 					laiZiCount++
 				}
 			}
@@ -165,7 +166,7 @@ func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
 		bossCount := 0
 		for i := range carData {
 			if carData[i] == 0x4E || carData[i] == 0x4F {
-				tempData[i] = 0xFF
+				tempData[i] = -1
 				bossCount++
 			} else {
 				tempData[i] = carData[i]
@@ -188,11 +189,11 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
-		ct, item = lg.SSSGetCardType(tempData)
+		//isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
+		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
 		r.PlayerSpecialCardType[i].CT = ct
 		r.PlayerSpecialCardType[i].Item = item
-		r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
+		//r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
@@ -524,7 +525,7 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 	})
 	room.gameEndStatus = gameEnd
 
-	room.AllResult[room.PkBase.TimerMgr.GetPlayCount()-1] = gameEnd.LGameScore
+	room.AllResult = append(room.AllResult, gameEnd.LGameScore)
 	//room.PkBase.TimerMgr.AddPlayCount()
 	//最后一局
 	if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
@@ -555,7 +556,9 @@ func (room *sss_data_mgr) DismissEnd(a int) {
 
 func (room *sss_data_mgr) BeforeStartGame(UserCnt int) {
 	room.GameStatus = GAME_FREE
-	room.InitRoom(UserCnt)
+	//room.InitRoom(UserCnt)
+	//清理上一局数据
+	room.reSetRoom(UserCnt)
 }
 
 func (room *sss_data_mgr) StartGameing() {
@@ -568,18 +571,18 @@ func (room *sss_data_mgr) GetOneCard() int { // 从牌堆取出一张
 }
 
 func (room *sss_data_mgr) StartDispatchCard() {
-	//清理上一局数据
-	room.cleanRoom(room.PlayerCount)
-
 	userMgr := room.PkBase.UserMgr
 	gameLogic := room.PkBase.LogicMgr
 	defaultCards := pk_base.GetCardByIdx(room.ConfigIdx)
 	if room.wanFa == 1 {
 		randNum := rand.Intn(13)
 		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
-		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum+13])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
+		randNum += 13
+		room.UniversalCards = append(room.UniversalCards, defaultCards[randNum])
 	}
 
 	if room.jiaGongGong {
@@ -628,6 +631,13 @@ func (room *sss_data_mgr) StartDispatchCard() {
 			room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], room.GetOneCard())
 		}
 	})
+
+	// //替换测试数据start
+	// room.UniversalCards = []int{9, 25, 41, 57, 0x4E, 0x4F}
+	// room.PublicCards = []int{29, 2, 50}
+	// room.PlayerCards[0] = []int{25, 21, 42, 9, 5, 7, 18, 17, 33, 17, 54, 18, 3}
+	// room.PlayerCards[1] = []int{79, 45, 29, 60, 12, 59, 11, 58, 41, 25, 39, 7, 21}
+	// //替换测试数据end
 
 	userMgr.ForEachUser(func(u *user.User) {
 		SendCard := &pk_sss_msg.G2C_SSS_SendCard{}
