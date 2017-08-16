@@ -1413,6 +1413,7 @@ func (room *RoomData) SendGameStart() {
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
 	GameStart.HeapCardInfo = room.HeapCardInfo
+	GameStart.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]
@@ -1515,7 +1516,7 @@ func (room *RoomData) NormalEnd(cbReason int) {
 	room.MjBase.UserMgr.WriteTableScore(ScoreInfoArray, room.MjBase.UserMgr.GetMaxPlayerCnt(), HZMJ_CHANGE_SOURCE)
 }
 
-//解散接触
+//解散结束
 func (room *RoomData) DismissEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()

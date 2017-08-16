@@ -567,6 +567,7 @@ func (room *ZP_RoomData) SendGameStart() {
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
 	GameStart.HeapCardInfo = room.HeapCardInfo
+	GameStart.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]
