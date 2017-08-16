@@ -288,6 +288,9 @@ func (room *RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bool)
 	room.ProvideUser = u.ChairId
 	room.ProvideCard = cbCardData
 
+	//丢弃扑克记录
+	room.DiscardCard[u.ChairId] = append(room.DiscardCard[u.ChairId], cbCardData)
+
 	//用户切换
 	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
 }
@@ -779,15 +782,6 @@ func (room *RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 		return -1
 	}
 
-	//丢弃扑克
-	if (room.OutCardUser != INVALID_CHAIR) && (room.OutCardData != 0) {
-		if len(room.DiscardCard[room.OutCardUser]) < 1 {
-			room.DiscardCard[room.OutCardUser] = make([]int, 60)
-		}
-
-		room.DiscardCard[room.OutCardUser] = append(room.DiscardCard[room.OutCardUser], room.OutCardData)
-	}
-
 	//荒庄结束
 	if !room.IsEnoughCard() {
 		room.ProvideUser = INVALID_CHAIR
@@ -920,6 +914,7 @@ func (room *RoomData) AfterStartGame() {
 }
 
 func (room *RoomData) ResetGameAfterRenewal() {
+	room.MjBase.Status = RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
 
@@ -1413,6 +1408,7 @@ func (room *RoomData) SendGameStart() {
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
 	GameStart.HeapCardInfo = room.HeapCardInfo
+	GameStart.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]
@@ -1515,7 +1511,7 @@ func (room *RoomData) NormalEnd(cbReason int) {
 	room.MjBase.UserMgr.WriteTableScore(ScoreInfoArray, room.MjBase.UserMgr.GetMaxPlayerCnt(), HZMJ_CHANGE_SOURCE)
 }
 
-//解散接触
+//解散结束
 func (room *RoomData) DismissEnd(cbReason int) {
 	//变量定义
 	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()

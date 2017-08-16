@@ -126,6 +126,12 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	}
 
 	//r.TimerMgr.AddMaxPlayCnt(addCnt)
+	r.TimerMgr.StartCreatorTimer(func() {
+		roomLogData := datalog.RoomLog{}
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
+		roomLogData.UpdateGameLogRecode(logData, 4)
+		r.OnEventGameConclude(NO_START_GER_DISMISS)
+	})
 	r.TimerMgr.ResetPlayCount()
 	r.DataMgr.ResetGameAfterRenewal()
 
@@ -160,7 +166,7 @@ func (room *Entry_base) DissumeRoom(args []interface{}) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})
 
-	room.OnEventGameConclude(0, nil, GER_DISMISS)
+	room.OnEventGameConclude(GER_DISMISS)
 
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)
@@ -363,7 +369,7 @@ func (room *Entry_base) ReqLeaveRoom(args []interface{}) (interface{}, error) {
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
 			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
-			room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+			room.OnEventGameConclude(USER_LEAVE)
 		})
 	}
 	return nil, nil
@@ -382,7 +388,7 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 			reqPlayer.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
 		}
 
-		room.OnEventGameConclude(player.ChairId, player, USER_LEAVE)
+		room.OnEventGameConclude(USER_LEAVE)
 	} else if ret == -1 { //有人拒绝
 		room.TimerMgr.StopReplytIimer(ReplyUid)
 		reqPlayer, _ := room.UserMgr.GetUserByUid(ReplyUid)
@@ -393,7 +399,7 @@ func (room *Entry_base) ReplyLeaveRoom(args []interface{}) {
 }
 
 //游戏结束
-func (room *Entry_base) OnEventGameConclude(ChairId int, user *user.User, cbReason int) {
+func (room *Entry_base) OnEventGameConclude(cbReason int) {
 	if room.Status == RoomStatusClose {
 		log.Debug("double close room")
 		return

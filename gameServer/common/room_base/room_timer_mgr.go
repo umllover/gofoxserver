@@ -85,13 +85,13 @@ func (room *RoomTimerMgr) GetTimeLimit() int {
 
 //创建房间多久没开始解散房间
 func (room *RoomTimerMgr) StartCreatorTimer(cb func()) {
-	log.Debug("StartCreatorTimer 111111111 %d", room.TimeLimitNotBegin)
+	log.Debug("StartCreatorTimer %d", room.TimeLimitNotBegin)
 	if room.EndTime != nil {
 		room.EndTime.Stop()
 	}
 
 	if room.TimeLimitNotBegin != 0 {
-		log.Debug("StartCreatorTimer %d", room.TimeLimitNotBegin)
+		log.Debug("StartCreatorTimer %d not begin limit", room.TimeLimitNotBegin)
 		room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimitNotBegin)*time.Second, cb)
 	}
 }

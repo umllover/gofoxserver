@@ -130,6 +130,7 @@ type G2C_ZPMG_GameStart struct {
 	HeapCardInfo [][]int //堆立信息
 	UserAction   int     //用户动作
 	CardData     []int   //麻将列表
+	PlayCount    int     //当前局数
 }
 
 //托管

@@ -15,13 +15,13 @@ import (
 func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	info := args[0].(*msg.L2G_CreatorRoom)
 	if info.KindId != common.KIND_TYPE_SSS {
-		log.Debug("at CreaterRoom info.KindId != common.KIND_TYPE_SSS uid:%d", info.CreatorUid)
+		log.Debug("at CreateRoom info.KindId != common.KIND_TYPE_SSS uid:%d", info.CreatorUid)
 		return nil
 	}
 
 	temp, ok := base.GameServiceOptionCache.Get(info.KindId, info.ServiceId)
 	if !ok {
-		log.Debug("at CreaterRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, info.CreatorUid)
+		log.Debug("at CreateRoom not foud template kind:%d, serverId:%d, uid:%d", info.KindId, info.ServiceId, info.CreatorUid)
 		return nil
 	}
 	r := NewSSSEntry(info)
@@ -35,7 +35,7 @@ func CreaterRoom(args []interface{}) RoomMgr.IRoom {
 	}
 	r.Init(cfg)
 	if r == nil {
-		log.Debug("at CreaterRoom NewMJBase error, uid:%d", info.CreatorUid)
+		log.Debug("at CreateRoom NewSSS error, uid:%d", info.CreatorUid)
 		return nil
 	}
 

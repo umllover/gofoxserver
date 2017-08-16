@@ -96,9 +96,6 @@ func (room *ZP_RoomData) InitRoom(UserCnt int) {
 	room.Ting = make([]bool, UserCnt)
 	room.UserAction = make([]int, UserCnt)
 	room.DiscardCard = make([][]int, UserCnt)
-	for i := 0; i < UserCnt; i++ {
-		room.DiscardCard[i] = make([]int, 60)
-	}
 	room.UserGangScore = make([]int, UserCnt)
 	room.WeaveItemArray = make([][]*msg.WeaveItem, UserCnt)
 	room.ChiHuRight = make([]int, UserCnt)
@@ -567,6 +564,7 @@ func (room *ZP_RoomData) SendGameStart() {
 	GameStart.HeapHead = room.HeapHead
 	GameStart.HeapTail = room.HeapTail
 	GameStart.HeapCardInfo = room.HeapCardInfo
+	GameStart.PlayCount = room.MjBase.TimerMgr.GetPlayCount()
 	//发送数据
 	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
 		GameStart.UserAction = room.UserAction[u.ChairId]
@@ -1694,6 +1692,9 @@ func (room *ZP_RoomData) NotifySendCard(u *user.User, cbCardData int, bSysOut bo
 	room.ProvideUser = u.ChairId
 	room.ProvideCard = cbCardData
 
+	//丢弃扑克记录
+	room.DiscardCard[u.ChairId] = append(room.DiscardCard[u.ChairId], cbCardData)
+
 	//用户切换
 	room.CurrentUser = (u.ChairId + 1) % room.MjBase.UserMgr.GetMaxPlayerCnt()
 }
@@ -1859,15 +1860,6 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	if room.SendStatus == Not_Send {
 		log.Error("at DispatchCardData f room.SendStatus == Not_Send")
 		return -1
-	}
-
-	//丢弃扑克
-	if (room.OutCardUser != INVALID_CHAIR) && (room.OutCardData != 0) {
-		if len(room.DiscardCard[room.OutCardUser]) < 1 {
-			room.DiscardCard[room.OutCardUser] = make([]int, 60)
-		}
-
-		room.DiscardCard[room.OutCardUser] = append(room.DiscardCard[room.OutCardUser], room.OutCardData)
 	}
 
 	//荒庄结束

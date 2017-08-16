@@ -683,7 +683,7 @@ func (r *ddz_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	if len(r.HandCardData[u.ChairId]) == 0 {
 		log.Debug("游戏结束")
 		r.WinnerUser = u.ChairId
-		r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
+		r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 		return
 	}
 
