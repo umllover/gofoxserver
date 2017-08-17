@@ -1258,6 +1258,10 @@ func (r *sss_data_mgr) replaceCard() {
 			}
 			if len(r.UniversalCards) > 0 {
 				r.UniversalCards = rc.Laizi
+				if r.jiaDaXiaoWan {
+					r.UniversalCards = append(r.UniversalCards, 0x4E)
+					r.UniversalCards = append(r.UniversalCards, 0x4F)
+				}
 			}
 			if len(r.PublicCards) > 0 {
 				r.PublicCards = rc.PublicCards
