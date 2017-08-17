@@ -1,6 +1,9 @@
 package pk_base
 
 import (
+	"time"
+	"strconv"
+
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
@@ -74,7 +77,6 @@ func (room *RoomData) GetUserScore(chairid int) int {
 	if chairid > room.PkBase.UserMgr.GetMaxPlayerCnt() {
 		return 0
 	}
-
 	return room.InitScoreMap[chairid]
 }
 

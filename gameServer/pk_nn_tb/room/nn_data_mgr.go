@@ -506,7 +506,6 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 }
 
 // 进入亮牌
-
 func (r *nntb_data_mgr) EnterOpenCard() {
 	log.Debug("enter open card")
 	// 亮牌超时
@@ -538,17 +537,14 @@ func (r *nntb_data_mgr) EnterOpenCard() {
 }
 
 // 验证
-
 func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool {
 	// 先验证是不是在公共牌中
-
 	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount; i++ {
 		if card == r.PublicCardData[i] {
 			return true
 		}
 	}
 	// 是不是在用户手牌
-
 	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
 		if card == r.CardData[chairID][i] {
 			return true
@@ -567,7 +563,6 @@ func (r *nntb_data_mgr) IsValidCardData(chairID int, cardData []int) bool {
 }
 
 // 亮牌
-
 func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	if r.GameStatus != GAME_STATUS_OPEN_CARD {
 		return
@@ -655,7 +650,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	log.Debug("cal score map %v", r.CalScoreMap)
 
 	// 游戏结束
-	r.PkBase.OnEventGameConclude(0, userMgr.GetUserByChairId(0), cost.GER_NORMAL)
+	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
 
 }
@@ -688,7 +683,6 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 	}
 
 	// 按照牌型来选
-
 	for cardType := 18; cardType >= 0; cardType-- {
 		for i := 0; i < len(cardsMap); i++ {
 			if r.PkBase.LogicMgr.GetCardType(cardsMap[i]) == cardType {
