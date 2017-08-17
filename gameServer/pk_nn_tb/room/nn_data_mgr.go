@@ -214,9 +214,10 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
 func (r *nntb_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	r.LeftCardCount--
-	if r.LeftCardCount<0 {
-		log.Debug( "at get one card left count error :%d", r.LeftCardCount)
-	return 0}
+	if r.LeftCardCount < 0 {
+		log.Debug("at get one card left count error :%d", r.LeftCardCount)
+		return 0
+	}
 	return r.RepertoryCard[r.LeftCardCount]
 }
 
@@ -269,8 +270,9 @@ func (room *nntb_data_mgr) StartDispatchCard() {
 //正常结束房间
 func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 
-	if cbReason>0 { // 请求解散
-	return}
+	if cbReason > 0 { // 请求解散
+		return
+	}
 
 	userMgr := room.PkBase.UserMgr
 
@@ -655,8 +657,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	log.Debug("cal score map %v", r.CalScoreMap)
 
 	// 游戏结束
-	r.PkBase.OnEventGameConclude(0, userMgr.GetUserByChairId(0), cost.GER_NORMAL)
-
+	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
 }
 
@@ -704,5 +705,3 @@ func (room *nntb_data_mgr) ResetGameAfterRenewal() {
 	room.PkBase.Status = cost.RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
-
-
