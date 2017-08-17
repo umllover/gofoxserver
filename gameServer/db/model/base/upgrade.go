@@ -13,7 +13,8 @@ import (
 
 // +gen
 type Upgrade struct {
-	LevelId    int     `db:"level_id" json:"level_id"`     //
+	UpId       int     `db:"up_id" json:"up_id"`           //
+	Level      int     `db:"level" json:"level"`           //
 	Recharge   int     `db:"recharge" json:"recharge"`     //
 	Commission int     `db:"commission" json:"commission"` //
 	AgentNum   int     `db:"agent_num" json:"agent_num"`   //
@@ -43,7 +44,7 @@ func (c *upgradeCache) LoadAll() {
 	c.objMap = make(map[int]*Upgrade)
 	log.Debug("Load all upgrade success %v", len(c.objList))
 	for _, v := range c.objList {
-		c.objMap[v.LevelId] = v
+		c.objMap[v.UpId] = v
 	}
 }
 
@@ -55,11 +56,11 @@ func (c *upgradeCache) Count() int {
 	return len(c.objList)
 }
 
-func (c *upgradeCache) Get(level_id int) (*Upgrade, bool) {
-	return c.GetKey1(level_id)
+func (c *upgradeCache) Get(up_id int) (*Upgrade, bool) {
+	return c.GetKey1(up_id)
 }
 
-func (c *upgradeCache) GetKey1(level_id int) (*Upgrade, bool) {
-	v, ok := c.objMap[level_id]
+func (c *upgradeCache) GetKey1(up_id int) (*Upgrade, bool) {
+	v, ok := c.objMap[up_id]
 	return v, ok
 }

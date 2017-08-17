@@ -1901,7 +1901,7 @@ func (room *RoomData) IsHuaGang(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 func (room *RoomData) IsAnKe(pAnalyseItem *TagAnalyseItem) int {
 	anKeCount := 0
 	for k, v := range pAnalyseItem.WeaveKind {
-		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true {
+		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true && room.HuOfCard != pAnalyseItem.CenterCard[k] {
 			anKeCount++
 		}
 	}
@@ -1964,7 +1964,7 @@ func (room *RoomData) IsXiaoSiXi(pAnalyseItem *TagAnalyseItem) int {
 	if colorCount[0]+colorCount[1]+colorCount[2]+colorCount[3] == 3 {
 		for k, v := range colorCount {
 			if v == 0 {
-				if k+1 == pAnalyseItem.CardEye&MASK_VALUE {
+				if k+1 == pAnalyseItem.CardEye&MASK_VALUE && pAnalyseItem.CardEye>>4 == 3 {
 					return CHR_XIAO_SI_XI
 				}
 			}
@@ -2010,7 +2010,7 @@ func (room *RoomData) IsXiaoSanYuan(pAnalyseItem *TagAnalyseItem) int {
 	if colorCount[0]+colorCount[1]+colorCount[2] == 2 {
 		for k, v := range colorCount {
 			if v == 0 {
-				if k == (pAnalyseItem.CardEye&MASK_VALUE)-5 {
+				if k == (pAnalyseItem.CardEye&MASK_VALUE)-5 && pAnalyseItem.CardEye>>4 == 3 {
 					return CHR_XIAO_SAN_YUAN
 				}
 			}

@@ -1904,7 +1904,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	log.Debug("CardIndex len ============== %d", len(room.CardIndex[wCurrentUser]))
 	room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.ProvideCard)]++
 	log.Debug("ProvideCard ========= %d , %v", room.ProvideCard, room.IsHua(room.ProvideCard))
-	if room.IsHua(room.ProvideCard) {
+	if room.IsHua(room.ProvideCard) && room.IsEnoughCard() {
 		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
 	}
 
