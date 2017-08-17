@@ -211,6 +211,8 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_THREESAME: //三条
 				log.Debug("前敦三条")
 				r.Results[i][0] = 3
+			default:
+				log.Debug("前敦未知牌型")
 			}
 			//中墩
 			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][1])
@@ -249,8 +251,9 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_SAME:
 				log.Debug("中墩五同")
 				r.Results[i][1] = 14
+			default:
+				log.Debug("中墩未知牌型")
 			}
-
 			//尾墩
 			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][2])
 			ct, item = lg.SSSGetCardType(tempData)
@@ -272,7 +275,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 				r.Results[i][2] = 3
 			case CT_STRAIGHT: //顺子
 				log.Debug("后墩顺子")
-				r.Results[i][1] = 1
+				r.Results[i][2] = 1
 			case CT_FLUSH: //同花
 				log.Debug("后墩同花")
 				r.Results[i][2] = 1
@@ -288,6 +291,8 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_FIVE_SAME:
 				log.Debug("后墩五同")
 				r.Results[i][2] = 7
+			default:
+				log.Debug("后墩未知牌型")
 			}
 		}
 	})
@@ -461,7 +466,6 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 	gameEnd.BEnterExit = false
 	//WAllUser               int        //全垒打用户
 	gameEnd.WAllUser = 0
-	//copy(room.m_lGameScore,room.m_lLeftScore)
 
 	gameEnd.BAllSpecialCard = false
 
