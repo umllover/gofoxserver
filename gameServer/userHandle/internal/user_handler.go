@@ -14,6 +14,7 @@ import (
 	client "mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -244,8 +245,16 @@ func (m *UserModule) WriteUserScore(args []interface{}) {
 func (m *UserModule) UserSitdown(args []interface{}) {
 	player := m.a.UserData().(*client.User)
 	recvMsg := args[0].(*msg.C2G_UserSitdown)
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			cluster.SendMsgToHallUser(player.HallNodeId, player.Id, &msg.RoomReturnMoney{RoomId: player.RoomId, CreatorUid: player.Id})
+			player.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 	if player.KindID == 0 {
 		log.Error("UserSitdown not foud module, userid:%d", player.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
@@ -259,8 +268,11 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	if r == nil {
 		if player.RoomId != 0 {
 			r = RoomMgr.GetRoom(player.RoomId)
+		} else {
+			player.RoomId = recvMsg.TableID
 		}
 		if r == nil {
+			retCode = ErrNoFoudRoom
 			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
 			return
 		}
@@ -272,18 +284,18 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 func (m *UserModule) SetGameOption(args []interface{}) {
 	user := m.a.UserData().(*client.User)
 	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
+		log.Error("at SetGameOption not foud module userid:%d", user.Id)
 		return
 	}
 
 	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
+		log.Error("at SetGameOption not foud roomd id userid:%d", user.Id)
 		return
 	}
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd:%v, userid:%d", user.RoomId, user.Id)
+		log.Error("at SetGameOption not foud roomd:%v, userid:%d", user.RoomId, user.Id)
 		return
 	}
 
@@ -365,7 +377,10 @@ func (m *UserModule) ReqLeaveRoom(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 	r := RoomMgr.GetRoom(player.RoomId)
 	if r != nil {
-		r.GetChanRPC().Go("ReqLeaveRoom", player)
+		_, err := r.GetChanRPC().Call1("ReqLeaveRoom", player)
+		if err != nil {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrRoomDissolution})
+		}
 	} else {
 		player.WriteMsg(&msg.G2C_LeaveRoomRsp{Code: ErrPlayerNotInRoom})
 	}

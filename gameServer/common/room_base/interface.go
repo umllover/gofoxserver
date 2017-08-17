@@ -33,6 +33,7 @@ type TimerManager interface {
 	AddPlayCount()
 	ResetPlayCount()
 	GetMaxPlayCnt() int
+	GetRoomPlayCnt() int
 	AddMaxPlayCnt(int)
 	GetCreatrTime() int64
 	GetTimeOutCard() int

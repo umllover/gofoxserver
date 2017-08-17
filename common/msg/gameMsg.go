@@ -69,8 +69,9 @@ type G2C_LeaveRoomBradcast struct {
 
 //别人同意或拒绝的结果通知
 type G2C_ReplyRsp struct {
-	UserID int64 //谁同意或者拒绝你了
-	Agree  bool  //ture 是同意你了， false 是拒绝你了
+	UserID   int64 //谁同意或者拒绝你了
+	ReplyUid int64 //发起人id
+	Agree    bool  //ture 是同意你了， false 是拒绝你了
 }
 
 //同意还是拒绝解散房间
@@ -366,10 +367,20 @@ type G2C_RenewalFeesSuccess struct {
 
 //
 type C2G_StartRecord struct {
+	OpCode bool
 }
 
 type G2C_StartRecord struct {
 	Code int //非0为失败
+}
+
+//强制解散房间
+type C2G_DissolutionRoom struct {
+}
+
+//强制解散房间
+type G2C_DissolutionRoom struct {
+	Code int //非0位失败错误码
 }
 
 ///////////////////////// game chart end ///////////////////////////////

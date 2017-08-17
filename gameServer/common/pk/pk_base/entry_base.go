@@ -56,8 +56,7 @@ func (r *Entry_base) Init(cfg *NewPKCtlConfig) {
 		roomLogData := datalog.RoomLog{}
 		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
-		log.Debug("not start game close ")
-		r.OnEventGameConclude(0, nil, NO_START_GER_DISMISS)
+		r.OnEventGameConclude(NO_START_GER_DISMISS)
 	})
 }
 

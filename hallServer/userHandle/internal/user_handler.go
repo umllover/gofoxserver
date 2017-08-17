@@ -120,11 +120,17 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		return
 	}
 
-	accountData, ok := account.AccountsinfoOp.GetByMap(map[string]interface{}{
+	accountData, aerr := account.AccountsinfoOp.GetByMap(map[string]interface{}{
 		"Accounts": recvMsg.Accounts,
 	})
 
-	if ok != nil || accountData == nil {
+	if aerr != nil {
+		log.Debug("error at AccountsinfoOp GetByMap %s", aerr.Error())
+		retcode = LoadUserInfoError
+		return
+	}
+
+	if accountData == nil {
 		if conf.Test {
 			retcode, _, accountData = RegistUser(&msg.C2L_Regist{
 				LogonPass:    recvMsg.LogonPass,
@@ -544,6 +550,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 	roomInfo.Players = make(map[int64]*msg.PlayerBrief)
 	roomInfo.MaxPlayerCnt = info.MaxPlayerCnt
 	roomInfo.PayCnt = info.Num
+	roomInfo.RoomPlayCnt = info.Num
 	roomInfo.RoomName = info.RoomName
 	game_list.ChanRPC.Go("addyNewRoom", roomInfo)
 
@@ -1030,6 +1037,9 @@ func (m *UserModule) Recharge(args []interface{}) {
 		if code != 0 {
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
 		} else {
+			if !player.HasTimes(common.ActivityRechangeDay) {
+				player.SetTimes(common.ActivityRechangeDay, 0)
+			}
 			log.Debug("11111111111111111111 ")
 			player.AddCurrency(goods.Diamond)
 			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: goods.Diamond})
@@ -1165,7 +1175,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 	}
 
 	room := info.(*msg.RoomInfo)
-	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt/(room.RenewalCnt+1))
+	feeTemp, ok := base.PersonalTableFeeCache.Get(room.KindID, room.ServerID, room.PayCnt)
 	if !ok {
 		retCode = ErrConfigError
 		return
@@ -1215,6 +1225,7 @@ func (m *UserModule) RenewalFees(args []interface{}) {
 
 //续费结果
 func (m *UserModule) RenewalFeeResult(args []interface{}) {
+	log.Debug("=============at RenewalFeeResult")
 	recvMsg := args[0].(*msg.S2S_RenewalFeeResult)
 	player := m.a.UserData().(*user.User)
 
@@ -1242,7 +1253,8 @@ func (m *UserModule) RenewalFeeResult(args []interface{}) {
 			return
 		}
 		room := info.(*msg.RoomInfo)
-		room.PayCnt += recvMsg.AddCount
+		room.CurPayCnt = 0 //已玩局数重置
+		//room.PayCnt += recvMsg.AddCount
 		room.RenewalCnt++
 	}
 }
@@ -1303,7 +1315,11 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 		return
 	}
 
-	VerifyCode(recvMsg.PhoneNumber, code)
+	ret := VerifyCode(recvMsg.PhoneNumber, code)
+	if ret != 0 {
+		retCode = ErrFrequentAccess
+		return
+	}
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {

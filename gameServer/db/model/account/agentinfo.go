@@ -28,7 +28,6 @@ type Agentinfo struct {
 	FormatAgentNum   string     `db:"format_agent_num" json:"format_agent_num"`   //
 	ParAgentNum      string     `db:"par_agent_num" json:"par_agent_num"`         //
 	HeadImgUrl       string     `db:"head_img_url" json:"head_img_url"`           //
-	Account          string     `db:"account" json:"account"`                     // 用户id
 }
 
 type agentinfoOp struct{}
@@ -106,7 +105,7 @@ func (op *agentinfoOp) Insert(m *Agentinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *agentinfoOp) InsertTx(ext sqlx.Ext, m *Agentinfo) (int64, error) {
-	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url,account) values(?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.AgentId,
 		m.Level,
@@ -120,7 +119,6 @@ func (op *agentinfoOp) InsertTx(ext sqlx.Ext, m *Agentinfo) (int64, error) {
 		m.FormatAgentNum,
 		m.ParAgentNum,
 		m.HeadImgUrl,
-		m.Account,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -132,7 +130,7 @@ func (op *agentinfoOp) InsertTx(ext sqlx.Ext, m *Agentinfo) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *agentinfoOp) InsertUpdate(obj *Agentinfo, m map[string]interface{}) error {
-	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url,account) values(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.AgentId,
 		obj.Level,
 		obj.Phone,
@@ -145,7 +143,6 @@ func (op *agentinfoOp) InsertUpdate(obj *Agentinfo, m map[string]interface{}) er
 		obj.FormatAgentNum,
 		obj.ParAgentNum,
 		obj.HeadImgUrl,
-		obj.Account,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -177,7 +174,7 @@ func (op *agentinfoOp) Update(m *Agentinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *agentinfoOp) UpdateTx(ext sqlx.Ext, m *Agentinfo) error {
-	sql := `update agentinfo set level=?,phone=?,register_date=?,balance=?,disciple_num=?,commission=?,recent_commission=?,agent_num=?,format_agent_num=?,par_agent_num=?,head_img_url=?,account=? where agent_id=?`
+	sql := `update agentinfo set level=?,phone=?,register_date=?,balance=?,disciple_num=?,commission=?,recent_commission=?,agent_num=?,format_agent_num=?,par_agent_num=?,head_img_url=? where agent_id=?`
 	_, err := ext.Exec(sql,
 		m.Level,
 		m.Phone,
@@ -190,7 +187,6 @@ func (op *agentinfoOp) UpdateTx(ext sqlx.Ext, m *Agentinfo) error {
 		m.FormatAgentNum,
 		m.ParAgentNum,
 		m.HeadImgUrl,
-		m.Account,
 		m.AgentId,
 	)
 
