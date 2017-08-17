@@ -4,8 +4,6 @@ import (
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-	"strconv"
-	"time"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -53,7 +51,6 @@ type RoomData struct {
 	CellScore  int //底分
 	ScoreTimes int //倍数
 
-	InitScoreMap map[int]int // 初始积分
 
 	PlayerCount    int //游戏人数，
 	MinPlayerCount int // 最少游戏人数
@@ -65,6 +62,7 @@ type RoomData struct {
 	EscapeUserScore []int64 //逃跑玩家分数
 	DynamicScore    int64   //总分
 
+	InitScoreMap map[int]int // 初始积分
 	EachRoundScoreMap map[int][]int // 每局比分
 
 	CurrentPlayCount int
@@ -76,14 +74,8 @@ func (room *RoomData) GetUserScore(chairid int) int {
 	if chairid > room.PkBase.UserMgr.GetMaxPlayerCnt() {
 		return 0
 	}
-	source := 0
-	for _, v := range room.EachRoundScoreMap {
-		if len(v) < chairid {
-			continue
-		}
-		source += v[chairid]
-	}
-	return source
+
+	return room.InitScoreMap[chairid]
 }
 
 func (r *RoomData) GetCreatorNodeId() int {
@@ -174,9 +166,16 @@ func (room *RoomData) InitRoomOne() {
 
 }
 
+func (room *RoomData) ResetUserScore() {
+	room.EachRoundScoreMap = make(map[int][]int)
+	room.InitScoreMap = make(map[int]int)
+	log.Debug( "reset each round score:%v, init score:%v", room.EachRoundScoreMap, room.InitScoreMap)
+}
+
+
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
-
+	room.ResetUserScore()
 }
 
 // 游戏开始
