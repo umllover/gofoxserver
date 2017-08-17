@@ -116,6 +116,7 @@ func (r *Entry_base) UserStandup(args []interface{}) {
 func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error) {
 	//addCnt := args[0].(int)
 	rUserId := args[1].(int64)
+	rNodeId := args[2].(int)
 	if r.IsClose {
 		return 2, errors.New("room is close ")
 	}
@@ -129,13 +130,13 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
-
-	roomId := r.DataMgr.GetRoomId()
-
+	log.Debug("=========RenewalFeesSetInfo rUserId=%d, rNodeId=%d", rUserId, rNodeId)
+	//续费的人成为房主
+	r.DataMgr.ResetRoomCreator(rUserId, rNodeId)
 	//未开始游戏定时器
 	r.TimerMgr.StartCreatorTimer(func() {
 		roomLogData := datalog.RoomLog{}
-		logData := roomLogData.GetRoomLogRecode(roomId, r.Temp.KindID, r.Temp.ServerID)
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
 		r.OnEventGameConclude(NO_START_GER_DISMISS)
 	})
@@ -145,7 +146,7 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	r.Status = RoomStatusReady
 	//更新大厅房间状态
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
-		RoomId: roomId,
+		RoomId: r.DataMgr.GetRoomId(),
 		OpName: "SetRoomStatus",
 		Data: map[string]interface{}{
 			"RoomStatus": RoomStatusReady,

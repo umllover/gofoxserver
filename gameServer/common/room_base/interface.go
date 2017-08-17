@@ -96,6 +96,7 @@ type BData interface {
 	SendStatusPlay(u *user.User)     //发送开始后的处理
 	GetCreator() int64
 	GetCreatorNodeId() int
+	ResetRoomCreator(uid int64, nodeid int)
 	NormalEnd(Reason int)  //正常结束
 	DismissEnd(Reason int) //解散结束
 }
