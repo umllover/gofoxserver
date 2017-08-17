@@ -200,6 +200,9 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			return
 		}
 
+		//移除该牌的丢牌记录
+		room.GetDataMgr().RemoveDiscardInfo()
+
 		//胡牌操作
 		if cbTargetAction == WIK_CHI_HU {
 			room.GetDataMgr().UserChiHu(wTargetUser, room.UserMgr.GetMaxPlayerCnt())
