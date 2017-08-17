@@ -430,6 +430,7 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(false, cbReason)
+		room.OnRoomTrustee()
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
@@ -448,7 +449,6 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 	roomStatus := room.Status
 	room.Status = RoomStatusEnd //一局结束状态
-	//room.OnRoomTrustee()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
