@@ -377,6 +377,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	}
 
 	if cbTargetAction == WIK_NULL {
+		room.IsResponse = make([]bool, userCnt)
 		room.UserAction = make([]int, userCnt)
 		room.OperateCard = make([][]int, userCnt)
 		room.PerformAction = make([]int, userCnt)

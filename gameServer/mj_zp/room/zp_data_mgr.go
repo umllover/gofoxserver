@@ -196,6 +196,7 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
+	room.ChaHuaMap = make(map[int]int)
 	room.ResetUserScore() //重置用户所有积分
 }
 

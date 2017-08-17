@@ -176,7 +176,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28002 player count %d", UserCnt)
+	log.Debug("nn init room version 28003 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
