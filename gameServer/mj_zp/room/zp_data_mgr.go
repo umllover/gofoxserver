@@ -149,7 +149,7 @@ func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
 
 func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
-	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
+	if room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
 		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
@@ -214,7 +214,7 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	sendData.Chair = u.ChairId
 	room.MjBase.UserMgr.SendMsgAll(sendData)
 	userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	if len(room.ChaHuaMap) == userCnt && room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
+	if len(room.ChaHuaMap) == userCnt && room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
