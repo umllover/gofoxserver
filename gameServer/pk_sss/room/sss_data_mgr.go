@@ -122,10 +122,10 @@ func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 
 	room.GameStatus = 0
 
-	room.wanFa = 0
-	room.jiaYiSe = false
-	room.jiaGongGong = false
-	room.jiaDaXiaoWan = false
+	// room.wanFa = 0
+	// room.jiaYiSe = false
+	// room.jiaGongGong = false
+	// room.jiaDaXiaoWan = false
 
 	room.PlayerCount = UserCnt
 	room.Players = make([]int, UserCnt)
@@ -842,8 +842,12 @@ func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard
 	segmentCard2, cardData, leftLaiZiCard = room.get5card(cardData, leftLaiZiCard)
 
 	//前墩
-	segmentCard1 = append(segmentCard1, cardData...)
-	segmentCard1 = append(segmentCard1, leftLaiZiCard...)
+	if len(cardData) >= 3 {
+		segmentCard1 = append(segmentCard1, cardData[:3]...)
+	} else {
+		segmentCard1 = append(segmentCard1, cardData...)
+		segmentCard1 = append(segmentCard1, leftLaiZiCard[:3-len(cardData)]...)
+	}
 
 	return
 }
@@ -1183,7 +1187,7 @@ func (room *sss_data_mgr) get5card(cardData []int, leftLaiZiCard []int) (segment
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:5]...)
 	}
 	if len(segmentCard) == 0 && len(TagAnalyseItemArray.cardData) < 5 {
-		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:]...)
+		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData...)
 		segmentCard = append(segmentCard, leftLaiZiCard[:5-len(TagAnalyseItemArray.cardData)]...)
 		leftLaiZiCard = leftLaiZiCard[5-len(TagAnalyseItemArray.cardData):]
 	}
