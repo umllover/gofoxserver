@@ -130,8 +130,10 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
-	log.Debug("=========RenewalFeesSetInfo rUserId=%d, rNodeId=%d", rUserId, rNodeId)
-	//续费的人成为房主
+
+	//旧房主uid
+	oldCreator := r.DataMgr.GetCreator()
+	//续费的人成为新房主
 	r.DataMgr.ResetRoomCreator(rUserId, rNodeId)
 	//未开始游戏定时器
 	r.TimerMgr.StartCreatorTimer(func() {
@@ -144,12 +146,14 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	r.TimerMgr.ResetPlayCount()
 	//更新游戏服房间状态
 	r.Status = RoomStatusReady
-	//更新大厅房间状态
+	//更新大厅房间信息
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.DataMgr.GetRoomId(),
-		OpName: "SetRoomStatus",
+		OpName: "SetRoomInfo",
 		Data: map[string]interface{}{
 			"RoomStatus": RoomStatusReady,
+			"NewCreator": rUserId,    //续费玩家id
+			"oldCreator": oldCreator, //旧房主
 		},
 	})
 	//重置其他(与玩法相关联的东西)
