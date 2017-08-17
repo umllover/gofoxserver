@@ -125,23 +125,38 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 		return 3, errors.New("room playCnt >= maxPlayCnt")
 	}
 
-	//r.TimerMgr.AddMaxPlayCnt(addCnt)
-	r.TimerMgr.StartCreatorTimer(func() {
-		roomLogData := datalog.RoomLog{}
-		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
-		roomLogData.UpdateGameLogRecode(logData, 4)
-		r.OnEventGameConclude(NO_START_GER_DISMISS)
-	})
-	r.TimerMgr.ResetPlayCount()
-	r.DataMgr.ResetGameAfterRenewal()
-
 	if r.DelayCloseTimer != nil {
 		r.DelayCloseTimer.Stop()
 		r.DelayCloseTimer = nil
 	}
 
+	roomId := r.DataMgr.GetRoomId()
+
+	//未开始游戏定时器
+	r.TimerMgr.StartCreatorTimer(func() {
+		roomLogData := datalog.RoomLog{}
+		logData := roomLogData.GetRoomLogRecode(roomId, r.Temp.KindID, r.Temp.ServerID)
+		roomLogData.UpdateGameLogRecode(logData, 4)
+		r.OnEventGameConclude(NO_START_GER_DISMISS)
+	})
+	//重置已玩次数
+	r.TimerMgr.ResetPlayCount()
+	//更新游戏服房间状态
+	r.Status = RoomStatusReady
+	//更新大厅房间状态
+	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
+		RoomId: roomId,
+		OpName: "SetRoomStatus",
+		Data: map[string]interface{}{
+			"RoomStatus": RoomStatusReady,
+		},
+	})
+	//重置其他(与玩法相关联的东西)
+	r.DataMgr.ResetGameAfterRenewal()
+
+	//更新玩家状态，并下发续费成功
 	r.UserMgr.ForEachUser(func(u *user.User) {
-		r.UserMgr.SetUsetStatus(u, US_SIT) //更新玩家状态
+		r.UserMgr.SetUsetStatus(u, US_SIT)
 		u.WriteMsg(&msg.G2C_RenewalFeesSuccess{UserID: rUserId})
 	})
 
@@ -294,8 +309,9 @@ func (room *Entry_base) GetBirefInfo() *msg.RoomInfo {
 	BirefInf.RoomID = room.DataMgr.GetRoomId()
 	BirefInf.CurCnt = room.UserMgr.GetCurPlayerCnt()
 	BirefInf.MaxPlayerCnt = room.UserMgr.GetMaxPlayerCnt() //最多多人数
-	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
 	BirefInf.CurPayCnt = room.TimerMgr.GetPlayCount()      //已玩局数
+	BirefInf.PayCnt = room.TimerMgr.GetMaxPlayCnt()        //可玩局数
+	BirefInf.RoomPlayCnt = room.TimerMgr.GetRoomPlayCnt()  //房间局数配置
 	BirefInf.CreateTime = room.TimerMgr.GetCreatrTime()    //创建时间
 	BirefInf.CreateUserId = room.DataMgr.GetCreator()
 	BirefInf.IsPublic = room.UserMgr.IsPublic()

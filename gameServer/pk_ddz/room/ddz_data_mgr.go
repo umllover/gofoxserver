@@ -699,7 +699,7 @@ func (r *ddz_data_mgr) checkNextUserTrustee() {
 				} else {
 					// 作保护，如果手牌为0了，则游戏结束
 					r.WinnerUser = r.CurrentUser
-					r.PkBase.OnEventGameConclude(0, nil, cost.GER_NORMAL)
+					r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 				}
 
 			} else {
