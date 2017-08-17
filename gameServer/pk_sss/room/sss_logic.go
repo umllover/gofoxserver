@@ -63,40 +63,19 @@ type TagAnalyseItem struct {
 	bflush      bool  //是否同花
 }
 
-// type tagAnalyseType struct {
-// }
-
-// //分析结构
-// type tagAnalyseData struct {
-// 	bOneCount   int   //单张数目
-// 	bTwoCount   int   //两张数目
-// 	bThreeCount int   //三张数目
-// 	bFourCount  int   //四张数目
-// 	bFiveCount  int   //五张数目
-// 	bOneFirst   []int //单牌位置
-// 	bTwoFirst   []int //对牌位置
-// 	bThreeFirst []int //三条位置
-// 	bFourFirst  []int //四张位置
-// 	bflush   bool  //是否顺子
-// }
+type sss_logic struct {
+	*pk_base.BaseLogic
+	LaiZhiSubstitute int
+}
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
-	//l.BtCardSpecialData = make([]int, 13)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	l.LaiZhiSubstitute = -1
 	return l
 }
 
-type sss_logic struct {
-	*pk_base.BaseLogic
-	//BtCardSpecialData []int
-	//UniversalCards []int //万能牌
-	LaiZhiSubstitute int
-}
-
 func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
-
 	//混乱准备
 	cbBufferCount := len(cbCardBuffer)
 	cbCardDataTemp := make([]int, cbBufferCount)
@@ -124,7 +103,6 @@ func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData [
 	if bCardCount > len(bTempCardData) {
 		return false
 	}
-	//util.DeepCopy(&bTempCardData, &bCardData)
 	copy(bTempCardData, bCardData)
 	//置零扑克
 	for i := 0; i < bRemoveCount; i++ {
@@ -139,7 +117,6 @@ func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData [
 	if bDeleteCount != bRemoveCount {
 		return false
 	}
-
 	//清理扑克
 	bCardPos := 0
 	for i := 0; i < bCardCount; i++ {
@@ -294,10 +271,6 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 
 }
 
-func (lg *sss_logic) GetCardType(metaCardData []int) int {
-	return 0
-}
-
 func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 	metaCount := len(metaCardData)
 	if metaCount != 3 && metaCount != 5 && metaCount != 13 {
@@ -316,9 +289,6 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 	switch metaCount {
 	case 3: //三条类型
 		switch len(TagAnalyseItemArray.laiZi) {
-		// case 3:
-		// 	cardData = []int{0x31, 0x31, 0x31}
-		// 	return lg.SSSGetCardType(cardData)
 		case 2:
 			cardData = []int{cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
@@ -349,9 +319,6 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		return CT_INVALID, TagAnalyseItemArray
 	case 5: //五张牌型
 		switch len(TagAnalyseItemArray.laiZi) {
-		// case 5: //最大五同
-		// 	cardData = []int{0x31, 0x31, 0x31, 0x31, 0x31}
-		// 	return lg.SSSGetCardType(cardData)
 		case 4: //五同
 			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
@@ -647,17 +614,8 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 	copy(bFirstList, bInFirstList.Item.cardData)
 	copy(bNextList, bInNextList.Item.cardData)
 
-	// lg.SSSSortCardList(bFirstList)
-	// lg.SSSSortCardList(bNextList)
-
-	// FirstAnalyseData = lg.AnalyseCard(bFirstList)
-	// NextAnalyseData = lg.AnalyseCard(bNextList)
-
 	FirstAnalyseData = bInFirstList.Item
 	NextAnalyseData = bInNextList.Item
-
-	// bNextType := lg.GetCardType(bNextList)
-	// bFirstType := lg.GetCardType(bFirstList)
 
 	bNextType := bInNextList.CT
 	bFirstType := bInFirstList.CT
@@ -1181,8 +1139,6 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 	return 0
 }
 
-func (*sss_logic) SortCardList(cardData []int, cardCount int) {}
-
 func (lg *sss_logic) IsAllLine(cbCard []int, cbCount int, bSameColor bool) bool {
 	if cbCount == 0 {
 		return true
@@ -1416,3 +1372,9 @@ func (lg *sss_logic) getUnUsedCard(cardData []int, usedCard []int) []int {
 
 	return tempCardData
 }
+
+// 未实现父类函数
+func (lg *sss_logic) GetCardType(metaCardData []int) int {
+	return 0
+}
+func (*sss_logic) SortCardList(cardData []int, cardCount int) {}
