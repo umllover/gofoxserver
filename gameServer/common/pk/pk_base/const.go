@@ -8,8 +8,9 @@ const (
 )
 
 type HistoryScore struct {
-	TurnScore    int
-	CollectScore int
+	AllScore    []int   //总结算分 //index 是 charidid
+	DetailScore [][]int //单局结算分 index 1  局数， index2 是chairid
+
 }
 
 //分析子项

@@ -214,6 +214,9 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
 func (r *nntb_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	r.LeftCardCount--
+	if r.LeftCardCount<0 {
+		log.Debug( "at get one card left count error :%d", r.LeftCardCount)
+	return 0}
 	return r.RepertoryCard[r.LeftCardCount]
 }
 
@@ -265,6 +268,9 @@ func (room *nntb_data_mgr) StartDispatchCard() {
 
 //正常结束房间
 func (room *nntb_data_mgr) NormalEnd(cbReason int) {
+
+	if cbReason>0 { // 请求解散
+	return}
 
 	userMgr := room.PkBase.UserMgr
 
@@ -500,7 +506,6 @@ func (r *nntb_data_mgr) AddScoreEnd() {
 }
 
 // 进入亮牌
-
 func (r *nntb_data_mgr) EnterOpenCard() {
 	log.Debug("enter open card")
 	// 亮牌超时
@@ -532,17 +537,14 @@ func (r *nntb_data_mgr) EnterOpenCard() {
 }
 
 // 验证
-
 func (r *nntb_data_mgr) IsValidCard(chairID int, card int) bool {
 	// 先验证是不是在公共牌中
-
 	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).PublicCardCount; i++ {
 		if card == r.PublicCardData[i] {
 			return true
 		}
 	}
 	// 是不是在用户手牌
-
 	for i := 0; i < pk_base.GetCfg(pk_base.IDX_TBNN).MaxCount; i++ {
 		if card == r.CardData[chairID][i] {
 			return true
@@ -561,7 +563,6 @@ func (r *nntb_data_mgr) IsValidCardData(chairID int, cardData []int) bool {
 }
 
 // 亮牌
-
 func (r *nntb_data_mgr) OpenCard(u *user.User, cardType int, cardData []int) {
 	if r.GameStatus != GAME_STATUS_OPEN_CARD {
 		return
@@ -649,17 +650,8 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	log.Debug("cal score map %v", r.CalScoreMap)
 
 	// 游戏结束
-
 	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
-	/*r.PkBase.AfterFunc( 15 * time.Second, func() {
-		log.Debug("game end timer")
-		//退出房间
-		userMgr.ForEachUser(func(u *user.User) {
-			userMgr.LeaveRoom(u, r.PkBase.Status)
-		})
-		r.PkBase.Destroy(r.PkBase.DataMgr.GetRoomId())
-	})*/
 
 }
 
@@ -691,7 +683,6 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 	}
 
 	// 按照牌型来选
-
 	for cardType := 18; cardType >= 0; cardType-- {
 		for i := 0; i < len(cardsMap); i++ {
 			if r.PkBase.LogicMgr.GetCardType(cardsMap[i]) == cardType {
@@ -702,3 +693,10 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 
 	return nil, 0
 }
+
+func (room *nntb_data_mgr) ResetGameAfterRenewal() {
+	room.PkBase.Status = cost.RoomStatusReady
+	room.ResetUserScore() //重置用户所有积分
+}
+
+
