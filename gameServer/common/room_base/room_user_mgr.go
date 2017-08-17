@@ -512,6 +512,8 @@ func (room *RoomUserMgr) ReLogin(u *user.User, Status int) {
 			room.SetUsetStatus(u, US_SIT)
 		}
 	}
+
+	Chat.ChanRPC.Go("addRoomMember", room.ChatRoomId, u.Agent)
 }
 
 func (room *RoomUserMgr) SendDataToHallUser(chiairID int, data interface{}) {
