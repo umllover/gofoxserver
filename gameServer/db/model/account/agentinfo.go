@@ -17,10 +17,12 @@ import (
 // +gen *
 type Agentinfo struct {
 	AgentId          int64      `db:"agent_id" json:"agent_id"`                   //
+	Account          string     `db:"account" json:"account"`                     // 用户id
 	Level            int        `db:"level" json:"level"`                         //
 	Phone            string     `db:"phone" json:"phone"`                         //
 	RegisterDate     *time.Time `db:"register_date" json:"register_date"`         //
 	Balance          int        `db:"balance" json:"balance"`                     //
+	UserNum          int        `db:"user_num" json:"user_num"`                   // 底下玩家总数量
 	DiscipleNum      int        `db:"disciple_num" json:"disciple_num"`           //
 	Commission       float64    `db:"commission" json:"commission"`               //
 	RecentCommission float64    `db:"recent_commission" json:"recent_commission"` //
@@ -105,13 +107,15 @@ func (op *agentinfoOp) Insert(m *Agentinfo) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *agentinfoOp) InsertTx(ext sqlx.Ext, m *Agentinfo) (int64, error) {
-	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into agentinfo(agent_id,account,level,phone,register_date,balance,user_num,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.AgentId,
+		m.Account,
 		m.Level,
 		m.Phone,
 		m.RegisterDate,
 		m.Balance,
+		m.UserNum,
 		m.DiscipleNum,
 		m.Commission,
 		m.RecentCommission,
@@ -130,12 +134,14 @@ func (op *agentinfoOp) InsertTx(ext sqlx.Ext, m *Agentinfo) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *agentinfoOp) InsertUpdate(obj *Agentinfo, m map[string]interface{}) error {
-	sql := "insert into agentinfo(agent_id,level,phone,register_date,balance,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into agentinfo(agent_id,account,level,phone,register_date,balance,user_num,disciple_num,commission,recent_commission,agent_num,format_agent_num,par_agent_num,head_img_url) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.AgentId,
+		obj.Account,
 		obj.Level,
 		obj.Phone,
 		obj.RegisterDate,
 		obj.Balance,
+		obj.UserNum,
 		obj.DiscipleNum,
 		obj.Commission,
 		obj.RecentCommission,
@@ -174,12 +180,14 @@ func (op *agentinfoOp) Update(m *Agentinfo) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *agentinfoOp) UpdateTx(ext sqlx.Ext, m *Agentinfo) error {
-	sql := `update agentinfo set level=?,phone=?,register_date=?,balance=?,disciple_num=?,commission=?,recent_commission=?,agent_num=?,format_agent_num=?,par_agent_num=?,head_img_url=? where agent_id=?`
+	sql := `update agentinfo set account=?,level=?,phone=?,register_date=?,balance=?,user_num=?,disciple_num=?,commission=?,recent_commission=?,agent_num=?,format_agent_num=?,par_agent_num=?,head_img_url=? where agent_id=?`
 	_, err := ext.Exec(sql,
+		m.Account,
 		m.Level,
 		m.Phone,
 		m.RegisterDate,
 		m.Balance,
+		m.UserNum,
 		m.DiscipleNum,
 		m.Commission,
 		m.RecentCommission,
