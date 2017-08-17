@@ -15,7 +15,7 @@ func InitTableMap() {
 	   db.BaseDBMap.AddTableWithName(PersonalTableFee{}, "personal_table_fee").SetKeys(false,"KindID","ServerID","DrawCountLimit")
 	   db.BaseDBMap.AddTableWithName(PersonalTableFeeBak728{}, "personal_table_fee_bak_7_28").SetKeys(false,"KindID","ServerID","DrawCountLimit")
 	   db.BaseDBMap.AddTableWithName(RefreshInTime{}, "refresh_in_time").SetKeys(false,"Id")
-	   db.BaseDBMap.AddTableWithName(Upgrade{}, "upgrade").SetKeys(false,"LevelId")
+	   db.BaseDBMap.AddTableWithName(Upgrade{}, "upgrade").SetKeys(false,"UpId")
 	   db.BaseDBMap.AddTableWithName(UpgradeAdvisor{}, "upgrade_advisor").SetKeys(false,"AdvisorId")
 	*/
 }
