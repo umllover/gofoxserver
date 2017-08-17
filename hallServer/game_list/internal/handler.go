@@ -194,13 +194,13 @@ func updateRoom(args []interface{}) {
 		if room.CurPayCnt == 0 {
 			log.Debug("at updateRoom ... 222 ")
 			room.Status = RoomStatusStarting
-		}
-		room.CurPayCnt += 1
-		for _, ply := range room.Players {
-			if ply.HallNodeName == conf.ServerName() {
-				center.SendToThisNodeUser(ply.UID, "GameStart", &msg.StartRoom{RoomId: room.RoomID})
+			for _, ply := range room.Players {
+				if ply.HallNodeName == conf.ServerName() {
+					center.SendToThisNodeUser(ply.UID, "GameStart", &msg.StartRoom{RoomId: room.RoomID})
+				}
 			}
 		}
+		room.CurPayCnt += 1
 
 	case "AddPlayerId":
 		pinfo := &msg.PlayerBrief{

@@ -177,11 +177,11 @@ func (room *Entry_base) GetUserChairInfo(args []interface{}) {
 
 //大厅服发来的解散房间
 func (room *Entry_base) DissumeRoom(args []interface{}) {
+	room.OnEventGameConclude(GER_DISMISS)
+
 	room.UserMgr.ForEachUser(func(u *user.User) {
 		room.UserMgr.LeaveRoom(u, room.Status)
 	})
-
-	room.OnEventGameConclude(GER_DISMISS)
 
 	roomLogData := datalog.RoomLog{}
 	logData := roomLogData.GetRoomLogRecode(room.DataMgr.GetRoomId(), room.Temp.KindID, room.Temp.ServerID)

@@ -47,7 +47,7 @@ type DataManager interface {
 	SendOperateNotify(*user.User, int)                                        //发送吃碰杠胡通知
 	CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool)
 	ResetGameAfterRenewal() //续费重置游戏参数
-
+	RemoveDiscardInfo()     //吃碰杠胡后移除供牌用户的最后一个丢牌记录
 	GetResumeUser() int
 	GetGangStatus() int
 	GetUserCardIndex(ChairId int) []int
