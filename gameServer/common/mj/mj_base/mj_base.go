@@ -176,8 +176,10 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 	}()
 
 	if room.GetDataMgr().GetCurrentUser() == INVALID_CHAIR {
+
 		//效验状态
 		if !room.GetDataMgr().HasOperator(u.ChairId, OperateCode) {
+			log.Debug("user:%d,OperateCode:%d,OperateCard：%v", u.ChairId, OperateCode, OperateCard)
 			retcode = ErrNoOperator
 			return
 		}
@@ -185,7 +187,7 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		//变量定义
 		cbTargetAction, wTargetUser := room.GetDataMgr().CheckUserOperator(u, room.UserMgr.GetMaxPlayerCnt(), OperateCode, OperateCard)
 		if cbTargetAction < 0 {
-			log.Debug("wait other user, OperateCode=%d, OperateCard=%d, cbTargetAction=%v, wTargetUser=%v", OperateCode, OperateCard, cbTargetAction, wTargetUser)
+			log.Debug("wait other user")
 			return
 		}
 
@@ -195,7 +197,6 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 			if room.GetDataMgr().DispatchCardData(room.GetDataMgr().GetResumeUser(), room.GetDataMgr().GetGangStatus() != WIK_GANERAL) > 0 {
 				room.OnEventGameConclude(GER_NORMAL)
 			}
-			room.GetDataMgr().ResetUserOperate()
 			return
 		}
 
@@ -218,13 +219,14 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		room.GetDataMgr().CallOperateResult(wTargetUser, cbTargetAction)
 		if cbTargetAction == WIK_GANG {
 			if room.GetDataMgr().DispatchCardData(wTargetUser, true) > 0 {
-				room.GetDataMgr().GetRoomId()
 				room.OnEventGameConclude(GER_NORMAL)
 			}
 		}
 	} else {
+
 		//扑克效验
 		if (OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])) {
+			log.Error("OperateCode != WIK_NULL) && (OperateCode != WIK_CHI_HU) && (!room.LogicMgr.IsValidCard(OperateCard[0])")
 			return
 		}
 
@@ -235,6 +237,10 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 		switch OperateCode {
 		case WIK_GANG: //杠牌操作
 			cbGangKind := room.GetDataMgr().AnGang(u, OperateCode, OperateCard)
+			if cbGangKind == 0 {
+				return
+			}
+
 			//效验动作
 			bAroseAction := false
 			if cbGangKind == WIK_MING_GANG {

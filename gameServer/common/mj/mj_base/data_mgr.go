@@ -377,6 +377,7 @@ func (room *RoomData) CheckUserOperator(u *user.User, userCnt, OperateCode int, 
 	}
 
 	if cbTargetAction == WIK_NULL {
+		room.IsResponse = make([]bool, userCnt)
 		room.UserAction = make([]int, userCnt)
 		room.OperateCard = make([][]int, userCnt)
 		room.PerformAction = make([]int, userCnt)
@@ -2173,7 +2174,7 @@ func (room *RoomData) IsZiPaiGang(pAnalyseItem *TagAnalyseItem) (int, int, int) 
 	type1Cnt := 0
 	type2Cnt := 0
 	for k, v := range pAnalyseItem.WeaveKind {
-		if v == WIK_GANG && pAnalyseItem.Param[k] == WIK_MING_GANG {
+		if v == WIK_GANG && pAnalyseItem.Param[k] != WIK_AN_GANG {
 			cardColor := pAnalyseItem.CenterCard[k] >> 4
 			cardValue := pAnalyseItem.CenterCard[k] & MASK_VALUE
 			if cardColor == 3 {

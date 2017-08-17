@@ -1,8 +1,8 @@
 package pk_base
 
 import (
-	"time"
 	"strconv"
+	"time"
 
 	"mj/common/msg"
 	dbase "mj/gameServer/db/model/base"
@@ -54,7 +54,6 @@ type RoomData struct {
 	CellScore  int //底分
 	ScoreTimes int //倍数
 
-
 	PlayerCount    int //游戏人数，
 	MinPlayerCount int // 最少游戏人数
 	MaxPlayerCount int // 最大游戏人数
@@ -65,7 +64,7 @@ type RoomData struct {
 	EscapeUserScore []int64 //逃跑玩家分数
 	DynamicScore    int64   //总分
 
-	InitScoreMap map[int]int // 初始积分
+	InitScoreMap      map[int]int   // 初始积分
 	EachRoundScoreMap map[int][]int // 每局比分
 
 	CurrentPlayCount int
@@ -171,9 +170,8 @@ func (room *RoomData) InitRoomOne() {
 func (room *RoomData) ResetUserScore() {
 	room.EachRoundScoreMap = make(map[int][]int)
 	room.InitScoreMap = make(map[int]int)
-	log.Debug( "reset each round score:%v, init score:%v", room.EachRoundScoreMap, room.InitScoreMap)
+	log.Debug("reset each round score:%v, init score:%v", room.EachRoundScoreMap, room.InitScoreMap)
 }
-
 
 //续费后的处理
 func (room *RoomData) ResetGameAfterRenewal() {
