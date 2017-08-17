@@ -380,12 +380,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
 	//temp[5] = 2
-	////room.FlowerCnt[0] = 1 //花牌
+	////room.FlowerCnt[room.BankerUser] = 1 //花牌
 	//room.SendCardData = 0x06
-	//room.CardIndex[0] = temp
-	//GetCardWordArray(room.CardIndex[0])
-	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//room.CardIndex[room.BankerUser] = temp
+	//GetCardWordArray(room.CardIndex[room.BankerUser])
 	//for k := range room.RepertoryCard {
 	//	room.RepertoryCard[k] = 0x01
 	//}

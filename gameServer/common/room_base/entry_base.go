@@ -497,7 +497,7 @@ func (room *Entry_base) OnRoomTrustee() bool {
 	var AddPlayCount func()
 	AddPlayCount = func() {
 		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
-			room.TimerMgr.AddPlayCount()
+			room.TimerMgr.AddPlayCount()                  //TODO jianhui 这边加局数，玩家重新介入游戏，全部准备，并开始游戏，局数会出错
 			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 				RoomId: room.DataMgr.GetRoomId(),
 				OpName: "AddPlayCnt",
