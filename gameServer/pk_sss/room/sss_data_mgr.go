@@ -216,7 +216,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 		case CT_THIRTEEN: //一条龙
 			log.Debug("一条龙")
 			r.SpecialResults[i] = 52
-		case CT_THREE_STRAIGHTFLUSH: //三同花顺
+		case CT_THREE_STRAIGHT_FLUSH: //三同花顺
 			log.Debug("三同花顺")
 			r.SpecialResults[i] = 36
 		case CT_THREE_BOMB: //三分天下
@@ -231,7 +231,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			//有炸弹（四条）
 			ct1, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][1])
 			ct2, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][2])
-			if ct1 == CT_FIVE_FOUR_ONE || ct2 == CT_FIVE_FOUR_ONE {
+			if ct1 == CT_FOURSAME || ct2 == CT_FOURSAME {
 				r.SpecialResults[i] = 10
 			}
 		case CT_THREE_FLUSH: //三同花
@@ -261,10 +261,10 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("前敦散牌")
 				r.Results[i][0] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("前敦对子")
 				r.Results[i][0] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("前敦三条")
 				r.Results[i][0] = 3
 			}
@@ -278,28 +278,28 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("中墩散牌")
 				r.Results[i][1] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("中墩对子")
 				r.Results[i][1] = 1
-			case CT_FIVE_TWO_DOUBLE: //两对
+			case CT_TWOPAIR: //两对
 				log.Debug("中墩两对")
 				r.Results[i][1] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("中墩三条")
 				r.Results[i][1] = 3
-			case CT_FIVE_STRAIGHT: //顺子
+			case CT_STRAIGHT: //顺子
 				log.Debug("中墩顺子")
 				r.Results[i][1] = 1
-			case CT_FIVE_FLUSH: //同花
+			case CT_FLUSH: //同花
 				log.Debug("中墩同花")
 				r.Results[i][1] = 1
-			case CT_FIVE_THREE_DEOUBLE: //葫芦
+			case CT_GOURD: //葫芦
 				log.Debug("中墩葫芦")
 				r.Results[i][1] = 2
-			case CT_FIVE_FOUR_ONE: //铁支
+			case CT_FOURSAME: //铁支
 				log.Debug("中墩铁支")
 				r.Results[i][1] = 8
-			case CT_FIVE_STRAIGHT_FLUSH:
+			case CT_STRAIGHT_FLUSH:
 				log.Debug("中墩同花顺")
 				r.Results[i][1] = 10
 			case CT_FIVE_SAME:
@@ -317,28 +317,28 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("后墩散牌")
 				r.Results[i][2] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("后墩对子")
 				r.Results[i][2] = 1
-			case CT_FIVE_TWO_DOUBLE: //两对
+			case CT_TWOPAIR: //两对
 				log.Debug("后墩两对")
 				r.Results[i][2] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("后墩三条")
 				r.Results[i][2] = 3
-			case CT_FIVE_STRAIGHT: //顺子
+			case CT_STRAIGHT: //顺子
 				log.Debug("后墩顺子")
 				r.Results[i][1] = 1
-			case CT_FIVE_FLUSH: //同花
+			case CT_FLUSH: //同花
 				log.Debug("后墩同花")
 				r.Results[i][2] = 1
-			case CT_FIVE_THREE_DEOUBLE: //葫芦
+			case CT_GOURD: //葫芦
 				log.Debug("后墩葫芦")
 				r.Results[i][2] = 1
-			case CT_FIVE_FOUR_ONE: //铁支
+			case CT_FOURSAME: //铁支
 				log.Debug("后墩铁支")
 				r.Results[i][2] = 4
-			case CT_FIVE_STRAIGHT_FLUSH:
+			case CT_STRAIGHT_FLUSH:
 				log.Debug("后墩同花顺")
 				r.Results[i][2] = 5
 			case CT_FIVE_SAME:
