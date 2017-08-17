@@ -51,6 +51,8 @@ const (
 	ErrRoomFull             = 129 //房间已满
 	ErrRenewalFeesFaild     = 130 //续费失败
 	ErrRefuseLeave          = 131 //拒绝离开
+	ErrRoomIsPlaying        = 132 //游戏已经开始了
+	ErrRoomDissolution      = 133 //游戏已经解散
 )
 
 //红中麻将错误码
@@ -140,6 +142,7 @@ const (
 	RoomStatusReady    = 0
 	RoomStatusStarting = 1
 	RoomStatusEnd      = 2
+	RoomStatusClose    = 3
 )
 
 const (

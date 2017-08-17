@@ -2,6 +2,7 @@ package internal
 
 import (
 	"container/list"
+	. "mj/common/cost"
 	"mj/common/msg"
 	"mj/hallServer/base"
 	"mj/hallServer/game_list"
@@ -14,7 +15,7 @@ import (
 )
 
 const (
-	ResetMatchTime = 180
+	ResetMatchTime = 45
 )
 
 type MachPlayer struct {
@@ -49,7 +50,6 @@ func (m *MatchModule) OnDestroy() {
 func (m *MatchModule) GetRoomsByKind(kind int) []*msg.RoomInfo {
 	log.Debug("beginc GetRoomsByKind %d", kind)
 	rooms, err := game_list.ChanRPC.TimeOutCall1("GetMatchRoomsByKind", 5, kind)
-	log.Debug("end GetRoomsByKind %d， rooms:%v", kind, rooms)
 	if err != nil {
 		log.Debug("at GetRoomsByKind error:%s", err.Error())
 		return []*msg.RoomInfo{}
@@ -100,6 +100,10 @@ func (m *MatchModule) Match() {
 			}
 
 			if r.MachCnt >= r.MaxPlayerCnt {
+				continue
+			}
+
+			if r.Status != RoomStatusReady {
 				continue
 			}
 

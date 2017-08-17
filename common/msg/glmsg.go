@@ -17,9 +17,10 @@ type RoomInfo struct {
 	NodeID       int                    //在哪个节点上
 	CurCnt       int                    //当前人数
 	MaxPlayerCnt int                    //最多多人数
-	PayCnt       int                    //可玩局数
 	PayType      int                    //支付类型
 	CurPayCnt    int                    //已玩局数
+	PayCnt       int                    //可玩局数(续费后可能会变)
+	RoomPlayCnt  int                    //房间局数配置(房间创建后固定不变)
 	CreateTime   int64                  //创建时间
 	CreateUserId int64                  //房间房间的人
 	RoomName     string                 //房间名字

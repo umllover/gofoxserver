@@ -60,6 +60,12 @@ func SearchTable(args []interface{}) {
 			return
 		}
 
+		if roomInfo.Status != RoomStatusReady {
+			log.Debug("at SearchTable room is start , %v", recvMsg)
+			retcode = ErrRoomIsPlaying
+			return
+		}
+
 		cnt, err := IncRoomCnt(roomInfo.RoomID)
 		if err != nil {
 			log.Debug("Error === %s ", err.Error())

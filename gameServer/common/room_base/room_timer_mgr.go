@@ -11,14 +11,17 @@ import (
 	"github.com/lovelly/leaf/timer"
 )
 
-func NewRoomTimerMgr(payCnt int, temp *base.GameServiceOption, Skeleton *module.Skeleton) *RoomTimerMgr {
+func NewRoomTimerMgr(playCount int, temp *base.GameServiceOption, Skeleton *module.Skeleton) *RoomTimerMgr {
 	r := new(RoomTimerMgr)
 	r.CreateTime = time.Now().Unix()
-	if payCnt < temp.PlayTurnCount {
-		r.MaxPlayCnt = payCnt
+
+	//TODO 这里的playCount不能完全信赖客户端吧？
+	if playCount < temp.PlayTurnCount {
+		r.RoomPlayCnt = playCount
 	} else {
-		r.MaxPlayCnt = temp.PlayTurnCount
+		r.RoomPlayCnt = temp.PlayTurnCount
 	}
+	r.MaxPlayCnt = r.RoomPlayCnt
 
 	r.TimeLimit = temp.TimeAfterBeginTime
 	r.TimeOutCard = temp.OutCardTime
@@ -42,7 +45,8 @@ type RoomTimerMgr struct {
 	TimeOutCard       int                    //出牌时间
 	TimeOperateCard   int                    //操作时间
 	PlayCount         int                    //已玩局数
-	MaxPlayCnt        int                    //玩家主动设置的最大局数
+	MaxPlayCnt        int                    //最大可玩局数(续费后可能会变)
+	RoomPlayCnt       int                    //房间局数配置(房间创建后固定不变)
 	CreateTime        int64                  //创建时间
 	OfflineKickotTime int                    //离线超时时间
 }
@@ -61,6 +65,10 @@ func (room *RoomTimerMgr) GetTimeOutCard() int {
 
 func (room *RoomTimerMgr) GetMaxPlayCnt() int {
 	return room.MaxPlayCnt
+}
+
+func (room *RoomTimerMgr) GetRoomPlayCnt() int {
+	return room.RoomPlayCnt
 }
 
 func (room *RoomTimerMgr) GetCreatrTime() int64 {
@@ -85,13 +93,13 @@ func (room *RoomTimerMgr) GetTimeLimit() int {
 
 //创建房间多久没开始解散房间
 func (room *RoomTimerMgr) StartCreatorTimer(cb func()) {
-	log.Debug("StartCreatorTimer 111111111 %d", room.TimeLimitNotBegin)
+	log.Debug("StartCreatorTimer %d", room.TimeLimitNotBegin)
 	if room.EndTime != nil {
 		room.EndTime.Stop()
 	}
 
 	if room.TimeLimitNotBegin != 0 {
-		log.Debug("StartCreatorTimer %d", room.TimeLimitNotBegin)
+		log.Debug("StartCreatorTimer %d not begin limit", room.TimeLimitNotBegin)
 		room.EndTime = room.Skeleton.AfterFunc(time.Duration(room.TimeLimitNotBegin)*time.Second, cb)
 	}
 }

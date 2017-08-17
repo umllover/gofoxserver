@@ -2,10 +2,9 @@ package room
 
 import (
 	. "mj/common/cost"
-	"mj/gameServer/common/room_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db"
-	"mj/gameServer/db/model"
+	//"mj/gameServer/db/model"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"net"
@@ -13,13 +12,9 @@ import (
 
 	"sync"
 
-	"os"
-
-	"encoding/json"
-
-	"mj/gameServer/common/pk/pk_base"
-
 	"mj/common/msg/pk_sss_msg"
+
+	"mj/common/msg"
 
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -52,7 +47,7 @@ func TestShowCard(t *testing.T) {
 		Dragon:      false,
 	}
 	args := []interface{}{data, u2}
-	room.ShowSSsCard(args)
+	room.ShowSSSCard(args)
 	log.Debug("测试摊牌结束")
 }
 
@@ -67,7 +62,7 @@ func TestShowCard_1(t *testing.T) {
 		Dragon:      false,
 	}
 	args := []interface{}{data, u1}
-	room.ShowSSsCard(args)
+	room.ShowSSSCard(args)
 	log.Debug("测试摊牌结束")
 }
 
@@ -85,7 +80,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//一条龙
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x02, 0x03},
@@ -96,7 +91,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//十二皇族
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x0B, 0x0B, 0x0C},
@@ -107,7 +102,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//三同花顺
 	data = &pk_sss_msg.C2G_SSS_Open_Card{
 		FrontCard:   []int{0x01, 0x02, 0x03},
@@ -118,7 +113,7 @@ func TestShowCard_Special(t *testing.T) {
 		Dragon:      false,
 	}
 	args = []interface{}{data, u1}
-	room.ShowSSsCard(args)
+	room.ShowSSSCard(args)
 	//三分天下
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x11, 0x21},
@@ -129,7 +124,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//全大
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x09, 0x19, 0x29},
@@ -140,7 +135,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//全小
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x02, 0x12, 0x22},
@@ -151,7 +146,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//凑一色
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x22, 0x03},
@@ -162,7 +157,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//四套冲三
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x11, 0x21},
@@ -173,7 +168,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//五对冲三
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x11, 0x21},
@@ -184,7 +179,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//六对半
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x11, 0x02},
@@ -195,7 +190,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//三顺子
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x02, 0x13, 0x24},
@@ -206,7 +201,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 	//三同花
 	//data = &pk_sss_msg.C2G_SSS_Open_Card{
 	//	FrontCard:   []int{0x01, 0x02, 0x03},
@@ -217,7 +212,7 @@ func TestShowCard_Special(t *testing.T) {
 	//	Dragon:      false,
 	//}
 	//args = []interface{}{data, u1}
-	//room.ShowSSsCard(args)
+	//room.ShowSSSCard(args)
 
 	//log.Debug("测试摊牌_特殊牌结束")
 
@@ -253,13 +248,19 @@ func TestShowCard_Special(t *testing.T) {
 //}
 
 func setCard(dataMgr *sss_data_mgr, u *user.User, data *pk_sss_msg.C2G_SSS_Open_Card, isSpecial bool, isDragon bool) {
-	dataMgr.SpecialTypeTable[u] = isSpecial
-	dataMgr.Dragon[u] = isDragon
-	dataMgr.m_bSegmentCard[u] = append(dataMgr.m_bSegmentCard[u], data.FrontCard, data.MidCard, data.BackCard)
-	dataMgr.m_bUserCardData[u] = make([]int, 0, 13)
-	dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.FrontCard...)
-	dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.MidCard...)
-	dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.BackCard...)
+	//dataMgr.SpecialTypeTable[u] = isSpecial
+	//dataMgr.Dragon[u] = isDragon
+	// dataMgr.m_bSegmentCard[u] = append(dataMgr.m_bSegmentCard[u], data.FrontCard, data.MidCard, data.BackCard)
+	// dataMgr.m_bUserCardData[u] = make([]int, 0, 13)
+	// dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.FrontCard...)
+	// dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.MidCard...)
+	// dataMgr.m_bUserCardData[u] = append(dataMgr.m_bUserCardData[u], data.BackCard...)
+
+	dataMgr.PlayerSegmentCards[u.ChairId] = append(dataMgr.PlayerSegmentCards[u.ChairId], data.FrontCard, data.MidCard, data.BackCard)
+	dataMgr.PlayerCards[u.ChairId] = make([]int, 0, 13)
+	dataMgr.PlayerCards[u.ChairId] = append(dataMgr.PlayerCards[u.ChairId], data.FrontCard...)
+	dataMgr.PlayerCards[u.ChairId] = append(dataMgr.PlayerCards[u.ChairId], data.MidCard...)
+	dataMgr.PlayerCards[u.ChairId] = append(dataMgr.PlayerCards[u.ChairId], data.BackCard...)
 }
 
 func TestGameConclude(t *testing.T) {
@@ -287,7 +288,7 @@ func init() {
 	lconf.ListenAddr = conf.Server.ListenAddr
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
+	//lconf.HeartBeatInterval = conf.HeartBeatInterval
 	InitLog()
 
 	db.InitDB(&conf.DBConfig{})
@@ -300,52 +301,68 @@ func init() {
 
 	//log.Debug("tmp=%v", temp)
 
-	info := &model.CreateRoomInfo{
-		RoomId:       777777,
+	info := &msg.L2G_CreatorRoom{
+		RoomID:       777777,
 		MaxPlayerCnt: 2,
 		KindId:       30,
 		ServiceId:    1,
-		Num:          1,
+		PayType:      1,
+		//Num:          1,
 	}
 
-	setCfg := map[string]interface{}{
-		"YanSe": 0,
-	}
-	myCfg, cfgOk := json.Marshal(setCfg)
-	if cfgOk != nil {
-		log.Error("测试错误，退出程序")
-		os.Exit(0)
-	}
-	info.OtherInfo = string(myCfg)
-
-	_roombase := room_base.NewRoomBase()
-
-	//	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
-	userg := room_base.NewRoomUserMgr(info, temp)
-
-	u1 = newTestUser(1)
-	u1.ChairId = 0
-	userg.Users[0] = u1
-	r := NewSSSEntry(info)
-	datag := NewDataMgr(info, u1.Id, pk_base.IDX_SSS, "", temp, r)
-	if datag == nil {
-		log.Error("测试错误，退出程序")
-		os.Exit(0)
-	}
-	dataMgr = datag
-	cfg := &pk_base.NewPKCtlConfig{
-		BaseMgr:  _roombase,
-		DataMgr:  datag,
-		UserMgr:  userg,
-		LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp),
-	}
-	r.Init(cfg)
-	room = r
-
+	CreaterRoom([]interface {
+	}{info})
+	//// type L2G_CreatorRoom struct {
+	//// 	CreatorUid    int64                  //创建房间的玩家id
+	//// 	CreatorNodeId int                    //创建房间者的NodeId
+	//// 	RoomID        int                    //房间id
+	//// 	KindId        int                    //游戏类型
+	//// 	ServiceId     int                    //游戏第二类型
+	//// 	PlayCnt       int                    //局数
+	//// 	MaxPlayerCnt  int                    //最大玩家数目
+	//// 	PayType       int                    //支付类型
+	//// 	Public        int                    //是否公开
+	//// 	OtherInfo     map[string]interface{} //其他配置
+	//// }
+	//
+	//setCfg := map[string]interface{}{
+	//	"YanSe": 0,
+	//}
+	////myCfg, cfgOk := json.Marshal(setCfg)
+	////if cfgOk != nil {
+	////	log.Error("测试错误，退出程序")
+	////	os.Exit(0)
+	////}
+	//info.OtherInfo = setCfg
+	//
+	//_roombase := room_base.NewRoomBase()
+	//
+	////	userg := room_base.NewRoomUserMgr(info.RoomId, info.MaxPlayerCnt, temp)
+	//userg := room_base.NewRoomUserMgr(info, temp)
+	//
+	//u1 = newTestUser(1)
+	//u1.ChairId = 0
+	//userg.Users[0] = u1
+	//r := NewSSSEntry(info)
+	//datag := NewDataMgr(info, u1.Id, pk_base.IDX_SSS, "", temp, r)
+	//if datag == nil {
+	//	log.Error("测试错误，退出程序")
+	//	os.Exit(0)
+	//}
+	//dataMgr = datag
+	//cfg := &pk_base.NewPKCtlConfig{
+	//	BaseMgr:  _roombase,
+	//	DataMgr:  datag,
+	//	UserMgr:  userg,
+	//	LogicMgr: NewSssZLogic(pk_base.IDX_SSS),
+	//	TimerMgr: room_base.NewRoomTimerMgr(info.PayType, temp, _roombase.GetSkeleton()),
+	//}
+	//r.Init(cfg)
+	//room = r
+	//
 	var userCnt = 2
-
-	room.DataMgr.InitRoom(userCnt)
+	//
+	//room.DataMgr.(sss_data_mgr).InitRoom(60)
 
 	for i := 1; i < userCnt; i++ {
 		u := newTestUser(int64(i) + 1)
