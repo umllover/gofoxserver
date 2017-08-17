@@ -502,6 +502,11 @@ func (room *RoomData) RemoveCardByOP(wTargetUser, ChoOp int) bool {
 	return true
 }
 
+func (room *RoomData) RemoveDiscardInfo() {
+	//吃碰杠胡后移除供牌用户的最后一个丢牌记录
+	room.DiscardCard[room.ProvideUser] = utils.IntSliceDelete(room.DiscardCard[room.ProvideUser], len(room.DiscardCard[room.ProvideUser])-1)
+}
+
 func (room *RoomData) AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int {
 	room.SendStatus = Gang_Send
 	//变量定义
