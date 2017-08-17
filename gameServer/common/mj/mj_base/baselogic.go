@@ -377,7 +377,6 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 	cbOutCount := 0
 	cbCardIndexTemp := util.CopySlicInt(cbCardIndex)
 	cbCardCount := lg.GetCardCount(cbCardIndexTemp)
-
 	if (cbCardCount-2)%3 == 0 {
 		for i := 0; i < lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex; i++ {
 			if cbCardIndexTemp[i] == 0 {
@@ -396,10 +395,7 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 						cbOutCardData[cbOutCount] = lg.SwitchToCard(i)
 						cbOutCount++
 					}
-					if len(cbHuCardData[cbOutCount-1]) < 1 {
-						cbHuCardData[cbOutCount-1] = make([]int, lg.GetCfg().MaxIdx-lg.GetCfg().HuaIndex)
-					}
-					cbHuCardData[cbOutCount-1][nCount] = lg.SwitchToCard(j)
+					cbHuCardData[cbOutCount-1] = append(cbHuCardData[cbOutCount-1], lg.SwitchToCard(j))
 					nCount++
 				}
 			}
@@ -419,8 +415,7 @@ func (lg *BaseLogic) AnalyseTingCard(cbCardIndex []int, WeaveItem []*msg.WeaveIt
 				if len(cbHuCardData[0]) < 1 {
 					cbHuCardData[0] = make([]int, lg.GetCfg().MaxIdx)
 				}
-
-				cbHuCardData[0][cbCount] = cbCurrentCard
+				cbHuCardData[0] = append(cbHuCardData[0], lg.SwitchToCard(j))
 				cbCount++
 			}
 		}

@@ -149,7 +149,7 @@ func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
 
 func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
-	if room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
+	if room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
 		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
 
 		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
@@ -196,6 +196,7 @@ func (room *ZP_RoomData) AfterStartGame() {
 
 func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
+	room.ChaHuaMap = make(map[int]int)
 	room.ResetUserScore() //重置用户所有积分
 }
 
@@ -214,7 +215,7 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 	sendData.Chair = u.ChairId
 	room.MjBase.UserMgr.SendMsgAll(sendData)
 	userCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
-	if len(room.ChaHuaMap) == userCnt && room.MjBase.TimerMgr.GetPlayCount() == 0 && room.WithChaHua == true {
+	if len(room.ChaHuaMap) == userCnt && room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
@@ -384,9 +385,9 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[0] = 3 //三张一同
 	//temp[1] = 3 //三张二同
 	//temp[2] = 3 //三张三同
-	//temp[3] = 4 //三张四同
+	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
-	//temp[5] = 1
+	//temp[5] = 2
 	////room.FlowerCnt[0] = 1 //花牌
 	//room.SendCardData = 0x06
 	//room.CardIndex[0] = temp
@@ -2134,7 +2135,6 @@ func (room *ZP_RoomData) OperateCardTimer(u *user.User) {
 		} else {
 			room.OnUserListenCard(u, false)
 		}
-		//room.OnUserTrustee(chairID, true)
 	})
 	room.OperateTime[chairID] = operateTimer
 }

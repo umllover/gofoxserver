@@ -237,6 +237,12 @@ func (room *Entry_base) UserReady(args []interface{}) {
 				"Cnt":    1,
 			},
 		})
+		//房间托管
+		if room.RoomTrusteeTimer != nil {
+			room.RoomTrusteeTimer.Stop()
+			log.Debug("@@@@@@@@@@@@@@@@取消房间托管 游戏局数:%d", room.TimerMgr.GetPlayCount())
+		}
+
 		room.TimerMgr.AddPlayCount()
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
@@ -424,6 +430,7 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 	case GER_NORMAL: //常规结束
 		room.DataMgr.NormalEnd(cbReason)
 		room.AfterEnd(false, cbReason)
+		room.OnRoomTrustee()
 	case GER_DISMISS: //游戏解散
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
@@ -442,7 +449,6 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 	roomStatus := room.Status
 	room.Status = RoomStatusEnd //一局结束状态
-	//room.OnRoomTrustee()
 	if Forced || room.TimerMgr.GetPlayCount() >= room.TimerMgr.GetMaxPlayCnt() {
 		if room.DelayCloseTimer != nil {
 			room.DelayCloseTimer.Stop()
@@ -477,32 +483,38 @@ func (room *Entry_base) AfterEnd(Forced bool, cbReason int) {
 	})
 }
 
-//// //托管 // todo 重构托管 todo,房间托管
-//func (room *Entry_base) OnRoomTrustee() {
-//	TrusteeCnt := 0
-//	room.UserMgr.ForEachUser(func(u *user.User) {
-//		if room.UserMgr.IsTrustee(u.ChairId) {
-//			TrusteeCnt++
-//		}
-//	})
-//
-//	var AddPlayCount func()
-//	AddPlayCount = func() {
-//		if room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
-//			room.TimerMgr.AddPlayCount()
-//			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
-//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
-//		} else {
-//			room.OnEventGameConclude(0, nil, GER_NORMAL)
-//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
-//		}
-//	}
-//
-//	if TrusteeCnt == room.UserMgr.GetMaxPlayerCnt() && room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
-//		log.Debug("进入房间托管")
-//		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
-//	}
-//}
+//房间托管
+func (room *Entry_base) OnRoomTrustee() bool {
+	if room.Status == RoomStatusStarting {
+		return false
+	}
+
+	var AddPlayCount func()
+	AddPlayCount = func() {
+		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
+			room.TimerMgr.AddPlayCount()
+			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
+				RoomId: room.DataMgr.GetRoomId(),
+				OpName: "AddPlayCnt",
+				Data: map[string]interface{}{
+					"Status": RoomStatusStarting,
+					"Cnt":    1,
+				},
+			})
+			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
+		} else { //最后一局
+			room.AfterEnd(false, GER_NORMAL)
+			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
+		}
+	}
+
+	if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
+		log.Debug("进入房间托管")
+		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
+	}
+	return true
+}
 
 func (room *Entry_base) getRoomUser(uid int64) *user.User {
 	u, _ := room.UserMgr.GetUserByUid(uid)
