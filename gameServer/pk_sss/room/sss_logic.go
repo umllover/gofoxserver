@@ -10,43 +10,34 @@ import (
 
 // 十三水逻辑
 const (
-	CT_INVALID             = iota //错误类型
-	CT_SINGLE                     //散牌
-	CT_ONE_DOUBLE                 //对子
-	CT_FIVE_TWO_DOUBLE            //两对
-	CT_THREE                      //三条
-	CT_FIVE_STRAIGHT              //顺子
-	CT_FIVE_FLUSH                 //同花
-	CT_FIVE_THREE_DEOUBLE         //葫芦
-	CT_FIVE_FOUR_ONE              //铁支
-	CT_FIVE_STRAIGHT_FLUSH        //同花顺
-	CT_FIVE_SAME                  //五同
+	CT_INVALID        = iota //错误类型
+	CT_SINGLE                //散牌
+	CT_ONEPAIR               //对子
+	CT_TWOPAIR               //两对
+	CT_THREESAME             //三条
+	CT_STRAIGHT              //顺子
+	CT_FLUSH                 //同花
+	CT_GOURD                 //葫芦
+	CT_FOURSAME              //铁支
+	CT_STRAIGHT_FLUSH        //同花顺
+	CT_FIVE_SAME             //五同
 )
 
 //特殊牌型
 const (
-	CT_THIRTEEN_FLUSH      = 26 //至尊清龙
-	CT_THIRTEEN            = 25 //一条龙
-	CT_TWELVE_KING         = 24 //十二皇族
-	CT_THREE_STRAIGHTFLUSH = 23 //三同花顺
-	CT_THREE_BOMB          = 22 //三分天下
-	CT_ALL_BIG             = 21 //全大
-	CT_ALL_SMALL           = 20 //全小
-	CT_SAME_COLOR          = 19 //凑一色
-	CT_FOUR_THREESAME      = 18 //四套三条
-	CT_FIVEPAIR_THREE      = 17 //五对冲三
-	CT_SIXPAIR             = 16 //六对半
-	CT_THREE_FLUSH         = 15 //三同花
-	CT_THREE_STRAIGHT      = 14 //三顺子
-
-	// LX_ONEPARE       = 13 //一对
-	// LX_TWOPARE       = 14 //两对
-	// LX_THREESAME     = 15 //三条
-	// LX_STRAIGHT      = 16 //顺子
-	// LX_FLUSH         = 17 //同花
-	// LX_GOURD         = 18 //葫芦
-	// LX_FOURSAME      = 19 //铁支
-	// LX_STRAIGHTFLUSH = 20 //同花顺
+	CT_THIRTEEN_FLUSH       = 26 //至尊清龙
+	CT_THIRTEEN             = 25 //一条龙
+	CT_TWELVE_KING          = 24 //十二皇族
+	CT_THREE_STRAIGHT_FLUSH = 23 //三同花顺
+	CT_THREE_BOMB           = 22 //三分天下
+	CT_ALL_BIG              = 21 //全大
+	CT_ALL_SMALL            = 20 //全小
+	CT_SAME_COLOR           = 19 //凑一色
+	CT_FOUR_THREESAME       = 18 //四套三条
+	CT_FIVEPAIR_THREE       = 17 //五对冲三
+	CT_SIXPAIR              = 16 //六对半
+	CT_THREE_FLUSH          = 15 //三同花
+	CT_THREE_STRAIGHT       = 14 //三顺子
 )
 
 //数值掩码
@@ -72,40 +63,19 @@ type TagAnalyseItem struct {
 	bflush      bool  //是否同花
 }
 
-// type tagAnalyseType struct {
-// }
-
-// //分析结构
-// type tagAnalyseData struct {
-// 	bOneCount   int   //单张数目
-// 	bTwoCount   int   //两张数目
-// 	bThreeCount int   //三张数目
-// 	bFourCount  int   //四张数目
-// 	bFiveCount  int   //五张数目
-// 	bOneFirst   []int //单牌位置
-// 	bTwoFirst   []int //对牌位置
-// 	bThreeFirst []int //三条位置
-// 	bFourFirst  []int //四张位置
-// 	bflush   bool  //是否顺子
-// }
+type sss_logic struct {
+	*pk_base.BaseLogic
+	LaiZhiSubstitute int
+}
 
 func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l := new(sss_logic)
-	//l.BtCardSpecialData = make([]int, 13)
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	l.LaiZhiSubstitute = -1
 	return l
 }
 
-type sss_logic struct {
-	*pk_base.BaseLogic
-	//BtCardSpecialData []int
-	//UniversalCards []int //万能牌
-	LaiZhiSubstitute int
-}
-
 func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
-
 	//混乱准备
 	cbBufferCount := len(cbCardBuffer)
 	cbCardDataTemp := make([]int, cbBufferCount)
@@ -133,7 +103,6 @@ func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData [
 	if bCardCount > len(bTempCardData) {
 		return false
 	}
-	//util.DeepCopy(&bTempCardData, &bCardData)
 	copy(bTempCardData, bCardData)
 	//置零扑克
 	for i := 0; i < bRemoveCount; i++ {
@@ -148,7 +117,6 @@ func (lg *sss_logic) RemoveCard(bRemoveCard []int, bRemoveCount int, bCardData [
 	if bDeleteCount != bRemoveCount {
 		return false
 	}
-
 	//清理扑克
 	bCardPos := 0
 	for i := 0; i < bCardCount; i++ {
@@ -303,10 +271,6 @@ func (lg *sss_logic) AnalyseCard(metaCardData []int) *TagAnalyseItem {
 
 }
 
-func (lg *sss_logic) GetCardType(metaCardData []int) int {
-	return 0
-}
-
 func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 	metaCount := len(metaCardData)
 	if metaCount != 3 && metaCount != 5 && metaCount != 13 {
@@ -325,9 +289,6 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 	switch metaCount {
 	case 3: //三条类型
 		switch len(TagAnalyseItemArray.laiZi) {
-		// case 3:
-		// 	cardData = []int{0x31, 0x31, 0x31}
-		// 	return lg.SSSGetCardType(cardData)
 		case 2:
 			cardData = []int{cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
@@ -348,19 +309,16 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		}
 		//对子
 		if TagAnalyseItemArray.bTwoCount == 1 && TagAnalyseItemArray.bOneCount == 1 {
-			return CT_ONE_DOUBLE, TagAnalyseItemArray
+			return CT_ONEPAIR, TagAnalyseItemArray
 		}
 		//三条
 		if TagAnalyseItemArray.bThreeCount == 1 {
-			return CT_THREE, TagAnalyseItemArray
+			return CT_THREESAME, TagAnalyseItemArray
 		}
 		//错误类型
 		return CT_INVALID, TagAnalyseItemArray
 	case 5: //五张牌型
 		switch len(TagAnalyseItemArray.laiZi) {
-		// case 5: //最大五同
-		// 	cardData = []int{0x31, 0x31, 0x31, 0x31, 0x31}
-		// 	return lg.SSSGetCardType(cardData)
 		case 4: //五同
 			cardData = []int{cardData[0], cardData[0], cardData[0], cardData[0], cardData[0]}
 			return lg.SSSGetCardType(cardData)
@@ -535,37 +493,37 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		tempCardData := make([]int, metaCount)
 		copy(tempCardData, cardData)
 		if lg.IsLine(tempCardData, metaCount, true) {
-			return CT_FIVE_STRAIGHT_FLUSH, TagAnalyseItemArray
+			return CT_STRAIGHT_FLUSH, TagAnalyseItemArray
 		}
 		//铁支
 		if 1 == TagAnalyseItemArray.bFourCount && 1 == TagAnalyseItemArray.bOneCount {
-			return CT_FIVE_FOUR_ONE, TagAnalyseItemArray
+			return CT_FOURSAME, TagAnalyseItemArray
 		}
 		//葫芦
 		if 1 == TagAnalyseItemArray.bThreeCount && 1 == TagAnalyseItemArray.bTwoCount {
-			return CT_FIVE_THREE_DEOUBLE, TagAnalyseItemArray
+			return CT_GOURD, TagAnalyseItemArray
 		}
 		//同花
 		if TagAnalyseItemArray.bflush {
-			return CT_FIVE_FLUSH, TagAnalyseItemArray
+			return CT_FLUSH, TagAnalyseItemArray
 		}
 		//顺子
 		tempCardData = make([]int, metaCount)
 		copy(tempCardData, cardData)
 		if lg.IsLine(tempCardData, metaCount, false) {
-			return CT_FIVE_STRAIGHT, TagAnalyseItemArray
+			return CT_STRAIGHT, TagAnalyseItemArray
 		}
 		//三条
 		if 1 == TagAnalyseItemArray.bThreeCount && 2 == TagAnalyseItemArray.bOneCount {
-			return CT_THREE, TagAnalyseItemArray
+			return CT_THREESAME, TagAnalyseItemArray
 		}
 		//两对
 		if 2 == TagAnalyseItemArray.bTwoCount && 1 == TagAnalyseItemArray.bOneCount {
-			return CT_FIVE_TWO_DOUBLE, TagAnalyseItemArray
+			return CT_TWOPAIR, TagAnalyseItemArray
 		}
 		//对子
 		if 1 == TagAnalyseItemArray.bTwoCount && 3 == TagAnalyseItemArray.bOneCount {
-			return CT_ONE_DOUBLE, TagAnalyseItemArray
+			return CT_ONEPAIR, TagAnalyseItemArray
 		}
 		//散牌
 		if 5 == TagAnalyseItemArray.bOneCount && false == TagAnalyseItemArray.bflush {
@@ -588,7 +546,7 @@ func (lg *sss_logic) SSSGetCardType(metaCardData []int) (int, *TagAnalyseItem) {
 		btCardData := make([]int, metaCount)
 		copy(btCardData, cardData)
 		if lg.IsAllLine(btCardData, len(btCardData), true) {
-			return CT_THREE_STRAIGHTFLUSH, TagAnalyseItemArray
+			return CT_THREE_STRAIGHT_FLUSH, TagAnalyseItemArray
 		}
 
 		//三分天下
@@ -656,17 +614,8 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 	copy(bFirstList, bInFirstList.Item.cardData)
 	copy(bNextList, bInNextList.Item.cardData)
 
-	// lg.SSSSortCardList(bFirstList)
-	// lg.SSSSortCardList(bNextList)
-
-	// FirstAnalyseData = lg.AnalyseCard(bFirstList)
-	// NextAnalyseData = lg.AnalyseCard(bNextList)
-
 	FirstAnalyseData = bInFirstList.Item
 	NextAnalyseData = bInNextList.Item
-
-	// bNextType := lg.GetCardType(bNextList)
-	// bFirstType := lg.GetCardType(bFirstList)
 
 	bNextType := bInNextList.CT
 	bFirstType := bInFirstList.CT
@@ -698,7 +647,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_ONE_DOUBLE: //对带一张
+			case CT_ONEPAIR: //对带一张
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
 					return 1
 				}
@@ -718,7 +667,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_THREE: //三张牌型
+			case CT_THREESAME: //三张牌型
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
 					return 1
 				}
@@ -762,7 +711,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_ONE_DOUBLE: //对带三张
+			case CT_ONEPAIR: //对带三张
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
 					return 1
 				}
@@ -785,7 +734,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_TWO_DOUBLE: //两对牌型
+			case CT_TWOPAIR: //两对牌型
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bTwoFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bTwoFirst[0]]) {
 					return 1
 				}
@@ -811,7 +760,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_THREE: //三张牌型
+			case CT_THREESAME: //三张牌型
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
 					return 1
 				}
@@ -837,7 +786,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_STRAIGHT: //顺子
+			case CT_STRAIGHT: //顺子
 				if lg.GetCardLogicValue(bNextList[0]) > lg.GetCardLogicValue(bFirstList[0]) {
 					return 1
 				}
@@ -851,7 +800,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_FLUSH: //同花五牌
+			case CT_FLUSH: //同花五牌
 				for i := 0; i < 5; i++ {
 					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
 						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
@@ -874,7 +823,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_THREE_DEOUBLE: //三条一对
+			case CT_GOURD: //三条一对
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bThreeFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bThreeFirst[0]]) {
 					return 1
 				}
@@ -894,7 +843,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_FOUR_ONE: //四带一张
+			case CT_FOURSAME: //四带一张
 
 				if lg.GetCardLogicValue(bNextList[NextAnalyseData.bFourFirst[0]]) > lg.GetCardLogicValue(bFirstList[FirstAnalyseData.bFourFirst[0]]) {
 					return 1
@@ -915,7 +864,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 					return -1
 				}
 				return 0
-			case CT_FIVE_STRAIGHT_FLUSH: //同花顺
+			case CT_STRAIGHT_FLUSH: //同花顺
 				for i := 0; i < 5; i++ {
 					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
 						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
@@ -986,7 +935,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 			// 		}
 			// 	}
 			// 	return 0
-			case CT_THREE_STRAIGHTFLUSH:
+			case CT_THREE_STRAIGHT_FLUSH:
 				for i := 0; i < 13; i++ {
 					if lg.GetCardLogicValue(bNextList[i]) != lg.GetCardLogicValue(bFirstList[i]) {
 						if lg.GetCardLogicValue(bNextList[i]) > lg.GetCardLogicValue(bFirstList[i]) {
@@ -1189,8 +1138,6 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 
 	return 0
 }
-
-func (*sss_logic) SortCardList(cardData []int, cardCount int) {}
 
 func (lg *sss_logic) IsAllLine(cbCard []int, cbCount int, bSameColor bool) bool {
 	if cbCount == 0 {
@@ -1425,3 +1372,9 @@ func (lg *sss_logic) getUnUsedCard(cardData []int, usedCard []int) []int {
 
 	return tempCardData
 }
+
+// 未实现父类函数
+func (lg *sss_logic) GetCardType(metaCardData []int) int {
+	return 0
+}
+func (*sss_logic) SortCardList(cardData []int, cardCount int) {}

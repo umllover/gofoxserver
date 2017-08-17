@@ -51,6 +51,7 @@ func createRoom(args []interface{}) (interface{}, error) {
 
 //增加聊天房间成员
 func addRoomMember(args []interface{}) {
+	log.Debug("at addRoomMember .............. ")
 	roomID := args[0].(int)
 	ag := args[1].(gate.Agent)
 	room, ok := roomList[roomID]

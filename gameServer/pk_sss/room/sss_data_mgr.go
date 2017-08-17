@@ -1,52 +1,32 @@
 package room
 
+//dbg "github.com/funny/debug"
 import (
+	"encoding/json"
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/util"
+	"math/rand"
+	. "mj/common/cost"
+	"mj/common/msg"
+	"mj/common/msg/pk_sss_msg"
 	"mj/gameServer/common/pk/pk_base"
 	"mj/gameServer/conf"
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
-
-	. "mj/common/cost"
-	"mj/common/msg"
-	"mj/common/msg/pk_sss_msg"
-
-	"math/rand"
-
-	"encoding/json"
 	"time"
-
-	//dbg "github.com/funny/debug"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/util"
 )
 
-//dbg "github.com/funny/debug"
 // 游戏状态
 const (
-	GAME_FREE       = 100 // 空闲
-	GAME_SEND_CARD  = 101 // 发牌
+	GAME_FREE       = 100 //空闲
+	GAME_SEND_CARD  = 101 //发牌
 	GAME_SETSEGMENT = 102 //组牌
 	GAME_COMPARE    = 103 //比牌
 	GAME_END        = 104 //结束
-
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-}
-
-func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
-	d := new(sss_data_mgr)
-	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
-
-	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
-	d.jiaYiSe = info.OtherInfo["jiaYiSe"].(bool)
-	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
-	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
-
-	d.InitRoom(temp.PlayTurnCount)
-
-	return d
 }
 
 type sssCardType struct {
@@ -63,10 +43,9 @@ type sssReplaceCard struct {
 
 type sss_data_mgr struct {
 	*pk_base.RoomData
-	// 定时器
+
 	ShowCardTimer *time.Timer
 
-	//游戏变量
 	wanFa        int
 	jiaYiSe      bool
 	jiaGongGong  bool
@@ -76,8 +55,6 @@ type sss_data_mgr struct {
 
 	LeftCardCount int                 //剩下拍的数量
 	OpenCardMap   map[*user.User]bool //摊牌数据
-
-	// 游戏状态
 
 	GameStatus int
 
@@ -105,27 +82,28 @@ type sss_data_mgr struct {
 
 }
 
-func (room *sss_data_mgr) InitRoomOne() {
+func NewDataMgr(info *msg.L2G_CreatorRoom, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *SSS_Entry) *sss_data_mgr {
+	d := new(sss_data_mgr)
+	d.RoomData = pk_base.NewDataMgr(info.RoomID, uid, ConfigIdx, name, temp, base.Entry_base, info)
 
+	d.wanFa = int(info.OtherInfo["wanFa"].(float64))
+	d.jiaYiSe = info.OtherInfo["jiaYiSe"].(bool)
+	d.jiaGongGong = info.OtherInfo["jiaGongGong"].(bool)
+	d.jiaDaXiaoWan = info.OtherInfo["jiaDaXiaoWan"].(bool)
+
+	d.InitRoom(temp.PlayTurnCount)
+
+	return d
 }
 
 func (room *sss_data_mgr) InitRoom(maxPlayCount int) {
-	//初始化
 	log.Debug("初始化房间")
 	room.AllResult = make([][]int, 0, maxPlayCount)
 	room.gameRecord = &pk_sss_msg.G2C_SSS_Record{}
-	//room.reSetRoom(UserCnt)
 }
 
 func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 	log.Debug("清理房间")
-
-	room.GameStatus = 0
-
-	// room.wanFa = 0
-	// room.jiaYiSe = false
-	// room.jiaGongGong = false
-	// room.jiaDaXiaoWan = false
 
 	room.PlayerCount = UserCnt
 	room.Players = make([]int, UserCnt)
@@ -162,40 +140,8 @@ func (room *sss_data_mgr) reSetRoom(UserCnt int) {
 
 }
 
-func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
-	laiZiCount := 0
-	tempData := make([]int, len(carData))
-	copy(tempData, carData)
-	if len(r.UniversalCards) > 0 {
-		for i := range carData {
-			for j := range r.UniversalCards {
-				if carData[i] == r.UniversalCards[j] {
-					tempData[i] = -1
-					laiZiCount++
-				}
-			}
-		}
-	}
-
-	if laiZiCount == len(carData) {
-		bossCount := 0
-		for i := range carData {
-			if carData[i] == 0x4E || carData[i] == 0x4F {
-				tempData[i] = -1
-				bossCount++
-			} else {
-				tempData[i] = carData[i]
-			}
-		}
-		return bossCount != 0, tempData
-	}
-
-	return laiZiCount > 0, tempData
-}
-
 func (r *sss_data_mgr) ComputeChOut() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
-	//lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	userMgr.ForEachUser(func(u *user.User) {
 		i := u.ChairId
@@ -204,11 +150,9 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		//isLaiZi, tempData := r.checkLaiZi(r.PlayerCards[i])
 		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
 		r.PlayerSpecialCardType[i].CT = ct
 		r.PlayerSpecialCardType[i].Item = item
-		//r.PlayerSpecialCardType[i].isLaiZi = isLaiZi
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
@@ -216,7 +160,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 		case CT_THIRTEEN: //一条龙
 			log.Debug("一条龙")
 			r.SpecialResults[i] = 52
-		case CT_THREE_STRAIGHTFLUSH: //三同花顺
+		case CT_THREE_STRAIGHT_FLUSH: //三同花顺
 			log.Debug("三同花顺")
 			r.SpecialResults[i] = 36
 		case CT_THREE_BOMB: //三分天下
@@ -231,7 +175,7 @@ func (r *sss_data_mgr) ComputeChOut() {
 			//有炸弹（四条）
 			ct1, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][1])
 			ct2, _ := lg.SSSGetCardType(r.PlayerSegmentCards[i][2])
-			if ct1 == CT_FIVE_FOUR_ONE || ct2 == CT_FIVE_FOUR_ONE {
+			if ct1 == CT_FOURSAME || ct2 == CT_FOURSAME {
 				r.SpecialResults[i] = 10
 			}
 		case CT_THREE_FLUSH: //三同花
@@ -261,12 +205,14 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("前敦散牌")
 				r.Results[i][0] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("前敦对子")
 				r.Results[i][0] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("前敦三条")
 				r.Results[i][0] = 3
+			default:
+				log.Debug("前敦未知牌型")
 			}
 			//中墩
 			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][1])
@@ -278,35 +224,36 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("中墩散牌")
 				r.Results[i][1] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("中墩对子")
 				r.Results[i][1] = 1
-			case CT_FIVE_TWO_DOUBLE: //两对
+			case CT_TWOPAIR: //两对
 				log.Debug("中墩两对")
 				r.Results[i][1] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("中墩三条")
 				r.Results[i][1] = 3
-			case CT_FIVE_STRAIGHT: //顺子
+			case CT_STRAIGHT: //顺子
 				log.Debug("中墩顺子")
 				r.Results[i][1] = 1
-			case CT_FIVE_FLUSH: //同花
+			case CT_FLUSH: //同花
 				log.Debug("中墩同花")
 				r.Results[i][1] = 1
-			case CT_FIVE_THREE_DEOUBLE: //葫芦
+			case CT_GOURD: //葫芦
 				log.Debug("中墩葫芦")
 				r.Results[i][1] = 2
-			case CT_FIVE_FOUR_ONE: //铁支
+			case CT_FOURSAME: //铁支
 				log.Debug("中墩铁支")
 				r.Results[i][1] = 8
-			case CT_FIVE_STRAIGHT_FLUSH:
+			case CT_STRAIGHT_FLUSH:
 				log.Debug("中墩同花顺")
 				r.Results[i][1] = 10
 			case CT_FIVE_SAME:
 				log.Debug("中墩五同")
 				r.Results[i][1] = 14
+			default:
+				log.Debug("中墩未知牌型")
 			}
-
 			//尾墩
 			isLaiZi, tempData = r.checkLaiZi(r.PlayerSegmentCards[i][2])
 			ct, item = lg.SSSGetCardType(tempData)
@@ -317,33 +264,35 @@ func (r *sss_data_mgr) ComputeChOut() {
 			case CT_SINGLE: //散牌
 				log.Debug("后墩散牌")
 				r.Results[i][2] = 1
-			case CT_ONE_DOUBLE: //对子
+			case CT_ONEPAIR: //对子
 				log.Debug("后墩对子")
 				r.Results[i][2] = 1
-			case CT_FIVE_TWO_DOUBLE: //两对
+			case CT_TWOPAIR: //两对
 				log.Debug("后墩两对")
 				r.Results[i][2] = 1
-			case CT_THREE: //三条
+			case CT_THREESAME: //三条
 				log.Debug("后墩三条")
 				r.Results[i][2] = 3
-			case CT_FIVE_STRAIGHT: //顺子
+			case CT_STRAIGHT: //顺子
 				log.Debug("后墩顺子")
-				r.Results[i][1] = 1
-			case CT_FIVE_FLUSH: //同花
+				r.Results[i][2] = 1
+			case CT_FLUSH: //同花
 				log.Debug("后墩同花")
 				r.Results[i][2] = 1
-			case CT_FIVE_THREE_DEOUBLE: //葫芦
+			case CT_GOURD: //葫芦
 				log.Debug("后墩葫芦")
 				r.Results[i][2] = 1
-			case CT_FIVE_FOUR_ONE: //铁支
+			case CT_FOURSAME: //铁支
 				log.Debug("后墩铁支")
 				r.Results[i][2] = 4
-			case CT_FIVE_STRAIGHT_FLUSH:
+			case CT_STRAIGHT_FLUSH:
 				log.Debug("后墩同花顺")
 				r.Results[i][2] = 5
 			case CT_FIVE_SAME:
 				log.Debug("后墩五同")
 				r.Results[i][2] = 7
+			default:
+				log.Debug("后墩未知牌型")
 			}
 		}
 	})
@@ -351,7 +300,6 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 func (r *sss_data_mgr) ComputeResult() {
 	lg := r.PkBase.LogicMgr.(*sss_logic)
-	//lg.UniversalCards = r.UniversalCards
 	userMgr := r.PkBase.UserMgr
 	//打枪次数
 	shootPlayerNum := make([]int, r.PlayerCount)
@@ -518,7 +466,6 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 	gameEnd.BEnterExit = false
 	//WAllUser               int        //全垒打用户
 	gameEnd.WAllUser = 0
-	//copy(room.m_lGameScore,room.m_lLeftScore)
 
 	gameEnd.BAllSpecialCard = false
 
@@ -541,7 +488,7 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 	room.gameEndStatus = gameEnd
 
 	room.AllResult = append(room.AllResult, gameEnd.LGameScore)
-	//room.PkBase.TimerMgr.AddPlayCount()
+
 	//最后一局
 	if room.PkBase.TimerMgr.GetPlayCount() >= room.PkBase.TimerMgr.GetMaxPlayCnt() {
 		gameRecord := &pk_sss_msg.G2C_SSS_Record{}
@@ -571,7 +518,6 @@ func (room *sss_data_mgr) DismissEnd(a int) {
 
 func (room *sss_data_mgr) BeforeStartGame(UserCnt int) {
 	room.GameStatus = GAME_FREE
-	//room.InitRoom(UserCnt)
 	//清理上一局数据
 	room.reSetRoom(UserCnt)
 }
@@ -669,27 +615,6 @@ func (room *sss_data_mgr) StartDispatchCard() {
 	room.startShowCardTimer(40)
 }
 
-func getColorCards(num int) (cards []int) {
-	var colorCards = [][]int{
-		[]int{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D},
-		[]int{0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D},
-		[]int{0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D},
-		[]int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
-	}
-	len := len(colorCards)
-	if num > len {
-		num = len
-	}
-	for i := 0; i < num; i++ {
-		randNum := rand.Intn(len)
-		cards = append(cards, colorCards[randNum]...)
-		if randNum != len-1 {
-			colorCards[randNum], colorCards[len-1] = colorCards[len-1], colorCards[randNum]
-		}
-		len--
-	}
-	return
-}
 func (room *sss_data_mgr) AfterStartGame() {
 
 }
@@ -697,17 +622,6 @@ func (room *sss_data_mgr) AfterStartGame() {
 //玩家摊牌
 func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType bool, btSpecialData []int, FrontCard []int, MidCard []int, BackCard []int) {
 	userMgr := room.PkBase.UserMgr
-
-	// //解除托管
-	// trustees := userMgr.GetTrustees()
-	// for i := range trustees {
-	// 	if trustees[i] == true {
-	// 		if u == userMgr.GetUserByChairId(i) {
-	// 			room.Trustee(u, false)
-	// 			break
-	// 		}
-	// 	}
-	// }
 
 	room.PlayerSegmentCards[u.ChairId] = append(room.PlayerSegmentCards[u.ChairId], FrontCard, MidCard, BackCard)
 	room.PlayerCards[u.ChairId] = make([]int, 0, 13)
@@ -722,7 +636,6 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	room.OpenCardMap[u] = true
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		room.stopShowCardTimer()
-
 		room.PkBase.OnEventGameConclude(GER_NORMAL)
 	}
 
@@ -753,15 +666,7 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	//NChip              []int           `json:"nChip"`              //下注大小
 	statusPlay.NChip = make([]int, 0)
 	//BHandCardData      []int           `json:"bHandCardData"`      //扑克数据
-
-	// for ucd := range room.m_bUserCardData {
-	// 	if ucd.ChairId == u.ChairId {
-	// 		statusPlay.BHandCardData = room.m_bUserCardData[ucd]
-	// 	}
-	// }
-
 	statusPlay.BHandCardData = room.PlayerCards[u.ChairId]
-
 	//BSegmentCard       [][]int       `json:"bSegmentCard"`         //分段扑克
 	statusPlay.BSegmentCard = room.PlayerSegmentCards[u.ChairId]
 	//BFinishSegment     []bool          `json:"bFinishSegment"`     //完成分段
@@ -1277,4 +1182,57 @@ func (r *sss_data_mgr) replaceCard() {
 	} else {
 		log.Debug("SSS替换数据获取错误")
 	}
+}
+
+func (r *sss_data_mgr) checkLaiZi(carData []int) (bool, []int) {
+	laiZiCount := 0
+	tempData := make([]int, len(carData))
+	copy(tempData, carData)
+	if len(r.UniversalCards) > 0 {
+		for i := range carData {
+			for j := range r.UniversalCards {
+				if carData[i] == r.UniversalCards[j] {
+					tempData[i] = -1
+					laiZiCount++
+				}
+			}
+		}
+	}
+
+	if laiZiCount == len(carData) {
+		bossCount := 0
+		for i := range carData {
+			if carData[i] == 0x4E || carData[i] == 0x4F {
+				tempData[i] = -1
+				bossCount++
+			} else {
+				tempData[i] = carData[i]
+			}
+		}
+		return bossCount != 0, tempData
+	}
+
+	return laiZiCount > 0, tempData
+}
+
+func getColorCards(num int) (cards []int) {
+	var colorCards = [][]int{
+		[]int{0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D},
+		[]int{0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D},
+		[]int{0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D},
+		[]int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
+	}
+	len := len(colorCards)
+	if num > len {
+		num = len
+	}
+	for i := 0; i < num; i++ {
+		randNum := rand.Intn(len)
+		cards = append(cards, colorCards[randNum]...)
+		if randNum != len-1 {
+			colorCards[randNum], colorCards[len-1] = colorCards[len-1], colorCards[randNum]
+		}
+		len--
+	}
+	return
 }
