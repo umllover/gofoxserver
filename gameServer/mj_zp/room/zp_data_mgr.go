@@ -216,6 +216,10 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
+		if room.BankerUser == INVALID_CHAIR {
+			//选取庄家
+			room.ElectionBankerUser()
+		}
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -1894,7 +1898,7 @@ func (room *ZP_RoomData) DispatchCardData(wCurrentUser int, bTail bool) int {
 	log.Debug("CardIndex len ============== %d", len(room.CardIndex[wCurrentUser]))
 	room.CardIndex[wCurrentUser][room.MjBase.LogicMgr.SwitchToCardIndex(room.ProvideCard)]++
 	log.Debug("ProvideCard ========= %d , %v", room.ProvideCard, room.IsHua(room.ProvideCard))
-	if room.IsHua(room.ProvideCard) {
+	if room.IsHua(room.ProvideCard) && room.IsEnoughCard() {
 		room.CheckHuaCard(wCurrentUser, room.MjBase.UserMgr.GetBeginPlayer(), false)
 	}
 

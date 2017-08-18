@@ -46,6 +46,8 @@ func RegisterHandler(m *UserModule) {
 	reg.RegisterRpc("ForceClose", m.ForceClose)
 	reg.RegisterRpc("SvrShutdown", m.SvrShutdown)
 	reg.RegisterRpc("DeleteVaildIds", m.DeleteVaildIds)
+	reg.RegisterRpc("AddRoomRecord", m.AddRoomRecord)
+	reg.RegisterRpc("DelRoomRecord", m.DelRoomRecord)
 
 	//c2s
 	reg.RegisterC2S(&msg.C2L_Login{}, m.handleMBLogin)
@@ -964,9 +966,9 @@ func (m *UserModule) GameStart(args []interface{}) {
 
 //房间结束了
 func (m *UserModule) RoomEndInfo(args []interface{}) {
-	log.Debug("at RoomEndInfo ================= ")
 	info := args[0].(*msg.RoomEndInfo)
 	player := m.a.UserData().(*user.User)
+	log.Debug("at RoomEndInfo ================= roomid=%d, creator=%d", info.RoomId, player.Id)
 	if info.Status == RoomStatusReady { //没开始就结束
 		record := player.GetRecord(info.RoomId)
 		if record != nil { //还原扣的钱
@@ -1357,4 +1359,18 @@ func (m *UserModule) GetUserRecord(args []interface{}) {
 	}
 
 	player.WriteMsg(retMsg)
+}
+
+func (m *UserModule) AddRoomRecord(args []interface{}) {
+	log.Debug("at AddRoomRecord ................ ")
+	roomInfo := args[0].(*model.CreateRoomInfo)
+	player := m.a.UserData().(*user.User)
+	player.AddRooms(roomInfo)
+}
+
+func (m *UserModule) DelRoomRecord(args []interface{}) {
+	log.Debug("at DelRoomRecord ................ ")
+	recvMsg := args[0].(*msg.DelRoomRecord)
+	player := m.a.UserData().(*user.User)
+	player.DelRooms(recvMsg.RoomId)
 }

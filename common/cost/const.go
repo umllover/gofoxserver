@@ -152,6 +152,7 @@ const (
 	GER_DISMISS          = 1 //游戏解散
 	USER_LEAVE           = 2 //玩家请求解散
 	NO_START_GER_DISMISS = 3 //没开始就解散
+	ROOM_TRUSTEE         = 4 //房间托管结束
 )
 
 const (

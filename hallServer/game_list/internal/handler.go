@@ -237,12 +237,39 @@ func updateRoom(args []interface{}) {
 		}
 
 	case "SetRoomInfo":
+		//更新房间状态
 		room.Status = int(info.Data["RoomStatus"].(float64))
+		//更新玩家开房记录
 		newCreator := int64(info.Data["NewCreator"].(float64))
 		oldCreator := int64(info.Data["oldCreator"].(float64))
 		if newCreator != oldCreator {
-			//TODO 怎么取到玩家对象？
-			//newUser, _ := room.UserMgr.GetUserByUid(newCreator)
+			//新房主增加开房记录
+			newPlayer, ok := room.Players[newCreator]
+			if ok && newPlayer.HallNodeName == conf.ServerName() {
+				info := &model.CreateRoomInfo{}
+				info.UserId = newCreator
+				info.PayType = room.PayType
+				info.MaxPlayerCnt = room.MaxPlayerCnt
+				info.RoomId = room.RoomID
+				info.NodeId = room.NodeID
+				info.Num = room.RoomPlayCnt
+				info.KindId = room.KindID
+				info.ServiceId = room.ServerID
+				now := time.Now()
+				info.CreateTime = &now
+				if room.IsPublic {
+					info.Public = 1
+				} else {
+					info.Public = 0
+				}
+				info.RoomName = room.RoomName
+				center.SendToThisNodeUser(newCreator, "AddRoomRecord", info)
+			}
+			//删除旧房主开房记录
+			oldPlayer, ok := room.Players[oldCreator]
+			if ok && oldPlayer.HallNodeName == conf.ServerName() {
+				center.SendToThisNodeUser(oldCreator, "DelRoomRecord", &msg.DelRoomRecord{RoomId: room.RoomID})
+			}
 		}
 	}
 
