@@ -202,6 +202,9 @@ func (room *RoomData) DismissEnd(cbReason int) {
 
 }
 
+func (room *RoomData) TrusteeEnd(cbReason int) {
+}
+
 func (room *RoomData) SendStatusPlay(u *user.User) {
 
 }

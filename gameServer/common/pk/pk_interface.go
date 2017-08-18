@@ -19,6 +19,7 @@ type DataManager interface {
 	// 游戏结束
 	NormalEnd(Reason int)
 	DismissEnd(Reason int)
+	TrusteeEnd(cbReason int)
 
 	SendPersonalTableTip(*user.User)
 	SendStatusPlay(u *user.User)
@@ -54,5 +55,4 @@ type LogicManager interface {
 	CompareCardWithParam(firstCardData []int, lastCardData []int, args []interface{}) (int, bool)
 	// 以下接口不通用
 	RemoveCardList(cbRemoveCard []int, cbCardData []int) ([]int, bool)
-
 }

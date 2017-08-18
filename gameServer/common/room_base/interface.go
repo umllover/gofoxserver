@@ -97,6 +97,7 @@ type BData interface {
 	GetCreator() int64
 	GetCreatorNodeId() int
 	ResetRoomCreator(uid int64, nodeid int)
-	NormalEnd(Reason int)  //正常结束
-	DismissEnd(Reason int) //解散结束
+	NormalEnd(Reason int)    //正常结束
+	DismissEnd(Reason int)   //解散结束
+	TrusteeEnd(cbReason int) //房间托管结束
 }

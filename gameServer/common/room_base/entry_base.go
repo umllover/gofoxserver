@@ -508,6 +508,7 @@ func (room *Entry_base) OnRoomTrustee() bool {
 	AddPlayCount = func() {
 		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
 			room.TimerMgr.AddPlayCount()
+			room.DataMgr.TrusteeEnd(ROOM_TRUSTEE)
 
 			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 				RoomId: room.DataMgr.GetRoomId(),

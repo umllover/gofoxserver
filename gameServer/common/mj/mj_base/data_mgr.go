@@ -1428,6 +1428,16 @@ func (room *RoomData) SendGameStart() {
 	})
 }
 
+func (room *RoomData) TrusteeEnd(cbReason int) {
+	UserCnt := room.MjBase.UserMgr.GetMaxPlayerCnt()
+	playerScore := []int{}
+	for i := 0; i < UserCnt; i++ {
+		playerScore = append(playerScore, 0)
+	}
+	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, playerScore)
+	room.MjBase.UserMgr.SendMsgAll(&msg.G2C_OvertimeToNext{})
+}
+
 //正常结束房间
 func (room *RoomData) NormalEnd(cbReason int) {
 	//变量定义

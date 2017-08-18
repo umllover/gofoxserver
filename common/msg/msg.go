@@ -107,6 +107,7 @@ func init() {
 	Processor.Register(&C2L_ReConnect{})
 	Processor.Register(&L2C_ReConnectRsp{})
 	Processor.Register(&G2C_RoomDissume{})
+	Processor.Register(&G2C_OvertimeToNext{})
 
 	//chat
 	Processor.Register(&C2G_GameChart_ToAll{})
