@@ -10,6 +10,8 @@ import (
 
 	"time"
 
+	"mj/common/msg/pk_common_msg"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 	"github.com/mitchellh/mapstructure"
@@ -117,50 +119,58 @@ func (r *ddz_data_mgr) initParam() {
 func (room *ddz_data_mgr) SendStatusReady(u *user.User) {
 	log.Debug("发送空闲状态场景消息")
 	room.GameStatus = GAME_STATUS_FREE
-
-	StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
-
-	StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
-
-	StatusFree.GameType = room.GameType
-	StatusFree.EightKing = room.EightKing
-
-	StatusFree.PlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
-
-	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
-	StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
-	StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间 	// 首出时间
-
-	// 发送明牌标识
-	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
-	util.DeepCopy(&StatusFree.ShowCardSign, &room.ShowCardSign)
-
-	u.WriteMsg(StatusFree)
-
-	// 以下用扑克公告协议，到时候再打开
 	/*
-		StatusFree := &pk_common_msg.G2C_PKCOMMON_StatusFree{}
+		StatusFree := &pk_ddz_msg.G2C_DDZ_StatusFree{}
 
 		StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
-		StatusFree.GameRoomName = room.Name
 
-		StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()              // 出牌时间
-		StatusFree.TimeOperateCard = room.GetCfg().CallScoreTime                    // 叫分时间
-		StatusFree.TimeStartGame = int64(room.PkBase.TimerMgr.GetTimeOperateCard()) // 开始时间 	// 首出时间
-
-		StatusFree.PlayMode = room.GameType
-		StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPlayCnt()
-
-		StatusFree.PlayerCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
-		StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-
+		StatusFree.GameType = room.GameType
 		StatusFree.EightKing = room.EightKing
+
+		StatusFree.PlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
+
+		StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()       // 出牌时间
+		StatusFree.TimeCallScore = room.GetCfg().CallScoreTime               // 叫分时间
+		StatusFree.TimeStartGame = room.PkBase.TimerMgr.GetTimeOperateCard() // 开始时间 	// 首出时间
+
 		// 发送明牌标识
 		StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
 		util.DeepCopy(&StatusFree.ShowCardSign, &room.ShowCardSign)
 
 		u.WriteMsg(StatusFree)
 	*/
+	// 以下用扑克公告协议，到时候再打开
+
+	StatusFree := &pk_common_msg.G2C_PKCOMMON_StatusFree{}
+
+	StatusFree.GameStatus = room.GameStatus
+	StatusFree.CellScore = room.PkBase.Temp.Source // 基础积分
+	StatusFree.GameRoomName = room.Name
+
+	StatusFree.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()              // 出牌时间
+	StatusFree.TimeOperateCard = room.GetCfg().CallScoreTime                    // 叫分时间
+	StatusFree.TimeStartGame = int64(room.PkBase.TimerMgr.GetTimeOperateCard()) // 开始时间 	// 首出时间
+
+	StatusFree.PlayMode = room.GameType
+	StatusFree.CountLimit = room.PkBase.TimerMgr.GetMaxPlayCnt()
+
+	StatusFree.PlayerCount = room.PlayerCount
+	StatusFree.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+
+	StatusFree.InitScore = make([]int, room.PlayerCount)
+	for i := 0; i < room.PlayerCount; i++ {
+		for j := 0; j < len(room.RecordInfo); j++ {
+			StatusFree.InitScore[i] += room.RecordInfo[j][i]
+		}
+	}
+
+	StatusFree.EightKing = room.EightKing
+	// 发送明牌标识
+	StatusFree.ShowCardSign = make([]bool, len(room.ShowCardSign))
+	util.DeepCopy(&StatusFree.ShowCardSign, &room.ShowCardSign)
+
+	u.WriteMsg(StatusFree)
+
 }
 
 // 开始游戏前
@@ -176,61 +186,18 @@ func (room *ddz_data_mgr) StartGameing() {
 
 // 叫分状态
 func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
-
-	StatusCall := &pk_ddz_msg.G2C_DDZ_StatusCall{}
-
-	StatusCall.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
-	StatusCall.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
-	StatusCall.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
-
-	StatusCall.GameType = room.GameType
-	StatusCall.LaiziCard = room.LiziCard
-	StatusCall.EightKing = room.EightKing
-	StatusCall.CellScore = room.PkBase.Temp.Source
-	StatusCall.CurrentUser = room.CurrentUser
-	StatusCall.BankerScore = room.ScoreTimes
-	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
-	StatusCall.HandCardCount = make([]int, len(room.HandCardData))
-	for i := 0; i < len(room.HandCardData); i++ {
-		StatusCall.HandCardCount[i] = len(room.HandCardData[i])
-	}
-
-	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
-
-	StatusCall.ShowCardSign = make([]bool, len(room.ShowCardSign))
-	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
-	//发送数据
-	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
-		if room.ShowCardSign[i] || u.ChairId == i {
-			StatusCall.ShowCardData = append(StatusCall.ShowCardData, room.HandCardData[i])
-		} else {
-			StatusCall.ShowCardData = append(StatusCall.ShowCardData, nil)
-		}
-	}
-
-	// 发送托管标识
-	trustees := room.PkBase.UserMgr.GetTrustees()
-	StatusCall.TrusteeSign = make([]bool, len(trustees))
-	util.DeepCopy(&StatusCall.TrusteeSign, &trustees)
-
-	log.Debug("叫分进行时%v", StatusCall)
-
-	u.WriteMsg(StatusCall)
-
-	// 以下用扑克公告协议，到时候再打开
 	/*
-		StatusCall := &pk_common_msg.G2C_PKCOMMON_StatusCall{}
-
-		StatusCall.CallBanker = room.CurrentUser
-		StatusCall.CellScore = room.PkBase.Temp.Source
-		StatusCall.GameRoomName = room.Name
+		StatusCall := &pk_ddz_msg.G2C_DDZ_StatusCall{}
 
 		StatusCall.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
 		StatusCall.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
+		StatusCall.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
 
-		StatusCall.PlayMode = room.GameType
-		StatusCall.WildCard = room.LiziCard
+		StatusCall.GameType = room.GameType
+		StatusCall.LaiziCard = room.LiziCard
 		StatusCall.EightKing = room.EightKing
+		StatusCall.CellScore = room.PkBase.Temp.Source
+		StatusCall.CurrentUser = room.CurrentUser
 		StatusCall.BankerScore = room.ScoreTimes
 		StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
 		StatusCall.HandCardCount = make([]int, len(room.HandCardData))
@@ -260,6 +227,59 @@ func (room *ddz_data_mgr) SendStatusCall(u *user.User) {
 
 		u.WriteMsg(StatusCall)
 	*/
+	// 以下用扑克公告协议，到时候再打开
+
+	StatusCall := &pk_common_msg.G2C_PKCOMMON_StatusCall{}
+
+	StatusCall.GameStatus = room.GameStatus
+	StatusCall.CallBanker = room.CurrentUser
+	StatusCall.CellScore = room.PkBase.Temp.Source
+	StatusCall.GameRoomName = room.Name
+	StatusCall.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusCall.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
+
+	StatusCall.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
+	StatusCall.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
+
+	StatusCall.PlayMode = room.GameType
+	StatusCall.WildCard = room.LiziCard
+	StatusCall.EightKing = room.EightKing
+	StatusCall.BankerScore = room.ScoreTimes
+	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
+	StatusCall.HandCardCount = make([]int, len(room.HandCardData))
+	for i := 0; i < len(room.HandCardData); i++ {
+		StatusCall.HandCardCount[i] = len(room.HandCardData[i])
+	}
+
+	StatusCall.CollectScore = make([]int64, room.PlayerCount)
+	for i := 0; i < room.PlayerCount; i++ {
+		for j := 0; j < len(room.RecordInfo); j++ {
+			StatusCall.CollectScore[i] += int64(room.RecordInfo[j][i])
+		}
+	}
+
+	StatusCall.ScoreInfo = util.CopySlicInt(room.ScoreInfo)
+
+	StatusCall.ShowCardSign = make([]bool, len(room.ShowCardSign))
+	util.DeepCopy(&StatusCall.ShowCardSign, &room.ShowCardSign)
+	//发送数据
+	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
+		if room.ShowCardSign[i] || u.ChairId == i {
+			StatusCall.ShowCardData = append(StatusCall.ShowCardData, room.HandCardData[i])
+		} else {
+			StatusCall.ShowCardData = append(StatusCall.ShowCardData, nil)
+		}
+	}
+
+	// 发送托管标识
+	trustees := room.PkBase.UserMgr.GetTrustees()
+	StatusCall.TrusteeSign = make([]bool, len(trustees))
+	util.DeepCopy(&StatusCall.TrusteeSign, &trustees)
+
+	log.Debug("叫分进行时%v", StatusCall)
+
+	u.WriteMsg(StatusCall)
+
 }
 
 // 游戏状态
@@ -272,29 +292,96 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 		room.SendStatusReady(u)
 		return
 	}
+	/*
+		StatusPlay := &pk_ddz_msg.G2C_DDZ_StatusPlay{}
+		//自定规则
+		StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
+		StatusPlay.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
+		StatusPlay.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
 
-	StatusPlay := &pk_ddz_msg.G2C_DDZ_StatusPlay{}
-	//自定规则
-	StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
-	StatusPlay.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
-	StatusPlay.TimeStartGame = int(room.PkBase.TimerMgr.GetCreatrTime())
+		//游戏变量
+		StatusPlay.CellScore = room.PkBase.Temp.Source
 
-	//游戏变量
+		StatusPlay.BankerUser = room.BankerUser
+		StatusPlay.CurrentUser = room.CurrentUser
+		StatusPlay.BankerScore = room.ScoreTimes
+		StatusPlay.EightKing = room.EightKing
+		StatusPlay.GameType = room.GameType
+		StatusPlay.LaiziCard = room.LiziCard
+
+		StatusPlay.TurnWiner = room.TurnWiner
+		if StatusPlay.TurnWiner != cost.INVALID_CHAIR {
+			turnCardData := room.TurnCardData[room.TurnWiner][len(room.TurnCardData[room.TurnWiner])-1]
+			util.DeepCopy(&StatusPlay.TurnCardData, &turnCardData)
+		}
+		util.DeepCopy(&StatusPlay.BankerCard, &room.BankerCard)
+		StatusPlay.HandCardCount = make([]int, room.PlayerCount)
+		for i := 0; i < room.PlayerCount; i++ {
+			StatusPlay.HandCardCount[i] = len(room.HandCardData[i])
+		}
+		StatusPlay.EachBombCount = util.CopySlicInt(room.EachBombCount)
+		StatusPlay.KingCount = util.CopySlicInt(room.KingCount)
+
+		StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
+		util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
+
+		// 发送数据
+		for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
+			if room.ShowCardSign[i] || u.ChairId == i {
+				StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, room.HandCardData[i])
+				//util.DeepCopy(GameStart.CardData[i], cardData[i])
+			} else {
+				StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, nil)
+			}
+		}
+		// 发送托管标识
+		trustees := room.PkBase.UserMgr.GetTrustees()
+		StatusPlay.TrusteeSign = make([]bool, len(trustees))
+		util.DeepCopy(&StatusPlay.TrusteeSign, &trustees)
+
+		log.Debug("游戏进行时%v", StatusPlay)
+		u.WriteMsg(StatusPlay)
+	*/
+	// 以下用扑克公告协议，到时候再打开
+
+	StatusPlay := &pk_common_msg.G2C_PKCOMMON_StatusPlay{}
+
+	StatusPlay.GameStatus = room.GameStatus
 	StatusPlay.CellScore = room.PkBase.Temp.Source
-
+	StatusPlay.PlayerCount = room.PlayerCount
 	StatusPlay.BankerUser = room.BankerUser
-	StatusPlay.CurrentUser = room.CurrentUser
-	StatusPlay.BankerScore = room.ScoreTimes
-	StatusPlay.EightKing = room.EightKing
-	StatusPlay.GameType = room.GameType
-	StatusPlay.LaiziCard = room.LiziCard
+	StatusPlay.PublicCardData = util.CopySlicInt(room.BankerCard[:])
+	// 发送数据
+	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
+		if room.ShowCardSign[i] || u.ChairId == i {
+			StatusPlay.HandCardData = append(StatusPlay.HandCardData, room.HandCardData[i])
+		} else {
+			StatusPlay.HandCardData = append(StatusPlay.HandCardData, nil)
+		}
+	}
 
-	StatusPlay.TurnWiner = room.TurnWiner
-	if StatusPlay.TurnWiner != cost.INVALID_CHAIR {
+	StatusPlay.InitScore = make([]int, room.PlayerCount)
+	for i := 0; i < room.PlayerCount; i++ {
+		for j := 0; j < len(room.RecordInfo); j++ {
+			StatusPlay.InitScore[i] += room.RecordInfo[j][i]
+		}
+	}
+	StatusPlay.GameRoomName = room.Name
+
+	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
+	StatusPlay.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
+	StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
+	StatusPlay.CurrentUser = room.CurrentUser
+	StatusPlay.EightKing = room.EightKing
+	StatusPlay.PlayMode = room.GameType
+	StatusPlay.WildCard = room.LiziCard
+	StatusPlay.BankerScore = room.ScoreTimes
+	StatusPlay.TurnUser = room.TurnWiner
+	if StatusPlay.TurnUser != cost.INVALID_CHAIR {
 		turnCardData := room.TurnCardData[room.TurnWiner][len(room.TurnCardData[room.TurnWiner])-1]
 		util.DeepCopy(&StatusPlay.TurnCardData, &turnCardData)
 	}
-	util.DeepCopy(&StatusPlay.BankerCard, &room.BankerCard)
+
 	StatusPlay.HandCardCount = make([]int, room.PlayerCount)
 	for i := 0; i < room.PlayerCount; i++ {
 		StatusPlay.HandCardCount[i] = len(room.HandCardData[i])
@@ -305,15 +392,6 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
 	util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
 
-	// 发送数据
-	for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
-		if room.ShowCardSign[i] || u.ChairId == i {
-			StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, room.HandCardData[i])
-			//util.DeepCopy(GameStart.CardData[i], cardData[i])
-		} else {
-			StatusPlay.ShowCardData = append(StatusPlay.ShowCardData, nil)
-		}
-	}
 	// 发送托管标识
 	trustees := room.PkBase.UserMgr.GetTrustees()
 	StatusPlay.TrusteeSign = make([]bool, len(trustees))
@@ -322,57 +400,6 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	log.Debug("游戏进行时%v", StatusPlay)
 	u.WriteMsg(StatusPlay)
 
-	// 以下用扑克公告协议，到时候再打开
-	/*
-	   StatusPlay := &pk_common_msg.G2C_PKCOMMON_StatusPlay{}
-
-	   StatusPlay.CellScore = room.PkBase.Temp.Source
-	   StatusPlay.PlayerCount = room.PlayerCount
-	   StatusPlay.BankerUser = room.BankerUser
-	   StatusPlay.PublicCardData = util.CopySlicInt(room.BankerCard[:])
-	   // 发送数据
-	   for i := 0; i < room.PkBase.Temp.MaxPlayer; i++ {
-	   	if room.ShowCardSign[i] || u.ChairId == i {
-	   		StatusPlay.HandCardData = append(StatusPlay.HandCardData, room.HandCardData[i])
-	   	} else {
-	   		StatusPlay.HandCardData = append(StatusPlay.HandCardData, nil)
-	   	}
-	   }
-
-	   StatusPlay.GameRoomName = room.Name
-
-	   StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
-	   StatusPlay.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
-	   StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
-	   StatusPlay.CurrentUser = room.CurrentUser
-	   StatusPlay.EightKing = room.EightKing
-	   StatusPlay.PlayMode = room.GameType
-	   StatusPlay.WildCard = room.LiziCard
-	   StatusPlay.BankerScore = room.ScoreTimes
-	   StatusPlay.TurnUser = room.TurnWiner
-	   if StatusPlay.TurnUser != cost.INVALID_CHAIR {
-	   	turnCardData := room.TurnCardData[room.TurnWiner][len(room.TurnCardData[room.TurnWiner])-1]
-	   	util.DeepCopy(&StatusPlay.TurnCardData, &turnCardData)
-	   }
-
-	   StatusPlay.HandCardCount = make([]int, room.PlayerCount)
-	   for i := 0; i < room.PlayerCount; i++ {
-	   	StatusPlay.HandCardCount[i] = len(room.HandCardData[i])
-	   }
-	   StatusPlay.EachBombCount = util.CopySlicInt(room.EachBombCount)
-	   StatusPlay.KingCount = util.CopySlicInt(room.KingCount)
-
-	   StatusPlay.ShowCardSign = make([]bool, len(room.ShowCardSign))
-	   util.DeepCopy(&StatusPlay.ShowCardSign, &room.ShowCardSign)
-
-	   // 发送托管标识
-	   trustees := room.PkBase.UserMgr.GetTrustees()
-	   StatusPlay.TrusteeSign = make([]bool, len(trustees))
-	   util.DeepCopy(&StatusPlay.TrusteeSign, &trustees)
-
-	   log.Debug("游戏进行时%v", StatusPlay)
-	   u.WriteMsg(StatusPlay)
-	*/
 }
 
 // 开始游戏，发送扑克
@@ -426,6 +453,9 @@ func (room *ddz_data_mgr) SendGameStart() {
 		}
 	}
 
+	for i := 0; i < room.PlayerCount; i++ {
+		GameStart.CardCount = append(GameStart.CardCount, len(room.HandCardData[i]))
+	}
 	// 黑桃三可能在底牌，随机选一个
 	if room.CurrentUser == cost.INVALID_CHAIR {
 		room.CurrentUser = util.RandInterval(0, 2)
