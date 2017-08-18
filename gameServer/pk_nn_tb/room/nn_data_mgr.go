@@ -11,6 +11,7 @@ import (
 	"mj/common/msg/pk_common_msg"
 	"mj/gameServer/user"
 	"time"
+	"math/rand"
 
 	"mj/common/msg"
 
@@ -176,7 +177,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28003 player count %d", UserCnt)
+	log.Debug("nn init room version 28005 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
@@ -401,12 +402,13 @@ func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 func (r *nntb_data_mgr) CallScoreEnd() {
 	r.CallScoreTimer.Stop()
 	r.SetAllUserGameStatus(GAME_STATUS_CALL_SCORE)
-	log.Debug("call score end")
+	log.Debug("nn call score end")
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
 	//如果没有任何人叫分
 	if !r.IsAnyOneCallScore() {
-		r.BankerUser = 0
+		rand.Seed(int64(time.Now().Nanosecond()))
+		r.BankerUser = rand.Intn(r.PlayerCount)
 		r.ScoreTimes = 1
 	}
 
