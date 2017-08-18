@@ -14,7 +14,6 @@ import (
 	client "mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -248,7 +247,6 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	retCode := 0
 	defer func() {
 		if retCode != 0 {
-			cluster.SendMsgToHallUser(player.HallNodeId, player.Id, &msg.RoomReturnMoney{RoomId: player.RoomId, CreatorUid: player.Id})
 			player.WriteMsg(RenderErrorMessage(retCode))
 		}
 	}()
@@ -283,19 +281,28 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 
 func (m *UserModule) SetGameOption(args []interface{}) {
 	user := m.a.UserData().(*client.User)
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 	if user.KindID == 0 {
 		log.Error("at SetGameOption not foud module userid:%d", user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
 	if user.RoomId == 0 {
 		log.Error("at SetGameOption not foud roomd id userid:%d", user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at SetGameOption not foud roomd:%v, userid:%d", user.RoomId, user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
