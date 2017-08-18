@@ -152,9 +152,21 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
-		r.PlayerSpecialCardType[i].CT = ct
-		r.PlayerSpecialCardType[i].Item = item
+		//有大小王排除特殊牌型
+		canbeSpecial := true
+		for _, v := range r.PlayerCards[i] {
+			if v == 0x4E || v == 0x4F {
+				canbeSpecial = false
+				break
+			}
+		}
+		if !canbeSpecial {
+			ct = CT_INVALID
+		} else {
+			ct, item = lg.SSSGetCardType(r.PlayerCards[i])
+			r.PlayerSpecialCardType[i].CT = ct
+			r.PlayerSpecialCardType[i].Item = item
+		}
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
