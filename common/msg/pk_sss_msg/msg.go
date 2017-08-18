@@ -14,7 +14,7 @@ func init() {
 	Processor.Register(&G2C_SSS_SendCard{})
 	Processor.Register(&G2C_SSS_COMPARE{})
 	Processor.Register(&G2C_SSS_StatusPlay{})
-	Processor.Register(&CMD_C_ShowCard{})
+	//Processor.Register(&CMD_C_ShowCard{})
 	Processor.Register(&C2G_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Open_Card{})
 	Processor.Register(&G2C_SSS_Record{})
@@ -116,15 +116,15 @@ type G2C_SSS_StatusPlay struct {
 	Record             G2C_SSS_Record  `json:"Record"`             //结算数据
 }
 
-//分段信息
-type CMD_C_ShowCard struct {
-	bFrontCard    []int //前墩扑克
-	bMidCard      []int //中墩扑克
-	bBackCard     []int //后墩扑克
-	bSpecialType  bool  //是否是特殊牌
-	btSpecialData []int //特殊扑克
-	bDragon       bool  //是否乌龙
-}
+////分段信息
+//type CMD_C_ShowCard struct {
+//	bFrontCard    []int //前墩扑克
+//	bMidCard      []int //中墩扑克
+//	bBackCard     []int //后墩扑克
+//	bSpecialType  bool  //是否是特殊牌
+//	btSpecialData []int //特殊扑克
+//	bDragon       bool  //是否乌龙
+//}
 
 //托管
 type C2G_SSS_TRUSTEE struct {
