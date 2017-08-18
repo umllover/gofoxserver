@@ -216,6 +216,10 @@ func (room *ZP_RoomData) GetChaHua(u *user.User, setCount int) {
 		if room.ChaHuaTime != nil {
 			room.ChaHuaTime.Stop()
 		}
+		if room.BankerUser == INVALID_CHAIR {
+			//选取庄家
+			room.ElectionBankerUser()
+		}
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()

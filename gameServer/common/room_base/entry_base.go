@@ -248,7 +248,9 @@ func (room *Entry_base) UserReady(args []interface{}) {
 			log.Debug("@@@@@@@@@@@@@@@@取消房间托管 游戏局数:%d", room.TimerMgr.GetPlayCount())
 		}
 
-		room.TimerMgr.AddPlayCount()
+		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
+			room.TimerMgr.AddPlayCount()
+		}
 		room.DataMgr.BeforeStartGame(room.UserMgr.GetCurPlayerCnt())
 		room.DataMgr.StartGameing()
 		room.DataMgr.AfterStartGame()
@@ -445,6 +447,9 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 	case NO_START_GER_DISMISS: //没开始就解散
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
+	case ROOM_TRUSTEE: //房间托管结束
+		room.DataMgr.NormalEnd(cbReason)
+		room.AfterEnd(false, cbReason)
 	}
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
 	return
@@ -497,7 +502,8 @@ func (room *Entry_base) OnRoomTrustee() bool {
 	var AddPlayCount func()
 	AddPlayCount = func() {
 		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
-			room.TimerMgr.AddPlayCount()                  //TODO jianhui 这边加局数，玩家重新介入游戏，全部准备，并开始游戏，局数会出错
+			room.TimerMgr.AddPlayCount()
+
 			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 				RoomId: room.DataMgr.GetRoomId(),
 				OpName: "AddPlayCnt",
@@ -509,7 +515,7 @@ func (room *Entry_base) OnRoomTrustee() bool {
 			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
 			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
 		} else { //最后一局
-			room.AfterEnd(false, GER_NORMAL)
+			room.OnEventGameConclude(ROOM_TRUSTEE)
 			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
 		}
 	}
