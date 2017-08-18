@@ -30,6 +30,7 @@ type DataManager interface {
 	AnGang(u *user.User, cbOperateCode int, cbOperateCard []int) int          //暗杠处理
 	NormalEnd(Reason int)                                                     //正常结束
 	DismissEnd(Reason int)                                                    //解散结束
+	TrusteeEnd(cbReason int)                                                  //房间托管结束
 	GetTrusteeOutCard(wChairID int) int                                       //获取托管的牌
 	CanOperatorRoom(uid int64) bool                                           //能否操作房间
 	GetChaHua(u *user.User, setCount int)                                     //获取插花

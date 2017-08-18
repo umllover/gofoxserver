@@ -392,19 +392,19 @@ func (room *Entry_base) OnRecUserTrustee(args []interface{}) {
 //玩家离开房间
 func (room *Entry_base) ReqLeaveRoom(args []interface{}) (interface{}, error) {
 	player := args[0].(*user.User)
-	if room.Status == RoomStatusReady {
-		if room.UserMgr.LeaveRoom(player, room.Status) {
-			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
-		} else {
-			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrLoveRoomFaild})
-		}
-	} else {
+	if room.Status == RoomStatusStarting {
 		room.UserMgr.AddLeavePly(player.Id)
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
 			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
 			room.OnEventGameConclude(USER_LEAVE)
 		})
+	} else {
+		if room.UserMgr.LeaveRoom(player, room.Status) {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status})
+		} else {
+			player.WriteMsg(&msg.G2C_LeaveRoomRsp{Status: room.Status, Code: ErrLoveRoomFaild})
+		}
 	}
 	return nil, nil
 }
@@ -508,6 +508,7 @@ func (room *Entry_base) OnRoomTrustee() bool {
 	AddPlayCount = func() {
 		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
 			room.TimerMgr.AddPlayCount()
+			room.DataMgr.TrusteeEnd(ROOM_TRUSTEE)
 
 			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 				RoomId: room.DataMgr.GetRoomId(),
