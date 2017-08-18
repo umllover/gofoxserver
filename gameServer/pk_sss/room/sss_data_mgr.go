@@ -1241,17 +1241,17 @@ func getColorCards(num int) (cards []int) {
 		[]int{0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D},
 		[]int{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D},
 	}
-	len := len(colorCards)
-	if num > len {
-		num = len
+	length := len(colorCards)
+	if num > length {
+		num = length
 	}
 	for i := 0; i < num; i++ {
-		randNum := rand.Intn(len)
+		randNum := rand.Intn(length)
 		cards = append(cards, colorCards[randNum]...)
-		if randNum != len-1 {
-			colorCards[randNum], colorCards[len-1] = colorCards[len-1], colorCards[randNum]
+		if randNum != length-1 {
+			colorCards[randNum], colorCards[length-1] = colorCards[length-1], colorCards[randNum]
 		}
-		len--
+		length--
 	}
 	return
 }

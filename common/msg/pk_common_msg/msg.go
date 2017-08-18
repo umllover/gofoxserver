@@ -13,9 +13,10 @@ func init() {
 	msg.Processor.Register(&G2C_PKCOMMON_StatusPlay{})
 }
 
-//---------- 游戏状态-------
+//---------- 空闲状态 -------
 type G2C_PKCOMMON_StatusFree struct {
-	CellScore int //基础积分
+	CellScore  int //基础积分
+	GameStatus int // 游戏状态
 
 	TurnScore    []int  //积分信息
 	CollectScore []int  //积分信息
@@ -39,12 +40,17 @@ type G2C_PKCOMMON_StatusFree struct {
 
 }
 
+//----------叫分状态--------
 type G2C_PKCOMMON_StatusCall struct {
 	CallBanker  int   //叫庄用户
 	DynamicJoin int   //动态加入
 	PlayStatus  []int //用户状态
 
-	CellScore int //基础积分
+	CellScore  int //基础积分
+	GameStatus int // 游戏状态
+
+	CurrentPlayCount int // 房间已玩局数
+	LimitPlayCount   int // 总局数
 	//历史积分
 	TurnScore    []int64 //积分信息
 	CollectScore []int64 //积分信息
@@ -84,9 +90,11 @@ type UserReLoginInfo struct {
 	UserGameStatus int
 	CallScoreTimes int
 	AddScoreTimes  int
-	OpenCardData []int
-	OpenCardType int
+	OpenCardData   []int
+	OpenCardType   int
 }
+
+// 游戏状态
 type G2C_PKCOMMON_StatusPlay struct {
 	CellScore int //基础积分
 

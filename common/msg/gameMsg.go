@@ -318,6 +318,10 @@ type G2C_Hu_Data struct {
 	HuCardRemainingCount [][]int
 }
 
+//超时进入下一局
+type G2C_OvertimeToNext struct {
+}
+
 ///////////////////////// game chart begin ///////////////////////////////
 type C2G_GameChart_ToAll struct {
 	ChatColor  int    //字体颜色
