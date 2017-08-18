@@ -3,8 +3,6 @@ package room
 //dbg "github.com/funny/debug"
 import (
 	"encoding/json"
-	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/util"
 	"math/rand"
 	. "mj/common/cost"
 	"mj/common/msg"
@@ -14,6 +12,10 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 	"time"
+
+	//dbg "github.com/funny/debug"
+	"github.com/lovelly/leaf/log"
+	"github.com/lovelly/leaf/util"
 )
 
 // 游戏状态
@@ -150,9 +152,21 @@ func (r *sss_data_mgr) ComputeChOut() {
 
 		r.PlayerSegmentCardType[i] = make([]sssCardType, 3)
 		//特殊牌型
-		ct, item = lg.SSSGetCardType(r.PlayerCards[i])
-		r.PlayerSpecialCardType[i].CT = ct
-		r.PlayerSpecialCardType[i].Item = item
+		//有大小王排除特殊牌型
+		canbeSpecial := true
+		for _, v := range r.PlayerCards[i] {
+			if v == 0x4E || v == 0x4F {
+				canbeSpecial = false
+				break
+			}
+		}
+		if !canbeSpecial {
+			ct = CT_INVALID
+		} else {
+			ct, item = lg.SSSGetCardType(r.PlayerCards[i])
+			r.PlayerSpecialCardType[i].CT = ct
+			r.PlayerSpecialCardType[i].Item = item
+		}
 		switch ct {
 		case CT_THIRTEEN_FLUSH: //至尊清龙
 			log.Debug("至尊清龙")
@@ -390,11 +404,8 @@ func (r *sss_data_mgr) ComputeResult() {
 }
 
 //正常结束
-func (room *sss_data_mgr) NormalEnd(a int) {
+func (room *sss_data_mgr) NormalEnd(reason int) {
 	userMgr := room.PkBase.UserMgr
-
-	room.ComputeChOut()
-	room.ComputeResult()
 
 	gameEnd := &pk_sss_msg.G2C_SSS_COMPARE{}
 
@@ -495,13 +506,13 @@ func (room *sss_data_mgr) NormalEnd(a int) {
 		util.DeepCopy(&gameRecord.AllResult, &room.AllResult)
 		allScore := make([]int, room.PlayerCount)
 
-		for i := 0; i < room.PkBase.TimerMgr.GetPlayCount(); i++ {
+		for i := 0; i < len(room.AllResult); i++ {
 			for j := range allScore {
 				allScore[j] += room.AllResult[i][j]
 			}
 		}
-		gameRecord.AllScore = allScore
 
+		gameRecord.AllScore = allScore
 		gameRecord.Reason = GER_NORMAL
 		userMgr.ForEachUser(func(u *user.User) {
 			u.WriteMsg(gameRecord)
@@ -630,12 +641,16 @@ func (room *sss_data_mgr) ShowSSSCard(u *user.User, bDragon bool, bSpecialType b
 	room.PlayerCards[u.ChairId] = append(room.PlayerCards[u.ChairId], BackCard...)
 
 	userMgr.ForEachUser(func(user *user.User) {
-		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{CurrentUser: u.ChairId})
+		user.WriteMsg(&pk_sss_msg.G2C_SSS_Open_Card{
+			CurrentUser: u.ChairId,
+		})
 	})
 
 	room.OpenCardMap[u] = true
 	if len(room.OpenCardMap) == room.PlayerCount { //已全摊
 		room.stopShowCardTimer()
+		room.ComputeChOut()
+		room.ComputeResult()
 		room.PkBase.OnEventGameConclude(GER_NORMAL)
 	}
 
@@ -747,11 +762,12 @@ func (room *sss_data_mgr) getSegmentCard(chairId int) (segmentCard1, segmentCard
 	segmentCard2, cardData, leftLaiZiCard = room.get5card(cardData, leftLaiZiCard)
 
 	//前墩
-	if len(cardData) >= 3 {
+	length := len(cardData)
+	if length >= 3 {
 		segmentCard1 = append(segmentCard1, cardData[:3]...)
 	} else {
 		segmentCard1 = append(segmentCard1, cardData...)
-		segmentCard1 = append(segmentCard1, leftLaiZiCard[:3-len(cardData)]...)
+		segmentCard1 = append(segmentCard1, leftLaiZiCard[:3-length]...)
 	}
 
 	return
@@ -1091,10 +1107,11 @@ func (room *sss_data_mgr) get5card(cardData []int, leftLaiZiCard []int) (segment
 	if len(segmentCard) == 0 && len(TagAnalyseItemArray.cardData) >= 5 {
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData[:5]...)
 	}
-	if len(segmentCard) == 0 && len(TagAnalyseItemArray.cardData) < 5 {
+	length := len(TagAnalyseItemArray.cardData)
+	if len(segmentCard) == 0 && length < 5 {
 		segmentCard = append(segmentCard, TagAnalyseItemArray.cardData...)
-		segmentCard = append(segmentCard, leftLaiZiCard[:5-len(TagAnalyseItemArray.cardData)]...)
-		leftLaiZiCard = leftLaiZiCard[5-len(TagAnalyseItemArray.cardData):]
+		segmentCard = append(segmentCard, leftLaiZiCard[:5-length]...)
+		leftLaiZiCard = leftLaiZiCard[5-length:]
 	}
 
 	newCardData = lg.getUnUsedCard(TagAnalyseItemArray.cardData, segmentCard)
@@ -1159,8 +1176,11 @@ func (r *sss_data_mgr) stopShowCardTimer() {
 func (r *sss_data_mgr) replaceCard() {
 	base.GameTestpaiCache.LoadAll()
 	var rc sssReplaceCard
-	if obj, ok := base.GameTestpaiCache.Get(14); ok {
-		if obj.IsAcivate > 0 && obj.RoomID == r.GetRoomId() {
+	for _, obj := range base.GameTestpaiCache.All() {
+		if obj.KindID == r.RoomData.KindID &&
+			obj.ServerID == r.RoomData.ServerID &&
+			obj.IsAcivate > 0 &&
+			obj.RoomID == r.GetRoomId() {
 			err := json.Unmarshal([]byte(obj.Cards), &rc)
 			if err != nil {
 				log.Debug("SSS替换数据解析错误 error", err)
@@ -1178,9 +1198,8 @@ func (r *sss_data_mgr) replaceCard() {
 			for i, c := range rc.CardData {
 				r.PlayerCards[i] = c
 			}
+			break
 		}
-	} else {
-		log.Debug("SSS替换数据获取错误")
 	}
 }
 
