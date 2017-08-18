@@ -14,7 +14,6 @@ import (
 // +gen
 type Upgrade struct {
 	UpId       int     `db:"up_id" json:"up_id"`           //
-	Level      int     `db:"level" json:"level"`           //
 	Recharge   int     `db:"recharge" json:"recharge"`     //
 	Commission int     `db:"commission" json:"commission"` //
 	AgentNum   int     `db:"agent_num" json:"agent_num"`   //
@@ -23,6 +22,7 @@ type Upgrade struct {
 	RateD      float64 `db:"rate_d" json:"rate_d"`         //
 	IconId     int     `db:"icon_id" json:"icon_id"`       //
 	Liveness   int     `db:"liveness" json:"liveness"`     //
+	Level      int     `db:"level" json:"level"`           //
 }
 
 var DefaultUpgrade = Upgrade{}

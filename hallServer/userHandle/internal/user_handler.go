@@ -484,7 +484,7 @@ func (m *UserModule) CreateRoom(args []interface{}) {
 		}
 	}
 
-	//搜集创建房间数据
+	//日志：创建房间数据
 	data := &datalog.RoomLog{}
 	data.AddCreateRoomLog(rid, player.UserId, recvMsg.RoomName, recvMsg.Kind, recvMsg.ServerId, nodeId, recvMsg.PayType, retCode)
 

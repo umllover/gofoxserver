@@ -116,6 +116,7 @@ func (r *Entry_base) UserStandup(args []interface{}) {
 func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error) {
 	//addCnt := args[0].(int)
 	rUserId := args[1].(int64)
+	rNodeId := args[2].(int)
 	if r.IsClose {
 		return 2, errors.New("room is close ")
 	}
@@ -130,12 +131,14 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 		r.DelayCloseTimer = nil
 	}
 
-	roomId := r.DataMgr.GetRoomId()
-
+	//旧房主uid
+	oldCreator := r.DataMgr.GetCreator()
+	//续费的人成为新房主
+	r.DataMgr.ResetRoomCreator(rUserId, rNodeId)
 	//未开始游戏定时器
 	r.TimerMgr.StartCreatorTimer(func() {
 		roomLogData := datalog.RoomLog{}
-		logData := roomLogData.GetRoomLogRecode(roomId, r.Temp.KindID, r.Temp.ServerID)
+		logData := roomLogData.GetRoomLogRecode(r.DataMgr.GetRoomId(), r.Temp.KindID, r.Temp.ServerID)
 		roomLogData.UpdateGameLogRecode(logData, 4)
 		r.OnEventGameConclude(NO_START_GER_DISMISS)
 	})
@@ -143,12 +146,14 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	r.TimerMgr.ResetPlayCount()
 	//更新游戏服房间状态
 	r.Status = RoomStatusReady
-	//更新大厅房间状态
+	//更新大厅房间信息
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
-		RoomId: roomId,
-		OpName: "SetRoomStatus",
+		RoomId: r.DataMgr.GetRoomId(),
+		OpName: "SetRoomInfo",
 		Data: map[string]interface{}{
 			"RoomStatus": RoomStatusReady,
+			"NewCreator": rUserId,    //续费玩家id
+			"oldCreator": oldCreator, //旧房主
 		},
 	})
 	//重置其他(与玩法相关联的东西)
@@ -256,12 +261,12 @@ func (room *Entry_base) UserReady(args []interface{}) {
 }
 
 //玩家重登
-func (room *Entry_base) UserReLogin(args []interface{}) error {
+func (room *Entry_base) UserReLogin(args []interface{}) (interface{}, error) {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
 		log.Debug("UserReLogin not old user")
-		return nil
+		return false, nil
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
@@ -275,7 +280,7 @@ func (room *Entry_base) UserReLogin(args []interface{}) error {
 	if room.Temp.OffLineTrustee == 1 {
 		room.OnUserTrusteeCb(u.ChairId, false)
 	}
-	return nil
+	return true, nil
 }
 
 //玩家离线
@@ -492,7 +497,7 @@ func (room *Entry_base) OnRoomTrustee() bool {
 	var AddPlayCount func()
 	AddPlayCount = func() {
 		if room.TimerMgr.GetPlayCount() < room.TimerMgr.GetMaxPlayCnt() {
-			room.TimerMgr.AddPlayCount()
+			room.TimerMgr.AddPlayCount()                  //TODO jianhui 这边加局数，玩家重新介入游戏，全部准备，并开始游戏，局数会出错
 			RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数
 				RoomId: room.DataMgr.GetRoomId(),
 				OpName: "AddPlayCnt",
