@@ -1527,9 +1527,6 @@ func (room *RoomData) NormalEnd(cbReason int) {
 	GameConclude.DetailScore = room.HistorySe.DetailScore
 	//发送数据
 	room.MjBase.UserMgr.SendMsgAll(GameConclude)
-
-	//写入积分 todo
-	room.MjBase.UserMgr.WriteTableScore(ScoreInfoArray, room.MjBase.UserMgr.GetMaxPlayerCnt(), HZMJ_CHANGE_SOURCE)
 }
 
 //解散结束
