@@ -263,18 +263,11 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 		return
 	}
 
-	r := RoomMgr.GetRoom(recvMsg.TableID)
+	r := RoomMgr.GetRoom(player.RoomId)
 	if r == nil {
-		if player.RoomId != 0 {
-			r = RoomMgr.GetRoom(player.RoomId)
-		} else {
-			player.RoomId = recvMsg.TableID
-		}
-		if r == nil {
-			retCode = ErrNoFoudRoom
-			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
-			return
-		}
+		retCode = ErrNoFoudRoom
+		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
+		return
 	}
 
 	r.GetChanRPC().Go("Sitdown", recvMsg.ChairID, player)
