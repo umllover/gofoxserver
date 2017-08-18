@@ -55,6 +55,7 @@ type DataManager interface {
 	GetRoomId() int
 	GetCreator() int64
 	GetCreatorNodeId() int
+	ResetRoomCreator(uid int64, nodeid int)
 	GetProvideUser() int
 	IsActionDone() bool
 	GetUserScore(chairid int) int

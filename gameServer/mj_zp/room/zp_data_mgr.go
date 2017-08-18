@@ -149,32 +149,13 @@ func (room *ZP_RoomData) BeforeStartGame(UserCnt int) {
 
 func (room *ZP_RoomData) StartGameing() {
 	log.Debug("开始漳浦游戏")
-	if room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
-		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
-
-		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
-			log.Debug("超时插花")
-			for i := 0; i < 4; i++ {
-				_, ok := room.ChaHuaMap[i]
-				if !ok {
-					room.ChaHuaMap[i] = 0
-				}
-			}
-			//洗牌
-			room.StartDispatchCard()
-			//向客户端发牌
-			room.SendGameStart()
-			//开局补花
-			room.InitBuHua()
-			//庄家开局动作
-			room.InitBankerAction()
-			//检查自摸
-			room.CheckTingCard()
-			//定时
-			u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
-			room.InitOutCardTimer(u)
-		})
-	} else {
+	//开局后处理
+	startGameAction := func() {
+		if room.BankerUser == INVALID_CHAIR {
+			//选取庄家
+			room.ElectionBankerUser()
+		}
+		//洗牌
 		room.StartDispatchCard()
 		//向客户端发牌
 		room.SendGameStart()
@@ -188,6 +169,21 @@ func (room *ZP_RoomData) StartGameing() {
 		u := room.MjBase.UserMgr.GetUserByChairId(room.BankerUser)
 		room.InitOutCardTimer(u)
 	}
+	if room.MjBase.TimerMgr.GetPlayCount() == 1 && room.WithChaHua == true {
+		room.MjBase.UserMgr.SendMsgAll(&mj_zp_msg.G2C_MJZP_NotifiChaHua{})
+		room.ChaHuaTime = room.MjBase.AfterFunc(time.Duration(room.MjBase.Temp.OperateCardTime)*time.Second, func() {
+			log.Debug("超时插花")
+			for i := 0; i < 4; i++ {
+				_, ok := room.ChaHuaMap[i]
+				if !ok {
+					room.ChaHuaMap[i] = 0
+				}
+			}
+			startGameAction()
+		})
+	} else {
+		startGameAction()
+	}
 }
 
 func (room *ZP_RoomData) AfterStartGame() {
@@ -197,6 +193,7 @@ func (room *ZP_RoomData) AfterStartGame() {
 func (room *ZP_RoomData) ResetGameAfterRenewal() {
 	room.LianZhuang = 0
 	room.ChaHuaMap = make(map[int]int)
+	room.BankerUser = INVALID_CHAIR
 	room.ResetUserScore() //重置用户所有积分
 }
 
@@ -355,11 +352,6 @@ func (room *ZP_RoomData) StartDispatchCard() {
 
 	log.Debug("======房间Id：%d", room.ID)
 
-	//选取庄家
-	if room.BankerUser == INVALID_CHAIR {
-		_, room.BankerUser = room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
-	}
-
 	//分发扑克
 	userMgr.ForEachUser(func(u *user.User) {
 		for i := 0; i < room.GetCfg().MaxCount-1; i++ {
@@ -388,12 +380,10 @@ func (room *ZP_RoomData) StartDispatchCard() {
 	//temp[3] = 3 //三张四同
 	//temp[4] = 3 //三张五同
 	//temp[5] = 2
-	////room.FlowerCnt[0] = 1 //花牌
+	////room.FlowerCnt[room.BankerUser] = 1 //花牌
 	//room.SendCardData = 0x06
-	//room.CardIndex[0] = temp
-	//GetCardWordArray(room.CardIndex[0])
-	//log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-	//log.Debug("room.CardIndex:%v", room.CardIndex[0])
+	//room.CardIndex[room.BankerUser] = temp
+	//GetCardWordArray(room.CardIndex[room.BankerUser])
 	//for k := range room.RepertoryCard {
 	//	room.RepertoryCard[k] = 0x01
 	//}
@@ -637,11 +627,11 @@ func (room *ZP_RoomData) NormalEnd(cbReason int) {
 		//胡牌分
 		GameConclude.GameScore[u.ChairId] = room.SumScore[u.ChairId]
 
-		//收税
-		if GameConclude.GameScore[u.ChairId] > 0 && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi {
-			GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
-			GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
-		}
+		////收税
+		//if GameConclude.GameScore[u.ChairId] > 0 && room.MjBase.Temp.GameType == GAME_GENRE_BISAI {
+		//	GameConclude.Revenue[u.ChairId] = room.CalculateRevenue(u.ChairId, GameConclude.GameScore[u.ChairId])
+		//	GameConclude.GameScore[u.ChairId] -= GameConclude.Revenue[u.ChairId]
+		//}
 
 		ScoreInfoArray[u.ChairId] = &msg.TagScoreInfo{}
 		ScoreInfoArray[u.ChairId].Revenue = GameConclude.Revenue[u.ChairId]

@@ -38,6 +38,7 @@ type DataManager interface {
 	//
 	GetCreatorNodeId() int
 	GetCreator() int64
+	ResetRoomCreator(uid int64, nodeid int)
 }
 
 type LogicManager interface {

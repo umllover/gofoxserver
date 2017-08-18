@@ -236,8 +236,14 @@ func updateRoom(args []interface{}) {
 			}
 		}
 
-	case "SetRoomStatus":
+	case "SetRoomInfo":
 		room.Status = int(info.Data["RoomStatus"].(float64))
+		newCreator := int64(info.Data["NewCreator"].(float64))
+		oldCreator := int64(info.Data["oldCreator"].(float64))
+		if newCreator != oldCreator {
+			//TODO 怎么取到玩家对象？
+			//newUser, _ := room.UserMgr.GetUserByUid(newCreator)
+		}
 	}
 
 }
@@ -470,7 +476,7 @@ func GetRoomsStatus(args []interface{}) (interface{}, error) {
 	for _, id := range ids {
 		r, ok := roomList[id]
 		if ok {
-			log.Debug("33333333333333333333 %v", r.Status)
+			//log.Debug("33333333333333333333 %v", r.Status)
 			retm[id] = r.Status
 		}
 	}
