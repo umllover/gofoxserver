@@ -145,6 +145,13 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		retcode = ret
 		return
 	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at load user  not foud room .roomID :%v, not foud :%v", user.RoomId)
+		retcode = ErrNotFoundRoom
+		return
+	}
 	user.ChairId = INVALID_CHAIR
 
 	oldUser := getUser(accountData.UserID)
@@ -156,13 +163,12 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	user.Agent = agent
 	agent.SetUserData(user)
-	if user.RoomId != 0 {
-		r := RoomMgr.GetRoom(user.RoomId)
-		if r != nil { //原来房间没关闭，投递个消息看下原来是否在房间内
-			r.GetChanRPC().Call0("userRelogin", user)
-		}
-	}
 
+	//投递消息， 检测下重登
+	hasUser, _ := r.GetChanRPC().Call1("userRelogin", user)
+	if !hasUser.(bool) {
+		log.Debug("new user login .............")
+	}
 	AddUser(user.Id, user)
 
 	agent.WriteMsg(&msg.G2C_ConfigServer{
@@ -415,12 +421,6 @@ func loadUser(u *client.User) int {
 
 	if locker.EnterIP == "" || locker.Roomid == 0 {
 		log.Error("loadUser data is error locker .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
-		return ErrNotFoundRoom
-	}
-
-	r := RoomMgr.GetRoom(locker.Roomid)
-	if r == nil {
-		log.Error("at load user  not foud room .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
 		return ErrNotFoundRoom
 	}
 

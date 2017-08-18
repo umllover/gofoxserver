@@ -261,12 +261,12 @@ func (room *Entry_base) UserReady(args []interface{}) {
 }
 
 //玩家重登
-func (room *Entry_base) UserReLogin(args []interface{}) error {
+func (room *Entry_base) UserReLogin(args []interface{}) (interface{}, error) {
 	u := args[0].(*user.User)
 	roomUser := room.getRoomUser(u.Id)
 	if roomUser == nil {
 		log.Debug("UserReLogin not old user")
-		return nil
+		return false, nil
 	}
 	log.Debug("at ReLogin have old user ")
 	u.ChairId = roomUser.ChairId
@@ -280,7 +280,7 @@ func (room *Entry_base) UserReLogin(args []interface{}) error {
 	if room.Temp.OffLineTrustee == 1 {
 		room.OnUserTrusteeCb(u.ChairId, false)
 	}
-	return nil
+	return true, nil
 }
 
 //玩家离线
