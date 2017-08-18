@@ -402,7 +402,8 @@ func (room *ddz_data_mgr) SendGameStart() {
 		// 随机选一张牌为癞子牌
 		room.LiziCard = util.RandInterval(1, 13)
 		GameStart.LiziCard = room.LiziCard
-		room.PkBase.LogicMgr.SetParamToLogic(room.LiziCard)
+
+		room.GetLogic().SetLaizi(room.LiziCard)
 	}
 
 	// 取上一次赢的玩家
@@ -1145,4 +1146,9 @@ func (r *ddz_data_mgr) stopOperateCardTimer() {
 		r.CardTimer.Stop()
 		r.CardTimer = nil
 	}
+}
+
+// 算法逻辑对象转换
+func (r *ddz_data_mgr) GetLogic() *ddz_logic {
+	return r.PkBase.LogicMgr.(*ddz_logic)
 }

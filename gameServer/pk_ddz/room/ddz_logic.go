@@ -783,7 +783,7 @@ func (dg *ddz_logic) AnalysebCardData(CardData []int, AnalyseResult *DdzAnalyseR
 }
 
 // 设置癞子牌
-func (dg *ddz_logic) SetParamToLogic(args interface{}) {
+func (dg *ddz_logic) SetLaizi(args interface{}) {
 	dg.LizeCard = args.(int)
 }
 
