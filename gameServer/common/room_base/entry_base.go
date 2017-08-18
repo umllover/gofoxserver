@@ -133,6 +133,7 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 
 	//旧房主uid
 	oldCreator := r.DataMgr.GetCreator()
+	oldCreatorNodeId := r.DataMgr.GetCreatorNodeId()
 	//续费的人成为新房主
 	r.DataMgr.ResetRoomCreator(rUserId, rNodeId)
 	//未开始游戏定时器
@@ -156,6 +157,10 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 			"oldCreator": oldCreator, //旧房主
 		},
 	})
+	//删除旧房主开房记录
+	if oldCreator != rUserId {
+		cluster.SendMsgToHallUser(oldCreatorNodeId, oldCreator, &msg.DelRoomRecord{RoomId: r.DataMgr.GetRoomId()})
+	}
 	//重置其他(与玩法相关联的东西)
 	r.DataMgr.ResetGameAfterRenewal()
 

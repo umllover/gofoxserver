@@ -265,11 +265,6 @@ func updateRoom(args []interface{}) {
 				info.RoomName = room.RoomName
 				center.SendToThisNodeUser(newCreator, "AddRoomRecord", info)
 			}
-			//删除旧房主开房记录
-			oldPlayer, ok := room.Players[oldCreator]
-			if ok && oldPlayer.HallNodeName == conf.ServerName() {
-				center.SendToThisNodeUser(oldCreator, "DelRoomRecord", &msg.DelRoomRecord{RoomId: room.RoomID})
-			}
 		}
 	}
 
