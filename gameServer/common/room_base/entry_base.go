@@ -447,7 +447,7 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case USER_LEAVE: //用户请求解散
-		room.DataMgr.NormalEnd(cbReason)
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case NO_START_GER_DISMISS: //没开始就解散
 		room.DataMgr.DismissEnd(cbReason)
