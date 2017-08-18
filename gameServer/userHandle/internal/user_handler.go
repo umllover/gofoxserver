@@ -250,11 +250,6 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 			player.WriteMsg(RenderErrorMessage(retCode))
 		}
 	}()
-	if player.KindID == 0 {
-		log.Error("UserSitdown not foud module, userid:%d", player.Id)
-		retCode = ErrNoFoudRoom
-		return
-	}
 
 	//状态错误
 	if player.Status > US_SIT {
@@ -287,12 +282,6 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 			user.WriteMsg(RenderErrorMessage(retCode))
 		}
 	}()
-	if user.KindID == 0 {
-		log.Error("at SetGameOption not foud module userid:%d", user.Id)
-		retCode = ErrNoFoudRoom
-		return
-	}
-
 	if user.RoomId == 0 {
 		log.Error("at SetGameOption not foud roomd id userid:%d", user.Id)
 		retCode = ErrNoFoudRoom
@@ -311,11 +300,6 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 
 func (m *UserModule) UserReady(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
 	if user.RoomId == 0 {
 		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
 		return
@@ -332,10 +316,6 @@ func (m *UserModule) UserReady(args []interface{}) {
 }
 func (m *UserModule) GetUserChairInfo(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
 
 	if user.RoomId == 0 {
 		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
@@ -354,11 +334,6 @@ func (m *UserModule) GetUserChairInfo(args []interface{}) {
 //起立
 func (m *UserModule) UserStandup(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
 	if user.RoomId == 0 {
 		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
 		return
