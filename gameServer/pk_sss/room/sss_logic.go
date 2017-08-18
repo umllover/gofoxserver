@@ -4,6 +4,8 @@ import (
 	"mj/gameServer/common/pk/pk_base"
 
 	//dbg "github.com/funny/debug"
+	"fmt"
+
 	"github.com/lovelly/leaf/log"
 	"github.com/lovelly/leaf/util"
 )
@@ -73,6 +75,12 @@ func NewSssZLogic(ConfigIdx int) *sss_logic {
 	l.BaseLogic = pk_base.NewBaseLogic(ConfigIdx)
 	l.LaiZhiSubstitute = -1
 	return l
+}
+
+func Assert(v bool, error string) {
+	if !v {
+		panic(fmt.Sprintf("assert failed: %s", error))
+	}
 }
 
 func (lg *sss_logic) RandCardList(cbCardBuffer, OriDataArray []int) {
@@ -600,10 +608,7 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 	bFirstCount := len(bInFirstList.Item.cardData)
 	bNextCount := len(bInNextList.Item.cardData)
 
-	if bFirstCount != bNextCount {
-		//todo验证
-		return 0
-	}
+	Assert(bFirstCount == bNextCount, "比牌张数不一致")
 
 	FirstAnalyseData := new(TagAnalyseItem)
 	NextAnalyseData := new(TagAnalyseItem)
@@ -622,9 +627,8 @@ func (lg *sss_logic) SSSCompareCard(bInFirstList sssCardType, bInNextList sssCar
 	nextIsLaiZi := bInNextList.isLaiZi
 	firstIsLaiZi := bInFirstList.isLaiZi
 
-	if CT_INVALID == bFirstType || CT_INVALID == bNextType {
-		return -1
-	}
+	Assert(bFirstType != CT_INVALID && bNextType != CT_INVALID, "存在未知牌型")
+
 	//三张牌型
 	if 3 == bFirstCount {
 		//开始对比
