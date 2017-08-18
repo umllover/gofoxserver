@@ -282,11 +282,6 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 			user.WriteMsg(RenderErrorMessage(retCode))
 		}
 	}()
-	if user.RoomId == 0 {
-		log.Error("at SetGameOption not foud roomd id userid:%d", user.Id)
-		retCode = ErrNoFoudRoom
-		return
-	}
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
@@ -300,31 +295,36 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 
 func (m *UserModule) UserReady(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
-		return
-	}
-
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		log.Error("at UserReady not foud roomd userid:%d， roomID:%d", user.Id, user.RoomId)
+		retCode = ErrNoFoudRoom
 		return
 	}
 	log.Debug("UserReady KindID=%d, RoomId=%d, userId=%d, ChairId=%d", user.KindID, user.RoomId, user.Id, user.ChairId)
 	r.GetChanRPC().Go("UserReady", args[0], user)
 
 }
+
 func (m *UserModule) GetUserChairInfo(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
-		return
-	}
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
