@@ -89,10 +89,6 @@ func (lg *BaseLogic) GetCardType(cardData []int) int {
 	return 0
 }
 
-func (lg *BaseLogic) SetParamToLogic(args interface{}) {
-
-}
-
 // RemoveCard：需要删除的牌 handCard：手牌
 func (lg *BaseLogic) RemoveCardList(RemoveCard []int, handCard []int) ([]int, bool) {
 
