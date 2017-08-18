@@ -264,33 +264,6 @@ func (room *Mj_base) UserOperateCard(args []interface{}) {
 	}
 }
 
-////todo,房间托管
-//func (room *Mj_base) OnRoomTrustee() {
-//	TrusteeCnt := 0
-//	room.UserMgr.ForEachUser(func(u *user.User) {
-//		if room.UserMgr.IsTrustee(u.ChairId) {
-//			TrusteeCnt++
-//		}
-//	})
-//
-//	var AddPlayCount func()
-//	AddPlayCount = func() {
-//		if room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
-//			room.TimerMgr.AddPlayCount()
-//			room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
-//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 局数+1 总局数;%d", room.TimerMgr.GetPlayCount())
-//		} else {
-//			room.OnEventGameConclude(GER_NORMAL)
-//			log.Debug("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 游戏结束 总局数;%d", room.TimerMgr.GetPlayCount())
-//		}
-//	}
-//
-//	if TrusteeCnt == room.UserMgr.GetMaxPlayerCnt() && room.TimerMgr.GetPlayCount() <= room.TimerMgr.GetMaxPlayCnt() {
-//		log.Debug("进入房间托管")
-//		room.RoomTrusteeTimer = room.AfterFunc(time.Duration(room.Temp.TimeRoomTrustee)*time.Second, AddPlayCount)
-//	}
-//}
-
 //托管
 func (room *Mj_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 

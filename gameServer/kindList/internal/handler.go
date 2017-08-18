@@ -83,7 +83,7 @@ func RenewalFee(args []interface{}) {
 		return
 	}
 
-	ret, err := room.GetChanRPC().Call1("RenewalFeesSetInfo", recvMsg.AddCnt, recvMsg.UserId)
+	ret, err := room.GetChanRPC().Call1("RenewalFeesSetInfo", recvMsg.AddCnt, recvMsg.UserId, recvMsg.HallNodeID)
 	if err != nil {
 		retCode = ret.(int)
 		retErr = err

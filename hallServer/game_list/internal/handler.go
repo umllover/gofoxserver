@@ -236,8 +236,36 @@ func updateRoom(args []interface{}) {
 			}
 		}
 
-	case "SetRoomStatus":
+	case "SetRoomInfo":
+		//更新房间状态
 		room.Status = int(info.Data["RoomStatus"].(float64))
+		//更新玩家开房记录
+		newCreator := int64(info.Data["NewCreator"].(float64))
+		oldCreator := int64(info.Data["oldCreator"].(float64))
+		if newCreator != oldCreator {
+			//新房主增加开房记录
+			newPlayer, ok := room.Players[newCreator]
+			if ok && newPlayer.HallNodeName == conf.ServerName() {
+				info := &model.CreateRoomInfo{}
+				info.UserId = newCreator
+				info.PayType = room.PayType
+				info.MaxPlayerCnt = room.MaxPlayerCnt
+				info.RoomId = room.RoomID
+				info.NodeId = room.NodeID
+				info.Num = room.RoomPlayCnt
+				info.KindId = room.KindID
+				info.ServiceId = room.ServerID
+				now := time.Now()
+				info.CreateTime = &now
+				if room.IsPublic {
+					info.Public = 1
+				} else {
+					info.Public = 0
+				}
+				info.RoomName = room.RoomName
+				center.SendToThisNodeUser(newCreator, "AddRoomRecord", info)
+			}
+		}
 	}
 
 }
@@ -470,7 +498,7 @@ func GetRoomsStatus(args []interface{}) (interface{}, error) {
 	for _, id := range ids {
 		r, ok := roomList[id]
 		if ok {
-			log.Debug("33333333333333333333 %v", r.Status)
+			//log.Debug("33333333333333333333 %v", r.Status)
 			retm[id] = r.Status
 		}
 	}

@@ -32,3 +32,13 @@ func TestCompareCard1(t *testing.T) {
 	}
 }
 
+
+func TestCompareCard2(t *testing.T) {
+	bankerData := []int { 45, 28, 25, 22, 5}
+	playerData := []int { 61, 9, 40, 2, 1}
+	nn_logic := NewNNTBZLogic(pk_base.IDX_TBNN)
+	if nn_logic.CompareCard(bankerData, playerData) {
+		t.Error( "banker win is error ", bankerData, playerData)
+	} 
+}
+

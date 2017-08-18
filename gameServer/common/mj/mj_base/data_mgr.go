@@ -111,6 +111,7 @@ func (room *RoomData) GetDataMgr() DataManager {
 }
 
 func (room *RoomData) InitRoomOne() {
+	room.BankerUser = INVALID_CHAIR
 	room.HistorySe = &HistoryScore{AllScore: make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())}
 }
 
@@ -132,6 +133,11 @@ func (room *RoomData) GetCreator() int64 {
 
 func (room *RoomData) GetCreatorNodeId() int {
 	return room.CreatorNodeId
+}
+
+func (room *RoomData) ResetRoomCreator(uid int64, nodeid int) {
+	room.CreatorUid = uid
+	room.CreatorNodeId = nodeid
 }
 
 func (room *RoomData) GetCfg() *MJ_CFG {
@@ -1901,7 +1907,7 @@ func (room *RoomData) IsHuaGang(pAnalyseItem *TagAnalyseItem, FlowerCnt []int) i
 func (room *RoomData) IsAnKe(pAnalyseItem *TagAnalyseItem) int {
 	anKeCount := 0
 	for k, v := range pAnalyseItem.WeaveKind {
-		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true {
+		if v == WIK_PENG && pAnalyseItem.IsAnalyseGet[k] == true && room.HuOfCard != pAnalyseItem.CenterCard[k] {
 			anKeCount++
 		}
 	}
@@ -1964,7 +1970,7 @@ func (room *RoomData) IsXiaoSiXi(pAnalyseItem *TagAnalyseItem) int {
 	if colorCount[0]+colorCount[1]+colorCount[2]+colorCount[3] == 3 {
 		for k, v := range colorCount {
 			if v == 0 {
-				if k+1 == pAnalyseItem.CardEye&MASK_VALUE {
+				if k+1 == pAnalyseItem.CardEye&MASK_VALUE && pAnalyseItem.CardEye>>4 == 3 {
 					return CHR_XIAO_SI_XI
 				}
 			}
@@ -2010,7 +2016,7 @@ func (room *RoomData) IsXiaoSanYuan(pAnalyseItem *TagAnalyseItem) int {
 	if colorCount[0]+colorCount[1]+colorCount[2] == 2 {
 		for k, v := range colorCount {
 			if v == 0 {
-				if k == (pAnalyseItem.CardEye&MASK_VALUE)-5 {
+				if k == (pAnalyseItem.CardEye&MASK_VALUE)-5 && pAnalyseItem.CardEye>>4 == 3 {
 					return CHR_XIAO_SAN_YUAN
 				}
 			}
@@ -2353,24 +2359,20 @@ func (room *RoomData) GetLastCard() (card int) {
 
 //选举庄家
 func (room *RoomData) ElectionBankerUser() {
-	userMgr := room.MjBase.UserMgr
-	OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
-	if room.BankerUser == INVALID_CHAIR && room.MjBase.Temp.GameType == GAME_GENRE_ZhuanShi { //房卡模式下先把庄家给房主
-		if OwnerUser != nil {
-			room.BankerUser = OwnerUser.ChairId
-		} else {
-			log.Error("get bamkerUser error at StartGame")
-		}
+	if room.BankerUser == INVALID_CHAIR {
+		//TODO 后面有需要根据骰子结果随机的话再处理吧
+		//骰子大小: room.SiceCount
+		//目前先这样随机吧
+		room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
 	} else {
-		//庄家设置
+		//OwnerUser, _ := room.MjBase.UserMgr.GetUserByUid(room.CreatorUid)
+		userMgr := room.MjBase.UserMgr
 		if room.BankerUser == room.ProvideUser {
-			room.BankerUser = room.ProvideUser
 			room.ChangeBanker = false
 		} else {
 			room.BankerUser = (room.BankerUser - 1 + userMgr.GetCurPlayerCnt()) % userMgr.GetCurPlayerCnt()
 			room.ChangeBanker = true
 		}
-		//room.BankerUser, _ = utils.RandInt(0, room.MjBase.UserMgr.GetCurPlayerCnt())
 	}
 }
 

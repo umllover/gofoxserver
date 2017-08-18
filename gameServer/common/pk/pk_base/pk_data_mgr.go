@@ -79,12 +79,17 @@ func (room *RoomData) GetUserScore(chairid int) int {
 	return room.InitScoreMap[chairid]
 }
 
+func (r *RoomData) GetCreator() int64 {
+	return r.CreatorUid
+}
+
 func (r *RoomData) GetCreatorNodeId() int {
 	return r.CreatorNodeId
 }
 
-func (r *RoomData) GetCreator() int64 {
-	return r.CreatorUid
+func (room *RoomData) ResetRoomCreator(uid int64, nodeid int) {
+	room.CreatorUid = uid
+	room.CreatorNodeId = nodeid
 }
 
 func (r *RoomData) OnCreateRoom() {

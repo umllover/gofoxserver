@@ -45,4 +45,5 @@ func init() {
 	cluster.Processor.Register(&msg.S2S_CloseRoom{})
 	cluster.Processor.Register(&msg.S2S_RenewalFeeResult{})
 	cluster.Processor.Register(&msg.OfflineAddElectId{})
+	cluster.Processor.Register(&msg.DelRoomRecord{})
 }

@@ -14,7 +14,6 @@ import (
 	client "mj/gameServer/user"
 
 	"github.com/lovelly/leaf/log"
-	"github.com/lovelly/leaf/nsq/cluster"
 )
 
 func RegisterHandler(m *UserModule) {
@@ -146,6 +145,13 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 		retcode = ret
 		return
 	}
+
+	r := RoomMgr.GetRoom(user.RoomId)
+	if r == nil {
+		log.Error("at load user  not foud room .roomID :%v, not foud :%v", user.RoomId)
+		retcode = ErrNotFoundRoom
+		return
+	}
 	user.ChairId = INVALID_CHAIR
 
 	oldUser := getUser(accountData.UserID)
@@ -157,13 +163,12 @@ func (m *UserModule) handleMBLogin(args []interface{}) {
 
 	user.Agent = agent
 	agent.SetUserData(user)
-	if user.RoomId != 0 {
-		r := RoomMgr.GetRoom(user.RoomId)
-		if r != nil { //原来房间没关闭，投递个消息看下原来是否在房间内
-			r.GetChanRPC().Call0("userRelogin", user)
-		}
-	}
 
+	//投递消息， 检测下重登
+	hasUser, _ := r.GetChanRPC().Call1("userRelogin", user)
+	if !hasUser.(bool) {
+		log.Debug("new user login .............")
+	}
 	AddUser(user.Id, user)
 
 	agent.WriteMsg(&msg.G2C_ConfigServer{
@@ -248,15 +253,9 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 	retCode := 0
 	defer func() {
 		if retCode != 0 {
-			cluster.SendMsgToHallUser(player.HallNodeId, player.Id, &msg.RoomReturnMoney{RoomId: player.RoomId, CreatorUid: player.Id})
 			player.WriteMsg(RenderErrorMessage(retCode))
 		}
 	}()
-	if player.KindID == 0 {
-		log.Error("UserSitdown not foud module, userid:%d", player.Id)
-		retCode = ErrNoFoudRoom
-		return
-	}
 
 	//状态错误
 	if player.Status > US_SIT {
@@ -264,18 +263,11 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 		return
 	}
 
-	r := RoomMgr.GetRoom(recvMsg.TableID)
+	r := RoomMgr.GetRoom(player.RoomId)
 	if r == nil {
-		if player.RoomId != 0 {
-			r = RoomMgr.GetRoom(player.RoomId)
-		} else {
-			player.RoomId = recvMsg.TableID
-		}
-		if r == nil {
-			retCode = ErrNoFoudRoom
-			log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
-			return
-		}
+		retCode = ErrNoFoudRoom
+		log.Error("at UserSitdown not foud roomd userid:%d, roomId: %d and %d ", player.Id, player.RoomId, recvMsg.TableID)
+		return
 	}
 
 	r.GetChanRPC().Go("Sitdown", recvMsg.ChairID, player)
@@ -283,19 +275,17 @@ func (m *UserModule) UserSitdown(args []interface{}) {
 
 func (m *UserModule) SetGameOption(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at SetGameOption not foud module userid:%d", user.Id)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at SetGameOption not foud roomd id userid:%d", user.Id)
-		return
-	}
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at SetGameOption not foud roomd:%v, userid:%d", user.RoomId, user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
@@ -304,40 +294,36 @@ func (m *UserModule) SetGameOption(args []interface{}) {
 
 func (m *UserModule) UserReady(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
-		return
-	}
-
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
-		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		log.Error("at UserReady not foud roomd userid:%d， roomID:%d", user.Id, user.RoomId)
+		retCode = ErrNoFoudRoom
 		return
 	}
 	log.Debug("UserReady KindID=%d, RoomId=%d, userId=%d, ChairId=%d", user.KindID, user.RoomId, user.Id, user.ChairId)
 	r.GetChanRPC().Go("UserReady", args[0], user)
 
 }
+
 func (m *UserModule) GetUserChairInfo(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
-	if user.RoomId == 0 {
-		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
-		return
-	}
+	retCode := 0
+	defer func() {
+		if retCode != 0 {
+			user.WriteMsg(RenderErrorMessage(retCode))
+		}
+	}()
 
 	r := RoomMgr.GetRoom(user.RoomId)
 	if r == nil {
 		log.Error("at UserSitdown not foud roomd userid:%d", user.Id)
+		retCode = ErrNoFoudRoom
 		return
 	}
 
@@ -347,11 +333,6 @@ func (m *UserModule) GetUserChairInfo(args []interface{}) {
 //起立
 func (m *UserModule) UserStandup(args []interface{}) {
 	user := m.a.UserData().(*client.User)
-	if user.KindID == 0 {
-		log.Error("at UserSitdown not foud module userid:%d", user.Id)
-		return
-	}
-
 	if user.RoomId == 0 {
 		log.Error("at UserSitdown not foud roomd id userid:%d", user.Id)
 		return
@@ -433,12 +414,6 @@ func loadUser(u *client.User) int {
 
 	if locker.EnterIP == "" || locker.Roomid == 0 {
 		log.Error("loadUser data is error locker .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
-		return ErrNotFoundRoom
-	}
-
-	r := RoomMgr.GetRoom(locker.Roomid)
-	if r == nil {
-		log.Error("at load user  not foud room .roomID :%v, not foud :%v", locker.Roomid, locker.EnterIP)
 		return ErrNotFoundRoom
 	}
 

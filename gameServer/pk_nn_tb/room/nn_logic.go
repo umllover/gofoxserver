@@ -447,7 +447,7 @@ func (lg *nntb_logic) CompareCardOneType(firstData []int, nextData []int) bool {
 		if lg.GetCardValue(firstData[i]) != lg.GetCardValue(nextData[i]) {
 			return lg.GetCardValue(firstData[i]) > lg.GetCardValue(nextData[i])
 		} else if lg.GetCardColor(firstData[i]) != lg.GetCardColor(nextData[i]) {
-			return lg.GetCardColor(firstData[i]) > lg.GetCardValue(nextData[i])
+			return lg.GetCardColor(firstData[i]) > lg.GetCardColor(nextData[i])
 		}
 	}
 	return false

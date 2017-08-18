@@ -11,6 +11,7 @@ import (
 	"mj/common/msg/pk_common_msg"
 	"mj/gameServer/user"
 	"time"
+	"math/rand"
 
 	"mj/common/msg"
 
@@ -176,7 +177,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28003 player count %d", UserCnt)
+	log.Debug("nn init room version 28006 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
@@ -214,9 +215,10 @@ func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
 func (r *nntb_data_mgr) GetOneCard() int { // 从牌堆取出一张
 	r.LeftCardCount--
-	if r.LeftCardCount<0 {
-		log.Debug( "at get one card left count error :%d", r.LeftCardCount)
-	return 0}
+	if r.LeftCardCount < 0 {
+		log.Debug("at get one card left count error :%d", r.LeftCardCount)
+		return 0
+	}
 	return r.RepertoryCard[r.LeftCardCount]
 }
 
@@ -269,8 +271,9 @@ func (room *nntb_data_mgr) StartDispatchCard() {
 //正常结束房间
 func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 
-	if cbReason>0 { // 请求解散
-	return}
+	if cbReason > 0 { // 请求解散
+		return
+	}
 
 	userMgr := room.PkBase.UserMgr
 
@@ -399,12 +402,13 @@ func (r *nntb_data_mgr) IsAnyOneCallScore() bool {
 func (r *nntb_data_mgr) CallScoreEnd() {
 	r.CallScoreTimer.Stop()
 	r.SetAllUserGameStatus(GAME_STATUS_CALL_SCORE)
-	log.Debug("call score end")
+	log.Debug("nn call score end")
 	// 发回叫分结果
 	userMgr := r.PkBase.UserMgr
 	//如果没有任何人叫分
 	if !r.IsAnyOneCallScore() {
-		r.BankerUser = 0
+		rand.Seed(int64(time.Now().Nanosecond()))
+		r.BankerUser = rand.Intn(r.PlayerCount)
 		r.ScoreTimes = 1
 	}
 
@@ -652,7 +656,6 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	// 游戏结束
 	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
-
 }
 
 // 7选5
@@ -695,8 +698,5 @@ func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
 }
 
 func (room *nntb_data_mgr) ResetGameAfterRenewal() {
-	room.PkBase.Status = cost.RoomStatusReady
 	room.ResetUserScore() //重置用户所有积分
 }
-
-

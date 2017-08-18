@@ -122,7 +122,8 @@ const (
 
 ///////////////游戏模式.
 const (
-	GAME_GENRE_ZhuanShi = 1 // 比赛类型
+	GAME_GENRE_KAIFANG = 1 //开放类型
+	GAME_GENRE_BISAI   = 2 //比赛类型
 )
 
 /// 通用状态
@@ -151,6 +152,7 @@ const (
 	GER_DISMISS          = 1 //游戏解散
 	USER_LEAVE           = 2 //玩家请求解散
 	NO_START_GER_DISMISS = 3 //没开始就解散
+	ROOM_TRUSTEE         = 4 //房间托管结束
 )
 
 const (

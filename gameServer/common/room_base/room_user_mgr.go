@@ -9,7 +9,6 @@ import (
 	"mj/gameServer/db/model/base"
 	"mj/gameServer/user"
 
-	dataLog "mj/gameServer/log"
 	"time"
 
 	"runtime/debug"
@@ -143,23 +142,9 @@ func (r *RoomUserMgr) GetUserByUid(userId int64) (*user.User, int) {
 }
 
 func (r *RoomUserMgr) EnterRoom(chairId int, u *user.User, status int) bool {
-	if chairId == INVALID_CHAIR {
-		chairId = r.GetChairId()
-	}
-	if len(r.Users) <= chairId || chairId == -1 {
-		log.Error("at EnterRoom max chairId, user len :%d, chairId:%d", len(r.Users), chairId)
-		return false
-	}
-
-	if r.IsInRoom(u.Id) {
-		log.Debug("%v user is inroom,", u.Id)
-		return true
-	}
-
-	old := r.Users[chairId]
-	if old != nil {
-		log.Error("at chair %d have user", chairId)
-		return false
+	_, oldChairId := r.GetUserByUid(u.Id)
+	if oldChairId != -1 {
+		r.Users[oldChairId] = nil
 	}
 
 	r.Users[chairId] = u
@@ -353,7 +338,12 @@ func (room *RoomUserMgr) GetUserInfoByChairId(ChairID int) interface{} {
 
 //坐下
 func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
-
+	if ChairID == INVALID_CHAIR {
+		ChairID = room.GetChairId()
+		if ChairID == -1 {
+			return ErrRoomFull
+		}
+	}
 	oldUser := room.GetUserByChairId(ChairID)
 	if oldUser != nil {
 		return ChairHasUser
@@ -374,19 +364,6 @@ func (room *RoomUserMgr) Sit(u *user.User, ChairID int, status int) int {
 	room.NotifyUserInfo(u)
 
 	room.SetUsetStatus(u, US_SIT)
-
-	info, err := model.CreateRoomInfoOp.GetByMap(map[string]interface{}{
-		"room_id": room.id,
-	})
-	if err != nil || info == nil {
-		log.Error("获取房间创建信息失败:%v", err)
-	}
-
-	//搜集进入房间费信息
-
-	getinRoom := dataLog.GetinRoomLog{}
-	getinRoom.AddGetinRoomLogInfo(info.RoomId, u.Id, info.KindId, info.ServiceId, info.RoomName, info.NodeId, info.Num, info.Status, info.MaxPlayerCnt, info.PayType, info.Public)
-
 	return 0
 }
 
