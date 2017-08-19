@@ -453,7 +453,7 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case ROOM_TRUSTEE: //房间托管结束
-		room.DataMgr.NormalEnd(cbReason)
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(false, cbReason)
 	}
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)
