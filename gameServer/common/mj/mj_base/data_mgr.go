@@ -129,6 +129,9 @@ func (room *RoomData) GetUserScore(chairid int) int {
 func (room *RoomData) ResetUserScore() {
 	room.HistorySe.AllScore = make([]int, room.MjBase.UserMgr.GetMaxPlayerCnt())
 	room.HistorySe.DetailScore = [][]int{}
+	room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
+		u.Score = 0
+	})
 }
 
 func (room *RoomData) GetCreator() int64 {
