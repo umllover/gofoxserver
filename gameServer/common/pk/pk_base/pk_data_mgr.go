@@ -175,6 +175,9 @@ func (room *RoomData) InitRoomOne() {
 func (room *RoomData) ResetUserScore() {
 	room.EachRoundScoreMap = make(map[int][]int)
 	room.InitScoreMap = make(map[int]int)
+	room.PkBase.UserMgr.ForEachUser(func(u *user.User) {
+		u.Score = 0
+	})
 	log.Debug("reset each round score:%v, init score:%v", room.EachRoundScoreMap, room.InitScoreMap)
 }
 
