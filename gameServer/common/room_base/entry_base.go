@@ -392,7 +392,8 @@ func (room *Entry_base) OnRecUserTrustee(args []interface{}) {
 //玩家离开房间
 func (room *Entry_base) ReqLeaveRoom(args []interface{}) (interface{}, error) {
 	player := args[0].(*user.User)
-	if room.Status == RoomStatusStarting {
+	log.Debug("ReqLeaveRoom room.Status=%d", room.Status)
+	if room.Status == RoomStatusStarting || room.Status == RoomStatusEnd {
 		room.UserMgr.AddLeavePly(player.Id)
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
