@@ -147,6 +147,10 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	r.TimerMgr.ResetPlayCount()
 	//更新游戏服房间状态
 	r.Status = RoomStatusReady
+	//删除旧房主开房记录
+	if oldCreator != rUserId {
+		cluster.SendMsgToHallUser(oldCreatorNodeId, oldCreator, &msg.DelRoomRecord{RoomId: r.DataMgr.GetRoomId()})
+	}
 	//更新大厅房间信息
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.DataMgr.GetRoomId(),
@@ -157,10 +161,6 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 			"oldCreator": oldCreator, //旧房主
 		},
 	})
-	//删除旧房主开房记录
-	if oldCreator != rUserId {
-		cluster.SendMsgToHallUser(oldCreatorNodeId, oldCreator, &msg.DelRoomRecord{RoomId: r.DataMgr.GetRoomId()})
-	}
 	//重置其他(与玩法相关联的东西)
 	r.DataMgr.ResetGameAfterRenewal()
 
