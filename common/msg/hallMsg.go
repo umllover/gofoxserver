@@ -109,7 +109,7 @@ type L2C_UserIndividual struct {
 	PhomeNumber string //电话号码
 	Sign        string //个性签名
 	Star        int    //赞数
-	ElectUid    string //推荐人id
+	ElectUid    int64  //推荐人id
 }
 
 //请求房间列表

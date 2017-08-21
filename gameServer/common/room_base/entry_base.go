@@ -236,7 +236,10 @@ func (room *Entry_base) UserReady(args []interface{}) {
 	if u.Status != US_PLAYING {
 		room.UserMgr.SetUsetStatus(u, US_READY)
 	}
+	room.CheckStart()
+}
 
+func (room *Entry_base) CheckStart() {
 	if room.UserMgr.IsAllReady() {
 		room.UserMgr.ResetBeginPlayer()
 		RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{ //通知大厅服这个房间加局数

@@ -401,6 +401,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 			Star:        userAttr.Star,
 			Sign:        userAttr.Sign,
 			PhomeNumber: "",
+			ElectUid:    player.ElectUid,
 		}
 	}
 
