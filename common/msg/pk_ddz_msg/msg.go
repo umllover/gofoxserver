@@ -113,6 +113,7 @@ type G2C_DDZ_GameStart struct {
 	LiziCard      int     // 癞子牌
 	ShowCard      []bool  // 明牌信息
 	CardData      [][]int // 扑克列表
+	CardCount     []int   // 扑克数量
 }
 
 //用户叫分

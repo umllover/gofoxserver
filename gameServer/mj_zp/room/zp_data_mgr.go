@@ -1634,9 +1634,6 @@ func (room *ZP_RoomData) CallGangScore() {
 	//暗杠得分
 	if room.GangStatus == WIK_AN_GANG {
 		room.MjBase.UserMgr.ForEachUser(func(u *user.User) {
-			if u.Status != US_PLAYING {
-				return
-			}
 			if u.ChairId != room.CurrentUser {
 				room.UserGangScore[u.ChairId] -= lcell
 				room.UserGangScore[room.CurrentUser] += lcell

@@ -147,6 +147,10 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 	r.TimerMgr.ResetPlayCount()
 	//更新游戏服房间状态
 	r.Status = RoomStatusReady
+	//删除旧房主开房记录
+	if oldCreator != rUserId {
+		cluster.SendMsgToHallUser(oldCreatorNodeId, oldCreator, &msg.DelRoomRecord{RoomId: r.DataMgr.GetRoomId()})
+	}
 	//更新大厅房间信息
 	RoomMgr.UpdateRoomToHall(&msg.UpdateRoomInfo{
 		RoomId: r.DataMgr.GetRoomId(),
@@ -157,10 +161,6 @@ func (r *Entry_base) RenewalFeesSetInfo(args []interface{}) (interface{}, error)
 			"oldCreator": oldCreator, //旧房主
 		},
 	})
-	//删除旧房主开房记录
-	if oldCreator != rUserId {
-		cluster.SendMsgToHallUser(oldCreatorNodeId, oldCreator, &msg.DelRoomRecord{RoomId: r.DataMgr.GetRoomId()})
-	}
 	//重置其他(与玩法相关联的东西)
 	r.DataMgr.ResetGameAfterRenewal()
 
@@ -392,7 +392,8 @@ func (room *Entry_base) OnRecUserTrustee(args []interface{}) {
 //玩家离开房间
 func (room *Entry_base) ReqLeaveRoom(args []interface{}) (interface{}, error) {
 	player := args[0].(*user.User)
-	if room.Status == RoomStatusStarting {
+	log.Debug("ReqLeaveRoom room.Status=%d", room.Status)
+	if room.Status == RoomStatusStarting || room.Status == RoomStatusEnd {
 		room.UserMgr.AddLeavePly(player.Id)
 		room.UserMgr.SendMsgAllNoSelf(player.Id, &msg.G2C_LeaveRoomBradcast{UserID: player.Id})
 		room.TimerMgr.StartReplytIimer(player.Id, func() {
@@ -447,13 +448,13 @@ func (room *Entry_base) OnEventGameConclude(cbReason int) {
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case USER_LEAVE: //用户请求解散
-		room.DataMgr.NormalEnd(cbReason)
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case NO_START_GER_DISMISS: //没开始就解散
 		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(true, cbReason)
 	case ROOM_TRUSTEE: //房间托管结束
-		room.DataMgr.NormalEnd(cbReason)
+		room.DataMgr.DismissEnd(cbReason)
 		room.AfterEnd(false, cbReason)
 	}
 	log.Debug("at OnEventGameConclude cbReason:%d ", cbReason)

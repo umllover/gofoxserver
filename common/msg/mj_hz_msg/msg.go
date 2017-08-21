@@ -60,6 +60,8 @@ type G2C_GameConclude struct {
 
 	AllScore    []int   //总结算分
 	DetailScore [][]int //单局结算分
+
+	ZhuaHua [16]*HuaUser //用户抓花
 }
 
 // 出牌
@@ -118,4 +120,11 @@ type G2C_HZMJ_Trustee struct { //用户托管
 type G2C_HZMJ_ZhuaHua struct {
 	ZhongHua []int
 	BuZhong  []int
+}
+
+//抓花结构体子项
+type HuaUser struct {
+	ChairID int  //椅子号
+	Card    int  //牌值
+	IsZhong bool //是否中花
 }

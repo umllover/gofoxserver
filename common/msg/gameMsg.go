@@ -320,6 +320,7 @@ type G2C_Hu_Data struct {
 
 //超时进入下一局
 type G2C_OvertimeToNext struct {
+	PlayCount int
 }
 
 ///////////////////////// game chart begin ///////////////////////////////
