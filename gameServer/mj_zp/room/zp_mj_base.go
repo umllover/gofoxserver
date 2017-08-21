@@ -115,11 +115,15 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 	}
 
 	room.UserMgr.SetUsetTrustee(wChairID, bTrustee)
-
 	room.UserMgr.SendMsgAll(&mj_zp_msg.G2C_ZPMJ_Trustee{
 		Trustee: bTrustee,
 		ChairID: wChairID,
 	})
+
+	u := room.UserMgr.GetUserByChairId(wChairID)
+	if u == nil {
+		return false
+	}
 
 	if bTrustee {
 		if wChairID == room.GetDataMgr().GetCurrentUser() && !room.GetDataMgr().IsActionDone() {
@@ -127,17 +131,17 @@ func (room *ZP_base) OnUserTrustee(wChairID int, bTrustee bool) bool {
 			if cardindex == INVALID_BYTE {
 				return false
 			}
-			u := room.UserMgr.GetUserByChairId(wChairID)
 			card := room.LogicMgr.SwitchToCardData(cardindex)
 			room.OutCard([]interface{}{u, card, true})
 		} else if room.GetDataMgr().GetCurrentUser() == INVALID_CHAIR && !room.GetDataMgr().IsActionDone() {
-			u := room.UserMgr.GetUserByChairId(wChairID)
-			if u == nil {
-				return false
-			}
 			operateCard := []int{0, 0, 0}
 			room.UserOperateCard([]interface{}{u, WIK_NULL, operateCard})
 		}
+		//TODO 测试 启动机器人
+		//u.RunRobot()
+	} else {
+		//TODO 测试 关闭机器人
+		//u.StopRobot()
 	}
 	return true
 }

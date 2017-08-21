@@ -4,11 +4,15 @@ import (
 	"mj/common/msg"
 	"sync"
 
+	"mj/gameServer/RoomMgr"
+
 	"github.com/lovelly/leaf/gate"
+	"github.com/lovelly/leaf/log"
 )
 
 type User struct {
 	gate.Agent
+	robot      *Robot //设置玩家代理
 	Id         int64  //唯一id
 	NickName   string //名字
 	RoomId     int    // roomId 就是tableid
@@ -58,6 +62,14 @@ func (u *User) SendSysMsg(ty int, context string) {
 	})
 }
 
+func (u *User) WriteMsg(msg interface{}) {
+	if u.robot != nil {
+		u.robot.WriteMsg(msg)
+	} else {
+		u.Agent.WriteMsg(msg)
+	}
+}
+
 /////////////////////////
 
 func (u *User) IsOffline() bool {
@@ -70,4 +82,23 @@ func (u *User) SetRoomId(id int) {
 	u.mu.Lock()
 	defer u.mu.Unlock()
 	u.RoomId = id
+}
+
+func (u *User) RunRobot() {
+	room := RoomMgr.GetRoom(u.RoomId)
+	if room == nil {
+		log.Error("at RunRobot, cannt find room, roomid=%d", u.RoomId)
+		return
+	}
+	u.robot = NewRobot(u.Id, u, room)
+}
+
+func (u *User) StopRobot() {
+	if u.robot != nil {
+		u.robot.Close()
+		u.robot = nil
+		log.Debug("at StopRobot stop success, uid=%d", u.Id)
+	} else {
+		log.Debug("at StopRobot u.robot is nil, uid=%d", u.Id)
+	}
 }
