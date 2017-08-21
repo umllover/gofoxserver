@@ -1445,7 +1445,8 @@ func (room *RoomData) TrusteeEnd(cbReason int) {
 		playerScore = append(playerScore, 0)
 	}
 	room.HistorySe.DetailScore = append(room.HistorySe.DetailScore, playerScore)
-	room.MjBase.UserMgr.SendMsgAll(&msg.G2C_OvertimeToNext{})
+	nowCount := room.MjBase.TimerMgr.GetPlayCount()
+	room.MjBase.UserMgr.SendMsgAll(&msg.G2C_OvertimeToNext{nowCount})
 }
 
 //正常结束房间
