@@ -177,7 +177,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28006 player count %d", UserCnt)
+	log.Debug("nn init room version 28007 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
@@ -296,8 +296,6 @@ func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 		}
 		calScore.CardType[u.ChairId] = openCardInfo.CardType
 		util.DeepCopy(&calScore.CardData[u.ChairId], &openCardInfo.CardData)
-		// 更新积分
-		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u.ChairId]
 		//设置玩家积分
 		u.Score = int64(room.InitScoreMap[u.ChairId])
 	})
@@ -311,13 +309,6 @@ func (room *nntb_data_mgr) NormalEnd(cbReason int) {
 	userMgr.ForEachUser(func(u *user.User) {
 		u.WriteMsg(calScore)
 	})
-
-	roundScore := make([]int, room.PlayerCount)
-	for i := 0; i < room.PlayerCount; i++ {
-		roundScore[i] = room.CalScoreMap[i]
-	}
-	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
-	log.Debug("normal end each round score map %v", room.EachRoundScoreMap)
 
 	gameEnd := &nn_tb_msg.G2C_TBNN_GameEnd{}
 	gameEnd.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
@@ -652,11 +643,27 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	})
 
 	log.Debug("cal score map %v", r.CalScoreMap)
-
+	r.updateEachRoundScore()
 	// 游戏结束
 	r.PkBase.OnEventGameConclude(cost.GER_NORMAL)
 
 }
+
+func (room *nntb_data_mgr) updateEachRoundScore() {
+	userMgr := room.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User){
+		// 更新积分
+		room.InitScoreMap[u.ChairId] += room.CalScoreMap[u.ChairId]
+		return})
+
+	roundScore := make([]int, room.PlayerCount)
+	for i := 0; i < room.PlayerCount; i++ {
+		roundScore[i] = room.CalScoreMap[i]
+	}
+	room.EachRoundScoreMap[room.PkBase.TimerMgr.GetPlayCount()] = roundScore
+
+	log.Debug( "update each round score initscore:%v, roundscore:%v", room.InitScoreMap, room.EachRoundScoreMap)
+	return}
 
 // 7选5
 func (r *nntb_data_mgr) SelectCard(cardData []int) ([]int, int) {
