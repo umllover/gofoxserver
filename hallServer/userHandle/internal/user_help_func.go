@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	. "mj/common/cost"
 	"mj/hallServer/common"
-	"mj/hallServer/http_service"
+	"mj/hallServer/http_service/http_client"
 	"mj/hallServer/user"
 	"net/http"
 	"net/url"
@@ -22,7 +22,7 @@ func (m *UserModule) GetUser(args []interface{}) (interface{}, error) {
 	return u, nil
 }
 func ReqGetMaskCode(phome string, maskCode int) {
-	http_service.PostJSON("https://sms.yunpian.com/v2/sms/single_send.json", map[string]interface{}{
+	http_client.PostJSON("https://sms.yunpian.com/v2/sms/single_send.json", map[string]interface{}{
 		"apikey": common.GetGlobalVar("YUN_PIAN_API_KEY"),
 		"mobile": phome,
 		"text":   fmt.Sprintf(common.GetGlobalVar(MASK_CODE_TEXT), maskCode),

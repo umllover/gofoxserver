@@ -989,6 +989,7 @@ func (m *UserModule) RoomEndInfo(args []interface{}) {
 	return
 }
 
+//客户端发来的充值
 func (m *UserModule) RechargeById(OrderId int64) {
 	player := m.a.UserData().(*user.User)
 	retMsg := &msg.L2C_RechangerOk{}
@@ -1033,6 +1034,7 @@ func (m *UserModule) RechargeById(OrderId int64) {
 	retMsg.Code = goods.Diamond
 }
 
+//登录的时候的充值
 func (m *UserModule) Recharge(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 	orders, err := account.OnlineorderOp.QueryByMap(map[string]interface{}{
