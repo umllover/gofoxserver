@@ -14,7 +14,10 @@ import (
 
 var Wg sync.WaitGroup
 
+
+
 func TestSendMsgToAll(t *testing.T) {
+
 	//startTimer(0)
 	//ReciveGMMsg(5, 5, "dfsd")
 	InitRaceMsg()

@@ -74,7 +74,7 @@ func (server *HTTPServer) Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debug("http in =:", string(requestData))
+	log.Debug("http in =: %s", string(requestData))
 	method, params, game_err := server.rpch.Parse(&HandelData{MsgType: FROM_CLIENT_MSG, Data: requestData})
 	if game_err != nil {
 		log.Error("parse msg error arr = %v, error:%v", r.RemoteAddr, game_err.Error())
@@ -91,7 +91,7 @@ func (server *HTTPServer) Serve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bytes, err := json.Marshal(result)
-	log.Error("http  out =: ", string(bytes))
+	log.Error("http  out =: %s ", string(bytes))
 	if err != nil {
 		log.Error("Marshal result error at httpsver addr:%v error:%v", r.RemoteAddr, "convert call result to json failed.")
 	} else {
