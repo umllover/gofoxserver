@@ -1365,7 +1365,7 @@ func (m *UserModule) AddRoomRecord(args []interface{}) {
 	log.Debug("at AddRoomRecord ................ ")
 	roomInfo := args[0].(*model.CreateRoomInfo)
 	player := m.a.UserData().(*user.User)
-	player.AddRooms(roomInfo)
+	player.ChangeRoomInfo(roomInfo)
 }
 
 func (m *UserModule) DelRoomRecord(args []interface{}) {

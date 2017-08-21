@@ -53,6 +53,18 @@ func (u *User) GetUid() int64 {
 	return u.Id
 }
 
+func (u *User) ChangeRoomInfo(r *model.CreateRoomInfo) {
+	model.CreateRoomInfoOp.UpdateWithMap(r.RoomId, map[string]interface{}{
+		"user_id": u.Id,
+	})
+	if r.UserId != u.Id {
+		log.Error("at ChangeRoomInfo r.UserId != u.Id userId：%d, roomUserId:%d", u.Id, r.UserId)
+	}
+	u.Lock()
+	defer u.Unlock()
+	u.Rooms[r.RoomId] = r
+}
+
 func (u *User) AddRooms(r *model.CreateRoomInfo) {
 	model.CreateRoomInfoOp.Insert(r)
 	u.Lock()
@@ -66,7 +78,7 @@ func (u *User) DelRooms(id int) {
 	_, ok := u.Rooms[id]
 	if ok {
 		delete(u.Rooms, id)
-		model.CreateRoomInfoOp.Delete(id)
+		//model.CreateRoomInfoOp.Delete(id) 在关闭房间的时候统一删除
 	}
 }
 
