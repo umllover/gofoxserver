@@ -1017,7 +1017,7 @@ func (room *RoomData) CheckHuaCard(playerIndex, playerCNT int, IsInitFlower bool
 				log.Debug("玩家%d,j:%d 补花：%x，新牌：%x", playerIndex, j, logic.SwitchToCardData(index), NewCard)
 				room.FlowerCnt[playerIndex]++
 				room.FlowerCard[playerIndex] = append(room.FlowerCard[playerIndex], ReplaceCard)
-				if newCardIndex < (room.GetCfg().MaxIdx - room.GetCfg().HuaIndex) {
+				if newCardIndex < (room.GetCfg().MaxIdx-room.GetCfg().HuaIndex) || !room.IsEnoughCard() {
 					room.CardIndex[playerIndex][j]--
 					room.CardIndex[playerIndex][newCardIndex]++
 					if playerIndex == room.BankerUser || !IsInitFlower {
