@@ -87,14 +87,18 @@ const (
 	ErrNotFondCreatorRoom = 601 //没有找到要删除的房间
 	ErrRoomIsStart        = 602 //房间已经开始了
 
-	ErrFrequentAccess    = 603 //获取验证码太频繁了
-	ErrRandMaskCodeError = 604 //获取验证码失败
-	ErrMaskCodeNotFoud   = 605 //验证码没找到
-	ErrMaskCodeError     = 606 //验证码失败
-	ErrNotInRoom         = 607 //不在房间内
-	ErrFindRoomError     = 608 //查找房间失败
-	ErrConfigError       = 609 //配置错误
-	ErrRenewalFeeRepeat  = 610 //重复续费，已经有人续费过
+	ErrFrequentAccess      = 603 //获取验证码太频繁了
+	ErrRandMaskCodeError   = 604 //获取验证码失败
+	ErrMaskCodeNotFoud     = 605 //验证码没找到
+	ErrMaskCodeError       = 606 //验证码失败
+	ErrNotInRoom           = 607 //不在房间内
+	ErrFindRoomError       = 608 //查找房间失败
+	ErrConfigError         = 609 //配置错误
+	ErrRenewalFeeRepeat    = 610 //重复续费，已经有人续费过
+	ErrNotFoudOrder        = 611 //没有找到订单
+	ErrNotPay              = 612 //没有找到订单
+	ErrNotFoudTemlate      = 613 //没有找到商品配置
+	ErrNotUpdateOrderFaild = 614 //没有找到商品配置
 )
 
 ///////// 无效的数字
