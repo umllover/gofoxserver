@@ -323,7 +323,6 @@ func (r *sss_data_mgr) ComputeResult() {
 		userMgr.ForEachUser(func(u *user.User) {
 			j := u.ChairId
 			if i != j {
-
 				//都是普通牌型
 				if r.SpecialResults[i] == 0 && r.SpecialResults[j] == 0 {
 					firstResult := lg.SSSCompareCard(r.PlayerSegmentCardType[j][0], r.PlayerSegmentCardType[i][0])
@@ -489,8 +488,9 @@ func (room *sss_data_mgr) NormalEnd(reason int) {
 		gameEnd.BToltalWinDaoShu[u.ChairId] = room.ToltalResults[u.ChairId]
 		gameEnd.LGameScore[u.ChairId] = room.ToltalResults[u.ChairId]
 		gameEnd.CbSpecialCompareResult[u.ChairId] = room.SpecialCompareResults[u.ChairId]
-		gameEnd.BSpecialCard[u.ChairId] = false
-
+		if room.SpecialResults[u.ChairId] > 0 {
+			gameEnd.BSpecialCard[u.ChairId] = true
+		}
 	})
 
 	userMgr.ForEachUser(func(u *user.User) {
@@ -694,7 +694,13 @@ func (room *sss_data_mgr) SendStatusPlay(u *user.User) {
 	//BOverTime          []bool          `json:"bOverTime"`          //超时状态
 	statusPlay.BOverTime = make([]bool, 0)
 	//BSpecialTypeTable1 []bool          `json:"bSpecialTypeTable1"` //是否特殊牌型
-	statusPlay.BSpecialTypeTable1 = make([]bool, 0)
+	//statusPlay.BSpecialTypeTable1 = make([]bool, 0)
+	statusPlay.BSpecialCard = make([]bool, room.PlayerCount)
+	for i, v := range room.SpecialResults {
+		if v > 0 {
+			statusPlay.BSpecialCard[i] = true
+		}
+	}
 	//BDragon1           []bool          `json:"bDragon1"`           //是否倒水
 	statusPlay.BDragon1 = make([]bool, 0)
 	//BAllHandCardData   [][]int         `json:"bAllHandCardData"`   //所有玩家的扑克数据
@@ -878,25 +884,26 @@ func (room *sss_data_mgr) get5card(cardData []int, leftLaiZiCard []int) (segment
 					break
 				}
 			}
-			if len(segmentCard) == 0 {
-				logicCards := make([]int, 6)
-				for _, v := range uniqueColorCard {
-					for k := range logicCards {
-						if lg.GetCardValue(v) == k && logicCards[k] == 0 {
-							logicCards[k] = v
-						}
+			if len(segmentCard) > 0 {
+				break
+			}
+			logicCards := make([]int, 6)
+			for _, v := range uniqueColorCard {
+				for k := range logicCards {
+					if lg.GetCardValue(v) == k && logicCards[k] == 0 {
+						logicCards[k] = v
 					}
 				}
-				isSmallStraight := true
-				for _, v := range logicCards[1:6] {
-					if v == 0 {
-						isSmallStraight = false
-					}
+			}
+			isSmallStraight := true
+			for _, v := range logicCards[1:6] {
+				if v == 0 {
+					isSmallStraight = false
 				}
-				if isSmallStraight {
-					segmentCard = append(segmentCard, logicCards[1:6]...)
-					break
-				}
+			}
+			if isSmallStraight {
+				segmentCard = append(segmentCard, logicCards[1:6]...)
+				break
 			}
 		}
 	}
