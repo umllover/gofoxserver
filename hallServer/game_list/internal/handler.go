@@ -509,8 +509,11 @@ func CheckTimeOut(r *msg.RoomInfo, now int64) {
 	for uid, t := range r.MachPlayer {
 		if t < now {
 			if _, ok := r.Players[uid]; !ok {
-				log.Error("at CheckTimeOut player :%d not join room ")
-				delete(r.MachPlayer, uid)
+				log.Error("at CheckTimeOut player :%d not join room ", uid)
+				MatchRpc.Go("delMatchPlayer", uid, r)
+				if r.PayType == AA_PAY_TYPE || uid == r.CreateUserId {
+					center.SendToThisNodeUser(uid, "RoomReturnMoney", &msg.RoomReturnMoney{RoomId: r.RoomID, CreatorUid: r.CreateUserId})
+				}
 			}
 		}
 	}
