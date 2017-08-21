@@ -378,6 +378,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 			Star:        player.Star,
 			Sign:        player.Sign,
 			PhomeNumber: player.PhomeNumber,
+			ElectUid:    player.ElectUid,
 		}
 	} else {
 		userAttr, ok := model.UserattrOp.Get(recvMsg.UserId)
@@ -400,6 +401,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 			Star:        userAttr.Star,
 			Sign:        userAttr.Sign,
 			PhomeNumber: "",
+			ElectUid:    player.ElectUid,
 		}
 	}
 
@@ -879,7 +881,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *accou
 	retMsg.MbPayTotal = user.MbPayTotal
 	retMsg.MbVipLevel = user.MbVipLevel
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
-
 	//约战房相关
 	retMsg.UserScore = user.Currency
 	retMsg.ServerID = user.ServerID
@@ -1365,7 +1366,7 @@ func (m *UserModule) AddRoomRecord(args []interface{}) {
 	log.Debug("at AddRoomRecord ................ ")
 	roomInfo := args[0].(*model.CreateRoomInfo)
 	player := m.a.UserData().(*user.User)
-	player.AddRooms(roomInfo)
+	player.ChangeRoomInfo(roomInfo)
 }
 
 func (m *UserModule) DelRoomRecord(args []interface{}) {
