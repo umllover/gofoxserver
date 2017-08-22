@@ -371,6 +371,7 @@ func (room *ddz_data_mgr) SendStatusPlay(u *user.User) {
 	StatusPlay.CurrentPlayCount = room.PkBase.TimerMgr.GetPlayCount()
 	StatusPlay.LimitPlayCount = room.PkBase.TimerMgr.GetMaxPlayCnt()
 	StatusPlay.TimeOutCard = room.PkBase.TimerMgr.GetTimeOutCard()
+	StatusPlay.TimeCallScore = room.PkBase.TimerMgr.GetTimeOperateCard()
 	StatusPlay.CurrentUser = room.CurrentUser
 	StatusPlay.EightKing = room.EightKing
 	StatusPlay.PlayMode = room.GameType
