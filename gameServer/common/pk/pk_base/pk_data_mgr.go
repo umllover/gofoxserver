@@ -73,6 +73,7 @@ type RoomData struct {
 }
 
 func (room *RoomData) GetUserScore(chairid int) int {
+	log.Debug( "get user score %v chairid : %d", room.InitScoreMap, chairid)
 	if chairid > room.PkBase.UserMgr.GetMaxPlayerCnt() {
 		return 0
 	}

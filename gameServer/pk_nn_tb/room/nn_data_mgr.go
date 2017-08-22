@@ -33,9 +33,9 @@ const (
 
 // 定时器 -- for test
 const (
-	TIME_CALL_SCORE = 30
-	TIME_ADD_SCORE  = 30
-	TIME_OPEN_CARD  = 30
+	TIME_CALL_SCORE = 3
+	TIME_ADD_SCORE  = 3
+	TIME_OPEN_CARD  = 3
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, info *msg.L2G_CreatorRoom) *nntb_data_mgr {
@@ -607,8 +607,7 @@ func (r *nntb_data_mgr) OpenCardEnd() {
 	r.OpenCardTimer.Stop()
 	r.SetAllUserGameStatus(GAME_STATUS_OPEN_CARD)
 	// 结算
-	// 比牌
-	log.Debug("enter cal score")
+	log.Debug("enter cal score play count%d", r.CurrentPlayCount)
 	r.GameStatus = GAME_STATUS_CAL_SCORE
 	r.SetAllUserGameStatus(GAME_STATUS_CAL_SCORE)
 	logicMgr := r.PkBase.LogicMgr
