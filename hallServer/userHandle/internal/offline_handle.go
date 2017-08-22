@@ -100,6 +100,7 @@ func handlerOfflineRoomEndInfo(player *user.User, ReturnMoney *msg.RoomReturnMon
 		player.AddCurrency(record.Amount)
 	}
 	player.DelRooms(ReturnMoney.RoomId)
+	player.DelGameLockInfo()
 	return true
 
 }

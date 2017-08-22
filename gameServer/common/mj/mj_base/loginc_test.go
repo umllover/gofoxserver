@@ -16,6 +16,8 @@ import (
 
 	"mj/common/msg"
 
+	"encoding/json"
+
 	"github.com/lovelly/leaf"
 	"github.com/lovelly/leaf/chanrpc"
 	lconf "github.com/lovelly/leaf/conf"
@@ -31,7 +33,18 @@ var (
 	wg   sync.WaitGroup
 )
 
+type RpcRequest struct {
+	Method string        `json:"func_name"`
+	Params []interface{} `json:"params"`
+}
+
 func TestGameStart_1(t *testing.T) {
+
+	r := &RpcRequest{}
+	r.Method = "GMNotice"
+	r.Params = []interface{}{1, 2, "sssss"}
+	b, err := json.Marshal(r)
+	fmt.Println(string(b), err)
 	room.UserReady([]interface{}{nil, u1})
 }
 
@@ -169,7 +182,6 @@ func init() {
 	lconf.ConnAddrs = conf.Server.ConnAddrs
 	conf.Test = true
 	lconf.PendingWriteNum = conf.Server.PendingWriteNum
-	lconf.HeartBeatInterval = conf.HeartBeatInterval
 	leaf.InitLog()
 
 	db.InitDB(&conf.DBConfig{})
@@ -194,14 +206,14 @@ func init() {
 	u1 = newTestUser(1)
 	u1.ChairId = 0
 	userg.Users[0] = u1
-	r := NewMJBase(info)
+	r := NewMJBase(info.KindId, info.ServiceId)
 	datag := NewDataMgr(info.RoomID, u1.Id, IDX_HZMJ, "", temp, r, info)
 	cfg := &NewMjCtlConfig{
 		BaseMgr:  base,
 		DataMgr:  datag,
 		UserMgr:  userg,
 		LogicMgr: NewBaseLogic(IDX_HZMJ),
-		TimerMgr: room_base.NewRoomTimerMgr(info.Num, temp, base.GetSkeleton()),
+		TimerMgr: room_base.NewRoomTimerMgr(info.PlayCnt, temp, base.GetSkeleton()),
 	}
 	r.Init(cfg)
 	room = r

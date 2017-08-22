@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	ResetMatchTime = 45
+	ResetMatchTime = 30
 )
 
 type MachPlayer struct {

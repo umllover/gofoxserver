@@ -1,14 +1,11 @@
 package internal
 
 import (
+	"mj/common/msg"
 	"mj/hallServer/db/model"
 	"mj/hallServer/user"
 	"mj/hallServer/userHandle"
 	"time"
-
-	"mj/common/msg"
-
-	"mj/hallServer/http_service"
 
 	"github.com/lovelly/leaf/log"
 )
@@ -18,7 +15,6 @@ func init() {
 
 // 接收到消息，存表
 func ReciveGMMsg(sendTimes int, interval int, context string) {
-
 	var raceMsginfo model.RaceMsgInfo
 	raceMsginfo.Context = context
 	raceMsginfo.SendTimes = sendTimes
@@ -43,18 +39,6 @@ func ReciveGMMsg(sendTimes int, interval int, context string) {
 func InitRaceMsg() {
 	log.Debug("初始化Race模块")
 	GetGMMsgFromDB()
-	SetGMNoticeCallBack()
-}
-
-// 设置GM消息回调
-func SetGMNoticeCallBack() {
-	http_service.DefaultHttpHandler.SetGMNoticeCallBack(func(args []interface{}) {
-		sendTime := args[0].(int)
-		interval := args[1].(int)
-		context := args[2].(string)
-		log.Debug("Race模块接收到消息%d,%d,%s", sendTime, interval, context)
-		ReciveGMMsg(sendTime, interval, context)
-	})
 }
 
 // 服务端启动，从数据库读取GM未发送完成的消息数据

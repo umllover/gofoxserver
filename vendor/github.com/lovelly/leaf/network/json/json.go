@@ -223,3 +223,12 @@ func (p *Processor) GetMsgId(msg interface{}) (string, error) {
 	}
 	return msgID, nil
 }
+
+func (p *Processor) GetAllMsgs() map[string]interface{} {
+	m := make(map[string]interface{})
+	for _, v := range p.msgInfo {
+		msg := reflect.New(v.msgType.Elem()).Interface()
+		m[v.msgType.String()] = msg
+	}
+	return m
+}

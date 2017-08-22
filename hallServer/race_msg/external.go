@@ -5,6 +5,7 @@ import (
 )
 
 var (
-	ChanRPC = internal.ChanRPC
-	Module  = new(internal.Module)
+	ChanRPC  = internal.ChanRPC
+	Module   = new(internal.Module)
+	GmNotify = internal.ReciveGMMsg
 )

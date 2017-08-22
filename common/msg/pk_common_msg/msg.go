@@ -111,6 +111,7 @@ type G2C_PKCOMMON_StatusPlay struct {
 	CurrentPlayCount int  // 房间已玩局数
 	LimitPlayCount   int  // 总局数
 	TimeOutCard      int  // 出牌时间
+	TimeCallScore    int  // 叫分时间
 	CurrentUser      int  // 当前玩家
 	EightKing        bool // 是否八王模式
 	PlayMode         int  // 游戏类型(0：经典场 1：欢乐场 2：癞子场)

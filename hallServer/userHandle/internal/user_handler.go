@@ -378,6 +378,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 			Star:        player.Star,
 			Sign:        player.Sign,
 			PhomeNumber: player.PhomeNumber,
+			ElectUid:    player.ElectUid,
 		}
 	} else {
 		userAttr, ok := model.UserattrOp.Get(recvMsg.UserId)
@@ -400,6 +401,7 @@ func (m *UserModule) GetUserIndividual(args []interface{}) {
 			Star:        userAttr.Star,
 			Sign:        userAttr.Sign,
 			PhomeNumber: "",
+			ElectUid:    player.ElectUid,
 		}
 	}
 
@@ -879,7 +881,6 @@ func BuildClientMsg(retMsg *msg.L2C_LogonSuccess, user *user.User, acinfo *accou
 	retMsg.MbPayTotal = user.MbPayTotal
 	retMsg.MbVipLevel = user.MbVipLevel
 	retMsg.PayMbVipUpgrade = user.PayMbVipUpgrade
-
 	//约战房相关
 	retMsg.UserScore = user.Currency
 	retMsg.ServerID = user.ServerID
@@ -988,6 +989,52 @@ func (m *UserModule) RoomEndInfo(args []interface{}) {
 	return
 }
 
+//客户端发来的充值
+func (m *UserModule) RechargeById(OrderId int64) {
+	player := m.a.UserData().(*user.User)
+	retMsg := &msg.L2C_RechangerOk{}
+	defer func() {
+		player.WriteMsg(retMsg)
+	}()
+
+	order, err := account.OnlineorderOp.GetByMap(map[string]interface{}{
+		"order_id": OrderId,
+	})
+
+	if err != nil {
+		retMsg.Code = ErrNotFoudOrder
+		return
+	}
+
+	if order.OrderStatus != 0 {
+		retMsg.Code = ErrNotPay
+		return
+	}
+
+	goods, ok := base.GoodsCache.Get(order.GoodsId)
+	if !ok {
+		retMsg.Code = ErrNotFoudTemlate
+		return
+	}
+
+	qerr := account.OnlineorderOp.UpdateWithMap(order.OnLineId, map[string]interface{}{
+		"order_status": 2,
+	})
+
+	if qerr != nil {
+		retMsg.Code = ErrNotUpdateOrderFaild
+		return
+	}
+
+	if !player.HasTimes(common.ActivityRechangeDay) {
+		player.SetTimes(common.ActivityRechangeDay, 0)
+	}
+	log.Debug("11111111111111111111 ")
+	player.AddCurrency(goods.Diamond)
+	retMsg.Code = goods.Diamond
+}
+
+//登录的时候的充值
 func (m *UserModule) Recharge(args []interface{}) {
 	player := m.a.UserData().(*user.User)
 	orders, err := account.OnlineorderOp.QueryByMap(map[string]interface{}{
@@ -995,7 +1042,6 @@ func (m *UserModule) Recharge(args []interface{}) {
 		"order_status": 0,
 	})
 	if err != nil {
-		player.WriteMsg(&msg.L2C_RechangerOk{Code: 1, Gold: player.Currency})
 		log.Debug("at Recharge load orders error :%s", err.Error())
 		return
 	}
@@ -1032,13 +1078,7 @@ func (m *UserModule) Recharge(args []interface{}) {
 			break
 		}
 
-		if code == 2 {
-			continue
-		}
-
-		if code != 0 {
-			player.WriteMsg(&msg.L2C_RechangerOk{Code: code, Gold: player.Currency})
-		} else {
+		if code == 0 {
 			if !player.HasTimes(common.ActivityRechangeDay) {
 				player.SetTimes(common.ActivityRechangeDay, 0)
 			}
@@ -1325,8 +1365,8 @@ func (m *UserModule) ReqBindMaskCode(args []interface{}) {
 }
 
 func (m *UserModule) RechangerOk(args []interface{}) {
-	//recvMsg := args[0].(*msg.C2L_RechangerOk)
-	m.Recharge(nil)
+	recvMsg := args[0].(*msg.C2L_RechangerOk)
+	m.RechargeById(recvMsg.OrderId)
 }
 
 func (m *UserModule) GetRoomRecord(args []interface{}) {
@@ -1365,7 +1405,7 @@ func (m *UserModule) AddRoomRecord(args []interface{}) {
 	log.Debug("at AddRoomRecord ................ ")
 	roomInfo := args[0].(*model.CreateRoomInfo)
 	player := m.a.UserData().(*user.User)
-	player.AddRooms(roomInfo)
+	player.ChangeRoomInfo(roomInfo)
 }
 
 func (m *UserModule) DelRoomRecord(args []interface{}) {
