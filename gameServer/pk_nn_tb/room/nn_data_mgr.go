@@ -33,9 +33,9 @@ const (
 
 // 定时器 -- for test
 const (
-	TIME_CALL_SCORE = 3
-	TIME_ADD_SCORE  = 3
-	TIME_OPEN_CARD  = 3
+	TIME_CALL_SCORE = 15
+	TIME_ADD_SCORE  = 15
+	TIME_OPEN_CARD  = 15
 )
 
 func NewDataMgr(id int, uid int64, ConfigIdx int, name string, temp *base.GameServiceOption, base *NNTB_Entry, info *msg.L2G_CreatorRoom) *nntb_data_mgr {
@@ -167,6 +167,10 @@ func (room *nntb_data_mgr) AfterStartGame() {
 	room.GameStatus = GAME_STATUS_CALL_SCORE
 	log.Debug("begin call score timer")
 
+	userMgr := room.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User){
+		u.WriteMsg(&nn_tb_msg.G2C_TBNN_CallScoreTimer{
+		LeftTime:TIME_CALL_SCORE})})
 	room.CallScoreTimer = room.PkBase.AfterFunc(TIME_CALL_SCORE*time.Second, func() {
 		log.Debug("end call score timer")
 		if room.GameStatus == GAME_STATUS_CALL_SCORE { // 超时叫分结束

@@ -6,6 +6,8 @@ package base
 func InitTableMap() {
 	/*
 	   db.BaseDBMap.AddTableWithName(Activity{}, "activity").SetKeys(false,"Id")
+	   db.BaseDBMap.AddTableWithName(BackendGoods{}, "backend_goods").SetKeys(false,"GoodsId")
+	   db.BaseDBMap.AddTableWithName(ConGoods{}, "con_goods").SetKeys(false,"GoodsId")
 	   db.BaseDBMap.AddTableWithName(FreeLimit{}, "free_limit").SetKeys(false,"FreeName")
 	   db.BaseDBMap.AddTableWithName(GameServiceOption{}, "game_service_option").SetKeys(false,"KindID","ServerID")
 	   db.BaseDBMap.AddTableWithName(GameTestpai{}, "game_testpai").SetKeys(true, "Id")

@@ -13,6 +13,8 @@ import (
 func LoadBaseData() {
 	var start = time.Now().UnixNano()
 	ActivityCache.LoadAll()
+	BackendGoodsCache.LoadAll()
+	ConGoodsCache.LoadAll()
 	FreeLimitCache.LoadAll()
 	GameServiceOptionCache.LoadAll()
 	GameTestpaiCache.LoadAll()
@@ -25,6 +27,8 @@ func LoadBaseData() {
 	UpgradeCache.LoadAll()
 	UpgradeAdvisorCache.LoadAll()
 	db.BaseDataCaches["Activity"] = ActivityCache
+	db.BaseDataCaches["BackendGoods"] = BackendGoodsCache
+	db.BaseDataCaches["ConGoods"] = ConGoodsCache
 	db.BaseDataCaches["FreeLimit"] = FreeLimitCache
 	db.BaseDataCaches["GameServiceOption"] = GameServiceOptionCache
 	db.BaseDataCaches["GameTestpai"] = GameTestpaiCache
@@ -36,5 +40,5 @@ func LoadBaseData() {
 	db.BaseDataCaches["RefreshInTime"] = RefreshInTimeCache
 	db.BaseDataCaches["Upgrade"] = UpgradeCache
 	db.BaseDataCaches["UpgradeAdvisor"] = UpgradeAdvisorCache
-	log.Debug("loadBaseData %v, %v %v", 12, time.Now().UnixNano()-start, "ns")
+	log.Debug("loadBaseData %v, %v %v", 14, time.Now().UnixNano()-start, "ns")
 }

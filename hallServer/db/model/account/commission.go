@@ -33,6 +33,7 @@ type Commission struct {
 	AgentNum       string     `db:"agent_num" json:"agent_num"`               // 代理编号
 	PreAgentNum    string     `db:"pre_agent_num" json:"pre_agent_num"`       // 父级代理编号
 	FormatAgentNum string     `db:"format_agent_num" json:"format_agent_num"` // 代理编号格式
+	ProductId      string     `db:"product_id" json:"product_id"`             // 产品标识
 }
 
 type commissionOp struct{}
@@ -110,7 +111,7 @@ func (op *commissionOp) Insert(m *Commission) (int64, error) {
 
 // 插入数据，自增长字段将被忽略
 func (op *commissionOp) InsertTx(ext sqlx.Ext, m *Commission) (int64, error) {
-	sql := "insert into commission(user_id,order_id,transaction_id,pay_amount,pay_type,order_status,quantity,is_settle,ip_address,apply_date,goods_id,prepay_id,is_agent,agent_num,pre_agent_num,format_agent_num) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sql := "insert into commission(user_id,order_id,transaction_id,pay_amount,pay_type,order_status,quantity,is_settle,ip_address,apply_date,goods_id,prepay_id,is_agent,agent_num,pre_agent_num,format_agent_num,product_id) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 	result, err := ext.Exec(sql,
 		m.UserId,
 		m.OrderId,
@@ -128,6 +129,7 @@ func (op *commissionOp) InsertTx(ext sqlx.Ext, m *Commission) (int64, error) {
 		m.AgentNum,
 		m.PreAgentNum,
 		m.FormatAgentNum,
+		m.ProductId,
 	)
 	if err != nil {
 		log.Error("InsertTx sql error:%v, data:%v", err.Error(), m)
@@ -139,7 +141,7 @@ func (op *commissionOp) InsertTx(ext sqlx.Ext, m *Commission) (int64, error) {
 
 //存在就更新， 不存在就插入
 func (op *commissionOp) InsertUpdate(obj *Commission, m map[string]interface{}) error {
-	sql := "insert into commission(user_id,order_id,transaction_id,pay_amount,pay_type,order_status,quantity,is_settle,ip_address,apply_date,goods_id,prepay_id,is_agent,agent_num,pre_agent_num,format_agent_num) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
+	sql := "insert into commission(user_id,order_id,transaction_id,pay_amount,pay_type,order_status,quantity,is_settle,ip_address,apply_date,goods_id,prepay_id,is_agent,agent_num,pre_agent_num,format_agent_num,product_id) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE "
 	var params = []interface{}{obj.UserId,
 		obj.OrderId,
 		obj.TransactionId,
@@ -156,6 +158,7 @@ func (op *commissionOp) InsertUpdate(obj *Commission, m map[string]interface{}) 
 		obj.AgentNum,
 		obj.PreAgentNum,
 		obj.FormatAgentNum,
+		obj.ProductId,
 	}
 	var set_sql string
 	for k, v := range m {
@@ -187,7 +190,7 @@ func (op *commissionOp) Update(m *Commission) error {
 
 // 用主键(属性)做条件，更新除主键外的所有字段
 func (op *commissionOp) UpdateTx(ext sqlx.Ext, m *Commission) error {
-	sql := `update commission set user_id=?,order_id=?,transaction_id=?,pay_amount=?,pay_type=?,order_status=?,quantity=?,is_settle=?,ip_address=?,apply_date=?,goods_id=?,prepay_id=?,is_agent=?,agent_num=?,pre_agent_num=?,format_agent_num=? where onLine_id=?`
+	sql := `update commission set user_id=?,order_id=?,transaction_id=?,pay_amount=?,pay_type=?,order_status=?,quantity=?,is_settle=?,ip_address=?,apply_date=?,goods_id=?,prepay_id=?,is_agent=?,agent_num=?,pre_agent_num=?,format_agent_num=?,product_id=? where onLine_id=?`
 	_, err := ext.Exec(sql,
 		m.UserId,
 		m.OrderId,
@@ -205,6 +208,7 @@ func (op *commissionOp) UpdateTx(ext sqlx.Ext, m *Commission) error {
 		m.AgentNum,
 		m.PreAgentNum,
 		m.FormatAgentNum,
+		m.ProductId,
 		m.OnLineId,
 	)
 

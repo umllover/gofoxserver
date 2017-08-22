@@ -18,6 +18,9 @@ func init() {
 	msg.Processor.Register(&G2C_TBNN_Open_Card{})
 	msg.Processor.Register(&G2C_TBNN_CalScore{})
 	msg.Processor.Register(&G2C_TBNN_CallScore{})
+	msg.Processor.Register(&G2C_TBNN_CallScoreTimer{})
+	msg.Processor.Register(&G2C_TBNN_AddScoreTimer{})
+	msg.Processor.Register(&G2C_TBNN_OpenCardTimer{})
 
 	// ----------c2s------------
 	msg.Processor.Register(&C2G_TBNN_CallScore{})
@@ -99,6 +102,15 @@ type G2C_TBNN_CallScore struct {
 	ChairID   int //叫分用户
 	CallScore int //叫分数目
 }
+
+// timer  ------
+type G2C_TBNN_CallScoreTimer struct {
+	LeftTime int}
+type G2C_TBNN_AddScoreTimer struct {
+	LeftTime int}
+type G2C_TBNN_OpenCardTimer struct {
+	LeftTime int}
+
 
 // ----------c2s----------------
 //用户叫分
