@@ -21,6 +21,7 @@ type G2C_PKCOMMON_StatusFree struct {
 	TurnScore    []int  //积分信息
 	CollectScore []int  //积分信息
 	GameRoomName string //房间名称
+	LeftTime int // 定时器剩余时间 以游戏状态为准
 
 	TimeOutCard     int   //出牌时间
 	TimeOperateCard int   //操作时间
@@ -107,6 +108,7 @@ type G2C_PKCOMMON_StatusPlay struct {
 
 	InitScore    []int  //积分信息
 	GameRoomName string //房间名称
+	LeftTime int // 定时器剩余时间 以游戏状态为准
 
 	CurrentPlayCount int  // 房间已玩局数
 	LimitPlayCount   int  // 总局数

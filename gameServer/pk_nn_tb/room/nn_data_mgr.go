@@ -72,6 +72,7 @@ type nntb_data_mgr struct {
 	CallScoreTimer *timer.Timer
 	AddScoreTimer  *timer.Timer
 	OpenCardTimer  *timer.Timer
+	TimeStartTimer int64
 }
 
 func (room *nntb_data_mgr) SetUserAddScoreTimes(chairId int, addScoreTimes int) {
@@ -114,6 +115,7 @@ func (room *nntb_data_mgr) SendStatusPlay(u *user.User) {
 	//游戏变量
 	StatusPlay.CellScore = room.CellScore
 	StatusPlay.GameStatus = room.GameStatus
+	StatusPlay.LeftTime = TIME_CALL_SCORE - int(time.Now().Unix()-room.TimeStartTimer)
 	if room.GameStatus > GAME_STATUS_CALL_SCORE {
 		StatusPlay.BankerUser = room.BankerUser
 	}
@@ -171,6 +173,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 	userMgr.ForEachUser(func(u *user.User){
 		u.WriteMsg(&nn_tb_msg.G2C_TBNN_CallScoreTimer{
 		LeftTime:TIME_CALL_SCORE})})
+	room.TimeStartTimer = time.Now().Unix()
 	room.CallScoreTimer = room.PkBase.AfterFunc(TIME_CALL_SCORE*time.Second, func() {
 		log.Debug("end call score timer")
 		if room.GameStatus == GAME_STATUS_CALL_SCORE { // 超时叫分结束
@@ -181,7 +184,7 @@ func (room *nntb_data_mgr) AfterStartGame() {
 
 func (room *nntb_data_mgr) InitRoom(UserCnt int) {
 
-	log.Debug("nn init room version 28007 player count %d", UserCnt)
+	log.Debug("nn init room version 28008 player count %d", UserCnt)
 	//初始化
 	room.CardData = make([][]int, UserCnt)
 
@@ -425,6 +428,10 @@ func (r *nntb_data_mgr) CallScoreEnd() {
 	// 进入加注
 	r.GameStatus = GAME_STATUS_ADD_SCORE
 	log.Debug("begin add score timer ")
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(&nn_tb_msg.G2C_TBNN_AddScoreTimer{
+		LeftTime:TIME_ADD_SCORE})})
+	r.TimeStartTimer = time.Now().Unix()
 	r.AddScoreTimer = r.PkBase.AfterFunc(TIME_ADD_SCORE*time.Second, func() { // 超时加注结束
 		log.Debug("end add score timer")
 		if r.GameStatus == GAME_STATUS_ADD_SCORE {
@@ -510,11 +517,15 @@ func (r *nntb_data_mgr) EnterOpenCard() {
 	// 亮牌超时
 	log.Debug("begin open card timer")
 
+	userMgr := r.PkBase.UserMgr
+	userMgr.ForEachUser(func(u *user.User) {
+		u.WriteMsg(&nn_tb_msg.G2C_TBNN_OpenCardTimer{
+		LeftTime:TIME_OPEN_CARD})})
+	r.TimeStartTimer = time.Now().Unix()
 	r.OpenCardTimer = r.PkBase.AfterFunc(TIME_OPEN_CARD*time.Second, func() { // 超时亮牌结束
 		log.Debug("end open card timer")
 		if r.GameStatus == GAME_STATUS_OPEN_CARD {
 			// 没有亮牌的用户自动亮牌
-			userMgr := r.PkBase.UserMgr
 			userMgr.ForEachUser(func(u *user.User) {
 				if r.OpenCardMap[u.ChairId].CardData == nil {
 					log.Debug("user : %d has not open card ", u.ChairId)

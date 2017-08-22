@@ -13,16 +13,17 @@ import (
 
 // +gen
 type Upgrade struct {
-	UpId       int     `db:"up_id" json:"up_id"`           //
-	Level      int     `db:"level" json:"level"`           //
-	PayAmount  int     `db:"pay_amount" json:"pay_amount"` //
-	Commission int     `db:"commission" json:"commission"` //
-	AgentNum   int     `db:"agent_num" json:"agent_num"`   //
-	RateB      float64 `db:"rate_b" json:"rate_b"`         //
-	RateC      float64 `db:"rate_c" json:"rate_c"`         //
-	RateD      float64 `db:"rate_d" json:"rate_d"`         //
-	IconId     int     `db:"icon_id" json:"icon_id"`       //
-	Liveness   int     `db:"liveness" json:"liveness"`     //
+	UpId           int     `db:"up_id" json:"up_id"`                     //
+	Level          int     `db:"level" json:"level"`                     //
+	InstructorFees int     `db:"instructor_fees" json:"instructor_fees"` //
+	InstructorRate int     `db:"instructor_rate" json:"instructor_rate"` //
+	TotalIncome    string  `db:"total_income" json:"total_income"`       //
+	AgentNum       int     `db:"agent_num" json:"agent_num"`             //
+	RateB          float64 `db:"rate_b" json:"rate_b"`                   //
+	RateC          float64 `db:"rate_c" json:"rate_c"`                   //
+	RateD          float64 `db:"rate_d" json:"rate_d"`                   //
+	IconId         int     `db:"icon_id" json:"icon_id"`                 //
+	Liveness       int     `db:"liveness" json:"liveness"`               //
 }
 
 var DefaultUpgrade = Upgrade{}
